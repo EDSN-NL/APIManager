@@ -42,7 +42,6 @@ namespace Plugin.Application.Events.Util
             {
                 ContextSlt context = ContextSlt.GetContextSlt();
                 ModelSlt model = ModelSlt.GetModelSlt();
-                Logger.WriteInfo("Write some logging");
 
                 MEClass currentClass = context.CurrentClass;
                 MEPackage currentPackage = context.CurrentPackage;
