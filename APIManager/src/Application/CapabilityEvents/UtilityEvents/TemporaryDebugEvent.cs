@@ -27,7 +27,7 @@ using Newtonsoft.Json.Schema.Infrastructure.Collections;
 
 namespace Plugin.Application.Events.Util
 {
-    class DebugEvent : EventImplementation
+    class TemporaryDebugEvent : EventImplementation
     {
         private JSchema _commonSchema;
 
