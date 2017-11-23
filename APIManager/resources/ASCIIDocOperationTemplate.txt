@@ -1,0 +1,10 @@
+[[@OPERATIONANCHOR@]]
+@LVL@ @OPERATIONNAME@
+
+@OPERATIONNOTES@
+
+@ASCIIDocMessageTemplate@
+
+@ASCIIDocCommonClasses@
+
+@ASCIIDocClassifiers@

@@ -1,0 +1,21 @@
+
+   ========================================================================================
+   @CAPABILITYTYPE@ '@CAPABILITY@' for service: '@SERVICE@'
+   ========================================================================================
+   Schema agency:            Enexis
+   Schema creation date:     @TIMESTAMP@
+   Capability version:       @VERSION@
+   Capability modeled by:    @AUTHOR@
+   Assigned access level:    @ACCESSLEVEL@
+
+   Copyright (C) Enexis (@YEAR@). All Rights Reserved.
+   
+   ........................................................................................
+   @CHANGELOG@
+   ........................................................................................
+
+   THIS DOCUMENT AND THE INFORMATION CONTAINED HEREIN IS PROVIDED ON AN AS IS BASIS
+   AND ENEXIS DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+   TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS
+   OR ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+   ========================================================================================

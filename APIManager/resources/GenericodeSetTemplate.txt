@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--@HEADER@-->
+<gc:CodeListSet xmlns:gc="http://docs.oasis-open.org/codelist/ns/genericode/1.0/"
+    xmlns:rule="http://docs.oasis-open.org/codelist/ns/rule/1.0/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://docs.oasis-open.org/codelist/ns/genericode/1.0/ 
+	http://docs.oasis-open.org/codelist/cs-genericode-1.0/xsd/genericode.xsd">
+    
+    <Identification>
+        <ShortName xml:lang="en">@NAME@</ShortName>
+        <Version>@VERSION@</Version>
+        <CanonicalUri>@CANONICALURI@</CanonicalUri>
+        <CanonicalVersionUri>@CANONICALVSURI@</CanonicalVersionUri>
+        <Agency>
+            <ShortName>@AGENCYNAME@</ShortName>
+            <Identifier>@AGENCYID@</Identifier>
+        </Agency>
+    </Identification>
+    
+@REFSET@
+</gc:CodeListSet>

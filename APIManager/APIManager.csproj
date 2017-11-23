@@ -1,0 +1,577 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{386C6DA7-1C6C-45A1-A423-59DBCCD4F0B4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>APIManager.SparxEA</RootNamespace>
+    <AssemblyName>APIManager</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <LangVersion>default</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <RegisterForComInterop>true</RegisterForComInterop>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>resources\APIManager.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ClosedXML, Version=0.86.0.0, Culture=neutral, PublicKeyToken=fd1eb21b62ae805b, processorArchitecture=MSIL">
+      <HintPath>..\packages\ClosedXML.0.86.0\lib\net40\ClosedXML.dll</HintPath>
+    </Reference>
+    <Reference Include="DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\DocumentFormat.OpenXml.2.5\lib\DocumentFormat.OpenXml.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.EA">
+      <HintPath>C:\Program Files (x86)\Sparx Systems\EA\Interop.EA.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json.Schema, Version=3.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.Schema.3.0.3\lib\net45\Newtonsoft.Json.Schema.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="SVGExport">
+      <HintPath>C:\Program Files (x86)\Siemens\EA SVG Export\SVGExport.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Serialization" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="resources\Settings.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\AddRESTOperationEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\AddRESTResourceEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\CreateRESTServiceDeclarationEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\ProcessRESTInterfaceEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\CodeList\ProcessCodeListSetEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\AddAnnotationEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\DeleteInterfaceEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\AddInterfaceEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\AssociateWithOperationsEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\ProcessSOAPInterfaceEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\ProcessMessageEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\ServiceContext.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\ConsistencyCheckEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\CapabilityDocumentationEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\ClassInspectorEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\SetMetadataEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\RepairAttributeOrderEvent.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\OpenAPI20ProcessorHdrBuilder.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\OpenAPI20Processor.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\APIProcessor.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\APIProcessorSOAPItfBuilder.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\APIProcessorSchemaBuilder.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTOperationResultDeclaration.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTResourceDeclaration.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTOperationDeclaration.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTParameterDeclaration.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTResourceContainerInterface.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Implementation\RESTOperationResultCapabilityImp.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Interface\RESTOperationResultCapability.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\RESTService.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\ApplicationService.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Implementation\RESTOperationCapabilityImp.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Interface\RESTOperationCapability.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Interface\RESTResourceCapability.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Implementation\RESTResourceCapabilityImp.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\RESTUtil.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Interface\RESTInterfaceCapability.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Implementation\RESTInterfaceCapabilityImp.cs" />
+    <Compile Include="src\Application\CapabilityModel\SchemaGeneration\ClassCacheSlt.cs" />
+    <Compile Include="src\Application\CapabilityModel\SchemaGeneration\ClassifierContext.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Interface\CommonSchemaCapability.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Implementation\CommonSchemaCapabilityImp.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Interface\InterfaceCapability.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Implementation\InterfaceCapabilityImp.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Interface\MessageCapability.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Implementation\MessageCapabilityImp.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Implementation\OperationCapabilityImp.cs" />
+    <Compile Include="src\Application\CapabilityModel\SchemaGeneration\SchemaProcessor.cs" />
+    <Compile Include="src\Application\CapabilityModel\SchemaGeneration\SchemaProcessorParser.cs" />
+    <Compile Include="src\Application\CapabilityModel\SchemaGeneration\SchemaProcessorUtil.cs" />
+    <Compile Include="src\Application\CapabilityModel\ASCIIDoc\CommonDocContext.cs" />
+    <Compile Include="src\Application\CapabilityModel\ASCIIDoc\CrossReference.cs" />
+    <Compile Include="src\Application\CapabilityModel\ASCIIDoc\OperationDocContext.cs" />
+    <Compile Include="src\Application\CapabilityModel\ASCIIDoc\DocContext.cs" />
+    <Compile Include="src\Application\CapabilityModel\ASCIIDoc\ClassifierDocNode.cs" />
+    <Compile Include="src\Application\CapabilityModel\ASCIIDoc\ClassDocNode.cs" />
+    <Compile Include="src\Application\CapabilityModel\ASCIIDoc\DocManagerSlt.cs" />
+    <Compile Include="src\Application\CapabilityModel\CapabilityImp.cs" />
+    <Compile Include="src\Application\CapabilityModel\CodeList\CodeListCapabilityImp.cs" />
+    <Compile Include="src\Application\CapabilityModel\CodeList\ExcelExporter.cs" />
+    <Compile Include="src\Application\CapabilityModel\ProgressPanelSlt.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Interface\OperationCapability.cs" />
+    <Compile Include="src\Application\Forms\AccessLevelForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\AccessLevelForm.designer.cs">
+      <DependentUpon>AccessLevelForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTResponseCodeDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTResponseCodeDialog.designer.cs">
+      <DependentUpon>RESTResponseCodeDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTParameterDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTParameterDialog.Designer.cs">
+      <DependentUpon>RESTParameterDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTOperationDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTOperationDialog.designer.cs">
+      <DependentUpon>RESTOperationDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\ClassInspector.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\ClassInspector.designer.cs">
+      <DependentUpon>ClassInspector.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\CapabilityDocumentation.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\CapabilityDocumentation.Designer.cs">
+      <DependentUpon>CapabilityDocumentation.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\CreateRESTServiceDeclaration.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\CreateRESTServiceDeclaration.designer.cs">
+      <DependentUpon>CreateRESTServiceDeclaration.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTResourceDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTResourceDialog.Designer.cs">
+      <DependentUpon>RESTResourceDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTAuthEditAPIKeys.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTAuthEditAPIKeys.Designer.cs">
+      <DependentUpon>RESTAuthEditAPIKeys.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTResponseManager.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTResponseManager.Designer.cs">
+      <DependentUpon>RESTResponseManager.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Framework\Model\Interface\MEClassMetaData.cs" />
+    <Compile Include="src\Framework\SchemaManagement\JSON\JSONPropertyInterface.cs" />
+    <Compile Include="src\Framework\SchemaManagement\JSON\JSONSchema.cs" />
+    <Compile Include="src\Framework\SchemaManagement\EnumerationItem.cs" />
+    <Compile Include="src\Framework\SchemaManagement\JSON\JSONClassifier.cs" />
+    <Compile Include="src\Framework\SchemaManagement\JSON\JSONSortableSchemaElement.cs" />
+    <Compile Include="src\Framework\SchemaManagement\JSON\JSONAttribute.cs" />
+    <Compile Include="src\Framework\SchemaManagement\JSON\JSONFacet.cs" />
+    <Compile Include="src\Framework\SchemaManagement\JSON\JSONPrimitiveType.cs" />
+    <Compile Include="src\Framework\SchemaManagement\JSON\JSONChoice.cs" />
+    <Compile Include="src\Framework\SchemaManagement\JSON\JSONAssociation.cs" />
+    <Compile Include="src\Framework\SchemaManagement\Schema.cs" />
+    <Compile Include="src\Framework\SchemaManagement\SchemaAssociation.cs" />
+    <Compile Include="src\Framework\SchemaManagement\Choice.cs" />
+    <Compile Include="src\Framework\SchemaManagement\SchemaAttribute.cs" />
+    <Compile Include="src\Framework\SchemaManagement\Facet.cs" />
+    <Compile Include="src\Framework\SchemaManagement\PrimitiveType.cs" />
+    <Compile Include="src\Framework\Util\IllegalEnumException.cs" />
+    <Compile Include="src\Framework\Util\IllegalCardinalityException.cs" />
+    <Compile Include="src\Framework\SchemaManagement\XML\XMLSchema.cs" />
+    <Compile Include="src\Framework\SchemaManagement\XML\XMLPrimitiveType.cs" />
+    <Compile Include="src\Framework\SchemaManagement\XML\XMLAttribute.cs" />
+    <Compile Include="src\Framework\SchemaManagement\XML\XMLAssociation.cs" />
+    <Compile Include="src\Framework\SchemaManagement\XML\XMLFacet.cs" />
+    <Compile Include="src\Framework\SchemaManagement\XML\XMLChoice.cs" />
+    <Compile Include="src\Framework\SchemaManagement\XML\XMLSortableSchemaElement.cs" />
+    <Compile Include="src\Application\Forms\AddInterfaceInput.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\AddInterfaceInput.designer.cs">
+      <DependentUpon>AddInterfaceInput.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\CapabilityPicker.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\CapabilityPicker.Designer.cs">
+      <DependentUpon>CapabilityPicker.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\CodeListPicker.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\CodeListPicker.Designer.cs">
+      <DependentUpon>CodeListPicker.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\CollectAnnotation.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\CollectAnnotation.Designer.cs">
+      <DependentUpon>CollectAnnotation.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\ConfirmOperationChanges.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\ConfirmOperationChanges.Designer.cs">
+      <DependentUpon>ConfirmOperationChanges.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\ProgressPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\ProgressPanel.Designer.cs">
+      <DependentUpon>ProgressPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\CapabilityModel\ProcessorManagerSlt.cs" />
+    <Compile Include="src\Application\CapabilityModel\CodeList\GeneriCodeExporter.cs" />
+    <Compile Include="src\Application\CapabilityModel\CodeList\CodeListExporter.cs" />
+    <Compile Include="src\Application\CapabilityModel\CapabilityProcessor.cs" />
+    <Compile Include="src\Application\CapabilityModel\CodeList\CodeListCapability.cs" />
+    <Compile Include="src\Application\CapabilityModel\CodeList\CodeListService.cs" />
+    <Compile Include="src\Application\CapabilityEvents\CodeList\DeleteCodeListEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\CodeList\CodeListMajorVersionEvent.cs" />
+    <Compile Include="src\Application\Forms\CapabilityProcessorPicker.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\CapabilityProcessorPicker.Designer.cs">
+      <DependentUpon>CapabilityProcessorPicker.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\ChangeMajorVersion.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\ChangeMajorVersion.Designer.cs">
+      <DependentUpon>ChangeMajorVersion.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\CapabilityEvents\CodeList\ProcessCodeListEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\CodeList\UpdateCodeListEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\CodeList\AddCodeListsEvent.cs" />
+    <Compile Include="src\Application\Forms\AboutBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\AboutBox.designer.cs">
+      <DependentUpon>AboutBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\CapabilityModel\Capability.cs" />
+    <Compile Include="src\Application\CapabilityModel\Service.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\CopyServiceDeclarationEvent .cs" />
+    <Compile Include="src\Application\Forms\AddCodeListInput.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\AddCodeListInput.designer.cs">
+      <DependentUpon>AddCodeListInput.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\CodeListDirector.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\CodeListDirector.Designer.cs">
+      <DependentUpon>CodeListDirector.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\CodeListEnumPicker.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\CodeListEnumPicker.Designer.cs">
+      <DependentUpon>CodeListEnumPicker.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\CreateCodeListDeclaration.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\CreateCodeListDeclaration.Designer.cs">
+      <DependentUpon>CreateCodeListDeclaration.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\CapabilityEvents\CodeList\CreateCodeListDeclarationEvent .cs" />
+    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\DebugEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\RenameOperationsEvent.cs" />
+    <Compile Include="src\Application\Forms\RenameOperationInput.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\RenameOperationInput.designer.cs">
+      <DependentUpon>RenameOperationInput.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\CapabilityEvents\API\DeleteOperationsEvent.cs" />
+    <Compile Include="src\Application\Forms\AddOperationInput.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\AddOperationInput.designer.cs">
+      <DependentUpon>AddOperationInput.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\CapabilityEvents\API\AddOperationsEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\CreateServiceDeclarationEvent.cs" />
+    <Compile Include="src\Application\Forms\CreateSOAPServiceDeclaration.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\CreateSOAPServiceDeclaration.designer.cs">
+      <DependentUpon>CreateSOAPServiceDeclaration.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\SettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\SettingsForm.designer.cs">
+      <DependentUpon>SettingsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\SettingsEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\AboutEvent.cs" />
+    <Compile Include="src\Framework\Context\FrameworkSettings.cs" />
+    <Compile Include="src\Framework\EventConfig\EventGroupDescriptor.cs" />
+    <Compile Include="src\Framework\EventConfig\EventTreeDescriptor.cs" />
+    <Compile Include="src\Framework\EventConfig\EventHandlerConfiguration.cs" />
+    <Compile Include="src\Framework\EventConfig\EventHandlerDescriptor.cs" />
+    <Compile Include="src\Framework\Event\EventImplementation.cs" />
+    <Compile Include="src\Framework\Model\Implementation\MEIAssociation.cs" />
+    <Compile Include="src\Framework\Model\Implementation\MEIAttribute.cs" />
+    <Compile Include="src\Framework\Model\Implementation\MEIObject.cs" />
+    <Compile Include="src\Framework\Model\Implementation\MEIUnionType.cs" />
+    <Compile Include="src\Framework\Model\Implementation\MEISupplementary.cs" />
+    <Compile Include="src\Framework\Model\Implementation\MEIFacet.cs" />
+    <Compile Include="src\Framework\Model\Implementation\MEIEnumeratedType.cs" />
+    <Compile Include="src\Framework\Model\Interface\MEAssociation.cs" />
+    <Compile Include="src\Framework\Model\Interface\MEObject.cs" />
+    <Compile Include="src\Framework\Model\Interface\MEUnionType.cs" />
+    <Compile Include="src\Framework\Model\Interface\MESupplementary.cs" />
+    <Compile Include="src\Framework\Model\Interface\MEFacet.cs" />
+    <Compile Include="src\Framework\Model\Interface\MEAttribute.cs" />
+    <Compile Include="src\Framework\Util\MEChangeLog.cs" />
+    <Compile Include="src\Framework\Model\Interface\MEEnumeratedType.cs" />
+    <Compile Include="src\Framework\Model\Interface\MEDataType.cs" />
+    <Compile Include="src\Framework\Model\Implementation\MEIDataType.cs" />
+    <Compile Include="src\Framework\Model\Implementation\MEIClass.cs" />
+    <Compile Include="src\Framework\Model\Interface\MEPackage.cs" />
+    <Compile Include="src\Framework\Model\Interface\MEClass.cs" />
+    <Compile Include="src\Framework\Util\Conversions.cs" />
+    <Compile Include="src\Framework\Util\IllegalContextException.cs" />
+    <Compile Include="src\Framework\Util\FileLogger.cs" />
+    <Compile Include="src\Framework\Util\LoggerInterface.cs" />
+    <Compile Include="src\Framework\Util\MissingImplementationException.cs" />
+    <Compile Include="src\Framework\Util\MetadataCreator.cs" />
+    <Compile Include="src\SparxEA\EAClassifierManager.cs" />
+    <Compile Include="src\Framework\SchemaManagement\XML\TextEncoder.cs" />
+    <Compile Include="src\Framework\View\DiagramImplementation.cs" />
+    <Compile Include="src\Framework\Util\ModelElementDocumentation.cs" />
+    <Compile Include="src\Framework\Model\Implementation\ModelElementImplementation.cs" />
+    <Compile Include="src\Framework\Model\Implementation\MEIPackage.cs" />
+    <Compile Include="src\Framework\Model\Interface\ModelSlt.cs" />
+    <Compile Include="src\Framework\Model\Implementation\ModelImplementation.cs" />
+    <Compile Include="src\Framework\View\Diagram.cs" />
+    <Compile Include="src\Framework\Model\Interface\ModelElement.cs" />
+    <Compile Include="src\Framework\Context\Configuration.cs" />
+    <Compile Include="src\Framework\Context\ContextSlt.cs" />
+    <Compile Include="src\Framework\Context\ContextImplementation.cs" />
+    <Compile Include="src\Framework\Controller\ControllerSlt.cs" />
+    <Compile Include="src\Framework\Event\Event.cs" />
+    <Compile Include="src\Framework\Event\EventManager.cs" />
+    <Compile Include="src\Framework\Util\Logger.cs" />
+    <Compile Include="src\Framework\Util\TreeNode.cs" />
+    <Compile Include="src\SparxEA\EAAddinFramework.cs" />
+    <Compile Include="src\SparxEA\EADiagramImplementation.cs" />
+    <Compile Include="src\SparxEA\EAMEIAssociation.cs" />
+    <Compile Include="src\SparxEA\EAMEIObject.cs" />
+    <Compile Include="src\SparxEA\EAMEISupplementary.cs" />
+    <Compile Include="src\SparxEA\EAMEIFacet.cs" />
+    <Compile Include="src\SparxEA\EAMEIAttribute.cs" />
+    <Compile Include="src\SparxEA\EAMEIUnionType.cs" />
+    <Compile Include="src\SparxEA\EAMEIEnumeratedType.cs" />
+    <Compile Include="src\SparxEA\EAMEIDataType.cs" />
+    <Compile Include="src\SparxEA\EAMEIPackage.cs" />
+    <Compile Include="src\SparxEA\EAMEIClass.cs" />
+    <Compile Include="src\SparxEA\EAModelImplementation.cs" />
+    <Compile Include="src\SparxEA\EAContextImplementation.cs" />
+    <Compile Include="src\SparxEA\EAController.cs" />
+    <Compile Include="src\SparxEA\EALogger.cs" />
+    <Compile Include="src\SparxEA\EAModelTransformSupport.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="resources\APIManager.ico" />
+    <None Include="resources\OpenAPI20Header.txt" />
+    <None Include="packages.config" />
+    <None Include="resources\SOAPSchemaHeaderOCPP.txt" />
+    <None Include="resources\SOAPSchemaHeaderEnexis.txt" />
+    <None Include="resources\SOAPInterfaceHeaderOCPP.txt" />
+    <None Include="resources\SOAPInterfaceHeaderEnexis.txt" />
+    <None Include="resources\ASCIIDocClassTemplate.txt" />
+    <None Include="resources\ASCIIDocTypeTemplate.txt" />
+    <None Include="resources\ASCIIDocEnumTemplate.txt" />
+    <None Include="resources\ASCIIDocOperationTemplate.txt" />
+    <None Include="resources\ASCIIDocMessageTemplate.txt" />
+    <None Include="resources\ASCIIDocMessageClasses.txt" />
+    <None Include="resources\ASCIIDocCommonClasses.txt" />
+    <None Include="resources\ASCIIDocClassifiers.txt" />
+    <None Include="resources\ASCIIDocCommonTemplate.txt" />
+    <None Include="resources\ASCIIDocOperationListTemplate.txt" />
+    <None Include="resources\ASCIIDocEmptyClassTemplate.txt" />
+    <None Include="resources\ASCIIDocCommonClasses-backup.txt" />
+    <None Include="resources\ASCIIDocMessageClasses-backup.txt" />
+    <Content Include="resources\EDSN-LDT-MappingTable.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="resources\EventHandlerConfig.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </Content>
+    <None Include="resources\SOAPSchemaHeader.txt" />
+    <None Include="resources\SOAPInterfaceHeader.txt" />
+    <None Include="resources\GenericodeSetTemplate.txt" />
+    <Content Include="resources\GenericodeTemplate.txt" />
+    <None Include="resources\packages.config" />
+    <None Include="resources\CodeListHeader.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="resources\EventHandlerConfig.xsd">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\AboutBox.resx">
+      <DependentUpon>AboutBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\AccessLevelForm.resx">
+      <DependentUpon>AccessLevelForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\AddCodeListInput.resx">
+      <DependentUpon>AddCodeListInput.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\AddInterfaceInput.resx">
+      <DependentUpon>AddInterfaceInput.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\RESTResponseCodeDialog.resx">
+      <DependentUpon>RESTResponseCodeDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\RESTParameterDialog.resx">
+      <DependentUpon>RESTParameterDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\RESTOperationDialog.resx">
+      <DependentUpon>RESTOperationDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\ClassInspector.resx">
+      <DependentUpon>ClassInspector.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\CapabilityProcessorPicker.resx">
+      <DependentUpon>CapabilityProcessorPicker.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\ChangeMajorVersion.resx">
+      <DependentUpon>ChangeMajorVersion.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\CodeListDirector.resx">
+      <DependentUpon>CodeListDirector.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\CapabilityPicker.resx">
+      <DependentUpon>CapabilityPicker.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\CodeListPicker.resx">
+      <DependentUpon>CodeListPicker.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\CodeListEnumPicker.resx">
+      <DependentUpon>CodeListEnumPicker.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\CapabilityDocumentation.resx">
+      <DependentUpon>CapabilityDocumentation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\CollectAnnotation.resx">
+      <DependentUpon>CollectAnnotation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\ConfirmOperationChanges.resx">
+      <DependentUpon>ConfirmOperationChanges.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\CreateCodeListDeclaration.resx">
+      <DependentUpon>CreateCodeListDeclaration.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\CreateRESTServiceDeclaration.resx">
+      <DependentUpon>CreateRESTServiceDeclaration.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\ProgressPanel.resx">
+      <DependentUpon>ProgressPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\RenameOperationInput.resx">
+      <DependentUpon>RenameOperationInput.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\AddOperationInput.resx">
+      <DependentUpon>AddOperationInput.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\CreateSOAPServiceDeclaration.resx">
+      <DependentUpon>CreateSOAPServiceDeclaration.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\RESTResourceDialog.resx">
+      <DependentUpon>RESTResourceDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\RESTAuthEditAPIKeys.resx">
+      <DependentUpon>RESTAuthEditAPIKeys.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\RESTResponseManager.resx">
+      <DependentUpon>RESTResponseManager.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\SettingsForm.resx">
+      <DependentUpon>SettingsForm.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

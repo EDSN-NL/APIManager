@@ -1,0 +1,14 @@
+:numbered:
+:toc: macro
+
+= OCPP 2.X: Messages
+v0.8 DRAFT, 2017-02-09
+:title-logo-image: ../../style/media/logo.png
+
+Copyright © 2010 – 2017 Open Charge Alliance. All rights reserved.
+
+This document is made available under the _*Creative Commons Attribution-NoDerivatives 4.0 International Public License*_ (https://creativecommons.org/licenses/by-nd/4.0/legalcode).
+
+@ASCIIDocCommonClasses@
+
+@ASCIIDocClassifiers@

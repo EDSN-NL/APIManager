@@ -1,0 +1,8 @@
+
+[[@CLASSANCHOR@]]
+@LVL@ @CLASSNAME@
+_Class_
+
+@NOTES@
+
+@XREF@

@@ -1,0 +1,19 @@
+
+   ========================================================================================
+   @CAPABILITYTYPE@ '@CAPABILITY@'
+   ========================================================================================
+   Interface agency:         Open Charge Alliance 
+   Interface creation date:  @TIMESTAMP@
+   Interface version:        @VERSION@
+
+   Copyright (C) Open Charge Alliance (2010 - @YEAR@). All Rights Reserved.
+   
+   ........................................................................................
+   @CHANGELOG@
+   ........................................................................................
+
+   THIS DOCUMENT AND THE INFORMATION CONTAINED HEREIN IS PROVIDED ON AN AS IS BASIS AND
+   OPEN CHARGE ALLIANCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+   LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY
+   RIGHTS OR ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE
+   ========================================================================================

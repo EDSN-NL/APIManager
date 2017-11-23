@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EventConfiguration xmlns="urn:x-enexis:ecdm:framework:context:eventhandler"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="urn:x-enexis:ecdm:framework:context:eventhandler file:EventHandlerConfig.xsd">
+ 
+  <EventTree scope="Controller">
+    <EventHandlerList>
+      <EventHandler ID="Settings">
+        <HandlerFQN>Plugin.Application.Events.Util.SettingsEvent</HandlerFQN>
+      </EventHandler>
+      <EventHandler ID="About">
+        <HandlerFQN>Plugin.Application.Events.Util.AboutEvent</HandlerFQN>
+      </EventHandler>
+      <EventHandler ID="Debugger">
+        <HandlerFQN>Plugin.Application.Events.Util.DebugEvent</HandlerFQN>
+      </EventHandler>
+    </EventHandlerList>
+ </EventTree>
+  
+ <EventTree scope="PackageTree">
+   <EventGroupList>
+     <EventGroup ID="Application Services">
+       <EventHandlerList>
+         <EventHandler ID="Interface: Add">
+           <HandlerFQN>Plugin.Application.Events.API.AddInterfaceEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on the service declaration package. -->
+             <StereotypeName>Enexis ECDM::ServiceDeclaration</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Interface: Process">
+           <HandlerFQN>Plugin.Application.Events.API.ProcessSOAPInterfaceEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Interface classes. -->
+             <StereotypeName>Enexis ECDM::InterfaceContract</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Operation: Add">
+           <HandlerFQN>Plugin.Application.Events.API.AddOperationsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Operation packages. -->
+             <StereotypeName>Enexis ECDM::ServiceOperation</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Operation: Delete">
+           <HandlerFQN>Plugin.Application.Events.API.DeleteOperationsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Operation packages. -->
+             <StereotypeName>Enexis ECDM::ServiceOperation</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Operation: Rename">
+           <HandlerFQN>Plugin.Application.Events.API.RenameOperationsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Operation packages. -->
+             <StereotypeName>Enexis ECDM::ServiceOperation</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Service: Check association stereotypes">
+           <HandlerFQN>Plugin.Application.Events.API.ConsistencyCheckEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on the declaration package. -->
+             <StereotypeName>Enexis ECDM::ServiceDeclaration</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Service Declaration: Create">
+           <HandlerFQN>Plugin.Application.Events.API.CreateServiceDeclarationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on packages that have the 'ServiceContainer' stereotype. -->
+             <StereotypeName>Enexis ECDM::ServiceContainer</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Service Declaration: Copy">
+           <HandlerFQN>Plugin.Application.Events.API.CopyServiceDeclarationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on packages that have the 'ServiceDeclaration' stereotype. -->
+             <StereotypeName>Enexis ECDM::ServiceDeclaration</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+       </EventHandlerList>
+     </EventGroup>
+     <EventGroup ID="Code Lists">
+       <EventHandlerList>
+         <EventHandler ID="Add Code List(s)">
+           <HandlerFQN>Plugin.Application.Events.CodeList.AddCodeListsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on packages that have the 'CodeListDeclaration' stereotype. -->
+             <StereotypeName>Enexis ECDM::CodeListDeclaration</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Create new Code List declaration">
+           <HandlerFQN>Plugin.Application.Events.CodeList.CreateCodeListDeclarationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on packages that have the 'ServiceContainer' stereotype. -->
+             <StereotypeName>Enexis ECDM::ServiceContainer</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Delete Code List">
+           <HandlerFQN>Plugin.Application.Events.CodeList.DeleteCodeListEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on a class that has the 'CodeList' stereotype. -->
+             <!-- We don't have to check package context since CodeLists can only exist in a single, correct, package type. -->
+             <StereotypeName>Enexis ECDM::CodeList</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Process Code List">
+           <HandlerFQN>Plugin.Application.Events.CodeList.ProcessCodeListEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on a class that has the 'CodeList' stereotype. -->
+             <!-- We don't have to check package context since CodeLists can only exist in a single, correct, package type. -->
+             <StereotypeName>Enexis ECDM::CodeList</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Process Code List Set">
+           <HandlerFQN>Plugin.Application.Events.CodeList.ProcessCodeListSetEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on packages that have the 'CodeListDeclaration' stereotype. -->
+             <StereotypeName>Enexis ECDM::CodeListDeclaration</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Update Code List">
+           <HandlerFQN>Plugin.Application.Events.CodeList.UpdateCodeListEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on a class that has the 'CodeList' stereotype. -->
+             <!-- We don't have to check package context since CodeLists can only exist in a single, correct, package type. -->
+             <StereotypeName>Enexis ECDM::CodeList</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Update Major Version">
+           <HandlerFQN>Plugin.Application.Events.CodeList.CodeListMajorVersionEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on packages that have the 'CodeListDeclaration' stereotype. -->
+             <StereotypeName>Enexis ECDM::CodeListDeclaration</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+       </EventHandlerList>
+     </EventGroup>
+     <EventGroup ID="REST Services">
+       <EventHandlerList>
+         <EventHandler ID="Interface: Process">
+           <HandlerFQN>Plugin.Application.Events.API.ProcessRESTInterfaceEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Interface classes. -->
+             <StereotypeName>Enexis ECDM::InterfaceContract</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Operation: Add">
+           <HandlerFQN>Plugin.Application.Events.API.AddRESTOperationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Resources. -->
+             <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Resource: Add">
+           <HandlerFQN>Plugin.Application.Events.API.AddRESTResourceEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Interfaces or other Resources. -->
+             <StereotypeName>Enexis ECDM::InterfaceContract</StereotypeName>
+             <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Resource: Delete">
+           <HandlerFQN>Plugin.Application.Events.API.DeleteOperationsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Resource collections. -->
+             <StereotypeName>Enexis ECDM::Resource</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Resource: Edit">
+           <HandlerFQN>Plugin.Application.Events.API.AddOperationsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Resources. -->
+             <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Resource: Rename">
+           <HandlerFQN>Plugin.Application.Events.API.RenameOperationsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Resources. -->
+             <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="API Declaration: Create">
+           <HandlerFQN>Plugin.Application.Events.API.CreateRESTServiceDeclarationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on packages that have the 'ServiceContainer' stereotype. -->
+             <StereotypeName>Enexis ECDM::ServiceContainer</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+       </EventHandlerList>
+     </EventGroup>
+     <EventGroup ID="Utilities">
+       <EventHandlerList>
+         <EventHandler ID="Assign Metadata">
+           <HandlerFQN>Plugin.Application.Events.Util.SetMetadataEvent</HandlerFQN>
+         </EventHandler>
+         <EventHandler ID="Class Inspector">
+           <!-- Simply shows meta data of currently selected class. Does not required specific preconditions. -->
+           <HandlerFQN>Plugin.Application.Events.Util.ClassInspectorEvent</HandlerFQN>
+         </EventHandler>
+         <EventHandler ID="Edit Capability Documentation">
+           <HandlerFQN>Plugin.Application.Events.Util.CapabilityDocumentationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Capabilities and/or Service declaration classes. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+             <StereotypeName>Enexis ECDM::ServiceCapability</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Repair Attribute Order">
+           <HandlerFQN>Plugin.Application.Events.Util.RepairAttributeOrderEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Business Component classes. -->
+             <StereotypeName>Enexis ECDM::BusinessComponent</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+       </EventHandlerList>
+     </EventGroup>     
+   </EventGroupList>
+ </EventTree>
+
+ <EventTree scope="Diagram">
+   <EventGroupList>
+     <EventGroup ID="Application Services">
+       <EventHandlerList>
+         <EventHandler ID="Interface: Add Annotation">
+           <HandlerFQN>Plugin.Application.Events.API.AddAnnotationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on classes that have the 'InterfaceContract' stereotype. -->
+             <StereotypeName>Enexis ECDM::InterfaceContract</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Interface: Add">
+           <HandlerFQN>Plugin.Application.Events.API.AddInterfaceEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on classes that have the 'Service' stereotype. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Interface: Associate with Operation(s)">
+           <HandlerFQN>Plugin.Application.Events.API.AssociateWithOperationsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on classes that have the 'InterfaceContract' stereotype. -->
+             <StereotypeName>Enexis ECDM::InterfaceContract</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Interface: Delete">
+           <HandlerFQN>Plugin.Application.Events.API.DeleteInterfaceEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on classes that have the 'InterfaceContract' stereotype. -->
+             <StereotypeName>Enexis ECDM::InterfaceContract</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Interface: Process">
+           <HandlerFQN>Plugin.Application.Events.API.ProcessSOAPInterfaceEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Interface classes. -->
+             <StereotypeName>Enexis ECDM::InterfaceContract</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Message: Process">
+           <HandlerFQN>Plugin.Application.Events.API.ProcessMessageEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on classes that have the 'BusinessMessage' stereotype. -->
+             <StereotypeName>Enexis ECDM::BusinessMessage</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Operation: Add">
+           <HandlerFQN>Plugin.Application.Events.API.AddOperationsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on classes that have the 'InterfaceContract' stereotype. -->
+             <StereotypeName>Enexis ECDM::InterfaceContract</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+          <EventHandler ID="Operation: Delete">
+           <HandlerFQN>Plugin.Application.Events.API.DeleteOperationsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on classes that have the 'Operation' stereotype. -->
+             <StereotypeName>Enexis ECDM::Operation</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Operation: Rename">
+           <HandlerFQN>Plugin.Application.Events.API.RenameOperationsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on classes that have the 'Operation' stereotype. -->
+             <StereotypeName>Enexis ECDM::Operation</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Service: Check association stereotypes">
+           <HandlerFQN>Plugin.Application.Events.API.ConsistencyCheckEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Services. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+       </EventHandlerList>
+     </EventGroup>
+     <EventGroup ID="Code Lists">
+       <EventHandlerList>
+         <EventHandler ID="Add Code List(s)">
+           <HandlerFQN>Plugin.Application.Events.CodeList.AddCodeListsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on a class that has the 'Service' stereotype. -->
+             <!-- Also, the diagram must be part of a CodeList Declaration, but we can not check that here. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Delete Code List">
+           <HandlerFQN>Plugin.Application.Events.CodeList.DeleteCodeListEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on a class that has the 'CodeList' stereotype. -->
+             <!-- We don't have to check package context since CodeLists can only exist in a single, correct, package type. -->
+             <StereotypeName>Enexis ECDM::CodeList</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Process Code List">
+           <HandlerFQN>Plugin.Application.Events.CodeList.ProcessCodeListEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on a class that has the 'CodeList' stereotype. -->
+             <!-- We don't have to check package context since CodeLists can only exist in a single, correct, package type. -->
+             <StereotypeName>Enexis ECDM::CodeList</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Process Code List Set">
+           <HandlerFQN>Plugin.Application.Events.CodeList.ProcessCodeListSetEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on a class that has the 'Service' stereotype. -->
+             <!-- Also, the diagram must be part of a CodeList Declaration, but we can not check that here. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Update Code List">
+           <HandlerFQN>Plugin.Application.Events.CodeList.UpdateCodeListEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on a class that has the 'CodeList' stereotype. -->
+             <!-- We don't have to check package context since CodeLists can only exist in a single, correct, package type. -->
+             <StereotypeName>Enexis ECDM::CodeList</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Update Major Version">
+           <HandlerFQN>Plugin.Application.Events.CodeList.CodeListMajorVersionEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on a class that has the 'Service' stereotype. -->
+             <!-- Also, the diagram must be part of a CodeList Declaration, but we can not check that here. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+       </EventHandlerList>
+     </EventGroup>
+     <EventGroup ID="REST Services">
+       <EventHandlerList>
+         <EventHandler ID="Interface: Process">
+           <HandlerFQN>Plugin.Application.Events.API.ProcessRESTInterfaceEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Interface classes. -->
+             <StereotypeName>Enexis ECDM::InterfaceContract</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Operation: Add">
+           <HandlerFQN>Plugin.Application.Events.API.AddRESTOperationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Resources. -->
+             <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Resource: Add">
+           <HandlerFQN>Plugin.Application.Events.API.AddRESTResourceEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Interfaces or other Resources. -->
+             <StereotypeName>Enexis ECDM::InterfaceContract</StereotypeName>
+             <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Resource: Delete">
+           <HandlerFQN>Plugin.Application.Events.API.DeleteOperationsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Resources. -->
+             <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Resource: Edit">
+           <HandlerFQN>Plugin.Application.Events.API.AddOperationsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Resources. -->
+             <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Resource: Rename">
+           <HandlerFQN>Plugin.Application.Events.API.RenameOperationsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Resources. -->
+             <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+       </EventHandlerList>
+     </EventGroup>
+     <EventGroup ID="Utilities">
+       <EventHandlerList>
+         <EventHandler ID="Assign Metadata">
+           <HandlerFQN>Plugin.Application.Events.Util.SetMetadataEvent</HandlerFQN>
+         </EventHandler>
+         <EventHandler ID="Edit Capability Documentation">
+           <HandlerFQN>Plugin.Application.Events.Util.CapabilityDocumentationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Capabilities and/or Service declaration classes. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+             <StereotypeName>Enexis ECDM::ServiceCapability</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Class Inspector">
+           <!-- Simply shows meta data of currently selected class. Does not required specific preconditions. -->
+           <HandlerFQN>Plugin.Application.Events.Util.ClassInspectorEvent</HandlerFQN>
+         </EventHandler>
+         <EventHandler ID="Repair Attribute Order">
+           <HandlerFQN>Plugin.Application.Events.Util.RepairAttributeOrderEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on Business Component classes. -->
+             <StereotypeName>Enexis ECDM::BusinessComponent</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+       </EventHandlerList>
+     </EventGroup>
+   </EventGroupList>
+ </EventTree>
+</EventConfiguration>

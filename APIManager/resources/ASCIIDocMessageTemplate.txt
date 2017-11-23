@@ -1,0 +1,6 @@
+[[@MESSAGEANCHOR@]]
+@LVL@ @MESSAGENAME@
+
+@MESSAGENOTES@
+
+@ASCIIDocMessageClasses@

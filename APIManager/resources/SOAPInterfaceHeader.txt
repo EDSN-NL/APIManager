@@ -1,0 +1,21 @@
+
+   ========================================================================================
+   @CAPABILITYTYPE@ '@CAPABILITY@' for service: '@SERVICE@'
+   ========================================================================================
+   Interface agency:         Enexis 
+   Interface creation date:  @TIMESTAMP@
+   Interface version:        @VERSION@
+   Interface modeled by:     @AUTHOR@
+   Assigned Access Level:    @ACCESSLEVEL@
+
+   Copyright (C) Enexis (@YEAR@). All Rights Reserved.
+   
+   ........................................................................................
+   @CHANGELOG@
+   ........................................................................................
+
+   THIS DOCUMENT AND THE INFORMATION CONTAINED HEREIN IS PROVIDED ON AN AS IS BASIS
+   AND ENEXIS DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+   TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS
+   OR ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+   ========================================================================================

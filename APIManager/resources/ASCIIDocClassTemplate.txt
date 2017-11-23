@@ -1,0 +1,14 @@
+
+[[@CLASSANCHOR@]]
+@LVL@ @CLASSNAME@
+_Class_
+
+@NOTES@
+
+@XREF@
+
+[cols="4,5,1,8",options="header",]
+|=======================================================================
+| Field Name | Field Type | Card. | Description
+@ATTRIBUTES@
+|=======================================================================

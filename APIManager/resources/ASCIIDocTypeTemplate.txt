@@ -1,0 +1,13 @@
+[[@CLASSIFIERANCHOR@]]
+@LVL@ @CLASSIFIERNAME@
+_Type_
+
+@NOTES@
+
+@XREF@
+
+[cols="2,8",options="header",]
+|===============================================
+|*Field Type* |*Description*
+@TYPES@
+|===============================================

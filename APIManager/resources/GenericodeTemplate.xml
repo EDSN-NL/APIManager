@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+@HEADER@
+-->
+<gc:CodeList xmlns:gc="http://docs.oasis-open.org/codelist/ns/genericode/1.0/"
+    xmlns:rule="http://docs.oasis-open.org/codelist/ns/rule/1.0/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://docs.oasis-open.org/codelist/ns/genericode/1.0/ file:genericode.xsd">
+    
+    <Identification>
+        <ShortName xml:lang="en">@NAME@</ShortName>
+        <LongName xml:lang="en">@NOTES@</LongName>
+        <Version>@VERSION@</Version>
+        <CanonicalUri>@CANONICALURI@</CanonicalUri>
+        <CanonicalVersionUri>@CANONICALVSURI@</CanonicalVersionUri>
+        <Agency>
+            <ShortName>@AGENCYNAME@</ShortName>
+            <LongName>@AGENCYLONGNAME@</LongName>
+            <Identifier>@AGENCYID@</Identifier>
+        </Agency>
+    </Identification>
+    
+    <ColumnSet>
+        <Column Id="KeyName" Use="required">
+            <ShortName>ECDMKey</ShortName>
+            <Data Type="token"/>
+        </Column>
+        <Column Id="UniqueID" Use="optional">
+            <ShortName>DictionaryName</ShortName>
+            <Data Type="token"/>
+        </Column>
+        <Column Id="BusinessTermName" Use="required">
+            <ShortName>BusinessName</ShortName>
+            <Data Type="normalizedString"/>
+        </Column>
+        <Column Id="DictionaryEntryName" Use="optional">
+            <ShortName>BusinessName</ShortName>
+            <Data Type="token"/>
+        </Column>
+        <Column Id="DisplayName" Use="optional">
+            <ShortName>DisplayName</ShortName>
+            <Data Type="string"/>
+        </Column>
+        <Column Id="Definition" Use="optional">
+            <ShortName>Definition</ShortName>
+            <Data Type="string"/>
+        </Column>
+        <Column Id="Annotation" Use="optional">
+            <ShortName>Annotation</ShortName>
+            <Data Type="string"/>
+        </Column>
+        <Key Id="ECDMKey">
+            <ShortName>ECDMKey</ShortName>
+            <ColumnRef Ref="KeyName"/>
+        </Key>
+        <Key Id="BusinessKey">
+            <ShortName>BusinessKey</ShortName>
+            <ColumnRef Ref="BusinessTermName"/>
+        </Key>
+    </ColumnSet>
+    
+    <SimpleCodeList>
+        @ROWSET@
+    </SimpleCodeList>
+</gc:CodeList>
