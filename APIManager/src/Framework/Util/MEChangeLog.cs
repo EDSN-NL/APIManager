@@ -116,22 +116,53 @@ namespace Framework.Util
         }
 
         /// <summary>
-        /// This function can be used to retrieve the documentation section of the specified class as a plain, ASCII-formatted string.
+        /// This function can be used to retrieve the documentation section of the specified class as a plain, ASCII-formatted list of
+        /// lines. For each line in the documentation, the function returns a separate string.
         /// </summary>
         /// <param name="thisClass">Class from which we want to retrieve documentation section.</param>
-        /// <returns>ASCII-formatted documentation.</returns>
-        internal static string GetDocumentationAsText(MEClass thisClass)
+        /// <returns>ASCII-formatted documentation as a list of lines. Empty list if no documentation is defined.</returns>
+        internal static List<string> GetDocumentationAsTextLines(MEClass thisClass)
         {
-            ContextSlt context = ContextSlt.GetContextSlt();
             string plainText = string.Empty;
+            var lines = new List<string>();
+
             // Clever trick: use the built-in RTF functionality of the RichTextBox to manipulate contents.
-            using (RichTextBox rtBox = new RichTextBox())
+            using (var rtBox = new RichTextBox())
             {
                 rtBox.Rtf = GetRTFDocumentation(thisClass);
-                plainText = rtBox.Text;
-                plainText.Replace("\r\n", Environment.NewLine);
+                plainText = rtBox.Text;     // Consists of possibly multiple lines, separated by "\n".
+                while (plainText != string.Empty)
+                {
+                    int eolIndex = plainText.IndexOf("\n");
+                    if (eolIndex <= 0)
+                    {
+                        lines.Add(plainText.Trim());
+                        return lines;
+                    }
+                    lines.Add(plainText.Substring(0, eolIndex).Trim());
+                    if (plainText.Length > eolIndex + 1) plainText = plainText.Substring(eolIndex + 1);
+                    else plainText = string.Empty;
+                }
             }
-            return plainText.Trim();
+            return lines;
+        }
+
+        /// <summary>
+        /// Returns the documentation of the specified class as a single string in which each line is separated by the specified separator string.
+        /// By default, lines will be separated by a Newline ("\n").
+        /// </summary>
+        /// <param name="thisClass">Class for which we want to retrieve the documentation.</param>
+        /// <returns>Documentation as a single string, empty string in case no documentation is defined.</returns>
+        internal static string GetDocumentationAsText(MEClass thisClass, string lineSeparator = "\n")
+        {
+            List<string> docLines = GetDocumentationAsTextLines(thisClass);
+            string documentation = (docLines.Count > 0) ? docLines[0] : string.Empty;
+            if (docLines.Count > 1)
+            {
+                // We already copied the first line, so now append all additional lines...
+                for (int i = 1; i < docLines.Count; i++) documentation += lineSeparator + docLines[i];
+            }
+            return documentation;
         }
 
         /// <summary>

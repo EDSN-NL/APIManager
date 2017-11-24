@@ -106,6 +106,7 @@
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\ClassInspectorEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\SetMetadataEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\RepairAttributeOrderEvent.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\OpenAPI20ProcessorOperationBuilder.cs" />
     <Compile Include="src\Application\CapabilityModel\API\OpenAPI20ProcessorHdrBuilder.cs" />
     <Compile Include="src\Application\CapabilityModel\API\OpenAPI20Processor.cs" />
     <Compile Include="src\Application\CapabilityModel\API\APIProcessor.cs" />

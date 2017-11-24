@@ -44,6 +44,7 @@ namespace Plugin.Application.CapabilityModel.API
         private RESTResourceCapability.ResourceArchetype _archetype;    // Specifies the archtetype of the resource.
         private bool _isCollection;                                 // Indicates whether the resource represents a resource collection.
         private bool _isRootLevel;                                  // Indicates whether the resource is a root-level resourcr ("sub-API").
+        private bool _isTag;                                        // Indicates whether the resource is marked as a tag.
 
         // Keep track of (extra) classes and associations to show in the resource diagram...
         private List<MEClass> _diagramClassList = new List<MEClass>();
@@ -55,11 +56,13 @@ namespace Plugin.Application.CapabilityModel.API
         /// ArcheType = Returns the archetype of the resource.
         /// IsCollection = Returns true if this is a collection-type resource.
         /// IsRootLevel = Returns true if the resource represents a sub-API.
+        /// IsTag = Returns true of the resource is marked as a tag.
         /// </summary>
         internal MEPackage ResourcePackage                          { get { return this._resourcePackage; } }
         internal RESTResourceCapability.ResourceArchetype Archetype { get { return this._archetype; } }
         internal bool IsCollection                                  { get { return this._isCollection; } }
         internal bool IsRootLevel                                   { get { return this._isRootLevel; } }
+        internal bool IsTag                                         { get { return this._isTag; } }
 
         /// <summary>
         /// Creates a new resource based on a resource declaration object. This object contains all the information necessary to create 
@@ -521,6 +524,7 @@ namespace Plugin.Application.CapabilityModel.API
                 this._capabilityClass.SetTag(context.GetConfigProperty(_IsTag), resource.IsTag.ToString());
                 if (!string.IsNullOrEmpty(resource.Description)) MEChangeLog.SetRTFDocumentation(this._capabilityClass, resource.Description);
                 this._capabilityClass.SetTag(context.GetConfigProperty(_IsRootLevelTag), this._isRootLevel.ToString());
+                this._isTag = resource.IsTag;
 
                 // Establish link with our Parent...
                 var parentEndpoint = new EndpointDescriptor(parent.CapabilityClass, "1", parent.Name, null, false);
@@ -618,6 +622,7 @@ namespace Plugin.Application.CapabilityModel.API
                 ContextSlt context = ContextSlt.GetContextSlt();
                 this._myParent = parent;
                 this._capabilityClass = hierarchy.Data;
+                this._isTag = false;
                 string archetypeTagName = context.GetConfigProperty(_ArchetypeTag);
                 var resourceCapItf = new RESTResourceCapability(this);
                 this._archetype = (RESTResourceCapability.ResourceArchetype) Enum.Parse(typeof(RESTResourceCapability.ResourceArchetype), 
@@ -627,7 +632,11 @@ namespace Plugin.Application.CapabilityModel.API
                 this._resourcePackage = this._isCollection? this.RootService.ModelPkg.FindPackage(this._capabilityClass.Name, context.GetConfigProperty(_ResourceCollectionPkgStereotype)):
                                                             parent.CapabilityClass.OwningPackage;
                 this._assignedRole = parent.FindChildClassRole(this._capabilityClass.Name, context.GetConfigProperty(_ResourceClassStereotype));
-                if (string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_IsTag)), "true", true) == 0) ((RESTService)RootService).RegisterTag(resourceCapItf);
+                if (string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_IsTag)), "true", true) == 0)
+                {
+                    ((RESTService)RootService).RegisterTag(resourceCapItf);
+                    this._isTag = true;
+                }
                 this._isRootLevel = (string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_IsRootLevelTag)), "true", true) == 0);
 
                 foreach (TreeNode<MEClass> node in hierarchy.Children)

@@ -20,6 +20,11 @@ namespace Plugin.Application.CapabilityModel.API
         private RESTOperationCapability _parent;                            // Parent operation capability that owns this result.
         private RESTOperationResultCapability.ResponseCategory _category;   // The result category code
         private string _resultCode;                                         // Operation result code (must match category).
+
+        /// <summary>
+        /// Returns the HTTP response code as a string. 
+        /// </summary>
+        internal string ResultCode  { get { return this._resultCode; } }
         
         /// <summary>
         /// Creates a new operation result capability based on a declaration object. This object contains all the information necessary to create 

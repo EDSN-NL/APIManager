@@ -116,6 +116,19 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Returns true if the resource is marked as a tag.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal bool IsTag
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTResourceCapabilityImp)this._imp).IsTag;
+                else throw new MissingImplementationException("RESTResourceCapabilityImp");
+            }
+        }
+
+        /// <summary>
         /// Returns the archetype of this resource.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>

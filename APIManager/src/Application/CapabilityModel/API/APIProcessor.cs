@@ -248,7 +248,6 @@ namespace Plugin.Application.CapabilityModel.API
                         {
                             var itf = capability as InterfaceCapability;
                             this._panel.WriteInfo(this._panelIndex, "Building Interface '" + capability.Name + "'...");
-                            //@@@@@@@ TODO: Add Interface Builder for Swagger (OpenAPI)!!! @@@@
                             result = (this._interfaceType == InterfaceType.SOAP)? BuildSOAPInterface(itf): true;
 
                             // Save the collected documentation...

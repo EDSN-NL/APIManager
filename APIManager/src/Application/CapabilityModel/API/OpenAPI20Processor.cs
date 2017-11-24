@@ -38,6 +38,12 @@ namespace Plugin.Application.CapabilityModel.API
         private string _currentPath;                    // Contains the OpenAPI Path that is currently being processed.
         private RESTResourceCapability _currentResource;    // The resource that is currently being processed.
 
+        // Since we have to terminate JSON objects properly, we must know whether we are in the last operation or operation result of a resource.
+        // If we start a new resource, we might have to close the previous one. Also, we have to close the last resource but this we can handle at
+        // the beginning of post processing.
+        private bool _inOperation;                      // Global context: we are processing an operation.
+        private bool _inOperationResult;                // Global context: we are processing an operation result.
+
         /// <summary>
         /// Returns a filename that is constructed as 'Capability_vxpy.json', in which: 'Capability' is the verbatim name of the current 
         /// Capability, 'x' is the major version of that Capability and 'y' is the minor version (e.g. 'MyCapability_v1p0.json').
@@ -132,9 +138,11 @@ namespace Plugin.Application.CapabilityModel.API
                                                      this._currentService.GetFQN("RESTOperation", Conversions.ToPascalCase(capability.AssignedRole), -1),
                                                      capability.VersionString);
 
-                            // Initialise the documentation context...
-                            if (useCommonDocContext) DocManagerSlt.GetDocManagerSlt().InitializeCommonDocContext(tokenName, capability.Name,
-                                                                                     MEChangeLog.GetDocumentationAsText(capability.CapabilityClass));
+                            // Initialise the documentation context and other resources...
+                            if (useCommonDocContext) DocManagerSlt.GetDocManagerSlt().InitializeCommonDocContext(tokenName, capability.Name, MEChangeLog.GetDocumentationAsText(capability.CapabilityClass));
+ 
+                            this._inOperation = false;
+                            this._inOperationResult = false;
 
                             if (!this._isPathInitialized)
                             {
@@ -166,16 +174,38 @@ namespace Plugin.Application.CapabilityModel.API
                         else if (capability is RESTResourceCapability)
                         {
                             this._panel.WriteInfo(this._panelIndex + 1, "Processing Resource '" + capability.Name + "'...");
-                            DefinePath(capability as RESTResourceCapability);
+                            if (this._inOperationResult)
+                            {
+                                this._JSONWriter.WriteEndObject();      // Close previous response parameter.
+                                this._JSONWriter.WriteEndObject();      // And close the 'responses' section.
+                            }
+                            this._inOperationResult = false;
 
+                            DefinePath(capability as RESTResourceCapability);
                         }
                         else if (capability is RESTOperationCapability)
                         {
+                            if (this._inOperationResult)
+                            {
+                                this._JSONWriter.WriteEndObject();      // Close previous response parameter.
+                                this._JSONWriter.WriteEndObject();      // And close the 'responses' section.
+                            }
+                            this._inOperationResult = false;
                             this._panel.WriteInfo(this._panelIndex + 2, "Processing Operation '" + capability.Name + "'...");
+
+                            this._inOperation = true;
+                            BuildOperation(capability as RESTOperationCapability);
                         }
                         else if (capability is RESTOperationResultCapability)
                         {
                             this._panel.WriteInfo(this._panelIndex + 3, "Processing Operation Result'" + capability.Name + "'...");
+                            if (!this._inOperationResult)
+                            {
+                                this._JSONWriter.WritePropertyName("responses");
+                                this._JSONWriter.WriteStartObject();
+                                this._inOperationResult = true;
+                            }
+                            BuildOperationResult(capability as RESTOperationResultCapability);
                         }
                         this._panel.IncreaseBar(1);
                         break;
@@ -189,8 +219,13 @@ namespace Plugin.Application.CapabilityModel.API
                         {
                             var itf = capability as RESTInterfaceCapability;
                             this._panel.WriteInfo(this._panelIndex, "Finalizing Interface '" + capability.Name + "'...");
-                            this._JSONWriter.WriteEndObject();  // End 'paths' section object.
-                            this._JSONWriter.WriteEndObject();  // End of OpenAPI definition object.
+                            if (this._inOperationResult)
+                            {
+                                this._JSONWriter.WriteEndObject();      // Close previous response parameter.
+                                this._JSONWriter.WriteEndObject();      // And close the 'responses' section.
+                            }
+                            this._JSONWriter.WriteEndObject();          // End 'paths' section object.
+                            this._JSONWriter.WriteEndObject();          // End of OpenAPI definition object.
                             this._JSONWriter.Flush();
                             result = SaveProcessedCapability();
 
@@ -245,7 +280,7 @@ namespace Plugin.Application.CapabilityModel.API
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.DefinePath >> Received new resource '" + resource.Name + "'...");
             if (resource.IsRootLevel)
             {
-                // If we have a root-level resource, this implies that we must start a new sub-API. Iw the current path has contents, we were processing
+                // If we have a root-level resource, this implies that we must start a new sub-API. If the current path has contents, we were processing
                 // another sub-API and this must be terminated first (WriteEndObject). Next, we re-initialize the path using the current resource
                 // name and start a new path object.
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.DefinePath >> Rootlevel resource, simply reset current path");

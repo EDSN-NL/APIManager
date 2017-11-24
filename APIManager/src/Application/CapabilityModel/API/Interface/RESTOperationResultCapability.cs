@@ -14,6 +14,18 @@ namespace Plugin.Application.CapabilityModel.API
     /// </summary>
     internal class RESTOperationResultCapability: Capability
     {
+        /// <summary>
+        /// Returns the HTTP Response Code or 'default' if this is the default response.
+        /// </summary>
+        internal string ResultCode
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationResultCapabilityImp)this._imp).ResultCode;
+                else throw new MissingImplementationException("RESTOperationResultCapabilityImp");
+            }
+        }
+
         // Identifies the various HTTP Operation Result categories (Unknown is added only to specify an 'unknown' category and must never
         // be used in actual responses)...
         // We explicitly assign numeric values to the enumeration so that they match the HTTP prefix codes.

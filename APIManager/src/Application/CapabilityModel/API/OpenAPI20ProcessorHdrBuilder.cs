@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json;
@@ -46,7 +47,12 @@ namespace Plugin.Application.CapabilityModel.API
             wr.WritePropertyName("info"); wr.WriteStartObject();
             {
                 wr.WritePropertyName("title"); wr.WriteValue(itf.Name);
-                wr.WritePropertyName("description"); wr.WriteValue(MEChangeLog.GetDocumentationAsText(itf.CapabilityClass));
+                wr.WritePropertyName("description");
+                {
+                    // Since multi-line strings don't work here, we replace line breaks by two spaces.
+                    string documentation = MEChangeLog.GetDocumentationAsText(itf.CapabilityClass, "  ");
+                    wr.WriteValue(documentation);
+                }
                 WriteTermsOfService(wr, itf);
                 WriteContactInfo(wr, itf);
                 WriteLicenseInfo(wr, itf);
