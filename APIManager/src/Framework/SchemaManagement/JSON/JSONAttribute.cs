@@ -18,7 +18,9 @@ namespace Framework.Util.SchemaManagement.JSON
     /// </summary>
     internal class JSONContentAttribute : ContentAttribute, IJSONProperty
     {
-        private JSchema _attributeClassifier;        // Defines the classifier of the attribute within the JSON schema.
+        private JSchema _attributeClassifier;       // Defines the classifier of the attribute within the JSON schema.
+        private JSchema _simpleAttributeClassifier; // Simplified definition, created for use of attributes as Properties in special contexts.
+        private JSONClassifier _classifier;         // The associated classifier object in case of complex types.
 
         /// <summary>
         /// Implementation of the JSON Property interface:
@@ -77,6 +79,11 @@ namespace Framework.Util.SchemaManagement.JSON
                     Type = JSchemaType.String,
                     Enum = { fixedValue }
                 };
+                this._simpleAttributeClassifier = new JSchema
+                {
+                    Type = JSchemaType.String,
+                    Enum = { fixedValue }
+                };
                 this.IsValid = true;
 
                 if (!string.IsNullOrEmpty(defaultValue))
@@ -95,7 +102,12 @@ namespace Framework.Util.SchemaManagement.JSON
                     return;
                 }
 
+                // Unfortunately, since JSchema does not implement a proper copy constructor, we have to create two entirely different attribute
+                // objects so we can differentiate between the 'rich' version (including a Title and an AdditionalItems clause) and the simple
+                // version that does not have these. We can't assign one to the other since in the end out variables are all pointers!
                 var attribClassifier = new JSchema { Title = classifierName };
+                var simpleAttributeClassifier = new JSchema();
+                this._classifier = classifier;
 
                 // In case of 'any' type, we don't make any changes to this base type, it MUST be an empty schema in order to work properly.
                 if (classifier.BaseType.Classifier != JSchemaType.None)
@@ -105,15 +117,25 @@ namespace Framework.Util.SchemaManagement.JSON
                         // Complex classifier, we need to extend this instead of copy the contents...
                         Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Constructed classifier, creating extension...");
                         attribClassifier.AllOf.Add(classifier.ReferenceClassifier);
+                        simpleAttributeClassifier.AllOf.Add(classifier.ReferenceClassifier);
                     }
                     else
                     {
                         Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Simple classifier, creating inline typedef...");
                         attribClassifier.Type = classifier.BaseType.Classifier;
-                        if (classifier.BaseType.Format != string.Empty) attribClassifier.Format = classifier.BaseType.Format;
+                        simpleAttributeClassifier.Type = classifier.BaseType.Classifier;
+                        if (classifier.BaseType.Format != string.Empty)
+                        {
+                            attribClassifier.Format = classifier.BaseType.Format;
+                            simpleAttributeClassifier.Format = classifier.BaseType.Format;
+                        }
                         if (classifier.BaseType.IsFacetted)
                         {
-                            foreach (JSONFacet facet in classifier.BaseType.FacetList) facet.AddFacet(ref attribClassifier);
+                            foreach (JSONFacet facet in classifier.BaseType.FacetList)
+                            {
+                                facet.AddFacet(ref attribClassifier);
+                                facet.AddFacet(ref simpleAttributeClassifier);
+                            }
                         }
                     }
 
@@ -121,6 +143,7 @@ namespace Framework.Util.SchemaManagement.JSON
                     {
                         Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Attribute has default value: " + defaultValue);
                         attribClassifier.Default = new JValue(defaultValue);
+                        simpleAttributeClassifier.Default = new JValue(defaultValue);
                     }
                 }
 
@@ -137,10 +160,24 @@ namespace Framework.Util.SchemaManagement.JSON
                         AllowAdditionalItems = false,
                         MinimumItems = (cardinality.Item1 == 0) ? 1 : cardinality.Item1,      // A list must have at least one value!
                     };
-                    if (cardinality.Item2 > 1) this._attributeClassifier.MaximumItems = cardinality.Item2;
+                    this._simpleAttributeClassifier = new JSchema()
+                    {
+                        Type = JSchemaType.Array,
+                        MinimumItems = (cardinality.Item1 == 0) ? 1 : cardinality.Item1,      // A list must have at least one value!
+                    };
+                    if (cardinality.Item2 > 1)
+                    {
+                        this._attributeClassifier.MaximumItems = cardinality.Item2;
+                        this._simpleAttributeClassifier.MaximumItems = cardinality.Item2;
+                    }
                     this._attributeClassifier.Items.Add(attribClassifier);
+                    this._simpleAttributeClassifier.Items.Add(simpleAttributeClassifier);
                 }
-                else this._attributeClassifier = attribClassifier;
+                else
+                {
+                    this._attributeClassifier = attribClassifier;
+                    this._simpleAttributeClassifier = simpleAttributeClassifier;
+                }
             }
                 
             // Build a description block for the element...
@@ -153,6 +190,26 @@ namespace Framework.Util.SchemaManagement.JSON
             }
             this.IsValid = true;
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Successfully created attribute.");
+        }
+
+        /// <summary>
+        /// This function returns a formatted attribute classifier definition in JSON Schema that can be used to reference the attribute 
+        /// definition from JSON Text files such as OpenAPI. In this case, we consider attributes as properties of an API operation instead 
+        /// of using them as attributes of a class. By processing the attributes separately we can use them as stand-alone type definitions.
+        /// If the attribute is a primitive type, the returned definition is a 'stand-alone' section (e.g. does not contain any external references).
+        /// If the attribute is a constructed type (i.e. the assigned classifier is an enumeration or a data type that contains supplementary
+        /// attributes), the returned definition contains a reference to the classifier and the caller must assure that the appropriate 
+        /// 'definitions' section is inserted (taken from the associated JSON Schema object).
+        /// When expanded in-line, the method returns the 'bare minimum' schema text (no Title, no AdditionalItems and no description).
+        /// </summary>
+        /// <returns>Formatted text string that describes the attribute in JSON Schema.</returns>
+        internal string GetClassifierAsText()
+        {
+            if (this._classifier != null && this._classifier.IsReferenceType)
+            {
+                return "{" + Environment.NewLine + "\"schema\": { \"$ref\": \"#/definitions/" + this._classifier.Name + "\"}" + Environment.NewLine + "}"; 
+            }
+            else return this._simpleAttributeClassifier.ToString();
         }
     }
 

@@ -73,7 +73,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                         {
                             // In case of errors, we throw an exception, no need to write an error to the log, that has already been done by the Association.
                             string message = "Cardinality format error in association: '" + assoc.Source.EndPoint.Name + "-->" + assoc.Destination.EndPoint.Name + "'!";
-                            this._panel.WriteError(this._panelIndex + 2, message);
+                            if (this._panel != null) this._panel.WriteError(this._panelIndex + 2, message);
                             throw new IllegalCardinalityException(message);
                         }
 
@@ -102,7 +102,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             if (associationName == string.Empty)
                             {
                                 Logger.WriteWarning("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAssociations >> Association to element '" + target.Name + "' has no name, using target name instead!");
-                                this._panel.WriteWarning(this._panelIndex + 2, "Association to element '" + target.Name + "' has no name, using target name instead!");
+                                if (this._panel != null) this._panel.WriteWarning(this._panelIndex + 2, "Association to element '" + target.Name + "' has no name, using target name instead!");
                                 associationName = (target.Name.EndsWith("Type")) ? target.Name.Substring(0, target.Name.LastIndexOf("Type")) : target.Name;
                             }
 
@@ -117,7 +117,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAssociations >> Association stored with key: " + classKeyToken);
 
                             string qualifiedTargetName;
-                            this._panel.WriteInfo(this._panelIndex + 2, "Processing associated class: " + target.Name + "...");
+                            if (this._panel != null) this._panel.WriteInfo(this._panelIndex + 2, "Processing associated class: " + target.Name + "...");
 
                             if (this._cache.HasClassKey(classKeyToken))
                             {
@@ -146,8 +146,8 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                                 }
                                 catch
                                 {
-                                    this._panel.WriteError(this._panelIndex + 2, "Illegal 'choice group' detected in association FROM element '" +
-                                                           node.Name + "' TO element '" + target.Name + "'!");
+                                    if (this._panel != null) this._panel.WriteError(this._panelIndex + 2, "Illegal 'choice group' detected in association FROM element '" +
+                                                                                    node.Name + "' TO element '" + target.Name + "'!");
                                 }
                             }
 
@@ -210,7 +210,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                 string schemaError = this._schema.LastError;
                 string message = (schemaError != string.Empty) ? schemaError + " -> " + exc.Message : exc.Message;
                 Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAssociations >> Caught an exception: " + message);
-                this._panel.WriteError(this._panelIndex + 2, "Caught an exception:" + Environment.NewLine + message);
+                if (this._panel != null) this._panel.WriteError(this._panelIndex + 2, "Caught an exception:" + Environment.NewLine + message);
                 this._lastError = message;
             }
             return associationList;
@@ -254,9 +254,9 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                     MEDataType classifier = attribute.Classifier;
 
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Processing attribute: " + attribute.Name + " with classifier: " + classifier.Name);
-                    this._panel.WriteInfo(this._panelIndex + 2, "Processing attribute: '" + attribute.Name + "' with classifier: '" + classifier.Name + "'..");
+                    if (this._panel != null) this._panel.WriteInfo(this._panelIndex + 2, "Processing attribute: '" + attribute.Name + "' with classifier: '" + classifier.Name + "'..");
 
-                    // Assures that we have an attribute classifier definition and we now where to store it and where to document it...
+                    // Assures that we have an attribute classifier definition and we know where to store it and where to document it...
                     ClassifierContext classifierCtx = ProcessClassifier(classifier);
                     DocContext classifierDocCtx = this._commonDocContext;
                     if (!classifierCtx.IsInCommonDocContext) classifierDocCtx = this._currentOperationDocContext;
@@ -294,7 +294,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             this._lastError = "Attribute '" + attribute.Name + "' with classifier '" + classifier.Name +
                                               "' has incompatible content type for a Supplementary Attribute (must be Primitive or Enumeration)!";
                             Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> " + this._lastError);
-                            this._panel.WriteError(this._panelIndex + 2, "this._lastError");
+                            if (this._panel != null) this._panel.WriteError(this._panelIndex + 2, "this._lastError");
                         }
                     }
                     else if (attribute.Type == ModelElementType.Facet)
@@ -312,7 +312,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                         {
                             // In case of errors, we throw an exception, no need to write an error to the log, that has already been done by the Attribute.
                             string message = "Cardinality format error in: '" + node.Name + "." + attribute.Name + "'!";
-                            this._panel.WriteError(this._panelIndex + 2, message);
+                            if (this._panel != null) this._panel.WriteError(this._panelIndex + 2, message);
                             throw new IllegalCardinalityException(message);
                         }
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Content attribute, default= '" + attribute.DefaultValue +
@@ -332,8 +332,8 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             }
                             catch
                             {
-                                this._panel.WriteError(this._panelIndex + 2, "Illegal Choice Group detected in attribute '" + 
-                                                       attribute.Name + "' of class '" + node.Name + "'!");
+                                if (this._panel != null) this._panel.WriteError(this._panelIndex + 2, "Illegal Choice Group detected in attribute '" + 
+                                                                                attribute.Name + "' of class '" + node.Name + "'!");
                             }
                         }
 
@@ -356,8 +356,11 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                                                                      attribute.GetDocumentation(), attribute.DefaultValue, string.Empty);
                         }
                         attribList.Add(contentAttrib);
-                        string classifierCtxID = classifierCtx.IsInCommonDocContext ? this._commonDocContext.ContextID : this._currentOperationDocContext.ContextID;
-                        if (this._useDocContext) attribDocCtx.AddAttribute(attributeName, AttributeType.Attribute, classifierCtx.Name, classifierCtxID, cardinality, attribute.Annotation);
+                        if (this._useDocContext)
+                        {
+                            string classifierCtxID = classifierCtx.IsInCommonDocContext ? this._commonDocContext.ContextID : this._currentOperationDocContext.ContextID;
+                            attribDocCtx.AddAttribute(attributeName, AttributeType.Attribute, classifierCtx.Name, classifierCtxID, cardinality, attribute.Annotation);
+                        }
                     }
 
                     // The documentation XREF must be added to the documentation context of the TARGET classifier...
@@ -389,7 +392,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                 string schemaError = this._schema.LastError;
                 string message = (schemaError != string.Empty) ? schemaError + " -> " + exc.Message : exc.Message;
                 Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Caught an exception: " + message);
-                this._panel.WriteError(this._panelIndex + 2, "Caught an exception: " + Environment.NewLine + message);
+                if (this._panel != null) this._panel.WriteError(this._panelIndex + 2, "Caught an exception: " + Environment.NewLine + message);
                 this._lastError = message;
             }
             return attribList;
@@ -419,7 +422,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
 
             try
             {
-                this._panel.WriteInfo(this._panelIndex + 1, "Processing class: " + currentClass.Name);
+                if (this._panel != null) this._panel.WriteInfo(this._panelIndex + 1, "Processing class: " + currentClass.Name);
 
                 SortedList<uint, MEClass> classHierarchy = currentClass.GetHierarchy();
                 var attribList = new List<SchemaAttribute>();
@@ -440,14 +443,14 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
 
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.processClass >> Class: " + 
                                  currentClass.Name + " has received Qualified Name: " + qualifiedClassName + "...");
-                this._panel.WriteInfo(this._panelIndex + 1, "Class: " + currentClass.Name + " has been assigned Qualified Name: " + qualifiedClassName);
+                if (this._panel != null) this._panel.WriteInfo(this._panelIndex + 1, "Class: " + currentClass.Name + " has been assigned Qualified Name: " + qualifiedClassName);
 
                 // Safety catch for loops. Should not happen since inserting the name in the cache down here should prevent this method to be called a second time for the
                 // same class. But even so....better be safe then sorry.
                 if (this._cache.HasClassKey(classKeyToken))
                 {
                     Logger.WriteWarning("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.processClass >> Loop detected in class: " + classKeyToken + ":" + currentClass.Name);
-                    this._panel.WriteWarning(this._panelIndex + 1, "Loop detected around FQN: " + qualifiedClassName + ". Please check intentions.");
+                    if (this._panel != null) this._panel.WriteWarning(this._panelIndex + 1, "Loop detected around FQN: " + qualifiedClassName + ". Please check intentions.");
                     return qualifiedClassName;
                 }
                 this._cache.AddQualifiedClassName(classKeyToken, qualifiedClassName);     // Make sure to remember that we have processed this class!
@@ -502,7 +505,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                 else
                 {
                     Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.processClass >> Adding ABIE type failed because: " + this._schema.LastError);
-                    this._panel.WriteError(this._panelIndex + 1, "Error adding complex type:" + Environment.NewLine + this._schema.LastError);
+                    if (this._panel != null) this._panel.WriteError(this._panelIndex + 1, "Error adding complex type:" + Environment.NewLine + this._schema.LastError);
                     return string.Empty;
                 }
             }
@@ -511,7 +514,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                 string schemaError = this._schema.LastError;
                 string message = (schemaError != string.Empty) ? schemaError + " -> " + exc.Message : exc.Message;
                 Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.processClass >> Caught an exception: " + message);
-                this._panel.WriteError(this._panelIndex + 1, "Caught an exception:" + Environment.NewLine + message);
+                if (this._panel != null) this._panel.WriteError(this._panelIndex + 1, "Caught an exception:" + Environment.NewLine + message);
                 this._lastError = message;
             }
             return string.Empty;
@@ -596,7 +599,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                     MEDataType classifier = attribute.Classifier;
 
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessUnion >> Going to use classifier: " + classifier.Name);
-                    this._panel.WriteInfo(this._panelIndex + 3, "Processing Union: '" + target.Name + "', using classifier: '" + classifier.Name + "'..");
+                    if (this._panel != null) this._panel.WriteInfo(this._panelIndex + 3, "Processing Union: '" + target.Name + "', using classifier: '" + classifier.Name + "'..");
 
                     ClassifierContext classifierCtx = ProcessClassifier(classifier); // Assures that we have a classifier definition.
 
@@ -618,8 +621,8 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                         }
                         catch
                         {
-                            this._panel.WriteError(this._panelIndex + 3, "Illegal Choice Group detected in aassociation between '" + 
-                                                    source.Name + "' and '" + target.Name + "'!");
+                            if (this._panel != null) this._panel.WriteError(this._panelIndex + 3, "Illegal Choice Group detected in aassociation between '" + 
+                                                                            source.Name + "' and '" + target.Name + "'!");
                         }
                     }
 
@@ -643,7 +646,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                 string schemaError = this._schema.LastError;
                 string message = (schemaError != string.Empty) ? schemaError + " -> " + exc.Message : exc.Message;
                 Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessUnion >> Caught an exception: " + message);
-                this._panel.WriteError(this._panelIndex + 1, "Caught an exception: " + Environment.NewLine + message);
+                if (this._panel != null) this._panel.WriteError(this._panelIndex + 1, "Caught an exception: " + Environment.NewLine + message);
                 this._lastError = message;
             }
             return null;

@@ -36,6 +36,7 @@ namespace Plugin.Application.Forms
             this._parameter = parameter;
 
             ParameterName.Text = parameter.Name;
+            ParamDescription.Text = parameter.Description;
             if (parameter.Classifier != null) ParameterClassifier.Text = parameter.Classifier.Name;
             ParameterDefaultValue.Text = parameter.Default;
             if (parameter.Cardinality != null)
@@ -202,6 +203,16 @@ namespace Plugin.Application.Forms
         private void CheckOK()
         {
             Ok.Enabled = (this._hasName && this._hasClassifier && this._hasCardinality);
+        }
+
+        /// <summary>
+        /// This event is raised when the user entered/changed the parameter description text.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void ParamDescription_Leave(object sender, EventArgs e)
+        {
+            this._parameter.Description = ParamDescription.Text;
         }
     }
 }

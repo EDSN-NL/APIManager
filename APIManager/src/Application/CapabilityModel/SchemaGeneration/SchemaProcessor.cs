@@ -34,6 +34,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         private string _messageNamespace;           // The namespace in which the message has been constructed.
         private string _messageNsToken;             // The namespace token for the namespace in which the message has been constructed.
         private bool _standAlone;                   // Set to true if this processor runs in 'stand alone' mode, i.e. not called from an Interface Processor.
+        private bool _extSchema;                    // Set to true if the schema is managed outside the scope of the processor, we have limited functionality in this case.
         private bool _generatedOutput;              // Set to true in case processing has yielded some results.
         private OperationDocContext _currentOperationDocContext;    // Currently active documentation context.
         private CommonDocContext _commonDocContext;                 // Documentation context for common definitions.
@@ -41,7 +42,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
 
         /// <summary>
         /// Some getters for private properties:
-        /// Schema = The schema that has been generated after parsing the class hierarchy.
+        /// MessageSchema = The schema that has been generated after parsing the class hierarchy.
         /// QualifiedClassName = Contains the final message name, prefixed with the namespace(token) in which it is defined (token:name).
         /// MessageName = The name of the constructed message element.
         /// MessageNamespace = The namespace in which the message has been constructed.
@@ -64,6 +65,20 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor >> Creating new processor (stand-alone).");
             Initialize();
+        }
+
+        /// <summary>
+        /// Constructor receiving a ready-made schema to be used for all processing. This variant behaves like a stand-alone schema processor,
+        /// it does not support documentation generation and does not use a common schema.
+        /// We set the mode to 'extSchema' to indicate that this schema is not linked to interactive means and must also not create its own schema.
+        /// </summary>
+        /// <param name="thisSchema">The schema to be used for processing.</param>
+        internal SchemaProcessor(Schema thisSchema): base()
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor >> Creating new processor (schema).");
+            Initialize();
+            this._schema = thisSchema;
+            this._extSchema = true;
         }
 
         /// <summary>
@@ -124,6 +139,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
             this._messageNamespace = null;
             this._messageNsToken = null;
             this._standAlone = true;
+            this._extSchema = false;
             this._generatedOutput = false;
             this._currentOperationDocContext = null;
             this._commonDocContext = null;
@@ -152,8 +168,9 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                 {
                     // Pre-processing stage is used to check my context and creates a blank Schema instance...
                     // Schema namespace and version are retrieved from our parent Operation object...
+                    // In background mode we must not use a panel.
                     case ProcessingStage.PreProcess:
-                        this._panel = ProgressPanelSlt.GetProgressPanelSlt();
+                        if (!this._extSchema) this._panel = ProgressPanelSlt.GetProgressPanelSlt();
                         this._cache = ClassCacheSlt.GetClassCacheSlt();     // Obtain an instance of the cache singleton. In stand-alone mode, 
                                                                             // we must flush it, otherwise we continue where we left of.
                         if (this._standAlone)
@@ -162,8 +179,8 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             this._panel.WriteInfo(this._panelIndex, "Message processing started.");
                             this._cache.Flush();                                            // Assures that we start with an empty cache.
                         }
-                        else this._panel.WriteInfo(this._panelIndex, "Pre-processing Message: '" + capability.Name + "'...");
-                        this._panel.IncreaseBar(1);
+                        else if (!this._extSchema) this._panel.WriteInfo(this._panelIndex, "Pre-processing Message: '" + capability.Name + "'...");
+                        if (!this._extSchema) this._panel.IncreaseBar(1);
 
                         _majorVersion = capability.RootService.MajorVersion.ToString();     // Major version to be used for all capabilities.
                         _buildNumber = capability.RootService.BuildNumber.ToString();       // Build number to be used for all capabilities.
@@ -185,47 +202,59 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             result = (!string.IsNullOrEmpty(this._currentService.AbsolutePath)) || this._currentService.InitializePath(myPath);
                         }
 
-                        // Create the new schema at the end of pre-processing stage, so it is available for 'manipulations' if required.
-                        OperationCapability parent = ((MessageCapability)this._currentCapability).Parent;
-                        string schemaName = this._standAlone ? this._currentCapability.Name : parent.Name;
-                        this._schema = GetSchema(Schema.SchemaType.Operation, schemaName, parent.NSToken, parent.FQName, parent.VersionString);
+                        if (!this._extSchema)
+                        {
+                            // Create the new schema at the end of pre-processing stage, so it is available for 'manipulations' if required.
+                            // If we're in background mode, the schema must have been passed to the constructor and we can skip this part.
+                            OperationCapability parent = ((MessageCapability)this._currentCapability).Parent;
+                            string schemaName = this._standAlone ? this._currentCapability.Name : parent.Name;
+                            this._schema = GetSchema(Schema.SchemaType.Operation, schemaName, parent.NSToken, parent.FQName, parent.VersionString);
+                        }
                         break;
 
                     // Processing stage is used to create the actual Schema instance...
                     case ProcessingStage.Process:
-                        this._panel.WriteInfo(this._panelIndex, "Processing Message: '" + this._currentCapability.Name + "'...");
+                        if (!this._extSchema) this._panel.WriteInfo(this._panelIndex, "Processing Message: '" + this._currentCapability.Name + "'...");
                         result = BuildSchema();
-                        this._panel.IncreaseBar(1);
+                        if (!this._extSchema) this._panel.IncreaseBar(1);
                         break;
 
                     // Cancelling stage is used to send a message and deleting the Schema...
                     case ProcessingStage.Cancel:
-                        this._panel.WriteWarning(this._panelIndex, "Cancelling Message: '" + this._currentCapability.Name + "'...");
-                        this._schema = null;
-                        this._panel.IncreaseBar(1);
-                        ClassCacheSlt.GetClassCacheSlt().Flush();
-                        if (this._standAlone) this._panel.Done();
+                        if (!this._extSchema)
+                        {
+                            this._panel.WriteWarning(this._panelIndex, "Cancelling Message: '" + this._currentCapability.Name + "'...");
+                            this._schema = null;
+                            this._panel.IncreaseBar(1);
+                            ClassCacheSlt.GetClassCacheSlt().Flush();
+                            if (this._standAlone) this._panel.Done();
+                        }
                         break;
 
                     // Postprocessing is used to save the generated schema, reset the reference count so we're ready for the next round...
                     // Saving etc. is done only in stand-alone mode. In other cases, the created schema will be collected by a processor
                     // higher-up in the chain.
+                    // In background mode, we simply keep the state around since the Schema is now managed outside our scope and we just
+                    // have to fill it.
                     case ProcessingStage.PostProcess:
-                        if (this._standAlone)
+                        if (!this._extSchema)
                         {
-                            if (result = SaveProcessedCapability())
+                            if (this._standAlone)
                             {
-                                this._panel.WriteInfo(this._panelIndex, "Message processing has been completed successfully.");
-                                this._panel.WriteInfo(this._panelIndex, "Output written to: '" + this._currentService.AbsolutePath + "'.");
-                                if (context.GetBoolSetting(FrameworkSettings._AutoIncrementBuildNumbers)) this._currentService.BuildNumber++;
+                                if (result = SaveProcessedCapability())
+                                {
+                                    this._panel.WriteInfo(this._panelIndex, "Message processing has been completed successfully.");
+                                    this._panel.WriteInfo(this._panelIndex, "Output written to: '" + this._currentService.AbsolutePath + "'.");
+                                    if (context.GetBoolSetting(FrameworkSettings._AutoIncrementBuildNumbers)) this._currentService.BuildNumber++;
+                                }
+                                else this._panel.WriteError(this._panelIndex, "Unable to save Schema file!");
+                                this._panel.Done();
+                                ClassCacheSlt.GetClassCacheSlt().Flush();   // Release all collected resources (don't need them anymore).
                             }
-                            else this._panel.WriteError(this._panelIndex, "Unable to save Schema file!");
-                            this._panel.Done();
-                            ClassCacheSlt.GetClassCacheSlt().Flush();   // Release all collected resources (don't need them anymore).
-                        }
-                        else
-                        {
-                            this._panel.WriteInfo(this._panelIndex, "Post-processing Message: '" + this._currentCapability.Name + "'...");
+                            else
+                            {
+                                this._panel.WriteInfo(this._panelIndex, "Post-processing Message: '" + this._currentCapability.Name + "'...");
+                            }
                         }
                         break;
 
@@ -239,6 +268,19 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                 result = false;
             }
             return result;
+        }
+
+        /// <summary>
+        /// Special processing function that processes the attributes of the specified class and returns this as a list of Attribute Definitions
+        /// that are valid for the current schema type. Since the method uses the 'regular' processing function, attribute classifiers are properly
+        /// registered in the schema and can be referred to if needed.
+        /// </summary>
+        /// <param name="propertyClass">Class to be processed.</param>
+        /// <returns>List of attributes from processed class.</returns>
+        internal List<SchemaAttribute> ProcessProperties(MEClass propertyClass)
+        {
+            if (this._cache == null) this._cache = ClassCacheSlt.GetClassCacheSlt(); // Obtain a valid context for property processing.
+            return ProcessAttributes(propertyClass, false, 0, propertyClass.Name, ClassifierContext.DocScopeCode.Common);
         }
 
         /// <summary>

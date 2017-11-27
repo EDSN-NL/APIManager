@@ -15,7 +15,6 @@ namespace Plugin.Application.Forms
         private const string _EmptyResourceName = "EmptyResourceName";
 
         private RESTResourceDeclaration _resource;      // The resource declaration descriptor that we're creating / editing.
-        private RESTParameterDeclaration _parameter;    // Parameter definition in case of Identifier resources.
         private bool _isEdit;                           // True means we're editing a path expression, false when creating a new one.
 
         // Preconditions for enabling the OK button...
@@ -44,17 +43,9 @@ namespace Plugin.Application.Forms
             this._isEdit = resource.Status != RESTResourceDeclaration.DeclarationStatus.Invalid;
             this.Text = this._isEdit ? "Edit Resource" : "Create new Resource";
             this._resource = resource;
-            this._parameter = resource.Parameter;
-            if (this._parameter == null) this._parameter = new RESTParameterDeclaration();
-            this._parameter.Cardinality = new Tuple<int, int>(1, 1);    // Identifiers are always mandatory!
             ResourceNameFld.Text = resource.Name;
-
-            // Initialise properties box in case of Edit...
-            if (this._isEdit && resource.Parameter != null)
-            {
-                ParameterName.Text = this._parameter.Name;
-                if (resource.Parameter.Classifier != null) ParameterClassifier.Text = this._parameter.Classifier.Name;
-            }
+            ParameterName.Text = resource.Parameter.Name;
+            ParameterClassifier.Text = resource.Parameter.Classifier.Name;
 
             // Load the Operations in case of Edit...
             if (this._isEdit && resource.Operations != null)
@@ -108,7 +99,6 @@ namespace Plugin.Application.Forms
             ResourceNameFld.Text = resource.Name;
             Ok.Enabled = this._isEdit;
             NewMinorVersion.Checked = false;
-            IsDataType.Checked = true;
             this._hasType = (this._resource.Archetype != RESTResourceCapability.ResourceArchetype.Unknown);
             this._hasName = (resource.Name != string.Empty);
 
@@ -193,7 +183,6 @@ namespace Plugin.Application.Forms
             int index = ResourceTypeBox.SelectedIndex;
             RESTResourceCapability.ResourceArchetype oldType = this._resource.Archetype;
             this._resource.Archetype = EnumConversions<RESTResourceCapability.ResourceArchetype>.StringToEnum(ResourceTypeBox.Items[ResourceTypeBox.SelectedIndex].ToString());
-            this._resource.Parameter = null;    // If we had a parameter, clear this (unless user selects Identifier).
 
             // Enable/Disable all controls according to the (new) type...
             switch (this._resource.Archetype)
@@ -204,6 +193,7 @@ namespace Plugin.Application.Forms
                     PropertiesBox.Enabled = false;
                     OperationsBox.Enabled = true;
                     ResourceNameFld.Enabled = true;
+                    this._resource.ClearParameter();
                     break;
 
                 case RESTResourceCapability.ResourceArchetype.Document:
@@ -212,6 +202,7 @@ namespace Plugin.Application.Forms
                     OperationsBox.Enabled = false;
                     OperationsList.Items.Clear();
                     ResourceNameFld.Enabled = true;
+                    this._resource.ClearParameter();
                     break;
 
                 case RESTResourceCapability.ResourceArchetype.Identifier:
@@ -219,7 +210,6 @@ namespace Plugin.Application.Forms
                     OperationsBox.Enabled = true;
                     ResourceNameFld.Enabled = false;
                     ResourceNameFld.Text = this._resource.Name;
-                    this._resource.Parameter = this._parameter;
                     break;
             }
             this._hasType = this._resource.Archetype != RESTResourceCapability.ResourceArchetype.Unknown;
@@ -236,60 +226,6 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void ResourceNameFld_Leave(object sender, EventArgs e)
         {
-            ValidateName();
-        }
-
-        /// <summary>
-        /// This event is invoked when the user has changed the name of the Identifier property name...
-        /// </summary>
-        /// <param name="sender">Ignored</param>
-        /// <param name="e">Ignored</param>
-        private void ParameterName_TextChanged(object sender, EventArgs e)
-        {
-            string newName = Conversions.ToPascalCase(ParameterName.Text);
-            if (newName != string.Empty)
-            {
-                ParameterName.Text = newName;
-                this._parameter.Name = newName;
-                ValidateName();
-            }
-        }
-
-        /// <summary>
-        /// This event is invoked when the user clicked the 'select classifier' button in order to select the class or 
-        /// datatype that we want to use as parameter type.
-        /// Since we must explicitly differentiate between classes, generic data types and enumerations, we use the
-        /// set of radio buttons to request the exact type that the user desires. This affects the picker dialog that
-        /// is shown to the user.
-        /// </summary>
-        /// <param name="sender">Ignored.</param>
-        /// <param name="e">Ignored.</param>
-        private void SelectClassifier_Click(object sender, EventArgs e)
-        {
-            ContextSlt context = ContextSlt.GetContextSlt();
-
-            // Depending on the radio buttons selected, we display the appropriate type picker.
-            // There are two 'flavors', one for Data Types and one for Enumerations.
-            // We use this differentiation to explicitly create the correct classifier class...
-            if (IsEnumeration.Checked)
-            {
-                MEEnumeratedType newEnum = context.SelectDataType(true) as MEEnumeratedType;
-                this._parameter.Classifier = newEnum;
-            }
-            else
-            {
-                MEDataType newDataType = context.SelectDataType(false);
-                this._parameter.Classifier = newDataType;
-            }
-
-            // Could be NULL if user decided to cancel the type picker.
-            if (this._parameter.Classifier != null)
-            {
-                ParameterClassifier.Text = this._parameter.Classifier.Name;
-                this._parameter.Default = string.Empty;
-            }
-            this._resource.Parameter = this._parameter;
-            ResourceNameFld.Text = this._resource.Name;    // In case of Identifier, this updates the displayed ID name.
             ValidateName();
         }
 
@@ -394,6 +330,23 @@ namespace Plugin.Application.Forms
         private void ExternalDocURL_Leave(object sender, EventArgs e)
         {
             this._resource.ExternalDocURL = ExternalDocURL.Text;
+        }
+
+        /// <summary>
+        /// This event is raised when the user clicks the 'Define Identifier' button. This will bring up the Parameter dialog, which
+        /// facilitates definition of a parameter to be used as Identifier for the Resourcer.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void DefineIdentifier_Click(object sender, EventArgs e)
+        {
+            RESTParameterDeclaration parameter = this._resource.SetParameter();
+            if (parameter != null && parameter.Status != RESTParameterDeclaration.DeclarationStatus.Invalid)
+            {
+                ParameterName.Text = parameter.Name;
+                ParameterClassifier.Text = parameter.Classifier.Name;
+                ValidateName();
+            }
         }
     }
 }

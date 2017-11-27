@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Framework.Model;
 using Framework.Logging;
 using Framework.Context;
+using Framework.Util;
 
 namespace Plugin.Application.CapabilityModel.API
 {
@@ -42,6 +43,7 @@ namespace Plugin.Application.CapabilityModel.API
         private string _name;                   // Property name.
         private MEClass _classifier;            // Type of the property.
         private string _defaultValue;           // Default value (if applicable).
+        private string _description;            // Property notes.
         private Tuple<int, int> _cardinality;   // Property cardinality, item2 == 0 --> Undefined.
         private QueryCollectionFormat _collectionFormat; // In case of upper-limit cardinality >1: how do we separate values in the input?
         private ParameterScope _scope;          // Parameter scope.
@@ -63,6 +65,15 @@ namespace Plugin.Application.CapabilityModel.API
         {
             get { return this._defaultValue; }
             set { this._defaultValue = value; }
+        }
+
+        /// <summary>
+        ///  Get or set the parameter annotation text.
+        /// </summary>
+        internal string Description
+        {
+            get { return this._description; }
+            set { this._description = value; }
         }
 
         /// <summary>
@@ -122,6 +133,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._defaultValue = string.Empty;
             this._cardinality = null;
             this._classifier = null;
+            this._description = string.Empty;
             this._collectionFormat = QueryCollectionFormat.Unknown;
             this._scope = ParameterScope.Unknown;
             this._status = DeclarationStatus.Invalid;
@@ -134,18 +146,42 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="name">Parameter name.</param>
         /// <param name="classifier">Parameter type.</param>
         /// <param name="deflt">Optional default value, can be NULL or empty string if not defined.</param>
+        /// <param name="description">Parameter description.</param>
         /// <param name="card">Cardinality of the parameter occurance.</param>
         /// <param name="collectionFmt">Mechanism used to separate values in case cardinality upper boundary >1.</param>
-        internal RESTParameterDeclaration(string name, MEClass classifier, string deflt, Tuple<int,int> card, ParameterScope scope, QueryCollectionFormat collectionFmt = QueryCollectionFormat.Unknown)
+        internal RESTParameterDeclaration(string name, MEClass classifier, string deflt, string description, Tuple<int,int> card, ParameterScope scope, QueryCollectionFormat collectionFmt = QueryCollectionFormat.Unknown)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTParameterDeclaration >> Creating new declaration with name '" + name + "' and classifier '" + classifier.Name + "'...");
             this._name = name;
             this._classifier = classifier;
+            this._description = description;
             this._defaultValue = string.IsNullOrEmpty(deflt)? string.Empty: deflt;
             this._cardinality = card;
             this._collectionFormat = collectionFmt;
             this._scope = scope;
             this._status = (name != string.Empty && classifier != null && scope != ParameterScope.Unknown)? DeclarationStatus.Created: DeclarationStatus.Invalid;
+        }
+
+        /// <summary>
+        /// Class constructor that creates a parameter declaration from an existing Attribute object. It retrieves all necessary information from that attribute.
+        /// </summary>
+        /// <param name="attrib">Attribute to be parsed.</param>
+        internal RESTParameterDeclaration(MEAttribute attrib)
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTParameterDeclaration >> Creating parameter declaration from attribute '" + attrib + "'...");
+            ModelSlt model = ModelSlt.GetModelSlt();
+            ContextSlt context = ContextSlt.GetContextSlt();
+            this._name = attrib.Name;
+            this._classifier = attrib.Classifier;
+            this._description = attrib.Annotation;
+            this._defaultValue = !string.IsNullOrEmpty(attrib.DefaultValue) ? attrib.DefaultValue : attrib.FixedValue;
+            this._cardinality = attrib.Cardinality;
+            this._status = DeclarationStatus.Created;
+
+            string collectionFmt = attrib.GetTag(context.GetConfigProperty(_CollectionFormatTag));
+            string scope = attrib.GetTag(context.GetConfigProperty(_ParameterScopeTag));
+            this._scope = !string.IsNullOrEmpty(scope) ? EnumConversions<ParameterScope>.StringToEnum(scope) : ParameterScope.Unknown;
+            this._collectionFormat = !string.IsNullOrEmpty(collectionFmt) ? EnumConversions<QueryCollectionFormat>.StringToEnum(collectionFmt) : QueryCollectionFormat.Unknown;
         }
 
         /// <summary>
@@ -164,6 +200,7 @@ namespace Plugin.Application.CapabilityModel.API
                 newAttrib.AddStereotype(context.GetConfigProperty(_RESTParameterStereotype));
                 newAttrib.SetTag(context.GetConfigProperty(_ParameterScopeTag), param._scope.ToString(), true);
                 newAttrib.SetTag(context.GetConfigProperty(_CollectionFormatTag), param._collectionFormat.ToString(), true);
+                newAttrib.Annotation = param.Description;
             }
             
             // Parameters of type Class must be treated differently since an attribute can only be a simple type!

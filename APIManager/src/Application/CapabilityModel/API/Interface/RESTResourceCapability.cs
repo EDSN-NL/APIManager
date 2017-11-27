@@ -90,6 +90,19 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Returns the archetype of this resource.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal ResourceArchetype Archetype
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTResourceCapabilityImp)this._imp).Archetype;
+                else throw new MissingImplementationException("RESTResourceCapabilityImp");
+            }
+        }
+
+        /// <summary>
         /// Returns true if the resource represents resource collection (container of other resources).
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
@@ -129,14 +142,14 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Returns the archetype of this resource.
+        /// Returns the Parameter declaration if this is an IDentifier Resource.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal ResourceArchetype Archetype
+        internal RESTParameterDeclaration Parameter
         {
             get
             {
-                if (this._imp != null) return ((RESTResourceCapabilityImp)this._imp).Archetype;
+                if (this._imp != null) return ((RESTResourceCapabilityImp)this._imp).Parameter;
                 else throw new MissingImplementationException("RESTResourceCapabilityImp");
             }
         }

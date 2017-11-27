@@ -195,8 +195,8 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             {
                                 Logger.WriteWarning("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.DefineClassifier >> External reference '" + classifier.Name +
                                                     "' has illegal minOcc and/or maxOcc declarations, default is used instead!");
-                                this._panel.WriteWarning(this._panelIndex + 1, "External reference '" + classifier.Name +
-                                                         "' has illegal minOcc and/or maxOcc declarations, default is used instead!");
+                                if (this._panel != null) this._panel.WriteWarning(this._panelIndex + 1, "External reference '" + classifier.Name +
+                                                                                  "' has illegal minOcc and/or maxOcc declarations, default is used instead!");
                             }
                             targetSchema.AddExternalClassifier(classifier.Name, classifier.GetDocumentation(), nameSpace,
                                                                nameSpaceToken, schemaName, baseType, cardinality);
@@ -209,7 +209,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                         // All others are not supported at this time.
                         this._lastError = "Classifier '" + classifier.Name + "' is of unsupported type: " + typeName;
                         Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.DefineClassifier >> " + this._lastError);
-                        _panel.WriteError(this._panelIndex + 3, this._lastError);
+                        if (this._panel != null) this._panel.WriteError(this._panelIndex + 3, this._lastError);
                         classifierCtx = new ClassifierContext(ClassifierContext.ContentTypeCode.Unknown, classifier.Name, scope);
                         break;
                 }

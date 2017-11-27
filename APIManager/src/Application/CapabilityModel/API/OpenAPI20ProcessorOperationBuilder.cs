@@ -8,6 +8,8 @@ using Newtonsoft.Json.Linq;
 using Framework.Logging;
 using Framework.Model;
 using Framework.Util;
+using Framework.Util.SchemaManagement;
+using Framework.Util.SchemaManagement.JSON;
 using Framework.Context;
 using Plugin.Application.CapabilityModel.ASCIIDoc;
 using Plugin.Application.CapabilityModel.SchemaGeneration;
@@ -35,6 +37,7 @@ namespace Plugin.Application.CapabilityModel.API
         private bool BuildOperation(RESTOperationCapability operation)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperation >> Building operation '" + operation.Name + "'...");
+            bool result = true;
             this._JSONWriter.WritePropertyName(operation.HTTPTypeName);
             this._JSONWriter.WriteStartObject();                            // We start the operation object here, but we can't finish it since the responses have to go in!
             if (this._currentResource.IsTag)
@@ -99,10 +102,9 @@ namespace Plugin.Application.CapabilityModel.API
 
             this._JSONWriter.WritePropertyName("parameters"); this._JSONWriter.WriteStartArray();
             {
-                //PARAMETERS GO HERE
+                result = BuildParameters(operation);
             } this._JSONWriter.WriteEndArray();
-
-            return true;
+            return result;
         }
 
         /// <summary>
@@ -114,7 +116,7 @@ namespace Plugin.Application.CapabilityModel.API
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Building result '" + operationResult.Name + "'...");
             this._JSONWriter.WritePropertyName(operationResult.ResultCode);
-            this._JSONWriter.WriteStartObject(); 
+            this._JSONWriter.WriteStartObject();
             this._JSONWriter.WritePropertyName("description");
             // Since multi-line strings don't really work here, we separate lines by two spaces...
             this._JSONWriter.WriteValue(MEChangeLog.GetDocumentationAsText(operationResult.CapabilityClass, "  "));
@@ -122,36 +124,61 @@ namespace Plugin.Application.CapabilityModel.API
             return true;
         }
 
-
-
-        /// <summary>
-        /// Checks whether the specified class is associated with a Documentation Info Descriptor and if so, writes the attribute values to 
-        /// the output stream.
-        /// </summary>
-        /// <param name="wr">JSON Output Stream.</param>
-        /// <param name="thisClass">Class to test.</param>
-        private void WriteDocumentationTMP(JsonTextWriter wr, MEClass thisClass)
+        private bool BuildParameters(RESTOperationCapability operation)
         {
-            string assocClassName = ContextSlt.GetContextSlt().GetConfigProperty(_DocumentationTypeClassName);
-            foreach (MEAssociation assoc in thisClass.AssociationList)
+            if (this._currentResource.Archetype == RESTResourceCapability.ResourceArchetype.Identifier)
             {
-                if (assoc.Destination.EndPoint.Name == assocClassName)
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildParameters >> Identifier resource '" + this._currentResource.Name + "', build path parameter...");
+                RESTParameterDeclaration resourceParam = this._currentResource.Parameter;
+                if (resourceParam == null)
                 {
-                    wr.WritePropertyName("externalDocs");
-                    wr.WriteStartObject();
-                    foreach (MEAttribute attrib in assoc.Destination.EndPoint.Attributes)
+                    Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildParameters >> Required ID parameter in Identifier Resource '" + 
+                                      this._currentResource.Name + "' is missing!");
+                    return false;
+                }
+                // Processing class properties provides us with a classifier definition (and if necessary, registration) of the identifier property...
+                // There should be only one property but if there are more, we simply take the one that matches our resource parameter...
+                List<SchemaAttribute> resourceProperties = this._schema.ProcessProperties(this._currentResource.CapabilityClass); 
+                foreach (JSONContentAttribute attrib in resourceProperties)
+                {
+                    if (attrib.Name == resourceParam.Name)
                     {
-                        wr.WritePropertyName(attrib.Name.ToLower());
-                        wr.WriteValue(attrib.FixedValue);
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildParameters >> Found Identifier property!");
+                        this._JSONWriter.WriteStartObject();
+                        {
+                            this._JSONWriter.WritePropertyName("name");
+                            this._JSONWriter.WriteValue(Conversions.ToCamelCase(attrib.Name));
+                            this._JSONWriter.WritePropertyName("in");
+                            this._JSONWriter.WriteValue("path");
+                            this._JSONWriter.WritePropertyName("description");
+                            {
+                                // Since multi-line strings don't work here, we replace line breaks by two spaces.
+                                string documentation = MEChangeLog.GetDocumentationAsText(operation.CapabilityClass, "  ");
+                                this._JSONWriter.WriteValue(resourceParam.Description);
+                            }
+                            this._JSONWriter.WritePropertyName("required");
+                            this._JSONWriter.WriteRawValue("\"true\",");
+
+                            // Collect the JSON Schema for the attribute as a string...
+                            string attribText = attrib.GetClassifierAsText();
+                            attribText = attribText.Substring(1, attribText.Length - 2);    // Get rid of '{' and '}' from the schema.
+                            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildParameters >> Got attribute: '" + attribText + "'...");
+                            this._JSONWriter.WriteRaw(attribText);
+                            if (attrib.IsListRequired)
+                            {
+                                if (resourceParam.CollectionFormat != RESTParameterDeclaration.QueryCollectionFormat.Unknown &&
+                                    resourceParam.CollectionFormat != RESTParameterDeclaration.QueryCollectionFormat.NA)
+                                {
+                                    this._JSONWriter.WritePropertyName("collectionFormat");
+                                    this._JSONWriter.WriteValue(resourceParam.CollectionFormat.ToString().ToLower());
+                                }
+                                else Logger.WriteWarning("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildParameters >> Collection specification is missing in resource '" + this._currentResource.Name + "'!");
+                            }
+                        } this._JSONWriter.WriteEndObject();
                     }
-                    wr.WriteEndObject();
-                    break;
                 }
             }
+            return true;
         }
-
-
-
-
     }
 }

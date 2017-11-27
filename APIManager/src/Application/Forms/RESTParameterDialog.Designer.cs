@@ -48,14 +48,17 @@
             this.IsEnum = new System.Windows.Forms.RadioButton();
             this.IsDataType = new System.Windows.Forms.RadioButton();
             this.IsClass = new System.Windows.Forms.RadioButton();
+            this.DescriptionBox = new System.Windows.Forms.GroupBox();
+            this.ParamDescription = new System.Windows.Forms.TextBox();
             this.CardinalityGroup.SuspendLayout();
             this.ClassifierBox.SuspendLayout();
+            this.DescriptionBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(91, 234);
+            this.Ok.Location = new System.Drawing.Point(333, 218);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
             this.Ok.TabIndex = 7;
@@ -65,7 +68,7 @@
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(172, 234);
+            this.Cancel.Location = new System.Drawing.Point(414, 218);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
             this.Cancel.TabIndex = 6;
@@ -75,7 +78,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(20, 12);
+            this.label1.Location = new System.Drawing.Point(18, 27);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(38, 13);
             this.label1.TabIndex = 0;
@@ -83,7 +86,7 @@
             // 
             // ParameterName
             // 
-            this.ParameterName.Location = new System.Drawing.Point(64, 9);
+            this.ParameterName.Location = new System.Drawing.Point(64, 24);
             this.ParameterName.Name = "ParameterName";
             this.ParameterName.Size = new System.Drawing.Size(183, 20);
             this.ParameterName.TabIndex = 1;
@@ -122,7 +125,7 @@
             this.CardinalityGroup.Controls.Add(this.label4);
             this.CardinalityGroup.Controls.Add(this.ParameterCardLow);
             this.CardinalityGroup.Controls.Add(this.label3);
-            this.CardinalityGroup.Location = new System.Drawing.Point(12, 139);
+            this.CardinalityGroup.Location = new System.Drawing.Point(12, 84);
             this.CardinalityGroup.Name = "CardinalityGroup";
             this.CardinalityGroup.Size = new System.Drawing.Size(235, 50);
             this.CardinalityGroup.TabIndex = 4;
@@ -166,7 +169,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(12, 116);
+            this.label5.Location = new System.Drawing.Point(12, 61);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(73, 13);
             this.label5.TabIndex = 0;
@@ -174,7 +177,7 @@
             // 
             // ParameterDefaultValue
             // 
-            this.ParameterDefaultValue.Location = new System.Drawing.Point(91, 113);
+            this.ParameterDefaultValue.Location = new System.Drawing.Point(91, 58);
             this.ParameterDefaultValue.Name = "ParameterDefaultValue";
             this.ParameterDefaultValue.Size = new System.Drawing.Size(156, 20);
             this.ParameterDefaultValue.TabIndex = 14;
@@ -183,7 +186,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(12, 198);
+            this.label6.Location = new System.Drawing.Point(13, 143);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(88, 13);
             this.label6.TabIndex = 0;
@@ -192,7 +195,7 @@
             // CollectionFormat
             // 
             this.CollectionFormat.FormattingEnabled = true;
-            this.CollectionFormat.Location = new System.Drawing.Point(107, 195);
+            this.CollectionFormat.Location = new System.Drawing.Point(107, 140);
             this.CollectionFormat.Name = "CollectionFormat";
             this.CollectionFormat.Size = new System.Drawing.Size(140, 21);
             this.CollectionFormat.TabIndex = 5;
@@ -206,7 +209,7 @@
             this.ClassifierBox.Controls.Add(this.ParameterClassifier);
             this.ClassifierBox.Controls.Add(this.label2);
             this.ClassifierBox.Controls.Add(this.SelectClassifier);
-            this.ClassifierBox.Location = new System.Drawing.Point(12, 35);
+            this.ClassifierBox.Location = new System.Drawing.Point(253, 9);
             this.ClassifierBox.Name = "ClassifierBox";
             this.ClassifierBox.Size = new System.Drawing.Size(235, 69);
             this.ClassifierBox.TabIndex = 2;
@@ -246,13 +249,33 @@
             this.IsClass.Text = "Class";
             this.IsClass.UseVisualStyleBackColor = true;
             // 
+            // DescriptionBox
+            // 
+            this.DescriptionBox.Controls.Add(this.ParamDescription);
+            this.DescriptionBox.Location = new System.Drawing.Point(253, 84);
+            this.DescriptionBox.Name = "DescriptionBox";
+            this.DescriptionBox.Size = new System.Drawing.Size(235, 128);
+            this.DescriptionBox.TabIndex = 15;
+            this.DescriptionBox.TabStop = false;
+            this.DescriptionBox.Text = "Description";
+            // 
+            // ParamDescription
+            // 
+            this.ParamDescription.Location = new System.Drawing.Point(11, 16);
+            this.ParamDescription.Multiline = true;
+            this.ParamDescription.Name = "ParamDescription";
+            this.ParamDescription.Size = new System.Drawing.Size(218, 99);
+            this.ParamDescription.TabIndex = 0;
+            this.ParamDescription.Leave += new System.EventHandler(this.ParamDescription_Leave);
+            // 
             // RESTParameterDialog
             // 
             this.AcceptButton = this.Ok;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(259, 275);
+            this.ClientSize = new System.Drawing.Size(501, 257);
+            this.Controls.Add(this.DescriptionBox);
             this.Controls.Add(this.ClassifierBox);
             this.Controls.Add(this.CollectionFormat);
             this.Controls.Add(this.label6);
@@ -273,6 +296,8 @@
             this.CardinalityGroup.PerformLayout();
             this.ClassifierBox.ResumeLayout(false);
             this.ClassifierBox.PerformLayout();
+            this.DescriptionBox.ResumeLayout(false);
+            this.DescriptionBox.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -300,5 +325,7 @@
         private System.Windows.Forms.RadioButton IsEnum;
         private System.Windows.Forms.RadioButton IsDataType;
         private System.Windows.Forms.RadioButton IsClass;
+        private System.Windows.Forms.GroupBox DescriptionBox;
+        private System.Windows.Forms.TextBox ParamDescription;
     }
 }

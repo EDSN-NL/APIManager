@@ -349,7 +349,6 @@ namespace Plugin.Application.CapabilityModel
         /// <returns>Result of all processing, false when a child returns an error or when there are no children.</returns>
         internal virtual bool HandleCapabilities(CapabilityProcessor processor)
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.CapabilityImp.handleCapabilities >> Processing capabilities one at a time...");
             ProcessingStage stage = ProcessingStage.PreProcess;
             if (!Valid) return false;   // Class can not handle any requests.
             bool result = false;
@@ -375,7 +374,6 @@ namespace Plugin.Application.CapabilityModel
                 HandleCapabilities(processor, ProcessingStage.Cancel);
                 result = false;
             }
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.CapabilityImp.handleCapabilities >> Result = " + result);
             return result;
         }
 
@@ -418,7 +416,6 @@ namespace Plugin.Application.CapabilityModel
                     }
                 }
             }
-            Logger.WriteInfo("Custom.Application.CapabilityModel.CapabilityImp.handleCapabilities >> Result = " + result);
             return result;
         }
 

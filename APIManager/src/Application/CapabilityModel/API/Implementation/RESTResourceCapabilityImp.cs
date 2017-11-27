@@ -24,6 +24,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _ResourceClassStereotype               = "ResourceClassStereotype";
         private const string _RESTOperationClassStereotype          = "RESTOperationClassStereotype";
         private const string _RESTOperationResultStereotype         = "RESTOperationResultStereotype";
+        private const string _RESTParameterStereotype               = "RESTParameterStereotype";
         private const string _DocumentationTypeClassName            = "DocumentationTypeClassName";
         private const string _CoreDataTypesPathName                 = "CoreDataTypesPathName";
         private const string _MessageAssemblyClassStereotype        = "MessageAssemblyClassStereotype";
@@ -45,6 +46,7 @@ namespace Plugin.Application.CapabilityModel.API
         private bool _isCollection;                                 // Indicates whether the resource represents a resource collection.
         private bool _isRootLevel;                                  // Indicates whether the resource is a root-level resourcr ("sub-API").
         private bool _isTag;                                        // Indicates whether the resource is marked as a tag.
+        private RESTParameterDeclaration _parameter;                // In case of Identifier resources, this contains the parameter.
 
         // Keep track of (extra) classes and associations to show in the resource diagram...
         private List<MEClass> _diagramClassList = new List<MEClass>();
@@ -57,12 +59,14 @@ namespace Plugin.Application.CapabilityModel.API
         /// IsCollection = Returns true if this is a collection-type resource.
         /// IsRootLevel = Returns true if the resource represents a sub-API.
         /// IsTag = Returns true of the resource is marked as a tag.
+        /// Parameter = Returns the parameter in case of an Identifier resource.
         /// </summary>
         internal MEPackage ResourcePackage                          { get { return this._resourcePackage; } }
         internal RESTResourceCapability.ResourceArchetype Archetype { get { return this._archetype; } }
         internal bool IsCollection                                  { get { return this._isCollection; } }
         internal bool IsRootLevel                                   { get { return this._isRootLevel; } }
         internal bool IsTag                                         { get { return this._isTag; } }
+        internal RESTParameterDeclaration Parameter                 { get { return this._parameter; } }
 
         /// <summary>
         /// Creates a new resource based on a resource declaration object. This object contains all the information necessary to create 
@@ -623,7 +627,11 @@ namespace Plugin.Application.CapabilityModel.API
                 this._myParent = parent;
                 this._capabilityClass = hierarchy.Data;
                 this._isTag = false;
+                this._parameter = null;
                 string archetypeTagName = context.GetConfigProperty(_ArchetypeTag);
+                string RESTParamStereotype = context.GetConfigProperty(_RESTParameterStereotype);
+                string resourceClassStereotype = context.GetConfigProperty(_ResourceClassStereotype);
+                string operationClassStereotype = context.GetConfigProperty(_RESTOperationClassStereotype);
                 var resourceCapItf = new RESTResourceCapability(this);
                 this._archetype = (RESTResourceCapability.ResourceArchetype) Enum.Parse(typeof(RESTResourceCapability.ResourceArchetype), 
                                                                                         this._capabilityClass.GetTag(archetypeTagName), true);
@@ -639,9 +647,23 @@ namespace Plugin.Application.CapabilityModel.API
                 }
                 this._isRootLevel = (string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_IsRootLevelTag)), "true", true) == 0);
 
+                // Check whether we have a parameter (in case of Identifier Resource)...
+                // If the class has multiple RESTParameter attributes, we simply take the first one we encounter (and issue a warning 'cause this is illegal)...
+                foreach (MEAttribute attrib in this._capabilityClass.Attributes)
+                {
+                    if (attrib.HasStereotype(RESTParamStereotype))
+                    {
+                        this._parameter = new RESTParameterDeclaration(attrib);
+                        if (this._capabilityClass.Attributes.Count > 1)
+                            Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Resource '" +
+                                                this.Name + "' has too many attributes, only '" + this._parameter.Name + "' is used!");
+                        break;
+                    }
+                }
+
                 foreach (TreeNode<MEClass> node in hierarchy.Children)
                 {
-                    if (node.Data.HasStereotype(context.GetConfigProperty(_ResourceClassStereotype)))
+                    if (node.Data.HasStereotype(resourceClassStereotype))
                     {
                         var resource = new RESTResourceCapability(resourceCapItf, node);
                         resource.InitialiseParent(resourceCapItf);
@@ -652,7 +674,7 @@ namespace Plugin.Application.CapabilityModel.API
                             return;
                         }
                     }
-                    else if (node.Data.HasStereotype(context.GetConfigProperty(_RESTOperationClassStereotype)))
+                    else if (node.Data.HasStereotype(operationClassStereotype))
                     {
                         var operation = new RESTOperationCapability(resourceCapItf, node);
                         operation.InitialiseParent(resourceCapItf);

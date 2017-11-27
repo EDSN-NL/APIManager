@@ -44,12 +44,9 @@
             this.DeleteOperationToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.EditOperationToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.PropertiesBox = new System.Windows.Forms.GroupBox();
-            this.ClassifierBox = new System.Windows.Forms.GroupBox();
-            this.IsEnumeration = new System.Windows.Forms.RadioButton();
-            this.IsDataType = new System.Windows.Forms.RadioButton();
-            this.label3 = new System.Windows.Forms.Label();
-            this.ParameterClassifier = new System.Windows.Forms.TextBox();
             this.SelectClassifier = new System.Windows.Forms.Button();
+            this.ParameterClassifier = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.ParameterName = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.ResourceTypeBox = new System.Windows.Forms.ComboBox();
@@ -68,9 +65,9 @@
             this.label5 = new System.Windows.Forms.Label();
             this.DocDescription = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
+            this.DefineIdentifierToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.OperationsBox.SuspendLayout();
             this.PropertiesBox.SuspendLayout();
-            this.ClassifierBox.SuspendLayout();
             this.OperationMenuStrip.SuspendLayout();
             this.DocumentationBox.SuspendLayout();
             this.SuspendLayout();
@@ -98,7 +95,7 @@
             // PathExpressionLbl
             // 
             this.PathExpressionLbl.AutoSize = true;
-            this.PathExpressionLbl.Location = new System.Drawing.Point(272, 11);
+            this.PathExpressionLbl.Location = new System.Drawing.Point(2, 57);
             this.PathExpressionLbl.Name = "PathExpressionLbl";
             this.PathExpressionLbl.Size = new System.Drawing.Size(79, 13);
             this.PathExpressionLbl.TabIndex = 0;
@@ -110,9 +107,9 @@
             this.OperationsBox.Controls.Add(this.EditOperation);
             this.OperationsBox.Controls.Add(this.DeleteOperation);
             this.OperationsBox.Controls.Add(this.AddOperation);
-            this.OperationsBox.Location = new System.Drawing.Point(257, 38);
+            this.OperationsBox.Location = new System.Drawing.Point(260, 8);
             this.OperationsBox.Name = "OperationsBox";
-            this.OperationsBox.Size = new System.Drawing.Size(266, 159);
+            this.OperationsBox.Size = new System.Drawing.Size(266, 189);
             this.OperationsBox.TabIndex = 4;
             this.OperationsBox.TabStop = false;
             this.OperationsBox.Text = "Associated Operations";
@@ -128,7 +125,7 @@
             this.OperationsList.Location = new System.Drawing.Point(7, 19);
             this.OperationsList.MultiSelect = false;
             this.OperationsList.Name = "OperationsList";
-            this.OperationsList.Size = new System.Drawing.Size(250, 95);
+            this.OperationsList.Size = new System.Drawing.Size(250, 133);
             this.OperationsList.TabIndex = 0;
             this.OperationsList.UseCompatibleStateImageBehavior = false;
             this.OperationsList.View = System.Windows.Forms.View.Details;
@@ -146,7 +143,7 @@
             // EditOperation
             // 
             this.EditOperation.Image = ((System.Drawing.Image)(resources.GetObject("EditOperation.Image")));
-            this.EditOperation.Location = new System.Drawing.Point(69, 120);
+            this.EditOperation.Location = new System.Drawing.Point(69, 158);
             this.EditOperation.Name = "EditOperation";
             this.EditOperation.Size = new System.Drawing.Size(25, 25);
             this.EditOperation.TabIndex = 3;
@@ -156,7 +153,7 @@
             // DeleteOperation
             // 
             this.DeleteOperation.Image = ((System.Drawing.Image)(resources.GetObject("DeleteOperation.Image")));
-            this.DeleteOperation.Location = new System.Drawing.Point(38, 120);
+            this.DeleteOperation.Location = new System.Drawing.Point(38, 158);
             this.DeleteOperation.Name = "DeleteOperation";
             this.DeleteOperation.Size = new System.Drawing.Size(25, 25);
             this.DeleteOperation.TabIndex = 2;
@@ -166,7 +163,7 @@
             // AddOperation
             // 
             this.AddOperation.Image = ((System.Drawing.Image)(resources.GetObject("AddOperation.Image")));
-            this.AddOperation.Location = new System.Drawing.Point(7, 120);
+            this.AddOperation.Location = new System.Drawing.Point(7, 158);
             this.AddOperation.Name = "AddOperation";
             this.AddOperation.Size = new System.Drawing.Size(25, 25);
             this.AddOperation.TabIndex = 1;
@@ -190,91 +187,57 @@
             // 
             // PropertiesBox
             // 
-            this.PropertiesBox.Controls.Add(this.ClassifierBox);
+            this.PropertiesBox.Controls.Add(this.SelectClassifier);
+            this.PropertiesBox.Controls.Add(this.ParameterClassifier);
+            this.PropertiesBox.Controls.Add(this.label3);
             this.PropertiesBox.Controls.Add(this.ParameterName);
             this.PropertiesBox.Controls.Add(this.label2);
-            this.PropertiesBox.Location = new System.Drawing.Point(12, 38);
+            this.PropertiesBox.Location = new System.Drawing.Point(15, 81);
             this.PropertiesBox.Name = "PropertiesBox";
-            this.PropertiesBox.Size = new System.Drawing.Size(239, 159);
+            this.PropertiesBox.Size = new System.Drawing.Size(239, 116);
             this.PropertiesBox.TabIndex = 3;
             this.PropertiesBox.TabStop = false;
             this.PropertiesBox.Text = "Identifier Properties";
             // 
-            // ClassifierBox
+            // SelectClassifier
             // 
-            this.ClassifierBox.Controls.Add(this.IsEnumeration);
-            this.ClassifierBox.Controls.Add(this.IsDataType);
-            this.ClassifierBox.Controls.Add(this.label3);
-            this.ClassifierBox.Controls.Add(this.ParameterClassifier);
-            this.ClassifierBox.Controls.Add(this.SelectClassifier);
-            this.ClassifierBox.Location = new System.Drawing.Point(15, 61);
-            this.ClassifierBox.Name = "ClassifierBox";
-            this.ClassifierBox.Size = new System.Drawing.Size(219, 71);
-            this.ClassifierBox.TabIndex = 2;
-            this.ClassifierBox.TabStop = false;
-            this.ClassifierBox.Text = "Classifier";
+            this.SelectClassifier.Image = ((System.Drawing.Image)(resources.GetObject("SelectClassifier.Image")));
+            this.SelectClassifier.Location = new System.Drawing.Point(208, 85);
+            this.SelectClassifier.Name = "SelectClassifier";
+            this.SelectClassifier.Size = new System.Drawing.Size(25, 25);
+            this.SelectClassifier.TabIndex = 4;
+            this.SelectClassifier.UseVisualStyleBackColor = true;
+            this.SelectClassifier.Click += new System.EventHandler(this.DefineIdentifier_Click);
             // 
-            // IsEnumeration
+            // ParameterClassifier
             // 
-            this.IsEnumeration.AutoSize = true;
-            this.IsEnumeration.Location = new System.Drawing.Point(95, 46);
-            this.IsEnumeration.Name = "IsEnumeration";
-            this.IsEnumeration.Size = new System.Drawing.Size(84, 17);
-            this.IsEnumeration.TabIndex = 3;
-            this.IsEnumeration.TabStop = true;
-            this.IsEnumeration.Text = "Enumeration";
-            this.IsEnumeration.UseVisualStyleBackColor = true;
-            // 
-            // IsDataType
-            // 
-            this.IsDataType.AutoSize = true;
-            this.IsDataType.Location = new System.Drawing.Point(8, 46);
-            this.IsDataType.Name = "IsDataType";
-            this.IsDataType.Size = new System.Drawing.Size(75, 17);
-            this.IsDataType.TabIndex = 2;
-            this.IsDataType.TabStop = true;
-            this.IsDataType.Text = "Data Type";
-            this.IsDataType.UseVisualStyleBackColor = true;
+            this.ParameterClassifier.Location = new System.Drawing.Point(61, 59);
+            this.ParameterClassifier.Name = "ParameterClassifier";
+            this.ParameterClassifier.ReadOnly = true;
+            this.ParameterClassifier.Size = new System.Drawing.Size(172, 20);
+            this.ParameterClassifier.TabIndex = 3;
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(8, 23);
+            this.label3.Location = new System.Drawing.Point(6, 62);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(40, 13);
-            this.label3.TabIndex = 6;
-            this.label3.Text = "Select:";
-            // 
-            // ParameterClassifier
-            // 
-            this.ParameterClassifier.Location = new System.Drawing.Point(51, 20);
-            this.ParameterClassifier.Name = "ParameterClassifier";
-            this.ParameterClassifier.ReadOnly = true;
-            this.ParameterClassifier.Size = new System.Drawing.Size(128, 20);
-            this.ParameterClassifier.TabIndex = 7;
-            // 
-            // SelectClassifier
-            // 
-            this.SelectClassifier.Location = new System.Drawing.Point(185, 19);
-            this.SelectClassifier.Name = "SelectClassifier";
-            this.SelectClassifier.Size = new System.Drawing.Size(25, 20);
-            this.SelectClassifier.TabIndex = 1;
-            this.SelectClassifier.Text = "...";
-            this.SelectClassifier.UseVisualStyleBackColor = true;
-            this.SelectClassifier.Click += new System.EventHandler(this.SelectClassifier_Click);
+            this.label3.Size = new System.Drawing.Size(51, 13);
+            this.label3.TabIndex = 2;
+            this.label3.Text = "Classifier:";
             // 
             // ParameterName
             // 
-            this.ParameterName.Location = new System.Drawing.Point(66, 25);
+            this.ParameterName.Location = new System.Drawing.Point(61, 28);
             this.ParameterName.Name = "ParameterName";
-            this.ParameterName.Size = new System.Drawing.Size(167, 20);
+            this.ParameterName.ReadOnly = true;
+            this.ParameterName.Size = new System.Drawing.Size(172, 20);
             this.ParameterName.TabIndex = 1;
-            this.ParameterName.Leave += new System.EventHandler(this.ParameterName_TextChanged);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(17, 28);
+            this.label2.Location = new System.Drawing.Point(19, 31);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(38, 13);
             this.label2.TabIndex = 0;
@@ -282,9 +245,9 @@
             // 
             // ResourceTypeBox
             // 
-            this.ResourceTypeBox.Location = new System.Drawing.Point(357, 8);
+            this.ResourceTypeBox.Location = new System.Drawing.Point(87, 54);
             this.ResourceTypeBox.Name = "ResourceTypeBox";
-            this.ResourceTypeBox.Size = new System.Drawing.Size(157, 21);
+            this.ResourceTypeBox.Size = new System.Drawing.Size(167, 21);
             this.ResourceTypeBox.TabIndex = 2;
             this.ResourceTypeBox.SelectedIndexChanged += new System.EventHandler(this.ResourceTypeBox_SelectedIndexChanged);
             // 
@@ -322,16 +285,16 @@
             // 
             // ResourceNameFld
             // 
-            this.ResourceNameFld.Location = new System.Drawing.Point(55, 8);
+            this.ResourceNameFld.Location = new System.Drawing.Point(87, 18);
             this.ResourceNameFld.Name = "ResourceNameFld";
-            this.ResourceNameFld.Size = new System.Drawing.Size(190, 20);
+            this.ResourceNameFld.Size = new System.Drawing.Size(167, 20);
             this.ResourceNameFld.TabIndex = 1;
             this.ResourceNameFld.Leave += new System.EventHandler(this.ResourceNameFld_Leave);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 11);
+            this.label1.Location = new System.Drawing.Point(37, 21);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(38, 13);
             this.label1.TabIndex = 0;
@@ -427,6 +390,10 @@
             this.label4.TabIndex = 0;
             this.label4.Text = "Description:";
             // 
+            // DefineIdentifierToolTip
+            // 
+            this.DefineIdentifierToolTip.ToolTipTitle = "Define Identifier";
+            // 
             // RESTResourceDialog
             // 
             this.AcceptButton = this.Ok;
@@ -453,8 +420,6 @@
             this.OperationsBox.ResumeLayout(false);
             this.PropertiesBox.ResumeLayout(false);
             this.PropertiesBox.PerformLayout();
-            this.ClassifierBox.ResumeLayout(false);
-            this.ClassifierBox.PerformLayout();
             this.OperationMenuStrip.ResumeLayout(false);
             this.DocumentationBox.ResumeLayout(false);
             this.DocumentationBox.PerformLayout();
@@ -486,14 +451,8 @@
         private System.Windows.Forms.CheckBox NewMinorVersion;
         private System.Windows.Forms.TextBox ResourceNameFld;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button SelectClassifier;
-        private System.Windows.Forms.TextBox ParameterClassifier;
-        private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox ParameterName;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.GroupBox ClassifierBox;
-        private System.Windows.Forms.RadioButton IsDataType;
-        private System.Windows.Forms.RadioButton IsEnumeration;
         private System.Windows.Forms.GroupBox DocumentationBox;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label6;
@@ -503,5 +462,9 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.CheckBox IsTag;
         private System.Windows.Forms.TextBox ExternalDocURL;
+        private System.Windows.Forms.Button SelectClassifier;
+        private System.Windows.Forms.TextBox ParameterClassifier;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.ToolTip DefineIdentifierToolTip;
     }
 }

@@ -23,6 +23,9 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _RootPkgName                   = "RootPkgName";
         private const string _EmptyResourceName             = "EmptyResourceName";
         private const string _ResourceClassStereotype       = "ResourceClassStereotype";
+        private const string _RESTParameterStereotype       = "RESTParameterStereotype";
+        private const string _ParameterScopeTag             = "ParameterScopeTag";
+        private const string _CollectionFormatTag           = "CollectionFormatTag";
 
         private Capability _parent;                                     // The capability that acts as parent for the resource.
         private MEClass _existingResource;                              // Contains associated class in case of existing resource.
@@ -101,13 +104,9 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Get or set the resource parameter in case of Identifier Resource...
+        /// Get the resource parameter in case of Identifier Resource...
         /// </summary>
-        internal RESTParameterDeclaration Parameter
-        {
-            get { return this._parameter; }
-            set { SetParameter(value); }
-        }
+        internal RESTParameterDeclaration Parameter { get { return this._parameter; } }
 
         /// <summary>
         /// Returns the capability that 'owns' this resource declaration.
@@ -222,6 +221,7 @@ namespace Plugin.Application.CapabilityModel.API
             string resourceType = resourceClass.GetTag(context.GetConfigProperty(_ArchetypeTag));
             string repositoryRootName = context.GetConfigProperty(_RootPkgName);
             string containerStereotype = context.GetConfigProperty(_ServiceContainerPkgStereotype);
+            string RESTParameterStereotype = context.GetConfigProperty(_RESTParameterStereotype);
 
             // The resource must be a child of the current service declaration...
             // We search upwards until we either find our parent, reacht container level or, as a last safety catch, the top of the repository...
@@ -241,11 +241,23 @@ namespace Plugin.Application.CapabilityModel.API
             this._operationList = new SortedList<string, RESTOperationDeclaration>();
             this._children = new SortedList<string, RESTResourceDeclaration>();
 
+            // Check whether we have a parameter (in case of Identifier Resource)...
+            // If the class has multiple RESTParameter attributes, we simply take the first one we encounter (and issue a warning 'cause this is illegal)...
+            foreach(MEAttribute attrib in resourceClass.Attributes)
+            {
+                if (attrib.HasStereotype(RESTParameterStereotype))
+                {
+                    this._parameter = new RESTParameterDeclaration(attrib);
+                    if (resourceClass.Attributes.Count > 1)
+                        Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTResourceDeclaration >> Resource '" +
+                                            this._name + "' has too many attributes, only '" + this._parameter.Name + "' is used!");
+                    break;
+                }
+            }
+
             // Check all preconditions for the status to be valid...
             this._status = (currentPkg == rootPkg && this._name != string.Empty && this._archetype != RESTResourceCapability.ResourceArchetype.Unknown) ? DeclarationStatus.Created : DeclarationStatus.Invalid;
             this._initialStatus = this._status;
-
-
         }
 
         /// <summary>
@@ -332,6 +344,55 @@ namespace Plugin.Application.CapabilityModel.API
                 }
             }
             return newResource;
+        }
+
+        /// <summary>
+        /// Removes the parameter definition from the current Resource Declaration;
+        /// </summary>
+        internal void ClearParameter()
+        {
+            this._parameter = null;
+        }
+
+        /// <summary>
+        /// If the resource is an Identifier Resource, the method call will display the 'Edit Parameter' dialog so that the user can create or
+        /// update a parameter declaration object. On return from the dialog, if the parameter settings are Ok, the parameter declaration is
+        /// initialized and the created / modified parameter declaration object is returned to the caller.
+        /// </summary>
+        /// <returns>Created parameter declaration or NULL on cancel/errors.</returns>
+        internal RESTParameterDeclaration SetParameter()
+        {
+            if (this._archetype == RESTResourceCapability.ResourceArchetype.Identifier)
+            {
+                bool isCreate = (this._parameter == null);
+                using (var dialog = new RESTParameterDialog(this._parameter))
+                {
+                    if (dialog.ShowDialog() == DialogResult.OK)
+                    {
+                        if (dialog.Parameter.Default != string.Empty)
+                        {
+                            MessageBox.Show("Default value not allowed, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return null;
+                        }
+                        if (!(dialog.Parameter.Classifier is MEDataType) && !(dialog.Parameter.Classifier is MEEnumeratedType))
+                        {
+                            MessageBox.Show("Parameter must be Data Type or Enumeration, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return null;
+                        }
+                        if (dialog.Parameter.Cardinality.Item1 != 1)
+                        {
+                            MessageBox.Show("Identifier is mandatory, lower bound adjusted!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            dialog.Parameter.Cardinality = new Tuple<int, int>(1, dialog.Parameter.Cardinality.Item2);
+                        }
+                        this._parameter = dialog.Parameter;
+                        this._parameter.Status = isCreate ? RESTParameterDeclaration.DeclarationStatus.Created :
+                                                            RESTParameterDeclaration.DeclarationStatus.Edited;
+                        this._parameter.Scope = RESTParameterDeclaration.ParameterScope.Path;
+                        if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                    }
+                }
+            }
+            return this._parameter;
         }
 
         /// <summary>
@@ -572,26 +633,6 @@ namespace Plugin.Application.CapabilityModel.API
                 if (this._initialStatus == DeclarationStatus.Invalid && this._name != string.Empty) this._status = DeclarationStatus.Created;
                 else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
             }
-        }
-
-        /// <summary>
-        /// Set the resource parameter (for Identifier-type resources). The function updates the parameter object with the passed
-        /// parameter declaration. If the received parameter is NULL, we remove our parameter definition.
-        /// </summary>
-        /// <param name="param">The parameter to load.</param>
-        private void SetParameter(RESTParameterDeclaration param)
-        {
-            if (param != null && this._archetype == RESTResourceCapability.ResourceArchetype.Identifier)
-            {
-                bool isCreate = (this._parameter == null);
-                this._parameter = param;
-                this._parameter.Status = isCreate ? RESTParameterDeclaration.DeclarationStatus.Created :
-                                                    RESTParameterDeclaration.DeclarationStatus.Edited;
-                this._parameter.Scope = RESTParameterDeclaration.ParameterScope.Path;
-
-                if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-            }
-            else this._parameter = null;    // Parameters are only allowed for Identifier Resources!
         }
     }
 }

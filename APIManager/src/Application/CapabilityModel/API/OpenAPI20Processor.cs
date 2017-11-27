@@ -29,7 +29,7 @@ namespace Plugin.Application.CapabilityModel.API
 
         private ProgressPanelSlt _panel;                // Contains the progress panel that we're using to report progress.
         private int _panelIndex;                        // The Panel indentation index assigned to this processor.
-        private Schema _schema;                         // The Schema to be used for all definitions.
+        private SchemaProcessor _schema;                // One single Schema Processor will process all our schema stuff.
         private bool _isPathInitialized;                // Global setting that assures that the export path is obtained exactly once.
         private string _APIAccessLevel;                 // Set to the access level of the API.
         private List<Tuple<string, string>> _accessLevels;          // List of Access Levels for each operation.
@@ -38,10 +38,9 @@ namespace Plugin.Application.CapabilityModel.API
         private string _currentPath;                    // Contains the OpenAPI Path that is currently being processed.
         private RESTResourceCapability _currentResource;    // The resource that is currently being processed.
 
-        // Since we have to terminate JSON objects properly, we must know whether we are in the last operation or operation result of a resource.
+        // Since we have to terminate JSON objects properly, we must know whether we are in the last operation result of a resource.
         // If we start a new resource, we might have to close the previous one. Also, we have to close the last resource but this we can handle at
-        // the beginning of post processing.
-        private bool _inOperation;                      // Global context: we are processing an operation.
+        // the beginning of post processing.    
         private bool _inOperationResult;                // Global context: we are processing an operation result.
 
         /// <summary>
@@ -95,7 +94,6 @@ namespace Plugin.Application.CapabilityModel.API
 
             ContextSlt context = ContextSlt.GetContextSlt();
             bool result = true;
-            bool useCommonDocContext = context.GetBoolSetting(FrameworkSettings._DocGenUseCommon);
             this._currentCapability = capability;
             this._currentService = capability.RootService as ApplicationService;
 
@@ -120,7 +118,6 @@ namespace Plugin.Application.CapabilityModel.API
                             this._panel.ShowPanel("Processing API: " + capability.Name, capability.SelectedChildrenCount * 6);
                             this._panel.WriteInfo(this._panelIndex, "Pre-processing Interface: '" + this._currentCapability.Name + "'...");
                             ClassCacheSlt.GetClassCacheSlt().Flush();   // Assures that we start with an empty cache.
-                            DocManagerSlt.GetDocManagerSlt().Flush();   // Assures that 'old' documentation nodes are removed.
                             this._panel.IncreaseBar(1);
 
                             // Initialize our resources and open the JSON output stream...
@@ -134,14 +131,17 @@ namespace Plugin.Application.CapabilityModel.API
 
                             // Retrieve the schema to be used for all definitions...
                             string tokenName = context.GetConfigProperty(_SchemaTokenName);
-                            this._schema = GetSchema(capability.Name, tokenName, 
-                                                     this._currentService.GetFQN("RESTOperation", Conversions.ToPascalCase(capability.AssignedRole), -1),
-                                                     capability.VersionString);
+                            JSONSchema theSchema = GetSchema(capability.Name, tokenName, 
+                                                             this._currentService.GetFQN("RESTOperation", Conversions.ToPascalCase(capability.AssignedRole), -1),
+                                                              capability.VersionString) as JSONSchema;
+                            if (theSchema != null) this._schema = new SchemaProcessor(theSchema);  // Create global schema processor in 'extSchema' mode.
+                            else
+                            {
+                                Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.ProcessCapability >> Unable to create JSON Schema instance!");
+                                return false;
+                            }
 
                             // Initialise the documentation context and other resources...
-                            if (useCommonDocContext) DocManagerSlt.GetDocManagerSlt().InitializeCommonDocContext(tokenName, capability.Name, MEChangeLog.GetDocumentationAsText(capability.CapabilityClass));
- 
-                            this._inOperation = false;
                             this._inOperationResult = false;
 
                             if (!this._isPathInitialized)
@@ -192,8 +192,6 @@ namespace Plugin.Application.CapabilityModel.API
                             }
                             this._inOperationResult = false;
                             this._panel.WriteInfo(this._panelIndex + 2, "Processing Operation '" + capability.Name + "'...");
-
-                            this._inOperation = true;
                             BuildOperation(capability as RESTOperationCapability);
                         }
                         else if (capability is RESTOperationResultCapability)
@@ -223,15 +221,12 @@ namespace Plugin.Application.CapabilityModel.API
                             {
                                 this._JSONWriter.WriteEndObject();      // Close previous response parameter.
                                 this._JSONWriter.WriteEndObject();      // And close the 'responses' section.
+                                this._JSONWriter.WriteEndObject();      // And close the last 'path' section.
                             }
                             this._JSONWriter.WriteEndObject();          // End 'paths' section object.
                             this._JSONWriter.WriteEndObject();          // End of OpenAPI definition object.
                             this._JSONWriter.Flush();
                             result = SaveProcessedCapability();
-
-                            // Save the collected documentation...
-                            DocManagerSlt.GetDocManagerSlt().Save(this._currentService.AbsolutePath, itf.BaseFileName, itf.Name,
-                                                                  MEChangeLog.GetDocumentationAsText(itf.CapabilityClass));
                         }
                         this._panel.IncreaseBar(1);
 
