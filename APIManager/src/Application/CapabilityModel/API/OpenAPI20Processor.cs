@@ -36,7 +36,8 @@ namespace Plugin.Application.CapabilityModel.API
         private StringWriter _outputWriter;             // Will eventually generate the actual OpenAPI output file.
         private JsonTextWriter _JSONWriter;             // Used to format the JSON code for the OpenAPI output stream.
         private string _currentPath;                    // Contains the OpenAPI Path that is currently being processed.
-        private RESTResourceCapability _currentResource;    // The resource that is currently being processed.
+        private RESTResourceCapability _currentResource;            // The resource that is currently being processed.
+        private int _capabilityCounter;                 // The total number of capabilities (itf, resource, operation, result) to process.
 
         // Since we have to terminate JSON objects properly, we must know whether we are in the last operation result of a resource.
         // If we start a new resource, we might have to close the previous one. Also, we have to close the last resource but this we can handle at
@@ -113,12 +114,14 @@ namespace Plugin.Application.CapabilityModel.API
                     case ProcessingStage.PreProcess:
                         if (capability is InterfaceCapability)
                         {
-                            // The bar-size is based on 6 steps per child. This is a wild guess but we don't want to spent hours figuring out the exact scale.
+                            // We first of all collect a count of all capabilities (excluding our Service). For the bar length, we
+                            // use 2x the number of capabilities since that seems to work out fine.
+                            this._capabilityCounter = 0;
+                            capability.TraverseSelected(ItemCollector);
                             this._panel = ProgressPanelSlt.GetProgressPanelSlt();
-                            this._panel.ShowPanel("Processing API: " + capability.Name, capability.SelectedChildrenCount * 6);
+                            this._panel.ShowPanel("Processing API: " + capability.Name, this._capabilityCounter * 2);
                             this._panel.WriteInfo(this._panelIndex, "Pre-processing Interface: '" + this._currentCapability.Name + "'...");
                             ClassCacheSlt.GetClassCacheSlt().Flush();   // Assures that we start with an empty cache.
-                            this._panel.IncreaseBar(1);
 
                             // Initialize our resources and open the JSON output stream...
                             var itf = capability as RESTInterfaceCapability;
@@ -181,6 +184,7 @@ namespace Plugin.Application.CapabilityModel.API
                             }
                             this._inOperationResult = false;
 
+                            // We set 'currentResource' in here as part of the path-construction process...
                             DefinePath(capability as RESTResourceCapability);
                         }
                         else if (capability is RESTOperationCapability)
@@ -327,9 +331,17 @@ namespace Plugin.Application.CapabilityModel.API
         {
             if (this._currentCapability is RESTInterfaceCapability)
             {
-                string generatedOutput = this._outputWriter.ToString();
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildHeader >> Created output:" + Environment.NewLine + generatedOutput);
-                using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8)) writer.Write(generatedOutput);
+                // The following assures that the generated output is validated and re-formatted again so that all is properly indented...
+                using (var stringReader = new StringReader(this._outputWriter.ToString()))
+                using (var stringWriter = new StringWriter())
+                {
+                    var jsonReader = new JsonTextReader(stringReader);
+                    var jsonWriter = new JsonTextWriter(stringWriter) { Formatting = Formatting.Indented };
+                    jsonWriter.WriteToken(jsonReader);
+                    string api = stringWriter.ToString();
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildHeader >> Created output:" + Environment.NewLine + api);
+                    using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8)) writer.Write(api);
+                }
             }
         }
 
@@ -377,6 +389,18 @@ namespace Plugin.Application.CapabilityModel.API
                 Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.GetSchema >> " + message);
                 throw new MissingFieldException(message);
             }
+        }
+
+        /// <summary>
+        /// Helper function that simply counts all capabilties encountered.
+        /// </summary>
+        /// <param name="svc">Ignored.</param>
+        /// <param name="cap">The current Capability, or NULL when invoked at Service level (very first call).</param>
+        /// <returns>Always 'false', which indicates that traversal must continue until all nodes are processed.</returns>
+        private bool ItemCollector(Service svc, Capability cap)
+        {
+            if (cap != null) this._capabilityCounter++;
+            return false;
         }
     }
 }

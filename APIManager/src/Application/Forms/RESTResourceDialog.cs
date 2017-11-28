@@ -45,7 +45,7 @@ namespace Plugin.Application.Forms
             this._resource = resource;
             ResourceNameFld.Text = resource.Name;
             ParameterName.Text = resource.Parameter.Name;
-            ParameterClassifier.Text = resource.Parameter.Classifier.Name;
+            ParameterClassifier.Text = resource.Parameter.Classifier != null? resource.Parameter.Classifier.Name: string.Empty;
 
             // Load the Operations in case of Edit...
             if (this._isEdit && resource.Operations != null)

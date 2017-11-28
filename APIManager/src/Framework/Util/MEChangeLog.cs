@@ -266,6 +266,25 @@ namespace Framework.Util
         }
 
         /// <summary>
+        /// This method loads an RTF-formatted documentation section to the Notes property of the specified class.
+        /// </summary>
+        /// <param name="thisClass">The class we want to update.</param>
+        /// <param name="documentation">List of RTF-formatted documentation lines.</param>
+        internal static void SetRTFDocumentation(MEClass thisClass, List<string> documentation)
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            MEChangeLog.MigrateLog(thisClass);      // Always make sure that the documentation section is properly formatted.
+            string paragraph = string.Empty;
+            foreach (string line in documentation) paragraph += line + "\\par ";
+            var newLog = new MEChangeLog(context.TransformRTF(thisClass.Annotation, RTFDirection.ToRTF))
+            {
+                Documentation = paragraph
+            };
+            string log = newLog.GetLog();
+            thisClass.Annotation = context.TransformRTF(log, RTFDirection.FromRTF);
+        }
+
+        /// <summary>
         /// This method loads the log object with an existing, ASCII-formatted, set of log lines. It replaces the contents of 
         /// the current AuditLog object by the provided string set, so it should typically be called on a new AuditLog instance!
         /// The received input should consist of three columns: 

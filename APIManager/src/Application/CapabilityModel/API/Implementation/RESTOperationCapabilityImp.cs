@@ -40,11 +40,13 @@ namespace Plugin.Application.CapabilityModel.API
         /// HTTPTypeName = Returns the name of the HTTP operation as a lowercase string.
         /// ConsumedMIMEList = Returns list of non-standard MIME types consumed by the operation.
         /// ProducedMIMEList = Returns list of non-standard MIME types produced by the operation.
+        /// ParentResource = The resource that 'owns' this operation.
         /// </summary>
         internal RESTOperationCapability.OperationType HTTPType { get { return this._archetype; } }
         internal string HTTPTypeName                            { get { return this._archetype.ToString("G").ToLower(); } }
         internal List<string> ConsumedMIMEList                  { get { return this._consumedMIMETypes; } }
         internal List<string> ProducedMIMEList                  { get { return this._producedMIMETypes; } }
+        internal RESTResourceCapability ParentResource          { get { return this._parent; } }
 
         /// <summary>
         /// Creates a new operation based on an operation declaration object. This object contains all the information necessary to create 
@@ -100,6 +102,12 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                     this._capabilityClass.SetTag(context.GetConfigProperty(_ConsumesMIMEListTag), MIMETypes);
 
+                    // Load the documentation...
+                    List<string> documentation = new List<string>();
+                    if (!string.IsNullOrEmpty(operation.Summary)) documentation.Add("Summary: " + operation.Summary);
+                    if (!string.IsNullOrEmpty(operation.Description)) documentation.Add(operation.Description);
+                    if (documentation.Count > 0) MEChangeLog.SetRTFDocumentation(this._capabilityClass, documentation);
+
                     // Explicitly request a new Operation ID for this class (could not do this in the parent constructor since the capabilityClass
                     // object has not been initialized yet at that point).
                     AssignNewOperationID();
@@ -111,12 +119,15 @@ namespace Plugin.Application.CapabilityModel.API
                     InitialiseParent(parentResource);
 
                     // Check whether we must create an association with a request body...
+                    // Since all body classes end up in the same namespace, we create a unique name by combining the name of the operation with
+                    // the default name of the Request Message Assembly.
+                    // For a request Message Assembly, this results in '<Operation>RequestBodyType' as a resulting name.
                     string classStereotype = context.GetConfigProperty(_MessageAssemblyClassStereotype);
                     if (operation.RequestBodyIndicator)
                     {
                         string pkgName = context.GetConfigProperty(_RequestPkgName);
                         string pkgStereotype = context.GetConfigProperty(_RequestPkgStereotype);
-                        string className = context.GetConfigProperty(_RequestMessageAssemblyClassName);
+                        string className = this.Name + context.GetConfigProperty(_RequestMessageAssemblyClassName);
                         MEPackage msgPackage = OperationPackage.FindPackage(pkgName, pkgStereotype);
                         if (msgPackage == null) msgPackage = OperationPackage.CreatePackage(pkgName, pkgStereotype);
                         MEClass msgClass = msgPackage.FindClass(className, classStereotype);
@@ -128,6 +139,10 @@ namespace Plugin.Application.CapabilityModel.API
                     }
 
                     // Create Response Object classes for each operation result declaration...
+                    // Since all body classes end up in the same namespace, we create a unique name by combining the name of the operation with
+                    // the operation result code and the default name of the Response Message Assembly.
+                    // For a success response Message Assembly, this results in '<Operation>200ResponseBodyType' as a resulting name.
+                    // Since we can also have a result code 'default', we translate all codes to Pascal Case ('Default').
                     string defaultSuccess = context.GetConfigProperty(_DefaultSuccessCode);
                     foreach (RESTOperationResultDeclaration result in operation.OperationResults)
                     {
@@ -137,7 +152,8 @@ namespace Plugin.Application.CapabilityModel.API
                             // package and a class for this. They might already exist so check first...
                             string pkgName = context.GetConfigProperty(_ResponsePkgName);
                             string pkgStereotype = context.GetConfigProperty(_ResponsePkgStereotype);
-                            string className = context.GetConfigProperty(_ResponseMessageAssemblyClassName);
+                            string className = this.Name + Conversions.ToPascalCase(result.ResultCode) + 
+                                               context.GetConfigProperty(_ResponseMessageAssemblyClassName);
                             MEPackage msgPackage = OperationPackage.FindPackage(pkgName, pkgStereotype);
                             if (msgPackage == null) msgPackage = OperationPackage.CreatePackage(pkgName, pkgStereotype);
                             MEClass msgClass = msgPackage.FindClass(className, classStereotype);

@@ -21,6 +21,7 @@ namespace Framework.Util.SchemaManagement.JSON
         private JSchema _attributeClassifier;       // Defines the classifier of the attribute within the JSON schema.
         private JSchema _simpleAttributeClassifier; // Simplified definition, created for use of attributes as Properties in special contexts.
         private JSONClassifier _classifier;         // The associated classifier object in case of complex types.
+        private string _annotation;                 // Contains the annotation text of the attribute.
 
         /// <summary>
         /// Implementation of the JSON Property interface:
@@ -31,6 +32,11 @@ namespace Framework.Util.SchemaManagement.JSON
         public JSchema JSchema      { get { return this._attributeClassifier; } }
         public new string Name      { get { return base.Name; } }
         public new int SequenceKey  { get { return base.SequenceKey; } }
+
+        /// <summary>
+        /// Returns the annotation text of the attribute.
+        /// </summary>
+        internal string Annotation    { get { return this._annotation; } }
 
         /// <summary>
         /// Construct a new content attribute. These attributes MUST be used in the context of the associated ABIE of which they are declared as 
@@ -153,18 +159,17 @@ namespace Framework.Util.SchemaManagement.JSON
                     // If the classifier name ends with 'Type', we remove this before adding a new post-fix 'ListType'...
                     string listType = (classifierName.EndsWith("Type")) ? classifierName.Substring(0, classifierName.IndexOf("Type")) : classifierName;
                     listType += "ListType";
-                    this._attributeClassifier = new JSchema()
+                    this._attributeClassifier = new JSchema
                     {
                         Title = listType,
                         Type = JSchemaType.Array,
                         AllowAdditionalItems = false,
-                        MinimumItems = (cardinality.Item1 == 0) ? 1 : cardinality.Item1,      // A list must have at least one value!
+                        // For 'normal' classifiers, a list must have at least one element and the list as a whole can be made optional in the
+                        // context of the 'owning' attribute...
+                        MinimumItems = (cardinality.Item1 == 0) ? 1 : cardinality.Item1,  
                     };
-                    this._simpleAttributeClassifier = new JSchema()
-                    {
-                        Type = JSchemaType.Array,
-                        MinimumItems = (cardinality.Item1 == 0) ? 1 : cardinality.Item1,      // A list must have at least one value!
-                    };
+                    this._simpleAttributeClassifier = new JSchema { Type = JSchemaType.Array };
+                    if (cardinality.Item1 > 0) this._simpleAttributeClassifier.MinimumItems = cardinality.Item1;
                     if (cardinality.Item2 > 1)
                     {
                         this._attributeClassifier.MaximumItems = cardinality.Item2;
@@ -179,14 +184,14 @@ namespace Framework.Util.SchemaManagement.JSON
                     this._simpleAttributeClassifier = simpleAttributeClassifier;
                 }
             }
-                
+
             // Build a description block for the element...
+            this._annotation = string.Empty;
             if (annotation.Count > 0)
             {
                 Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Adding annotation to attribute...");
-                string description = string.Empty;
-                foreach (MEDocumentation docNode in annotation) description += docNode.BodyText + Environment.NewLine;
-                this._attributeClassifier.Description = description;
+                foreach (MEDocumentation docNode in annotation) this._annotation += docNode.BodyText + Environment.NewLine;
+                this._attributeClassifier.Description = this._annotation;
             }
             this.IsValid = true;
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Successfully created attribute.");

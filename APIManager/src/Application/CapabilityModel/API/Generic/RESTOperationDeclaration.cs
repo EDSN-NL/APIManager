@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Framework.Model;
 using Framework.Logging;
 using Framework.Context;
+using Framework.Util;
 using Plugin.Application.Forms;
 
 namespace Plugin.Application.CapabilityModel.API
@@ -16,6 +17,9 @@ namespace Plugin.Application.CapabilityModel.API
         // Configuration properties used by this module:
         private const string _APISupportModelPathName   = "APISupportModelPathName";
         private const string _OperationResultClassName  = "OperationResultClassName";
+
+        // Separator between summary text and description text
+        private const string _Summary                   = "summary: ";
 
         // The status is used to track operations on the declaration.
         internal enum DeclarationStatus { Invalid, Created, Edited, Deleted }
@@ -33,6 +37,17 @@ namespace Plugin.Application.CapabilityModel.API
         private SortedList<string, RESTOperationResultDeclaration> _resultList;     // Set of result declarations (one for each unique HTTP result code).
         private List<string> _producedMIMEList;                     // Non-standard MIME types produced by the operation.
         private List<string> _consumedMIMEList;                     // Non-standard MIME types consumed by the operation.
+        private string _summaryText;                                // Short description of operation.
+        private string _description;                                // Long description of operation.
+
+        /// <summary>
+        /// Get or set the long description of the operation.
+        /// </summary>
+        internal string Description
+        {
+            get { return this._description; }
+            set { this._description = value; }
+        }
 
         /// <summary>
         /// If the operation declaration is based on an existing operation, this property returns the associated operation class.
@@ -79,7 +94,15 @@ namespace Plugin.Application.CapabilityModel.API
                     if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 }
             }
+        }
 
+        /// <summary>
+        /// Get or set the short operation description.
+        /// </summary>
+        internal string Summary
+        {
+            get { return this._summaryText; }
+            set { this._summaryText = value; }
         }
 
         /// <summary>
@@ -182,6 +205,8 @@ namespace Plugin.Application.CapabilityModel.API
             this._publicAccess = false;
             this._producedMIMEList = new List<string>();
             this._consumedMIMEList = new List<string>();
+            this._description = string.Empty;
+            this._summaryText = string.Empty;
 
             CreateDefaultResults();
         }
@@ -207,6 +232,8 @@ namespace Plugin.Application.CapabilityModel.API
             this._publicAccess = false;
             this._producedMIMEList = new List<string>();
             this._consumedMIMEList = new List<string>();
+            this._description = string.Empty;
+            this._summaryText = string.Empty;
 
             CreateDefaultResults();
         }
@@ -231,7 +258,28 @@ namespace Plugin.Application.CapabilityModel.API
             this._publicAccess = false;
             this._producedMIMEList = operation.ProducedMIMEList;
             this._consumedMIMEList = operation.ConsumedMIMEList;
-
+            
+            // Extract documentation from the class. This can be a multi-line object in which the first line might be the 'summary' description...
+            List<string> documentation = MEChangeLog.GetDocumentationAsTextLines(operation.CapabilityClass);
+            if (documentation.Count > 0)
+            {
+                if (documentation[0].StartsWith(_Summary, StringComparison.OrdinalIgnoreCase))
+                {
+                    this._summaryText = documentation[0].Substring(_Summary.Length);
+                }
+                if (documentation.Count > 1)
+                {
+                    this._description = string.Empty;
+                    // We already copied the first line, so now append all additional lines...
+                    // Since multi-line documentation does not really work well in JSON, we replace line breaks by spaces.
+                    bool firstLine = true;
+                    for (int i = 1; i < documentation.Count; i++)
+                    {
+                        this._description += firstLine ? documentation[i] : "  " + documentation[i];
+                        firstLine = false;
+                    }
+                }
+            }
             CreateDefaultResults();
         }
 

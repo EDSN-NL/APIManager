@@ -661,20 +661,16 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
 
+                // Creating all child resources and operations...
+                // In order to guarantee that capability processing is handled correctly, we MUST register all children BEFORE registering
+                // child resources. Since the order in which we receive them from the repository is undetermined, we keep a separate list
+                // of child resources at hand in which we store all encountered children. Since 'InitialiseParent' adds the resource to the
+                // END of the children list, we can now safely initialise all operations first and postpone registration of child resources
+                // until we processed all our children...
+                var childResources = new List<RESTResourceCapability>();
                 foreach (TreeNode<MEClass> node in hierarchy.Children)
                 {
-                    if (node.Data.HasStereotype(resourceClassStereotype))
-                    {
-                        var resource = new RESTResourceCapability(resourceCapItf, node);
-                        resource.InitialiseParent(resourceCapItf);
-                        if (!resource.Valid)
-                        {
-                            Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Error creating Path '" + node.Data.Name + "'!");
-                            this._capabilityClass = null;
-                            return;
-                        }
-                    }
-                    else if (node.Data.HasStereotype(operationClassStereotype))
+                    if (node.Data.HasStereotype(operationClassStereotype))
                     {
                         var operation = new RESTOperationCapability(resourceCapItf, node);
                         operation.InitialiseParent(resourceCapItf);
@@ -685,6 +681,17 @@ namespace Plugin.Application.CapabilityModel.API
                             return;
                         }
                     }
+                    else if (node.Data.HasStereotype(resourceClassStereotype))
+                    {
+                        var resource = new RESTResourceCapability(resourceCapItf, node);
+                        if (!resource.Valid)
+                        {
+                            Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Error creating Path '" + node.Data.Name + "'!");
+                            this._capabilityClass = null;
+                            return;
+                        }
+                        childResources.Add(resource);   // Deferring registration of parent until all child capabilities have been processed.
+                    }
                     else
                     {
                         Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Unknown child type '" + 
@@ -693,6 +700,8 @@ namespace Plugin.Application.CapabilityModel.API
                         return;
                     }
                 }
+                // Now that all children are known and all operations have been registered, register our child resources...
+                foreach (RESTResourceCapability child in childResources) child.InitialiseParent(resourceCapItf);
             }
             catch (Exception exc)
             {

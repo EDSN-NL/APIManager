@@ -69,6 +69,19 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Returns the resource that 'owns' this operation.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal RESTResourceCapability ParentResource
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).ParentResource;
+                else throw new MissingImplementationException("RESTOperationCapabilityImp");
+            }
+        }
+
+        /// <summary>
         /// Returns the list of operation-specific MIME types produced by this operation. This will be an empty list if the 
         /// operation only produces the standard MIME types.
         /// </summary>

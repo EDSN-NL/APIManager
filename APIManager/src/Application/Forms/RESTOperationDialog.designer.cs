@@ -70,31 +70,36 @@ namespace Plugin.Application.Forms
             this.label4 = new System.Windows.Forms.Label();
             this.ProducesMIME = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.DocumentationBox = new System.Windows.Forms.GroupBox();
+            this.Description = new System.Windows.Forms.TextBox();
+            this.SummaryText = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
             this.OperationGroup.SuspendLayout();
             this.FilterGroup.SuspendLayout();
             this.ResponseCodeGroup.SuspendLayout();
             this.FilterParametersMenuStrip.SuspendLayout();
             this.ResponseCodeMenuStrip.SuspendLayout();
             this.MimeBox.SuspendLayout();
+            this.DocumentationBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(445, 330);
+            this.Cancel.Location = new System.Drawing.Point(444, 458);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
-            this.Cancel.TabIndex = 10;
+            this.Cancel.TabIndex = 11;
             this.Cancel.Text = "Cancel";
             this.Cancel.UseVisualStyleBackColor = true;
             // 
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(364, 330);
+            this.Ok.Location = new System.Drawing.Point(363, 458);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
-            this.Ok.TabIndex = 11;
+            this.Ok.TabIndex = 12;
             this.Ok.Text = "Ok";
             this.Ok.UseVisualStyleBackColor = true;
             // 
@@ -162,10 +167,10 @@ namespace Plugin.Application.Forms
             // 
             this.NewMinorVersion.AutoSize = true;
             this.NewMinorVersion.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.NewMinorVersion.Location = new System.Drawing.Point(12, 338);
+            this.NewMinorVersion.Location = new System.Drawing.Point(12, 466);
             this.NewMinorVersion.Name = "NewMinorVersion";
             this.NewMinorVersion.Size = new System.Drawing.Size(138, 17);
-            this.NewMinorVersion.TabIndex = 9;
+            this.NewMinorVersion.TabIndex = 10;
             this.NewMinorVersion.Text = "Increment minor version";
             this.NewMinorVersion.UseVisualStyleBackColor = true;
             // 
@@ -442,13 +447,52 @@ namespace Plugin.Application.Forms
             this.label3.TabIndex = 0;
             this.label3.Text = "Produces:";
             // 
+            // DocumentationBox
+            // 
+            this.DocumentationBox.Controls.Add(this.Description);
+            this.DocumentationBox.Controls.Add(this.SummaryText);
+            this.DocumentationBox.Controls.Add(this.label5);
+            this.DocumentationBox.Location = new System.Drawing.Point(12, 330);
+            this.DocumentationBox.Name = "DocumentationBox";
+            this.DocumentationBox.Size = new System.Drawing.Size(507, 122);
+            this.DocumentationBox.TabIndex = 9;
+            this.DocumentationBox.TabStop = false;
+            this.DocumentationBox.Text = "Documentation";
+            // 
+            // Description
+            // 
+            this.Description.Location = new System.Drawing.Point(12, 47);
+            this.Description.Multiline = true;
+            this.Description.Name = "Description";
+            this.Description.Size = new System.Drawing.Size(484, 59);
+            this.Description.TabIndex = 2;
+            this.Description.Leave += new System.EventHandler(this.Description_Leave);
+            // 
+            // SummaryText
+            // 
+            this.SummaryText.Location = new System.Drawing.Point(63, 16);
+            this.SummaryText.Name = "SummaryText";
+            this.SummaryText.Size = new System.Drawing.Size(433, 20);
+            this.SummaryText.TabIndex = 1;
+            this.SummaryText.Leave += new System.EventHandler(this.SummaryText_Leave);
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(9, 19);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(53, 13);
+            this.label5.TabIndex = 0;
+            this.label5.Text = "Summary:";
+            // 
             // RESTOperationDialog
             // 
             this.AcceptButton = this.Ok;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(531, 373);
+            this.ClientSize = new System.Drawing.Size(531, 501);
+            this.Controls.Add(this.DocumentationBox);
             this.Controls.Add(this.MimeBox);
             this.Controls.Add(this.ResponseCodeGroup);
             this.Controls.Add(this.OverrideSecurity);
@@ -475,6 +519,8 @@ namespace Plugin.Application.Forms
             this.ResponseCodeMenuStrip.ResumeLayout(false);
             this.MimeBox.ResumeLayout(false);
             this.MimeBox.PerformLayout();
+            this.DocumentationBox.ResumeLayout(false);
+            this.DocumentationBox.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -520,5 +566,9 @@ namespace Plugin.Application.Forms
         private Label label4;
         private TextBox ProducesMIME;
         private Label label3;
+        private GroupBox DocumentationBox;
+        private TextBox Description;
+        private TextBox SummaryText;
+        private Label label5;
     }
 }

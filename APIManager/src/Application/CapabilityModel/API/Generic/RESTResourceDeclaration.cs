@@ -151,7 +151,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._existingResource = null;
             this._status = this._initialStatus = DeclarationStatus.Invalid;
             this._parent = null;
-            this._parameter = null;
+            this._parameter = new RESTParameterDeclaration();
             this._operationList = new SortedList<string, RESTOperationDeclaration>();
             this._children = new SortedList<string, RESTResourceDeclaration>();
             this._description = string.Empty;
@@ -173,7 +173,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._existingResource = null;
             this._status = this._initialStatus = DeclarationStatus.Invalid;
             this._parent = parent;
-            this._parameter = null;
+            this._parameter = new RESTParameterDeclaration();
             this._operationList = new SortedList<string, RESTOperationDeclaration>();
             this._children = new SortedList<string, RESTResourceDeclaration>();
             this._description = string.Empty;
@@ -197,7 +197,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._status = DeclarationStatus.Invalid;
             if (this._name != string.Empty && this._archetype != RESTResourceCapability.ResourceArchetype.Unknown) this._status = DeclarationStatus.Created;
             this._initialStatus = this._status;
-            this._parameter = null;
+            this._parameter = new RESTParameterDeclaration();
             this._operationList = new SortedList<string, RESTOperationDeclaration>();
             this._children = new SortedList<string, RESTResourceDeclaration>();
             this._description = string.Empty;
@@ -365,6 +365,7 @@ namespace Plugin.Application.CapabilityModel.API
             if (this._archetype == RESTResourceCapability.ResourceArchetype.Identifier)
             {
                 bool isCreate = (this._parameter == null);
+                if (isCreate) this._parameter = new RESTParameterDeclaration();
                 using (var dialog = new RESTParameterDialog(this._parameter))
                 {
                     if (dialog.ShowDialog() == DialogResult.OK)

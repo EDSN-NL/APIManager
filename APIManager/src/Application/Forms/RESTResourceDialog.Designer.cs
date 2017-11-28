@@ -95,7 +95,7 @@
             // PathExpressionLbl
             // 
             this.PathExpressionLbl.AutoSize = true;
-            this.PathExpressionLbl.Location = new System.Drawing.Point(2, 57);
+            this.PathExpressionLbl.Location = new System.Drawing.Point(2, 16);
             this.PathExpressionLbl.Name = "PathExpressionLbl";
             this.PathExpressionLbl.Size = new System.Drawing.Size(79, 13);
             this.PathExpressionLbl.TabIndex = 0;
@@ -205,7 +205,7 @@
             this.SelectClassifier.Location = new System.Drawing.Point(208, 85);
             this.SelectClassifier.Name = "SelectClassifier";
             this.SelectClassifier.Size = new System.Drawing.Size(25, 25);
-            this.SelectClassifier.TabIndex = 4;
+            this.SelectClassifier.TabIndex = 1;
             this.SelectClassifier.UseVisualStyleBackColor = true;
             this.SelectClassifier.Click += new System.EventHandler(this.DefineIdentifier_Click);
             // 
@@ -215,7 +215,7 @@
             this.ParameterClassifier.Name = "ParameterClassifier";
             this.ParameterClassifier.ReadOnly = true;
             this.ParameterClassifier.Size = new System.Drawing.Size(172, 20);
-            this.ParameterClassifier.TabIndex = 3;
+            this.ParameterClassifier.TabIndex = 0;
             // 
             // label3
             // 
@@ -223,7 +223,7 @@
             this.label3.Location = new System.Drawing.Point(6, 62);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(51, 13);
-            this.label3.TabIndex = 2;
+            this.label3.TabIndex = 0;
             this.label3.Text = "Classifier:";
             // 
             // ParameterName
@@ -232,7 +232,7 @@
             this.ParameterName.Name = "ParameterName";
             this.ParameterName.ReadOnly = true;
             this.ParameterName.Size = new System.Drawing.Size(172, 20);
-            this.ParameterName.TabIndex = 1;
+            this.ParameterName.TabIndex = 0;
             // 
             // label2
             // 
@@ -245,10 +245,10 @@
             // 
             // ResourceTypeBox
             // 
-            this.ResourceTypeBox.Location = new System.Drawing.Point(87, 54);
+            this.ResourceTypeBox.Location = new System.Drawing.Point(87, 13);
             this.ResourceTypeBox.Name = "ResourceTypeBox";
             this.ResourceTypeBox.Size = new System.Drawing.Size(167, 21);
-            this.ResourceTypeBox.TabIndex = 2;
+            this.ResourceTypeBox.TabIndex = 1;
             this.ResourceTypeBox.SelectedIndexChanged += new System.EventHandler(this.ResourceTypeBox_SelectedIndexChanged);
             // 
             // OperationMenuStrip
@@ -285,16 +285,16 @@
             // 
             // ResourceNameFld
             // 
-            this.ResourceNameFld.Location = new System.Drawing.Point(87, 18);
+            this.ResourceNameFld.Location = new System.Drawing.Point(87, 49);
             this.ResourceNameFld.Name = "ResourceNameFld";
             this.ResourceNameFld.Size = new System.Drawing.Size(167, 20);
-            this.ResourceNameFld.TabIndex = 1;
+            this.ResourceNameFld.TabIndex = 2;
             this.ResourceNameFld.Leave += new System.EventHandler(this.ResourceNameFld_Leave);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(37, 21);
+            this.label1.Location = new System.Drawing.Point(43, 52);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(38, 13);
             this.label1.TabIndex = 0;

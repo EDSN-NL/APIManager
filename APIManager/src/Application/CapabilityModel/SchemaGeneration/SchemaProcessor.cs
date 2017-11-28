@@ -271,6 +271,21 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         }
 
         /// <summary>
+        /// Processes the entire class hierarchy specified by the given class and stores all generated definitions and declarations in the current
+        /// schema. The method returns the qualified name of the processed class on success.
+        /// </summary>
+        /// <param name="messageClass">Class to be processed.</param>
+        /// <param name="token">This is a unique identification of the class in the current processing context and is used to detect which 
+        /// classes have been processed already. It must therefor be unique across all classes in the current schema!</param>
+        /// <returns>Fully qualified class name (token:name) or empty string in case of errors.</returns>
+        internal string ProcessClass(MEClass messageClass, string token)
+        {
+            if (this._cache == null) this._cache = ClassCacheSlt.GetClassCacheSlt(); // Obtain a valid context for processing.
+            return ProcessClass(messageClass, token, 
+                                new Tuple<ClassifierContext.ScopeCode, ClassifierContext.DocScopeCode>(ClassifierContext.ScopeCode.Operation, ClassifierContext.DocScopeCode.Common));
+        }
+
+        /// <summary>
         /// Special processing function that processes the attributes of the specified class and returns this as a list of Attribute Definitions
         /// that are valid for the current schema type. Since the method uses the 'regular' processing function, attribute classifiers are properly
         /// registered in the schema and can be referred to if needed.

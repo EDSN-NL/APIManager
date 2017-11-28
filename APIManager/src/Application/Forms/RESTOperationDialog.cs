@@ -36,6 +36,9 @@ namespace Plugin.Application.Forms
             this.Text = (operation.Name == string.Empty) ? "Create new Operation" : "Edit existing Operation";
             this.OperationNameFld.Text = operation.Name;
 
+            SummaryText.Text = operation.Summary;
+            Description.Text = operation.Description;
+
             // Set indicators according to current settings...
             HasRequestParams.Checked = this._operation.RequestBodyIndicator;
             HasResponseParams.Checked = this._operation.ResponseBodyIndicator;
@@ -326,6 +329,26 @@ namespace Plugin.Application.Forms
             this._operation.ClearProducedMIMETypes();
             string[] MIMEList = ProducesMIME.Text.Split(',');
             foreach (string MIMEEntry in MIMEList) this._operation.AddProducedMIMEType(MIMEEntry.Trim());
+        }
+
+        /// <summary>
+        /// This event is raised when the user made changes to the Summary Text field.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void SummaryText_Leave(object sender, EventArgs e)
+        {
+            this._operation.Summary = SummaryText.Text;
+        }
+
+        /// <summary>
+        /// This event is raised when the user made changes to the Description Text field.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void Description_Leave(object sender, EventArgs e)
+        {
+            this._operation.Description = Description.Text;
         }
     }
 }

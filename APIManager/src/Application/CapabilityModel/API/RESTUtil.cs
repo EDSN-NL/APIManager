@@ -28,8 +28,8 @@ namespace Plugin.Application.CapabilityModel.API
             if (resourceName[0] == '[') return resourceName;
             if (resourceName[0] == '{')
             {
-                // Identifier type, extract the first part, and change to camelCase...
-                return "{" + Conversions.ToCamelCase(resourceName.Substring(1, resourceName.IndexOf('('))) + "}";
+                // Identifier type, extract the first part, and translate as expected (but leave the '{' and '}')...
+                return "{" + GetAssignedRoleName(resourceName.Substring(1, resourceName.IndexOf('('))) + "}";
             }
 
             string assignedRole = resourceName[0].ToString().ToLower();

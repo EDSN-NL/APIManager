@@ -550,6 +550,24 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
+        /// Functionality is identical to the 'Traverse' function. However, this function starts in the SelectedCapabilities tree and
+        /// thus will traverse only a sub-set of the entire hierarchy. The function ONLY works reliably when started at the 
+        /// appropriate level in the hierarchy that actually HAS an initialized 'Selected Capabilities' tree!
+        /// For each node in the hierarchy, the provided function delegate is invoked, which receives both the service as well as 
+        /// the current capability as a parameter.
+        /// As long as the delegate returns 'false', the traversal continues (until all nodes have been processed). It is therefor
+        /// possible to abort traversal by letting the delegate return a 'true' value (as in 'done').
+        /// </summary>
+        /// <param name="visitor">Action that must be performed on each node.</param>
+        /// <returns>True when 'done' with traversal, 'false' if we have to continue.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
+        internal bool TraverseSelected(Func<Service, Capability, bool> visitor)
+        {
+            if (this._imp != null) return this._imp.TraverseSelected(visitor);
+            else throw new MissingImplementationException("CapabilityImp");
+        }
+
+        /// <summary>
         /// This static method can be used to remove the specified Capability Implementation from the registry, which will enforce a re-create of 
         /// the associated resource structure when reference next time. Please note that this not affect current Interfaces that still use the
         /// specified Implementation object!

@@ -564,6 +564,30 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
+        /// Functionality is identical to the 'Traverse' function. However, this function starts in the SelectedCapabilities tree and
+        /// thus will traverse only a sub-set of the entire hierarchy. The function ONLY works reliably when started at the 
+        /// appropriate level in the hierarchy that actually HAS an initialized 'Selected Capabilities' tree!
+        /// For each node in the hierarchy, the provided function delegate is invoked, which receives both the service as well as 
+        /// the current capability as a parameter.
+        /// As long as the delegate returns 'false', the traversal continues (until all nodes have been processed). It is therefor
+        /// possible to abort traversal by letting the delegate return a 'true' value (as in 'done').
+        /// </summary>
+        /// <param name="visitor">Action that must be performed on each node.</param>
+        /// <returns>True when 'done' with traversal, 'false' if we have to continue.</returns>
+        internal virtual bool TraverseSelected(Func<Service, Capability, bool> visitor)
+        {
+            if (visitor(this._rootService, this.GetInterface())) return true;
+            if (this._selectedCapabilityTree != null)
+            {
+                foreach (TreeNode<CapabilityImp> node in this._selectedCapabilityTree.Children)
+                {
+                    if (node.Data.Traverse(visitor)) return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// This method must be implemented by derived Capability implementations in order to synchronize all child classes with the
         /// major version of the service. It is invoked whenever the major version of the service has been updated.
         /// It can be overloaded by capabilities that require special processing.
