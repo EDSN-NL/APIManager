@@ -14,6 +14,8 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _ResourceClassStereotype               = "ResourceClassStereotype";
         private const string _InterfaceContractClassStereotype      = "InterfaceContractClassStereotype";
         private const string _CommonSchemaClassStereotype           = "CommonSchemaClassStereotype";
+        internal const string _DataModelPkgName                     = "DataModelPkgName";
+        internal const string _DataModelPkgStereotype               = "DataModelPkgStereotype";
 
         private List<RESTResourceCapability> _tagList;              // The list of REST Resources that are also used as Tags in the interface.
 
@@ -46,39 +48,51 @@ namespace Plugin.Application.CapabilityModel.API
             ModelSlt model = ModelSlt.GetModelSlt();
             this._tagList = new List<RESTResourceCapability>();
 
-            // Create an interface and a set of top-level resource collections on that interface. The remainder of the REST service
-            // structure must be added separately by means of specialized 'edit' dialogues.
-            var interfaceCapability = new RESTInterfaceCapability(this, metaData, resources);
-            if (!interfaceCapability.Valid)
+            try
             {
-                // Oops, something went terribly wrong during construction of the interface. Roll-back and exit!
-                Logger.WriteWarning("Plugin.Application.CapabilityModel.APIProcessor.RESTService >> Interface creation failed, roll-back!");
-                return;
-            }
+                // REST API's use a single data model. Here we create the data model package...
+                this._serviceDeclPackage.CreatePackage(context.GetConfigProperty(_DataModelPkgName),
+                                                       context.GetConfigProperty(_DataModelPkgStereotype), 15);
 
-            string newNames = string.Empty;
-            bool isFirst = true;
-            foreach (RESTResourceDeclaration resource in resources)
+                // Create an interface and a set of top-level resource collections on that interface. The remainder of the REST service
+                // structure must be added separately by means of specialized 'edit' dialogues.
+                var interfaceCapability = new RESTInterfaceCapability(this, metaData, resources);
+                if (!interfaceCapability.Valid)
+                {
+                    // Oops, something went terribly wrong during construction of the interface. Roll-back and exit!
+                    Logger.WriteWarning("Plugin.Application.CapabilityModel.APIProcessor.RESTService >> Interface creation failed, roll-back!");
+                    return;
+                }
+
+                string newNames = string.Empty;
+                bool isFirst = true;
+                foreach (RESTResourceDeclaration resource in resources)
+                {
+                    string roleName = RESTUtil.GetAssignedRoleName(resource.Name);
+                    newNames += isFirst ? roleName : ", " + roleName;
+                    isFirst = false;
+                }
+                this._serviceDeclPackage.Refresh();    // Make sure to update view to users.
+                CreateLogEntry("Initial release with resource collection(s): " + newNames);
+
+                // Create the diagram...
+                Diagram myDiagram = this._modelPackage.CreateDiagram();
+                myDiagram.AddDiagramProperties();
+                myDiagram.ShowConnectorStereotypes(false);
+
+                // Collect all classes and associations that must be shown on the diagram...
+                this._diagramClassList = new List<MEClass>();
+                this._diagramAssocList = new List<MEAssociation>();
+                Traverse(DiagramItemsCollector);                        // Performs the actual data collection.
+                myDiagram.AddClassList(this._diagramClassList);
+                myDiagram.AddAssociationList(this._diagramAssocList);
+                myDiagram.Show();
+            }
+            catch (Exception exc)
             {
-                string roleName = RESTUtil.GetAssignedRoleName(resource.Name);
-                newNames += isFirst ? roleName : ", " + roleName;
-                isFirst = false;
+                Logger.WriteError("Plugin.Application.CapabilityModel.APIProcessor.RESTService >> Service creation failed because:" + 
+                                  Environment.NewLine + exc.Message);
             }
-            this._serviceDeclPackage.Refresh();    // Make sure to update view to users.
-            CreateLogEntry("Initial release with resource collection(s): " + newNames);
-
-            // Create the diagram...
-            Diagram myDiagram = this._modelPackage.CreateDiagram();
-            myDiagram.AddDiagramProperties();
-            myDiagram.ShowConnectorStereotypes(false);
-
-            // Collect all classes and associations that must be shown on the diagram...
-            this._diagramClassList = new List<MEClass>();
-            this._diagramAssocList = new List<MEAssociation>();
-            Traverse(DiagramItemsCollector);                        // Performs the actual data collection.
-            myDiagram.AddClassList(this._diagramClassList);
-            myDiagram.AddAssociationList(this._diagramAssocList);
-            myDiagram.Show();
         }
 
         /// <summary>

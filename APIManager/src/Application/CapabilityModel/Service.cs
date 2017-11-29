@@ -103,47 +103,55 @@ namespace Plugin.Application.CapabilityModel
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.Service >> Creating service with name: '" + qualifiedServiceName + "' in package '" + containerPackage.Name + "'...");
 
-            ContextSlt context = ContextSlt.GetContextSlt();
-            ModelSlt model = ModelSlt.GetModelSlt();
-            this._serviceCapabilities = new List<Capability>();
-            this._selectedCapabilities = null;
-
-            string serviceName = qualifiedServiceName.Substring(0, qualifiedServiceName.IndexOf("_V"));
-            string version = qualifiedServiceName.Substring(qualifiedServiceName.IndexOf("_V") + 2);
-            int majorVersion;
-            if (!Int32.TryParse(version, out majorVersion)) majorVersion = 1;   // Defaults to 1 in case of errors.
-
-            // Create the service declaration package as well as the service model package in the container...
-            this._containerPackage = containerPackage;
-            this._serviceDeclPackage = containerPackage.CreatePackage(qualifiedServiceName, declarationStereotype);
-            this._modelPackage = this._serviceDeclPackage.CreatePackage(context.GetConfigProperty(_ServiceModelPkgName),
-                                                                        context.GetConfigProperty(_ServiceModelPkgStereotype), 10);
-
-            // Next, create the service class in the model...
-            this._serviceClass = this._modelPackage.CreateClass(serviceName, context.GetConfigProperty(_ServiceClassStereotype));
-            this._serviceClass.BuildNumber = 1;
-            this._serviceClass.Version = new Tuple<int, int>(majorVersion, 0);
-            this._version = this._serviceClass.Version;
-
-            // Service classes must inherit from generic ServiceRoot...
-            MEClass serviceParent = model.FindClass(context.GetConfigProperty(_ServiceSupportModelPathName),
-                                                    context.GetConfigProperty(_ServiceParentClassName));
-            if (serviceParent != null)
+            try
             {
-                var derived = new EndpointDescriptor(this._serviceClass);
-                var parent = new EndpointDescriptor(serviceParent);
-                model.CreateAssociation(derived, parent, MEAssociation.AssociationType.Generalization);
-            }
-            else
-            {
-                string message = "Configuration error: can't find the Service Support Model at: '" + context.GetConfigProperty(_ServiceSupportModelPathName) + "'!";
-                Logger.WriteError("Plugin.Application.CapabilityModel.Service >> " + message);
-                throw new ConfigurationErrorsException(message);
-            }
+                ContextSlt context = ContextSlt.GetContextSlt();
+                ModelSlt model = ModelSlt.GetModelSlt();
+                this._serviceCapabilities = new List<Capability>();
+                this._selectedCapabilities = null;
 
-            // Initialise the OperationID tag...
-            this._maxOperationID = 0;
-            this._serviceClass.SetTag(context.GetConfigProperty(_MaxOperationIDTag), "0", true);
+                string serviceName = qualifiedServiceName.Substring(0, qualifiedServiceName.IndexOf("_V"));
+                string version = qualifiedServiceName.Substring(qualifiedServiceName.IndexOf("_V") + 2);
+                int majorVersion;
+                if (!Int32.TryParse(version, out majorVersion)) majorVersion = 1;   // Defaults to 1 in case of errors.
+
+                // Create the service declaration package as well as the service model package in the container...
+                this._containerPackage = containerPackage;
+                this._serviceDeclPackage = containerPackage.CreatePackage(qualifiedServiceName, declarationStereotype);
+                this._modelPackage = this._serviceDeclPackage.CreatePackage(context.GetConfigProperty(_ServiceModelPkgName),
+                                                                            context.GetConfigProperty(_ServiceModelPkgStereotype), 10);
+
+                // Next, create the service class in the model...
+                this._serviceClass = this._modelPackage.CreateClass(serviceName, context.GetConfigProperty(_ServiceClassStereotype));
+                this._serviceClass.BuildNumber = 1;
+                this._serviceClass.Version = new Tuple<int, int>(majorVersion, 0);
+                this._version = this._serviceClass.Version;
+
+                // Service classes must inherit from generic ServiceRoot...
+                MEClass serviceParent = model.FindClass(context.GetConfigProperty(_ServiceSupportModelPathName),
+                                                        context.GetConfigProperty(_ServiceParentClassName));
+                if (serviceParent != null)
+                {
+                    var derived = new EndpointDescriptor(this._serviceClass);
+                    var parent = new EndpointDescriptor(serviceParent);
+                    model.CreateAssociation(derived, parent, MEAssociation.AssociationType.Generalization);
+                }
+                else
+                {
+                    string message = "Configuration error: can't find the Service Support Model at: '" + context.GetConfigProperty(_ServiceSupportModelPathName) + "'!";
+                    Logger.WriteError("Plugin.Application.CapabilityModel.Service >> " + message);
+                    throw new ConfigurationErrorsException(message);
+                }
+
+                // Initialise the OperationID tag...
+                this._maxOperationID = 0;
+                this._serviceClass.SetTag(context.GetConfigProperty(_MaxOperationIDTag), "0", true);
+            }
+            catch (Exception exc)
+            {
+                Logger.WriteError("Plugin.Application.CapabilityModel.Service >> Service creation failed because:" +
+                                  Environment.NewLine + exc.Message);
+            }
         }
 
         /// <summary>
