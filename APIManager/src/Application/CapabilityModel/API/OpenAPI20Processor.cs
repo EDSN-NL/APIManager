@@ -123,7 +123,8 @@ namespace Plugin.Application.CapabilityModel.API
                             this._panel = ProgressPanelSlt.GetProgressPanelSlt();
                             this._panel.ShowPanel("Processing API: " + capability.Name, this._capabilityCounter * 2);
                             this._panel.WriteInfo(this._panelIndex, "Pre-processing Interface: '" + this._currentCapability.Name + "'...");
-                            ClassCacheSlt.GetClassCacheSlt().Flush();   // Assures that we start with an empty cache.
+                            ClassCacheSlt.GetClassCacheSlt().Flush();       // Assures that we start with an empty cache (no data definitions).
+                            RESTSecuritySlt.GetRESTSecuritySlt().Reload();  // Assures that we start with a fresh set of definitions.
 
                             // Initialize our resources and open the JSON output stream...
                             var itf = capability as RESTInterfaceCapability;
