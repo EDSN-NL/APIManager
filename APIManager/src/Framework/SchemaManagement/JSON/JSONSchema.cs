@@ -481,6 +481,31 @@ namespace Framework.Util.SchemaManagement.JSON
         }
 
         /// <summary>
+        /// Creates a JSON definitions object that contains all global type- and class definitions. The method returns a string that has
+        /// the following format:
+        /// {
+        ///     "definitions": {
+        ///        [All 'reference type' type definitions]
+        ///        [All 'global object definitions]
+        ///     }
+        /// }
+        /// </summary>
+        /// <returns>Definitions object as a JSON Schema object string.</returns>
+        internal string GetDefinitionsObject()
+        {
+            Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.GetDefinitionsObject >> Retrieving 'definitions' object...");
+            JSchema definitionsSchema = new JSchema();
+            JObject definitions = new JObject();
+            definitionsSchema.ExtensionData.Add("definitions", definitions);
+            foreach (string classifier in this._classifiers.Keys)
+                if (this._classifiers[classifier].IsReferenceType) definitions.Add(classifier, this._classifiers[classifier].ReferenceClassifier);
+            foreach (SortableSchemaElement key in this._classes.Keys) definitions.Add(key.Name, this._classes[key]);
+            string definitionsString = definitionsSchema.ToString();
+            Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.GetDefinitionsObject >> Got 'definitions':" + Environment.NewLine + definitionsString);
+            return definitionsString;
+        }
+
+        /// <summary>
         /// Returns a schema-specific file extension.
         /// </summary>
         /// <returns>Schema-specific file extension, including separator character (e.g. ".xsd").</returns>

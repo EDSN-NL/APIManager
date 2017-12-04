@@ -163,7 +163,7 @@ namespace Framework.Util.SchemaManagement.JSON
                     {
                         Title = listType,
                         Type = JSchemaType.Array,
-                        AllowAdditionalItems = false,
+                        //AllowAdditionalItems = false,  Only use this when different array elements use different schemas.
                         // For 'normal' classifiers, a list must have at least one element and the list as a whole can be made optional in the
                         // context of the 'owning' attribute...
                         MinimumItems = (cardinality.Item1 == 0) ? 1 : cardinality.Item1,  

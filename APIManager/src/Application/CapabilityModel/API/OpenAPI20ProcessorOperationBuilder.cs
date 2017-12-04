@@ -1,18 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Schema;
-using Newtonsoft.Json.Linq;
 using Framework.Logging;
 using Framework.Model;
 using Framework.Util;
 using Framework.Util.SchemaManagement;
 using Framework.Util.SchemaManagement.JSON;
 using Framework.Context;
-using Plugin.Application.CapabilityModel.ASCIIDoc;
-using Plugin.Application.CapabilityModel.SchemaGeneration;
 
 namespace Plugin.Application.CapabilityModel.API
 {
@@ -26,6 +19,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _ConsumesMIMEListTag               = "ConsumesMIMEListTag";
         private const string _ProducesMIMEListTag               = "ProducesMIMEListTag";
         private const string _PaginationClassName               = "PaginationClassName";
+        private const string _OperationResultClassName          = "OperationResultClassName";
         private const string _MessageAssemblyClassStereotype    = "MessageAssemblyClassStereotype";
 
         // Separator between summary text and description text
@@ -111,19 +105,45 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Entry point for Operation Result processing. 
+        /// Entry point for Operation Result processing. The method parses the provided Operation Result capability and generates the associated Response Object.
+        /// It writes the result code and description and, if specified, generates the response schema.
         /// </summary>
-        /// <param name="operationResult"></param>
-        /// <returns></returns>
+        /// <param name="operationResult">The Operation Result capability to process.</param>
+        /// <returns>True when successfully completed, false on errors.</returns>
         private bool BuildOperationResult(RESTOperationResultCapability operationResult)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Building result '" + operationResult.Name + "'...");
-            this._JSONWriter.WritePropertyName(operationResult.ResultCode);
-            this._JSONWriter.WriteStartObject();
-            this._JSONWriter.WritePropertyName("description");
-            // Since multi-line strings don't really work here, we separate lines by two spaces...
-            this._JSONWriter.WriteValue(MEChangeLog.GetDocumentationAsText(operationResult.CapabilityClass, "  "));
-            this._JSONWriter.WriteEndObject();
+            ContextSlt context = ContextSlt.GetContextSlt();
+            bool result = true;
+            this._JSONWriter.WritePropertyName(operationResult.ResultCode); this._JSONWriter.WriteStartObject();
+            {
+                // Since multi-line documentation does not really work with JSON, we replace line breaks by spaces...
+                string resultDocumentation = MEChangeLog.GetDocumentationAsText(operationResult.CapabilityClass, "  ");
+                if (!string.IsNullOrEmpty(resultDocumentation))
+                {
+                    this._JSONWriter.WritePropertyName("description");
+                    this._JSONWriter.WriteValue(resultDocumentation);
+                }
+
+                // Check whether we must support a default response body or body parameters...
+                string defaultResponseClass = context.GetConfigProperty(_OperationResultClassName);
+                string msgAssemblyStereotype = context.GetConfigProperty(_MessageAssemblyClassStereotype);
+
+                // Go over each association, looking for stuff to process....
+                foreach (MEAssociation assoc in operationResult.CapabilityClass.AssociationList)
+                {
+                    if (assoc.Destination.EndPoint.Name == defaultResponseClass)
+                    {
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Found default response class, generate reference...");
+                        result = WriteDefaultResponse(assoc.Destination.EndPoint);
+                    }
+                    else if (assoc.Destination.EndPoint.HasStereotype(msgAssemblyStereotype))
+                    {
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Found a body parameter...");
+                        result = WriteResponseBodyParameter(assoc.Destination.EndPoint, assoc.GetCardinality(MEAssociation.AssociationEnd.Destination));
+                    }
+                }
+            } this._JSONWriter.WriteEndObject();
             return true;
         }
 
@@ -170,7 +190,7 @@ namespace Plugin.Application.CapabilityModel.API
                     else if (assoc.Destination.EndPoint.HasStereotype(msgAssemblyStereotype))
                     {
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildParameters >> Found a body parameter...");
-                        result = WriteBodyParameter(assoc.Destination.EndPoint);
+                        result = WriteRequestBodyParameter(assoc.Destination.EndPoint, assoc.GetCardinality(MEAssociation.AssociationEnd.Destination));
                     }
                 }
             }
@@ -178,18 +198,59 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Writes a body parameter using the specified message Profile root. Each operation may have at most ONE body parameter and each must
-        /// refer to an, operation specific, unique message model. The root of this model is a Message Assembly class that may- or may not have
-        /// private properties.
+        /// This method receives a reference to the default response class. Since we want to use a shared object definition, we must make sure that 
+        /// the class is parsed first time around so that it is entered in the schema as a type definition.
+        /// We use the class-attribute 'defaultResponseClassifier' to check whether the class has been processed. Initially, this is an empty string.
+        /// After successfull processing, the attribute contains the classifier name for the class as present in the definitions section.
+        /// </summary>
+        /// <param name="responseClass">The class associated with the default response.</param>
+        /// <returns>True on successfull completion, false on errors.</returns>
+        private bool WriteDefaultResponse(MEClass responseClass)
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteDefaultResponse >> Processing response class '" + responseClass.Name + "'...");
+            this._panel.WriteInfo(this._panelIndex + 3, "Processing Default Response Body '" + responseClass.Name + "'...");
+
+            // We must only parse this class once in order to get a valid definition in the 'definitions' section.
+            if (this._defaultResponseClassifier == string.Empty)
+            {
+                this._defaultResponseClassifier = this._schema.ProcessClass(responseClass, responseClass.Name);
+                // Since we 'might' use alias names in classes, the returned name 'might' be different from the offered name. To make sure 
+                // we're referring to the correct name, we take the returned FQN and remove the token part. Remainder is the 'formal' type name.
+                if (this._defaultResponseClassifier != string.Empty)
+                {
+                    this._defaultResponseClassifier = this._defaultResponseClassifier.Substring(this._defaultResponseClassifier.IndexOf(':') + 1);
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteDefaultResponse >> Got classifier '" + this._defaultResponseClassifier + "'.");
+                }
+                else
+                {
+                    Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteDefaultResponse >> Unable to process default response '" + responseClass.Name + "'!");
+                    return false;
+                }
+            }
+
+            // Now, create a schema reference in the output...
+            this._JSONWriter.WritePropertyName("schema"); this._JSONWriter.WriteStartObject();
+            {
+                this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + this._defaultResponseClassifier + "\"");
+            } this._JSONWriter.WriteEndObject();
+            return true;
+        }
+
+        /// <summary>
+        /// Writes a request body parameter using the specified message Profile root. Each operation may have at most ONE body parameter and each
+        /// must refer to an, operation specific, unique message model. The root of this model is a Message Assembly class that may- or may not
+        /// have private properties.
         /// The operation initiates schema generation for the associated message model and writes a reference to that model.
         /// </summary>
         /// <param name="messageProfile">The top of the message profile.</param>
-        /// <returns></returns>
-        private bool WriteBodyParameter(MEClass messageProfile)
+        /// <param name="cardinality">The cardinality of the request object association. If upper limit > 1, we must create an array.</param>
+        /// <returns>True when processed ok, false on errors.</returns>
+        private bool WriteRequestBodyParameter(MEClass messageProfile, Tuple<int,int> cardinality)
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteBodyParameter >> Processing body class '" + messageProfile.Name + "'...");
-            this._panel.WriteInfo(this._panelIndex + 3, "Processing Message Body '" + messageProfile.Name + "'...");
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestBodyParameter >> Processing body class '" + messageProfile.Name + "'...");
+            this._panel.WriteInfo(this._panelIndex + 3, "Processing Request Message Body '" + messageProfile.Name + "'...");
             string qualifiedClassName = this._schema.ProcessClass(messageProfile, messageProfile.Name);
+            bool result = false;
             if (qualifiedClassName != string.Empty)
             {
                 this._JSONWriter.WriteStartObject();
@@ -200,20 +261,86 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         this._JSONWriter.WritePropertyName("description"); this._JSONWriter.WriteValue(messageProfile.Annotation);
                     }
-                    this._JSONWriter.WritePropertyName("required"); this._JSONWriter.WriteValue("true");
+                    this._JSONWriter.WritePropertyName("required"); this._JSONWriter.WriteValue(true);
 
                     // Since we 'might' use alias names in classes, the returned name 'might' be different from the offered name. To make sure we're referring
                     // to the correct name, we take the returned FQN and remove the token part. Remainder is the 'formal' type name.
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteBodyParameter >> Gotten FQN '" + qualifiedClassName + "'.");
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestBodyParameter >> Gotten FQN '" + qualifiedClassName + "'.");
                     string className = qualifiedClassName.Substring(qualifiedClassName.IndexOf(':')+1);
                     this._JSONWriter.WritePropertyName("schema"); this._JSONWriter.WriteStartObject();
                     {
-                        this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
+                        if (cardinality.Item2 == 0 || cardinality.Item2 > 1)
+                        {
+                            this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("array");
+                            this._JSONWriter.WritePropertyName("items"); this._JSONWriter.WriteStartObject();
+                            {
+                                this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
+                            }
+                            this._JSONWriter.WriteEndObject();
+                            if (cardinality.Item1 > 1)
+                            {
+                                this._JSONWriter.WritePropertyName("minItems"); this._JSONWriter.WriteValue(cardinality.Item1);
+                            }
+                            if (cardinality.Item2 != 0)
+                            {
+                                this._JSONWriter.WritePropertyName("maxItems"); this._JSONWriter.WriteValue(cardinality.Item2);
+                            }
+                        }
+                        else this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
                     } this._JSONWriter.WriteEndObject();
                 } this._JSONWriter.WriteEndObject();
-                return true;
+                result = true;
             }
-            return false;
+            return result;
+        }
+
+        /// <summary>
+        /// Writes a request body parameter using the specified message Profile root. Each operation may have at most ONE body parameter and each
+        /// must refer to an, operation specific, unique message model. The root of this model is a Message Assembly class that may- or may not
+        /// have private properties. The method always creates a reference to the Message Assembly class. If the association role has a cardinality
+        /// > 1, we create an array of references.
+        /// The method checks whether the Message Assembly has associations. If so, it is considered a complex model and added as a reference.
+        /// If the Message Assemble does not have associations, it is expanded in-line in the response as a response object.
+        /// </summary>
+        /// <param name="messageProfile">The top of the message profile.</param>
+        /// <param name="cardinality">The cardinality of the response object association. If upper limit > 1, we must create an array.</param>
+        /// <returns>True when processed ok, false on errors.</returns>
+        private bool WriteResponseBodyParameter(MEClass messageProfile, Tuple<int,int> cardinality)
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Processing body class '" + messageProfile.Name + "'...");
+            this._panel.WriteInfo(this._panelIndex + 3, "Processing Response Message Body '" + messageProfile.Name + "'...");
+            bool result = false;
+            string qualifiedClassName = this._schema.ProcessClass(messageProfile, messageProfile.Name);
+
+            if (qualifiedClassName != string.Empty)
+            {
+                // Since we 'might' use alias names in classes, the returned name 'might' be different from the offered name. To make sure we're referring
+                // to the correct name, we take the returned FQN and remove the token part. Remainder is the 'formal' type name.
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteBodyParameter >> Gotten FQN '" + qualifiedClassName + "'.");
+                string className = qualifiedClassName.Substring(qualifiedClassName.IndexOf(':') + 1);
+                this._JSONWriter.WritePropertyName("schema"); this._JSONWriter.WriteStartObject();
+                {
+                    if (cardinality.Item2 == 0 || cardinality.Item2 > 1)
+                    {
+                        this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("array");
+                        this._JSONWriter.WritePropertyName("items"); this._JSONWriter.WriteStartObject();
+                        {
+                            this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
+                        } this._JSONWriter.WriteEndObject();
+                        if (cardinality.Item1 > 1)
+                        {
+                            this._JSONWriter.WritePropertyName("minItems"); this._JSONWriter.WriteValue(cardinality.Item1);
+                        }
+                        if (cardinality.Item2 != 0)
+                        {
+                            this._JSONWriter.WritePropertyName("maxItems"); this._JSONWriter.WriteValue(cardinality.Item2);
+                        }
+                    }
+                    else this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
+                } this._JSONWriter.WriteEndObject();
+                result = true;
+            }
+            return result;
         }
 
         /// <summary>
@@ -243,7 +370,7 @@ namespace Plugin.Application.CapabilityModel.API
                         {
                             this._JSONWriter.WritePropertyName("description"); this._JSONWriter.WriteValue(resourceParam.Description);
                         }
-                        this._JSONWriter.WritePropertyName("required");     this._JSONWriter.WriteValue("true");
+                        this._JSONWriter.WritePropertyName("required");     this._JSONWriter.WriteValue(true);
 
                         // Collect the JSON Schema for the attribute as a string...
                         string attribText = attrib.GetClassifierAsText();
@@ -294,7 +421,7 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         this._JSONWriter.WritePropertyName("description"); this._JSONWriter.WriteValue(attrib.Annotation);
                     }
-                    this._JSONWriter.WritePropertyName("required"); this._JSONWriter.WriteValue(attrib.IsMandatory ? "true" : "false");
+                    this._JSONWriter.WritePropertyName("required"); this._JSONWriter.WriteValue(attrib.IsMandatory ? true : false);
 
                     // Collect the JSON Schema for the attribute as a string...
                     string attribText = attrib.GetClassifierAsText();

@@ -74,6 +74,10 @@ namespace Plugin.Application.Forms
             this.Description = new System.Windows.Forms.TextBox();
             this.SummaryText = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
+            this.HasMultipleRequestParams = new System.Windows.Forms.CheckBox();
+            this.HasMultipleResponseParams = new System.Windows.Forms.CheckBox();
+            this.RequestParamGroup = new System.Windows.Forms.GroupBox();
+            this.ResponseParamGroup = new System.Windows.Forms.GroupBox();
             this.OperationGroup.SuspendLayout();
             this.FilterGroup.SuspendLayout();
             this.ResponseCodeGroup.SuspendLayout();
@@ -81,12 +85,14 @@ namespace Plugin.Application.Forms
             this.ResponseCodeMenuStrip.SuspendLayout();
             this.MimeBox.SuspendLayout();
             this.DocumentationBox.SuspendLayout();
+            this.RequestParamGroup.SuspendLayout();
+            this.ResponseParamGroup.SuspendLayout();
             this.SuspendLayout();
             // 
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(444, 458);
+            this.Cancel.Location = new System.Drawing.Point(513, 458);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
             this.Cancel.TabIndex = 11;
@@ -96,7 +102,7 @@ namespace Plugin.Application.Forms
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(363, 458);
+            this.Ok.Location = new System.Drawing.Point(432, 458);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
             this.Ok.TabIndex = 12;
@@ -182,7 +188,7 @@ namespace Plugin.Application.Forms
             this.FilterGroup.Controls.Add(this.AddFilter);
             this.FilterGroup.Location = new System.Drawing.Point(12, 89);
             this.FilterGroup.Name = "FilterGroup";
-            this.FilterGroup.Size = new System.Drawing.Size(251, 180);
+            this.FilterGroup.Size = new System.Drawing.Size(282, 180);
             this.FilterGroup.TabIndex = 6;
             this.FilterGroup.TabStop = false;
             this.FilterGroup.Text = "Filter parameters";
@@ -218,7 +224,7 @@ namespace Plugin.Application.Forms
             this.FilterParameterList.Location = new System.Drawing.Point(11, 19);
             this.FilterParameterList.MultiSelect = false;
             this.FilterParameterList.Name = "FilterParameterList";
-            this.FilterParameterList.Size = new System.Drawing.Size(227, 121);
+            this.FilterParameterList.Size = new System.Drawing.Size(265, 121);
             this.FilterParameterList.TabIndex = 0;
             this.FilterParameterList.UseCompatibleStateImageBehavior = false;
             this.FilterParameterList.View = System.Windows.Forms.View.Details;
@@ -226,7 +232,7 @@ namespace Plugin.Application.Forms
             // ParamName
             // 
             this.ParamName.Text = "Name";
-            this.ParamName.Width = 116;
+            this.ParamName.Width = 150;
             // 
             // ParamType
             // 
@@ -246,29 +252,29 @@ namespace Plugin.Application.Forms
             // HasRequestParams
             // 
             this.HasRequestParams.AutoSize = true;
-            this.HasRequestParams.Location = new System.Drawing.Point(300, 20);
+            this.HasRequestParams.Location = new System.Drawing.Point(6, 19);
             this.HasRequestParams.Name = "HasRequestParams";
-            this.HasRequestParams.Size = new System.Drawing.Size(138, 17);
-            this.HasRequestParams.TabIndex = 2;
-            this.HasRequestParams.Text = "Has request parameters";
+            this.HasRequestParams.Size = new System.Drawing.Size(62, 17);
+            this.HasRequestParams.TabIndex = 1;
+            this.HasRequestParams.Text = "Present";
             this.HasRequestParams.UseVisualStyleBackColor = true;
             this.HasRequestParams.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
             // 
             // HasResponseParams
             // 
             this.HasResponseParams.AutoSize = true;
-            this.HasResponseParams.Location = new System.Drawing.Point(300, 43);
+            this.HasResponseParams.Location = new System.Drawing.Point(6, 19);
             this.HasResponseParams.Name = "HasResponseParams";
-            this.HasResponseParams.Size = new System.Drawing.Size(146, 17);
-            this.HasResponseParams.TabIndex = 3;
-            this.HasResponseParams.Text = "Has response parameters";
+            this.HasResponseParams.Size = new System.Drawing.Size(62, 17);
+            this.HasResponseParams.TabIndex = 1;
+            this.HasResponseParams.Text = "Present";
             this.HasResponseParams.UseVisualStyleBackColor = true;
             this.HasResponseParams.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
             // 
             // HasPagination
             // 
             this.HasPagination.AutoSize = true;
-            this.HasPagination.Location = new System.Drawing.Point(300, 66);
+            this.HasPagination.Location = new System.Drawing.Point(306, 58);
             this.HasPagination.Name = "HasPagination";
             this.HasPagination.Size = new System.Drawing.Size(97, 17);
             this.HasPagination.TabIndex = 4;
@@ -279,7 +285,7 @@ namespace Plugin.Application.Forms
             // OverrideSecurity
             // 
             this.OverrideSecurity.AutoSize = true;
-            this.OverrideSecurity.Location = new System.Drawing.Point(427, 66);
+            this.OverrideSecurity.Location = new System.Drawing.Point(456, 58);
             this.OverrideSecurity.Name = "OverrideSecurity";
             this.OverrideSecurity.Size = new System.Drawing.Size(92, 17);
             this.OverrideSecurity.TabIndex = 5;
@@ -293,9 +299,9 @@ namespace Plugin.Application.Forms
             this.ResponseCodeGroup.Controls.Add(this.DeleteResponseCode);
             this.ResponseCodeGroup.Controls.Add(this.AddResponseCode);
             this.ResponseCodeGroup.Controls.Add(this.ResponseCodeList);
-            this.ResponseCodeGroup.Location = new System.Drawing.Point(269, 89);
+            this.ResponseCodeGroup.Location = new System.Drawing.Point(306, 89);
             this.ResponseCodeGroup.Name = "ResponseCodeGroup";
-            this.ResponseCodeGroup.Size = new System.Drawing.Size(251, 180);
+            this.ResponseCodeGroup.Size = new System.Drawing.Size(282, 180);
             this.ResponseCodeGroup.TabIndex = 7;
             this.ResponseCodeGroup.TabStop = false;
             this.ResponseCodeGroup.Text = "Response codes";
@@ -341,7 +347,7 @@ namespace Plugin.Application.Forms
             this.ResponseCodeList.Location = new System.Drawing.Point(12, 19);
             this.ResponseCodeList.MultiSelect = false;
             this.ResponseCodeList.Name = "ResponseCodeList";
-            this.ResponseCodeList.Size = new System.Drawing.Size(227, 121);
+            this.ResponseCodeList.Size = new System.Drawing.Size(265, 121);
             this.ResponseCodeList.TabIndex = 0;
             this.ResponseCodeList.UseCompatibleStateImageBehavior = false;
             this.ResponseCodeList.View = System.Windows.Forms.View.Details;
@@ -349,12 +355,12 @@ namespace Plugin.Application.Forms
             // Code
             // 
             this.Code.Text = "Code";
-            this.Code.Width = 49;
+            this.Code.Width = 58;
             // 
             // ResponseDesc
             // 
             this.ResponseDesc.Text = "Description";
-            this.ResponseDesc.Width = 169;
+            this.ResponseDesc.Width = 197;
             // 
             // FilterParametersMenuStrip
             // 
@@ -408,23 +414,23 @@ namespace Plugin.Application.Forms
             this.MimeBox.Controls.Add(this.label3);
             this.MimeBox.Location = new System.Drawing.Point(12, 275);
             this.MimeBox.Name = "MimeBox";
-            this.MimeBox.Size = new System.Drawing.Size(507, 49);
+            this.MimeBox.Size = new System.Drawing.Size(576, 49);
             this.MimeBox.TabIndex = 8;
             this.MimeBox.TabStop = false;
             this.MimeBox.Text = "MIME types";
             // 
             // ConsumesMIME
             // 
-            this.ConsumesMIME.Location = new System.Drawing.Point(321, 16);
+            this.ConsumesMIME.Location = new System.Drawing.Point(358, 16);
             this.ConsumesMIME.Name = "ConsumesMIME";
-            this.ConsumesMIME.Size = new System.Drawing.Size(175, 20);
+            this.ConsumesMIME.Size = new System.Drawing.Size(212, 20);
             this.ConsumesMIME.TabIndex = 3;
             this.ConsumesMIME.TextChanged += new System.EventHandler(this.ConsumesMIME_TextChanged);
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(261, 19);
+            this.label4.Location = new System.Drawing.Point(293, 19);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(59, 13);
             this.label4.TabIndex = 0;
@@ -434,7 +440,7 @@ namespace Plugin.Application.Forms
             // 
             this.ProducesMIME.Location = new System.Drawing.Point(63, 16);
             this.ProducesMIME.Name = "ProducesMIME";
-            this.ProducesMIME.Size = new System.Drawing.Size(175, 20);
+            this.ProducesMIME.Size = new System.Drawing.Size(213, 20);
             this.ProducesMIME.TabIndex = 1;
             this.ProducesMIME.TextChanged += new System.EventHandler(this.ProducesMIME_TextChanged);
             // 
@@ -454,7 +460,7 @@ namespace Plugin.Application.Forms
             this.DocumentationBox.Controls.Add(this.label5);
             this.DocumentationBox.Location = new System.Drawing.Point(12, 330);
             this.DocumentationBox.Name = "DocumentationBox";
-            this.DocumentationBox.Size = new System.Drawing.Size(507, 122);
+            this.DocumentationBox.Size = new System.Drawing.Size(576, 122);
             this.DocumentationBox.TabIndex = 9;
             this.DocumentationBox.TabStop = false;
             this.DocumentationBox.Text = "Documentation";
@@ -464,7 +470,7 @@ namespace Plugin.Application.Forms
             this.Description.Location = new System.Drawing.Point(12, 47);
             this.Description.Multiline = true;
             this.Description.Name = "Description";
-            this.Description.Size = new System.Drawing.Size(484, 59);
+            this.Description.Size = new System.Drawing.Size(558, 59);
             this.Description.TabIndex = 2;
             this.Description.Leave += new System.EventHandler(this.Description_Leave);
             // 
@@ -472,7 +478,7 @@ namespace Plugin.Application.Forms
             // 
             this.SummaryText.Location = new System.Drawing.Point(63, 16);
             this.SummaryText.Name = "SummaryText";
-            this.SummaryText.Size = new System.Drawing.Size(433, 20);
+            this.SummaryText.Size = new System.Drawing.Size(507, 20);
             this.SummaryText.TabIndex = 1;
             this.SummaryText.Leave += new System.EventHandler(this.SummaryText_Leave);
             // 
@@ -485,20 +491,64 @@ namespace Plugin.Application.Forms
             this.label5.TabIndex = 0;
             this.label5.Text = "Summary:";
             // 
+            // HasMultipleRequestParams
+            // 
+            this.HasMultipleRequestParams.AutoSize = true;
+            this.HasMultipleRequestParams.Location = new System.Drawing.Point(70, 19);
+            this.HasMultipleRequestParams.Name = "HasMultipleRequestParams";
+            this.HasMultipleRequestParams.Size = new System.Drawing.Size(62, 17);
+            this.HasMultipleRequestParams.TabIndex = 2;
+            this.HasMultipleRequestParams.Text = "Multiple";
+            this.HasMultipleRequestParams.UseVisualStyleBackColor = true;
+            this.HasMultipleRequestParams.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
+            // 
+            // HasMultipleResponseParams
+            // 
+            this.HasMultipleResponseParams.AutoSize = true;
+            this.HasMultipleResponseParams.Location = new System.Drawing.Point(70, 20);
+            this.HasMultipleResponseParams.Name = "HasMultipleResponseParams";
+            this.HasMultipleResponseParams.Size = new System.Drawing.Size(62, 17);
+            this.HasMultipleResponseParams.TabIndex = 2;
+            this.HasMultipleResponseParams.Text = "Multiple";
+            this.HasMultipleResponseParams.UseVisualStyleBackColor = true;
+            this.HasMultipleResponseParams.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
+            // 
+            // RequestParamGroup
+            // 
+            this.RequestParamGroup.Controls.Add(this.HasRequestParams);
+            this.RequestParamGroup.Controls.Add(this.HasMultipleRequestParams);
+            this.RequestParamGroup.Location = new System.Drawing.Point(300, 4);
+            this.RequestParamGroup.Name = "RequestParamGroup";
+            this.RequestParamGroup.Size = new System.Drawing.Size(138, 48);
+            this.RequestParamGroup.TabIndex = 2;
+            this.RequestParamGroup.TabStop = false;
+            this.RequestParamGroup.Text = "Request parameters";
+            // 
+            // ResponseParamGroup
+            // 
+            this.ResponseParamGroup.Controls.Add(this.HasResponseParams);
+            this.ResponseParamGroup.Controls.Add(this.HasMultipleResponseParams);
+            this.ResponseParamGroup.Location = new System.Drawing.Point(450, 4);
+            this.ResponseParamGroup.Name = "ResponseParamGroup";
+            this.ResponseParamGroup.Size = new System.Drawing.Size(138, 48);
+            this.ResponseParamGroup.TabIndex = 3;
+            this.ResponseParamGroup.TabStop = false;
+            this.ResponseParamGroup.Text = "Response parameters";
+            // 
             // RESTOperationDialog
             // 
             this.AcceptButton = this.Ok;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(531, 501);
+            this.ClientSize = new System.Drawing.Size(600, 501);
+            this.Controls.Add(this.ResponseParamGroup);
+            this.Controls.Add(this.RequestParamGroup);
             this.Controls.Add(this.DocumentationBox);
             this.Controls.Add(this.MimeBox);
             this.Controls.Add(this.ResponseCodeGroup);
             this.Controls.Add(this.OverrideSecurity);
             this.Controls.Add(this.HasPagination);
-            this.Controls.Add(this.HasResponseParams);
-            this.Controls.Add(this.HasRequestParams);
             this.Controls.Add(this.FilterGroup);
             this.Controls.Add(this.NewMinorVersion);
             this.Controls.Add(this.OperationGroup);
@@ -521,6 +571,10 @@ namespace Plugin.Application.Forms
             this.MimeBox.PerformLayout();
             this.DocumentationBox.ResumeLayout(false);
             this.DocumentationBox.PerformLayout();
+            this.RequestParamGroup.ResumeLayout(false);
+            this.RequestParamGroup.PerformLayout();
+            this.ResponseParamGroup.ResumeLayout(false);
+            this.ResponseParamGroup.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -570,5 +624,9 @@ namespace Plugin.Application.Forms
         private TextBox Description;
         private TextBox SummaryText;
         private Label label5;
+        private CheckBox HasMultipleRequestParams;
+        private CheckBox HasMultipleResponseParams;
+        private GroupBox RequestParamGroup;
+        private GroupBox ResponseParamGroup;
     }
 }

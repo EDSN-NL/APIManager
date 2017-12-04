@@ -631,6 +631,32 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// This function returns true if the class contains at least one association of the specified type. If this type is 'Unknown', it checks
+        /// any association that is NOT a Generalization.
+        /// 'Trace' type associations are never checked!
+        /// </summary>
+        /// <param name="type">The type of association to check.</param>
+        /// <returns>True if class has at lease one association of specified type.</returns>
+        internal override bool HasAssociation(MEAssociation.AssociationType type)
+        {
+            this._element.Connectors.Refresh();
+            string traceStereotype = ContextSlt.GetContextSlt().GetConfigProperty(_TraceAssociationStereotype);
+
+            for (short i = 0; i < this._element.Connectors.Count; i++)
+            {
+                var connector = this._element.Connectors.GetAt(i) as EA.Connector;
+                // Make sure to return only connectors that originate from the current class and are NOT 'trace' associations...
+                if (connector.ClientID == this._elementID && !connector.StereotypeEx.Contains(traceStereotype))
+                {
+                    var association = this._model.GetModelElementImplementation(ModelElementType.Association, connector.ConnectorID) as EAMEIAssociation;
+                    if (type == MEAssociation.AssociationType.Unknown && association.GetAssociationType() != MEAssociation.AssociationType.Generalization) return true;
+                    else if (type != MEAssociation.AssociationType.Unknown && association.GetAssociationType() == type) return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// This function checks whether the class contains one or more attributes and/or associations.
         /// </summary>
         /// <returns>True is class posesses one or more attributes and/or associations.</returns>

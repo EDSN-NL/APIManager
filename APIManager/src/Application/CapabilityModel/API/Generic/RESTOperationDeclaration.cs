@@ -32,6 +32,8 @@ namespace Plugin.Application.CapabilityModel.API
         private DeclarationStatus _initialStatus;                   // Original status of this declaration record.
         private bool _hasRequestParameters;                         // A message definition is present in the request body.
         private bool _hasResponseParameters;                        // A message definition is present in the response body.
+        private bool _hasMultipleRequestParameters;                 // Request message definition has cardinality > 1.
+        private bool _hasMultipleResponseParameters;                // Request message definition has cardinality > 1.
         private bool _hasPagination;                                // Operation must implement default pagination mechanism.
         private bool _publicAccess;                                 // Security must be overruled for this operation.
         private SortedList<string, RESTOperationResultDeclaration> _resultList;     // Set of result declarations (one for each unique HTTP result code).
@@ -122,6 +124,22 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Get or set the request 'cardinality > 1' indicator.
+        /// </summary>
+        internal bool RequestBodyCardinalityIndicator
+        {
+            get { return this._hasMultipleRequestParameters; }
+            set
+            {
+                if (this._hasMultipleRequestParameters != value)
+                {
+                    this._hasMultipleRequestParameters = value;
+                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                }
+            }
+        }
+
+        /// <summary>
         /// Get or set the 'has response body' indicator.
         /// </summary>
         internal bool ResponseBodyIndicator
@@ -132,6 +150,22 @@ namespace Plugin.Application.CapabilityModel.API
                 if (this._hasResponseParameters != value)
                 {
                     this._hasResponseParameters = value;
+                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get or set the response 'cardinality > 1' indicator.
+        /// </summary>
+        internal bool ResponseBodyCardinalityIndicator
+        {
+            get { return this._hasMultipleResponseParameters; }
+            set
+            {
+                if (this._hasMultipleResponseParameters != value)
+                {
+                    this._hasMultipleResponseParameters = value;
                     if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 }
             }

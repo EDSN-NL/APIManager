@@ -328,6 +328,18 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// This function returns true if the class contains at least one association of the specified type. If this type is 'Unknown', it checks
+        /// any association that is NOT a Generalization.
+        /// 'Trace' type associations are never checked!
+        /// </summary>
+        /// <param name="type">The type of association to check.</param>
+        /// <returns>True if class has at lease one association of specified type.</returns>
+        internal override bool HasAssociation(MEAssociation.AssociationType type)
+        {
+            return this._classPart.HasAssociation(type);
+        }
+
+        /// <summary>
         /// This function checks whether the class contains one or more attributes and/or associations.
         /// </summary>
         /// <returns>True is class posesses one or more attributes and/or associations.</returns>

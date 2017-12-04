@@ -38,6 +38,7 @@ namespace Plugin.Application.CapabilityModel.API
         private string _currentPath;                    // Contains the OpenAPI Path that is currently being processed.
         private RESTResourceCapability _currentResource;            // The resource that is currently being processed.
         private int _capabilityCounter;                 // The total number of capabilities (itf, resource, operation, result) to process.
+        private string _defaultResponseClassifier;      // Contains the classifier name of the default response once processed.
 
         // Since we have to terminate JSON objects properly, we must know whether we are in the last operation result of a resource.
         // If we start a new resource, we might have to close the previous one. Also, we have to close the last resource but this we can handle at
@@ -80,6 +81,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._isPathInitialized = false;
             this._APIAccessLevel = string.Empty;
             this._accessLevels = null;
+            this._defaultResponseClassifier = string.Empty;
         }
 
         /// <summary>
@@ -146,6 +148,7 @@ namespace Plugin.Application.CapabilityModel.API
 
                             // Initialise the documentation context and other resources...
                             this._inOperationResult = false;
+                            this._defaultResponseClassifier = string.Empty;
 
                             if (!this._isPathInitialized)
                             {
@@ -228,6 +231,12 @@ namespace Plugin.Application.CapabilityModel.API
                                 this._JSONWriter.WriteEndObject();      // And close the last 'path' section.
                             }
                             this._JSONWriter.WriteEndObject();          // End 'paths' section object.
+
+                            // Retrieve all definitions and write the definitions section...
+                            string definitionsObject = ((JSONSchema)(this._schema.MessageSchema)).GetDefinitionsObject();
+                            definitionsObject = definitionsObject.Substring(1, definitionsObject.Length - 2);   // Remove the enclosing braces.
+                            this._JSONWriter.WriteRaw("," + definitionsObject);
+
                             this._JSONWriter.WriteEndObject();          // End of OpenAPI definition object.
                             this._JSONWriter.Flush();
                             result = SaveProcessedCapability();

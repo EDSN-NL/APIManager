@@ -43,6 +43,8 @@ namespace Plugin.Application.Forms
             HasRequestParams.Checked = this._operation.RequestBodyIndicator;
             HasResponseParams.Checked = this._operation.ResponseBodyIndicator;
             HasPagination.Checked = this._operation.PaginationIndicator;
+            HasMultipleRequestParams.Checked = this._operation.RequestBodyCardinalityIndicator;
+            HasMultipleResponseParams.Checked = this._operation.ResponseBodyCardinalityIndicator;
             OverrideSecurity.Checked = this._operation.PublicAccessIndicator;
 
             // TO DO: INITIALIZE FILTER PARAMETERS AND RESPONSE CODES ACCORDING TO DECLARATION CONTENTS!!!!
@@ -106,8 +108,8 @@ namespace Plugin.Application.Forms
                 case RESTOperationCapability.OperationType.Delete:
                 case RESTOperationCapability.OperationType.Head:
                     FilterGroup.Enabled = false;
-                    HasRequestParams.Enabled = true;
-                    HasResponseParams.Enabled = false;
+                    RequestParamGroup.Enabled = true;
+                    ResponseParamGroup.Enabled = false;
                     HasResponseParams.Checked = false;
                     HasPagination.Enabled = false;
                     HasPagination.Checked = false;
@@ -115,8 +117,8 @@ namespace Plugin.Application.Forms
 
                 case RESTOperationCapability.OperationType.Get:
                     FilterGroup.Enabled = true;
-                    HasRequestParams.Enabled = true;
-                    HasResponseParams.Enabled = true;
+                    RequestParamGroup.Enabled = true;
+                    ResponseParamGroup.Enabled = true;
                     HasResponseParams.Checked = true;
                     HasPagination.Enabled = true;
                     break;
@@ -125,9 +127,9 @@ namespace Plugin.Application.Forms
                 case RESTOperationCapability.OperationType.Post:
                 case RESTOperationCapability.OperationType.Put:
                     FilterGroup.Enabled = false;
-                    HasRequestParams.Enabled = true;
+                    RequestParamGroup.Enabled = true;
                     HasRequestParams.Checked = true;
-                    HasResponseParams.Enabled = true;
+                    ResponseParamGroup.Enabled = true;
                     HasResponseParams.Checked = false;
                     HasPagination.Enabled = false;
                     HasPagination.Checked = false;
@@ -135,9 +137,9 @@ namespace Plugin.Application.Forms
 
                 default:
                     FilterGroup.Enabled = false;
-                    HasRequestParams.Enabled = false;
+                    RequestParamGroup.Enabled = false;
                     HasRequestParams.Checked = false;
-                    HasResponseParams.Enabled = false;
+                    ResponseParamGroup.Enabled = false;
                     HasResponseParams.Checked = false;
                     HasPagination.Enabled = false;
                     HasPagination.Checked = false;
@@ -287,10 +289,14 @@ namespace Plugin.Application.Forms
             this._operation.ResponseBodyIndicator = HasResponseParams.Checked;
             this._operation.PaginationIndicator = HasPagination.Checked;
             this._operation.PublicAccessIndicator = OverrideSecurity.Checked;
+            this._operation.RequestBodyCardinalityIndicator = HasMultipleRequestParams.Checked;
+            this._operation.ResponseBodyCardinalityIndicator = HasMultipleResponseParams.Checked;
 
             Logger.WriteInfo("Plugin.Application.Forms.RESTOperationDialog.IndicatorCheckedChanged >> Collected indicators: RequestBodyIndicator = " + 
                              this._operation.RequestBodyIndicator + Environment.NewLine +
                              "ResponseBodyIndicator = " + this._operation.ResponseBodyIndicator + Environment.NewLine +
+                             "MultipleRequestIndicator =" + this._operation.RequestBodyCardinalityIndicator + Environment.NewLine +
+                             "MultipleResponseIndicator =" + this._operation.ResponseBodyCardinalityIndicator + Environment.NewLine +
                              "PaginationIndicator = " + this._operation.PaginationIndicator + Environment.NewLine +
                              "PublicAccessIndicator = " + this._operation.PublicAccessIndicator);
         }

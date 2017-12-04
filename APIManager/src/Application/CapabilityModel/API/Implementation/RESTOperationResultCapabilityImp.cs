@@ -57,8 +57,9 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp (declaration) >> Associating with response type '" + result.Parameters.Name + "'...");
                         string roleName = Conversions.ToPascalCase(result.Parameters.Name);
+                        string cardinality = result.HasMultipleResponses ? "1..*" : "1";
                         if (roleName.EndsWith("Type")) roleName = roleName.Substring(0, roleName.IndexOf("Type"));
-                        var typeEndpoint = new EndpointDescriptor(result.Parameters, "1", roleName, null, true);
+                        var typeEndpoint = new EndpointDescriptor(result.Parameters, cardinality, roleName, null, true);
                         model.CreateAssociation(myEndpoint, typeEndpoint, MEAssociation.AssociationType.MessageAssociation);
                     }
                 }

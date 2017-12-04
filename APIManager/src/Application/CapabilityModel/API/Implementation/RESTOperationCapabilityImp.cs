@@ -128,13 +128,14 @@ namespace Plugin.Application.CapabilityModel.API
                         string pkgName = context.GetConfigProperty(_RequestPkgName);
                         string pkgStereotype = context.GetConfigProperty(_RequestPkgStereotype);
                         string className = this.Name + context.GetConfigProperty(_RequestMessageAssemblyClassName);
+                        string cardinality = operation.RequestBodyCardinalityIndicator ? "1..*" : "1";
                         MEPackage msgPackage = OperationPackage.FindPackage(pkgName, pkgStereotype);
                         if (msgPackage == null) msgPackage = OperationPackage.CreatePackage(pkgName, pkgStereotype);
                         MEClass msgClass = msgPackage.FindClass(className, classStereotype);
                         if (msgClass == null) msgClass = msgPackage.CreateClass(className, classStereotype);
 
                         // Now we can create the association...
-                        var msgEndpoint = new EndpointDescriptor(msgClass, "1", context.GetConfigProperty(_RequestMessageRoleName), null, true);
+                        var msgEndpoint = new EndpointDescriptor(msgClass, cardinality, context.GetConfigProperty(_RequestMessageRoleName), null, true);
                         ModelSlt.GetModelSlt().CreateAssociation(operationEndpoint, msgEndpoint, MEAssociation.AssociationType.MessageAssociation);
                     }
 
@@ -158,6 +159,7 @@ namespace Plugin.Application.CapabilityModel.API
                             if (msgPackage == null) msgPackage = OperationPackage.CreatePackage(pkgName, pkgStereotype);
                             MEClass msgClass = msgPackage.FindClass(className, classStereotype);
                             if (msgClass == null) msgClass = msgPackage.CreateClass(className, classStereotype);
+                            result.HasMultipleResponses = operation.ResponseBodyCardinalityIndicator;
                             result.Parameters = msgClass;   // Assign as result parameters so it will be linked to the result class.
                         }
                         RESTOperationResultCapability newResult = new RESTOperationResultCapability(myInterface, result);

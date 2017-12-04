@@ -310,6 +310,20 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// This function returns true if the class contains at least one association of the specified type. If no type is specified, it checks
+        /// any association that is NOT a Generalization.
+        /// 'Trace' type associations are never checked!
+        /// </summary>
+        /// <param name="type">Optional type of association to check.</param>
+        /// <returns>True if class has at lease one association of specified type.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal bool HasAssociation(MEAssociation.AssociationType type = MEAssociation.AssociationType.Unknown)
+        {
+            if (this._imp != null) return ((MEIClass)this._imp).HasAssociation(type);
+            else throw new MissingImplementationException("MEIClass");
+        }
+
+        /// <summary>
         /// This function checks whether the class contains one or more attributes and/or associations.
         /// </summary>
         /// <returns>True is class posesses one or more attributes and/or associations.</returns>

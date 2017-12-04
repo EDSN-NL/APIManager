@@ -385,6 +385,18 @@ namespace Plugin.Application.CapabilityModel.API
                             MessageBox.Show("Identifier is mandatory, lower bound adjusted!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                             dialog.Parameter.Cardinality = new Tuple<int, int>(1, dialog.Parameter.Cardinality.Item2);
                         }
+                        if (dialog.Parameter.Cardinality.Item2 == 0 || dialog.Parameter.Cardinality.Item2 > 1)
+                        {
+                            if (dialog.Parameter.CollectionFormat == RESTParameterDeclaration.QueryCollectionFormat.Multi ||
+                                dialog.Parameter.CollectionFormat == RESTParameterDeclaration.QueryCollectionFormat.NA ||
+                                dialog.Parameter.CollectionFormat == RESTParameterDeclaration.QueryCollectionFormat.Unknown)
+                            {
+                                MessageBox.Show("Collection Format must be one of CSV, SSV, TSV or Pipes, please try again!", 
+                                                "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                return null;
+                            }
+                        }
+                        else dialog.Parameter.CollectionFormat = RESTParameterDeclaration.QueryCollectionFormat.NA;
                         this._parameter = dialog.Parameter;
                         this._parameter.Status = isCreate ? RESTParameterDeclaration.DeclarationStatus.Created :
                                                             RESTParameterDeclaration.DeclarationStatus.Edited;

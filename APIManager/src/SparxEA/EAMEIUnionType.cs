@@ -268,6 +268,18 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// This function returns true if the class contains at least one association of the specified type. If this type is 'Unknown', it checks
+        /// any association that is NOT a Generalization.
+        /// 'Trace' type associations are never checked!
+        /// </summary>
+        /// <param name="type">The type of association to check.</param>
+        /// <returns>True if class has at lease one association of specified type.</returns>
+        internal override bool HasAssociation(MEAssociation.AssociationType type)
+        {
+            return this._classPart.HasAssociation(type);
+        }
+
+        /// <summary>
         /// The method checks whether one or more stereotypes from the given list of stereotypes are owned by the union.
         /// </summary>
         /// <param name="stereotypes">List of stereotypes to check.</param>

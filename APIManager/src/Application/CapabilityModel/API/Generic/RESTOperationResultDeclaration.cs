@@ -155,6 +155,7 @@ namespace Plugin.Application.CapabilityModel.API
         private string _resultCode;                 // Either an HTTP result code or default OpenAPI response code.
         private string _description;                // Descriptive text to go with the response.
         private MEClass _responseType;              // In case of response schemas, this class represents the root of that schema.
+        private bool _hasMultipleResponses;         // True if response has cardinality > 1.
         private DeclarationStatus _status;          // Status of this declaration record.
         private DeclarationStatus _initialStatus;   // Original status of this declaration record.
 
@@ -170,6 +171,20 @@ namespace Plugin.Application.CapabilityModel.API
         {
             get { return this._description; }
             set { this._description = value; }
+        }
+
+        /// <summary>
+        /// Returns or loads the 'has multiple result objects' indicator.
+        /// </summary>
+        internal bool HasMultipleResponses
+        {
+            get { return this._hasMultipleResponses; }
+            set
+            {
+                this._hasMultipleResponses = value;
+                if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
+                else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+            }
         }
 
         /// <summary>
