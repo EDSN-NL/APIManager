@@ -33,8 +33,9 @@ namespace Plugin.Application.CapabilityModel.API
                 {
                     if (i < resourceName.Length - 1 && char.IsUpper(resourceName[i + 1]))
                     {
-                        // A series of upper-case characters are considered an abbreviation and will be treated as a single word...
-                        assignedRole += "-";
+                        // A series of upper-case characters are considered an abbreviation and will be treated as a single word.
+                        // And if the previous char was lowercase, we must insert a '-' inbetween...
+                        if (char.IsLower(resourceName[i-1])) assignedRole += "-";
                         while (i < resourceName.Length && char.IsUpper(resourceName[i]))
                         {
                             // An upper-case abbreviation can be followed by a PascalCase word, in that case, we stop copying

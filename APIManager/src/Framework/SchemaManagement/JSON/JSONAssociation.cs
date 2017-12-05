@@ -80,7 +80,6 @@ namespace Framework.Util.SchemaManagement.JSON
                 {
                     Title = listType,
                     Type = JSchemaType.Array,
-                    AllowAdditionalItems = false,
                     MinimumItems = (cardinality.Item1 == 0) ? 1 : cardinality.Item1,      // A list must have at least one value!
                 };
                 if (cardinality.Item2 > 1) this._associationClassifier.MaximumItems = cardinality.Item2;
