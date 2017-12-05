@@ -210,7 +210,7 @@ namespace Plugin.Application.CapabilityModel.API
                             string commonSchemaName = this._currentService.Name + "." + Conversions.ToPascalCase(capability.AssignedRole);
                             string namespaceTag = (this._interfaceType == InterfaceType.SOAP) ? "SOAPOperation" : "RESTOperation";
                             this._panel.WriteInfo(this._panelIndex + 1, "Pre-processing Common Schema...");
-                            this._commonSchema = GetSchema(Schema.SchemaType.Collection, commonSchemaName,
+                            this._commonSchema = GetSchema(Schema.SchemaType.Common, commonSchemaName,
                                                            capability.CapabilityClass.GetTag(context.GetConfigProperty(_NSTokenTag)),
                                                            this._currentService.GetFQN(namespaceTag, Conversions.ToPascalCase(capability.AssignedRole), -1),
                                                            capability.VersionString);

@@ -11,11 +11,12 @@ namespace Framework.Util.SchemaManagement
     internal abstract class Schema
     {
         // We support three different types of Schemas:
-        // 1) Collection = Schema contains simply a list of type definitions, to be used for reference by other schemas.
+        // 1) Common = schema contains simply a list of type definitions, to be used for reference by other schemas (used primarily by CommonSchema).
         // 2) Operation = defines an 'operation' object, consisting of an optional request and optional response (plus optionally a collection of shared objects).
         // 3) Message = defines a single 'message' object (plus optionaly a collection of shared objects).
+        // 4) Definitions = similar to 'Common', but used only as a collection of type-defs, NEVER used as/with common schema.
         // 4) Unknown = schema type unknown (not initialized).
-        internal enum SchemaType { Collection, Operation, Message, Unknown }
+        internal enum SchemaType { Unknown, Common, Operation, Message, Definitions }
 
         private string _nsToken;        // Short, mnemonic name that is used to make members of the schema unique outside the namespace.
         private string _namespace;      // Full namespace identifier.

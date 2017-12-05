@@ -32,6 +32,17 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
+        /// Getter and setter for the capability that we want to process. Typically, this is passed through the 'ProcessCapability' method.
+        /// However, in some cases we want to process only selective parts of a Capability without going through the entire hierarchy.
+        /// In those cases, we can force the 'Current Capability' by assigning it explicitly.
+        /// </summary>
+        internal Capability CurrentCapability
+        {
+            get { return this._currentCapability; }
+            set { this._currentCapability = value; }
+        }
+
+        /// <summary>
         /// Default constructor creates a new instance with the specified capability class name. Classes are used to group capability
         /// processors together for specific purposes. 
         /// </summary>

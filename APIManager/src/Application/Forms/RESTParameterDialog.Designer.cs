@@ -47,9 +47,9 @@
             this.ClassifierBox = new System.Windows.Forms.GroupBox();
             this.IsEnum = new System.Windows.Forms.RadioButton();
             this.IsDataType = new System.Windows.Forms.RadioButton();
-            this.IsClass = new System.Windows.Forms.RadioButton();
             this.DescriptionBox = new System.Windows.Forms.GroupBox();
             this.ParamDescription = new System.Windows.Forms.TextBox();
+            this.MayBeEmpty = new System.Windows.Forms.CheckBox();
             this.CardinalityGroup.SuspendLayout();
             this.ClassifierBox.SuspendLayout();
             this.DescriptionBox.SuspendLayout();
@@ -61,7 +61,7 @@
             this.Ok.Location = new System.Drawing.Point(333, 218);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
-            this.Ok.TabIndex = 7;
+            this.Ok.TabIndex = 9;
             this.Ok.Text = "Ok";
             this.Ok.UseVisualStyleBackColor = true;
             // 
@@ -71,7 +71,7 @@
             this.Cancel.Location = new System.Drawing.Point(414, 218);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
-            this.Cancel.TabIndex = 6;
+            this.Cancel.TabIndex = 8;
             this.Cancel.Text = "Cancel";
             this.Cancel.UseVisualStyleBackColor = true;
             // 
@@ -98,7 +98,7 @@
             this.label2.Location = new System.Drawing.Point(8, 22);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(40, 13);
-            this.label2.TabIndex = 9;
+            this.label2.TabIndex = 0;
             this.label2.Text = "Select:";
             // 
             // ParameterClassifier
@@ -107,14 +107,14 @@
             this.ParameterClassifier.Name = "ParameterClassifier";
             this.ParameterClassifier.ReadOnly = true;
             this.ParameterClassifier.Size = new System.Drawing.Size(146, 20);
-            this.ParameterClassifier.TabIndex = 10;
+            this.ParameterClassifier.TabIndex = 0;
             // 
             // SelectClassifier
             // 
             this.SelectClassifier.Location = new System.Drawing.Point(204, 19);
             this.SelectClassifier.Name = "SelectClassifier";
             this.SelectClassifier.Size = new System.Drawing.Size(25, 21);
-            this.SelectClassifier.TabIndex = 1;
+            this.SelectClassifier.TabIndex = 3;
             this.SelectClassifier.Text = "...";
             this.SelectClassifier.UseVisualStyleBackColor = true;
             this.SelectClassifier.Click += new System.EventHandler(this.SelectClassifier_Click);
@@ -125,10 +125,10 @@
             this.CardinalityGroup.Controls.Add(this.label4);
             this.CardinalityGroup.Controls.Add(this.ParameterCardLow);
             this.CardinalityGroup.Controls.Add(this.label3);
-            this.CardinalityGroup.Location = new System.Drawing.Point(12, 84);
+            this.CardinalityGroup.Location = new System.Drawing.Point(16, 107);
             this.CardinalityGroup.Name = "CardinalityGroup";
             this.CardinalityGroup.Size = new System.Drawing.Size(235, 50);
-            this.CardinalityGroup.TabIndex = 4;
+            this.CardinalityGroup.TabIndex = 5;
             this.CardinalityGroup.TabStop = false;
             this.CardinalityGroup.Text = "Cardinality";
             // 
@@ -169,7 +169,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(12, 61);
+            this.label5.Location = new System.Drawing.Point(12, 58);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(73, 13);
             this.label5.TabIndex = 0;
@@ -177,16 +177,16 @@
             // 
             // ParameterDefaultValue
             // 
-            this.ParameterDefaultValue.Location = new System.Drawing.Point(91, 58);
+            this.ParameterDefaultValue.Location = new System.Drawing.Point(91, 55);
             this.ParameterDefaultValue.Name = "ParameterDefaultValue";
             this.ParameterDefaultValue.Size = new System.Drawing.Size(156, 20);
-            this.ParameterDefaultValue.TabIndex = 14;
+            this.ParameterDefaultValue.TabIndex = 3;
             this.ParameterDefaultValue.Leave += new System.EventHandler(this.ParameterDefaultValue_TextChanged);
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(13, 143);
+            this.label6.Location = new System.Drawing.Point(12, 166);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(88, 13);
             this.label6.TabIndex = 0;
@@ -195,17 +195,16 @@
             // CollectionFormat
             // 
             this.CollectionFormat.FormattingEnabled = true;
-            this.CollectionFormat.Location = new System.Drawing.Point(107, 140);
+            this.CollectionFormat.Location = new System.Drawing.Point(107, 163);
             this.CollectionFormat.Name = "CollectionFormat";
             this.CollectionFormat.Size = new System.Drawing.Size(140, 21);
-            this.CollectionFormat.TabIndex = 5;
+            this.CollectionFormat.TabIndex = 6;
             this.CollectionFormat.SelectedIndexChanged += new System.EventHandler(this.CollectionFormat_SelectedIndexChanged);
             // 
             // ClassifierBox
             // 
             this.ClassifierBox.Controls.Add(this.IsEnum);
             this.ClassifierBox.Controls.Add(this.IsDataType);
-            this.ClassifierBox.Controls.Add(this.IsClass);
             this.ClassifierBox.Controls.Add(this.ParameterClassifier);
             this.ClassifierBox.Controls.Add(this.label2);
             this.ClassifierBox.Controls.Add(this.SelectClassifier);
@@ -219,10 +218,10 @@
             // IsEnum
             // 
             this.IsEnum.AutoSize = true;
-            this.IsEnum.Location = new System.Drawing.Point(150, 46);
+            this.IsEnum.Location = new System.Drawing.Point(133, 45);
             this.IsEnum.Name = "IsEnum";
             this.IsEnum.Size = new System.Drawing.Size(84, 17);
-            this.IsEnum.TabIndex = 14;
+            this.IsEnum.TabIndex = 2;
             this.IsEnum.TabStop = true;
             this.IsEnum.Text = "Enumeration";
             this.IsEnum.UseVisualStyleBackColor = true;
@@ -230,24 +229,13 @@
             // IsDataType
             // 
             this.IsDataType.AutoSize = true;
-            this.IsDataType.Location = new System.Drawing.Point(68, 46);
+            this.IsDataType.Location = new System.Drawing.Point(52, 45);
             this.IsDataType.Name = "IsDataType";
             this.IsDataType.Size = new System.Drawing.Size(75, 17);
-            this.IsDataType.TabIndex = 3;
+            this.IsDataType.TabIndex = 1;
             this.IsDataType.TabStop = true;
             this.IsDataType.Text = "Data Type";
             this.IsDataType.UseVisualStyleBackColor = true;
-            // 
-            // IsClass
-            // 
-            this.IsClass.AutoSize = true;
-            this.IsClass.Location = new System.Drawing.Point(11, 46);
-            this.IsClass.Name = "IsClass";
-            this.IsClass.Size = new System.Drawing.Size(50, 17);
-            this.IsClass.TabIndex = 2;
-            this.IsClass.TabStop = true;
-            this.IsClass.Text = "Class";
-            this.IsClass.UseVisualStyleBackColor = true;
             // 
             // DescriptionBox
             // 
@@ -255,7 +243,7 @@
             this.DescriptionBox.Location = new System.Drawing.Point(253, 84);
             this.DescriptionBox.Name = "DescriptionBox";
             this.DescriptionBox.Size = new System.Drawing.Size(235, 128);
-            this.DescriptionBox.TabIndex = 15;
+            this.DescriptionBox.TabIndex = 7;
             this.DescriptionBox.TabStop = false;
             this.DescriptionBox.Text = "Description";
             // 
@@ -265,8 +253,19 @@
             this.ParamDescription.Multiline = true;
             this.ParamDescription.Name = "ParamDescription";
             this.ParamDescription.Size = new System.Drawing.Size(218, 99);
-            this.ParamDescription.TabIndex = 0;
+            this.ParamDescription.TabIndex = 1;
             this.ParamDescription.Leave += new System.EventHandler(this.ParamDescription_Leave);
+            // 
+            // MayBeEmpty
+            // 
+            this.MayBeEmpty.AutoSize = true;
+            this.MayBeEmpty.Location = new System.Drawing.Point(91, 84);
+            this.MayBeEmpty.Name = "MayBeEmpty";
+            this.MayBeEmpty.Size = new System.Drawing.Size(111, 17);
+            this.MayBeEmpty.TabIndex = 4;
+            this.MayBeEmpty.Text = "Allow empty value";
+            this.MayBeEmpty.UseVisualStyleBackColor = true;
+            this.MayBeEmpty.CheckedChanged += new System.EventHandler(this.MayBeEmpty_CheckedChanged);
             // 
             // RESTParameterDialog
             // 
@@ -275,6 +274,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
             this.ClientSize = new System.Drawing.Size(501, 257);
+            this.Controls.Add(this.MayBeEmpty);
             this.Controls.Add(this.DescriptionBox);
             this.Controls.Add(this.ClassifierBox);
             this.Controls.Add(this.CollectionFormat);
@@ -324,8 +324,8 @@
         private System.Windows.Forms.GroupBox ClassifierBox;
         private System.Windows.Forms.RadioButton IsEnum;
         private System.Windows.Forms.RadioButton IsDataType;
-        private System.Windows.Forms.RadioButton IsClass;
         private System.Windows.Forms.GroupBox DescriptionBox;
         private System.Windows.Forms.TextBox ParamDescription;
+        private System.Windows.Forms.CheckBox MayBeEmpty;
     }
 }

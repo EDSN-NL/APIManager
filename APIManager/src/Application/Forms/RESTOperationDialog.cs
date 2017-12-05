@@ -182,7 +182,13 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void AddFilter_Click(object sender, EventArgs e)
         {
-
+            RESTParameterDeclaration parameter = this._operation.AddParameter();
+            if (parameter != null && parameter.Status != RESTParameterDeclaration.DeclarationStatus.Invalid)
+            {
+                ListViewItem newItem = new ListViewItem(parameter.Name);
+                newItem.SubItems.Add(parameter.Classifier.Name);
+                FilterParameterList.Items.Add(newItem);
+            }
         }
 
         /// <summary>
@@ -214,7 +220,13 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void DeleteFilter_Click(object sender, EventArgs e)
         {
-
+            if (FilterParameterList.SelectedItems.Count > 0)
+            {
+                ListViewItem key = FilterParameterList.SelectedItems[0];
+                ContextSlt context = ContextSlt.GetContextSlt();
+                this._operation.DeleteParameter(key.Text);
+                FilterParameterList.Items.Remove(key);
+            }
         }
 
         /// <summary>
@@ -247,7 +259,18 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void EditFilter_Click(object sender, EventArgs e)
         {
-
+            if (FilterParameterList.SelectedItems.Count > 0)
+            {
+                ListViewItem key = FilterParameterList.SelectedItems[0];
+                ContextSlt context = ContextSlt.GetContextSlt();
+                string originalKey = key.Text;
+                RESTParameterDeclaration param = this._operation.EditParameter(key.Text);
+                if (param != null)
+                {
+                    key.SubItems[0].Text = param.Name;
+                    key.SubItems[1].Text = param.Classifier.Name;
+                }
+            }
         }
 
         /// <summary>

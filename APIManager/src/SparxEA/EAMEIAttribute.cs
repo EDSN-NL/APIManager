@@ -92,7 +92,7 @@ namespace SparxEA.Model
             // to the same repository element, do not show up in other references. So, to be sure, we reload the attribute instance
             // before retrieving our notes...
             this._attribute = ((EAModelImplementation)this._model).Repository.GetAttributeByID(this._attribute.AttributeID);
-            if (!string.IsNullOrEmpty(this._attribute.Notes)) notes = this._attribute.Notes;
+            if (!string.IsNullOrEmpty(this._attribute.Notes)) notes = this._attribute.Notes.Trim();
             return notes;
         }
 

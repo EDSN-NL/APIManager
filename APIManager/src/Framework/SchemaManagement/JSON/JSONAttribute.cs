@@ -22,6 +22,7 @@ namespace Framework.Util.SchemaManagement.JSON
         private JSchema _simpleAttributeClassifier; // Simplified definition, created for use of attributes as Properties in special contexts.
         private JSONClassifier _classifier;         // The associated classifier object in case of complex types.
         private string _annotation;                 // Contains the annotation text of the attribute.
+        private Tuple<int, int> _cardinality;       // True is associated attribute has cardinality > 1.
 
         /// <summary>
         /// Implementation of the JSON Property interface:
@@ -154,6 +155,7 @@ namespace Framework.Util.SchemaManagement.JSON
                 }
 
                 // If upper boundary of cardinality > 1 (or 0, which means unbounded), we have to create an array of type, instead of only the type.
+                this._cardinality = cardinality;
                 if (cardinality.Item2 == 0 || cardinality.Item2 > 1)
                 {
                     // If the classifier name ends with 'Type', we remove this before adding a new post-fix 'ListType'...
@@ -186,11 +188,17 @@ namespace Framework.Util.SchemaManagement.JSON
             }
 
             // Build a description block for the element...
+            // Since newlines don't work very well in JSON, we replace line breaks by spaces.
             this._annotation = string.Empty;
+            bool firstOne = true;
             if (annotation.Count > 0)
             {
                 Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Adding annotation to attribute...");
-                foreach (MEDocumentation docNode in annotation) this._annotation += docNode.BodyText + Environment.NewLine;
+                foreach (MEDocumentation docNode in annotation)
+                {
+                    this._annotation += firstOne ? docNode.BodyText : "  " + docNode.BodyText;
+                    firstOne = false;
+                }
                 this._attributeClassifier.Description = this._annotation;
             }
             this.IsValid = true;
@@ -212,7 +220,16 @@ namespace Framework.Util.SchemaManagement.JSON
         {
             if (this._classifier != null && this._classifier.IsReferenceType)
             {
-                return "{" + Environment.NewLine + "\"schema\": { \"$ref\": \"#/definitions/" + this._classifier.Name + "\"}" + Environment.NewLine + "}"; 
+                string schemaString = "{\"schema\": ";
+                string typeRef = "{\"$ref\": \"#/definitions/" + this._classifier.Name + "\"}";
+                if (this._cardinality.Item2 == 0 || this._cardinality.Item2 > 1)
+                {
+                    schemaString = schemaString + "{\"type\": \"array\", \"items\": " + typeRef + "}";
+                    if (this._cardinality.Item1 > 0)  schemaString += ", \"minItems\": " + this._cardinality.Item1;
+                    if (this._cardinality.Item2 != 0) schemaString += ", \"maxItems\": " + this._cardinality.Item2;
+                    return schemaString + "}";
+                }
+                else return schemaString + typeRef + "}"; 
             }
             else return this._simpleAttributeClassifier.ToString();
         }
@@ -320,15 +337,15 @@ namespace Framework.Util.SchemaManagement.JSON
                 if (!string.IsNullOrEmpty(defaultValue)) this._classifier.Default = new JValue(defaultValue);
             }
 
+            // Build documentation block. Since newlines don't work very well in JSON, we replace line breaks by spaces.
             if (annotation != null && annotation.Count > 0)
             {
                 string documentation = string.Empty;
-                bool firstLine = true;
+                bool firstOne = true;
                 foreach (MEDocumentation docNode in annotation)
                 {
-                    if (!firstLine) documentation += Environment.NewLine;
-                    documentation += docNode.BodyText;
-                    firstLine = false;
+                    documentation += firstOne ? docNode.BodyText : "  " + docNode.BodyText;
+                    firstOne = false;
                 }
                 this._classifier.Description = documentation;
             }

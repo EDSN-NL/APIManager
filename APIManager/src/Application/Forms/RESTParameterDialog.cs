@@ -44,6 +44,7 @@ namespace Plugin.Application.Forms
                 ParameterCardLow.Text = parameter.Cardinality.Item1.ToString();
                 ParameterCardHigh.Text = parameter.Cardinality.Item2 == 0 ? "*" : parameter.Cardinality.Item2.ToString();
             }
+            MayBeEmpty.Checked = parameter.AllowEmptyValue;
 
             // Initialize the drop-down box with the possible values of our QueryCollectionFormat enumeration...
             foreach (string str in Enum.GetNames(typeof(RESTParameterDeclaration.QueryCollectionFormat)))
@@ -52,7 +53,7 @@ namespace Plugin.Application.Forms
             }
             CollectionFormat.SelectedIndex = isEdit ? (int)parameter.CollectionFormat : (int)RESTParameterDeclaration.QueryCollectionFormat.Unknown;
 
-            CollectionFormat.Enabled = isEdit && (parameter.Cardinality.Item2 == 0 || parameter.Cardinality.Item2 > 1); 
+            CollectionFormat.Enabled = isEdit && (parameter.Cardinality.Item2 == 0 || parameter.Cardinality.Item2 > 1);
          
             ParameterDefaultValue.Enabled = false;  // Disable the default value field.
             IsDataType.Checked = true;              // Set default classifier type to 'data type'.
@@ -94,29 +95,18 @@ namespace Plugin.Application.Forms
             ContextSlt context = ContextSlt.GetContextSlt();
             this._hasClassifier = false;
 
-            // Depending on the radio buttons selected, we display the appropriate type picker.
-            // There are two 'flavors', one for Classes and one for Data Types. The latter again
-            // differentiates between 'regular' data types and enumerations.
-            // We use this differentiation to explicitly create the correct classifier class...
-            if (IsClass.Checked)
+            // Display the data-type picker, which allows the user to select the appropriate type...
+            if (IsEnum.Checked)
             {
-                this._parameter.Classifier = context.SelectClass();
-                if (this._parameter.Classifier != null) ParameterDefaultValue.Enabled = false;
+                MEEnumeratedType newEnum = context.SelectDataType(true) as MEEnumeratedType;
+                this._parameter.Classifier = newEnum;
             }
             else
             {
-                if (IsEnum.Checked)
-                {
-                    MEEnumeratedType newEnum = context.SelectDataType(true) as MEEnumeratedType;
-                    this._parameter.Classifier = newEnum;
-                }
-                else
-                {
-                    MEDataType newDataType = context.SelectDataType(false);
-                    this._parameter.Classifier = newDataType;
-                }
-                if (this._parameter.Classifier != null) ParameterDefaultValue.Enabled = true;
+                MEDataType newDataType = context.SelectDataType(false);
+                this._parameter.Classifier = newDataType;
             }
+            if (this._parameter.Classifier != null) ParameterDefaultValue.Enabled = true;
 
             // Could be NULL if user decided to cancel the type picker.
             if (this._parameter.Classifier != null)
@@ -172,18 +162,18 @@ namespace Plugin.Application.Forms
             if (ParameterCardHigh.Text == "*") highVal = 0;
             else if (!int.TryParse(ParameterCardHigh.Text, out highVal)) highVal = -1;
             if (!int.TryParse(ParameterCardLow.Text, out lowVal)) lowVal = -1;
-            if (highVal != -1 && lowVal != -1 && (highVal != 0 && lowVal <= highVal))
+            if (highVal != -1 && lowVal != -1 && ((highVal != 0 && lowVal <= highVal) || highVal == 0))
             {
                 this._parameter.Cardinality = new Tuple<int, int>(lowVal, highVal);
                 this._hasCardinality = true;
             }
             else this._hasCardinality = false;
-            CheckOK();
 
             // If we have a cardinality > 1, we enable the collection format field for the user to select the correct format.
             // If we don't have a cardinality > 1, we set the collection format to "Not Applicable".
             if (highVal == 0 || highVal > 1) CollectionFormat.Enabled = true;
             else this._parameter.CollectionFormat = RESTParameterDeclaration.QueryCollectionFormat.NA;
+            CheckOK();
         }
 
         /// <summary>
@@ -203,6 +193,19 @@ namespace Plugin.Application.Forms
         private void CheckOK()
         {
             Ok.Enabled = (this._hasName && this._hasClassifier && this._hasCardinality);
+            if (Ok.Enabled) this._parameter.Status = (this._parameter.Status == RESTParameterDeclaration.DeclarationStatus.Invalid) ? 
+                    RESTParameterDeclaration.DeclarationStatus.Created : 
+                    RESTParameterDeclaration.DeclarationStatus.Edited;
+        }
+
+        /// <summary>
+        /// This event is raised when the user changes the value of the 'may be empty' check box.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void MayBeEmpty_CheckedChanged(object sender, EventArgs e)
+        {
+            this._parameter.AllowEmptyValue = MayBeEmpty.Checked;
         }
 
         /// <summary>

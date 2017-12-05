@@ -584,7 +584,7 @@ namespace Framework.Util.SchemaManagement.JSON
                     AllowAdditionalProperties = false
                 };
 
-                if (type != SchemaType.Collection)
+                if (type != SchemaType.Common)
                 {
                     Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.Initialize >> Schema has title: '" + name + "'.");
                     this._skeletonSchema.Type = JSchemaType.Object;

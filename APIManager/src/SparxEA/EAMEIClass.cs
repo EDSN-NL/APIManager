@@ -466,8 +466,7 @@ namespace SparxEA.Model
         internal override string GetAnnotation()
         {
             string notes = this._element.Notes;
-
-            return (!string.IsNullOrEmpty(notes))? notes: string.Empty;
+            return (!string.IsNullOrEmpty(notes))? notes.Trim(): string.Empty;
         }
 
         /// <summary>

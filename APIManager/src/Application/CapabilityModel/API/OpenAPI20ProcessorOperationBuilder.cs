@@ -36,6 +36,7 @@ namespace Plugin.Application.CapabilityModel.API
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperation >> Building operation '" + operation.Name + "'...");
             bool result = true;
+            this._schema.CurrentCapability = operation;
             this._JSONWriter.WritePropertyName(operation.HTTPTypeName);
             this._JSONWriter.WriteStartObject();                            // We start the operation object here, but we can't finish it since the responses have to go in!
             if (this._currentResource.IsTag)
@@ -115,6 +116,7 @@ namespace Plugin.Application.CapabilityModel.API
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Building result '" + operationResult.Name + "'...");
             ContextSlt context = ContextSlt.GetContextSlt();
             bool result = true;
+            this._schema.CurrentCapability = operationResult;
             this._JSONWriter.WritePropertyName(operationResult.ResultCode); this._JSONWriter.WriteStartObject();
             {
                 // Since multi-line documentation does not really work with JSON, we replace line breaks by spaces...
@@ -156,6 +158,7 @@ namespace Plugin.Application.CapabilityModel.API
         private bool BuildParameters(RESTOperationCapability operation)
         {
             bool result = true;
+            this._schema.CurrentCapability = operation;
             ContextSlt context = ContextSlt.GetContextSlt();
             if (this._currentResource.Archetype == RESTResourceCapability.ResourceArchetype.Identifier)
             {
@@ -176,6 +179,9 @@ namespace Plugin.Application.CapabilityModel.API
                 // Check whether we must support pagination and body parameters...
                 string paginationClass = context.GetConfigProperty(_PaginationClassName);
                 string msgAssemblyStereotype = context.GetConfigProperty(_MessageAssemblyClassStereotype);
+
+                // Check if we have any query parameters...
+                result = WriteQueryParameters(operation.CapabilityClass);
 
                 // Go over each association, looking for stuff to process. Note that this will also retrieve the Operation Result items,
                 // but we ignore these at this moment. Operation Result is a Capability in itself and will thus appear in due time through the main
@@ -234,6 +240,68 @@ namespace Plugin.Application.CapabilityModel.API
                 this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + this._defaultResponseClassifier + "\"");
             } this._JSONWriter.WriteEndObject();
             return true;
+        }
+
+        /// <summary>
+        /// This method iterates over all attributes of the Operation class, looking for those that have 'Query' scope. When found, a Parameter Object
+        /// is created for those attributes in the OpenAPI definition. By selectively processing the attributes, we can have a mix of differently scoped
+        /// attributes and still process them in the correct order.
+        /// </summary>
+        /// <param name="operationClass">Operation class that potentially containes query attributes.</param>
+        /// <returns>True when successfully processed attributes, false on errors.</returns>
+        private bool WriteQueryParameters(MEClass operationClass)
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteQueryParameters >> Looking for query parameters in '" + operationClass.Name + "'...");
+            bool result = false;
+
+            // We create two lists, one Parameter Declaration list that contains attribute metadata and one that containes JSON Scheme definitions.
+            // The metadata list is used to determine which JSON attribute definition to insert in the OpenAPI definition...
+            var paramList = new SortedList<string, RESTParameterDeclaration>();
+            foreach (MEAttribute attrib in operationClass.Attributes) paramList.Add(attrib.Name, new RESTParameterDeclaration(attrib));
+            List<SchemaAttribute> queryProperties = this._schema.ProcessProperties(operationClass);
+
+            foreach (JSONContentAttribute attrib in queryProperties)
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteQueryParameters >> Processing '" + attrib.Name + "'...");
+                if (paramList[attrib.Name].Scope == RESTParameterDeclaration.ParameterScope.Query)
+                {
+                    this._JSONWriter.WriteStartObject();
+                    {
+                        this._JSONWriter.WritePropertyName("name"); this._JSONWriter.WriteValue(RESTUtil.GetAssignedRoleName(attrib.Name));
+                        this._JSONWriter.WritePropertyName("in"); this._JSONWriter.WriteValue("query");
+                        if (!string.IsNullOrEmpty(attrib.Annotation))
+                        {
+                            this._JSONWriter.WritePropertyName("description"); this._JSONWriter.WriteValue(attrib.Annotation);
+                        }
+                        this._JSONWriter.WritePropertyName("required"); this._JSONWriter.WriteValue(attrib.IsMandatory);
+                        this._JSONWriter.WritePropertyName("allowEmptyValue"); this._JSONWriter.WriteValue(paramList[attrib.Name].AllowEmptyValue);
+
+                        // Collect the JSON Schema for the attribute as a string...
+                        string attribText = attrib.GetClassifierAsText();
+                        attribText = attribText.Substring(1, attribText.Length - 2);    // Get rid of '{' and '}' from the schema.
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteQueryParameters >> Got attribute: '" + attribText + "'...");
+                        this._JSONWriter.WriteRaw("," + attribText);
+                        if (attrib.IsListRequired)
+                        {
+                            RESTParameterDeclaration.QueryCollectionFormat collectionFormat = paramList[attrib.Name].CollectionFormat;
+                            if (collectionFormat != RESTParameterDeclaration.QueryCollectionFormat.Unknown &&
+                                collectionFormat != RESTParameterDeclaration.QueryCollectionFormat.NA)
+                            {
+                                this._JSONWriter.WritePropertyName("collectionFormat");
+                                this._JSONWriter.WriteValue(collectionFormat.ToString().ToLower());
+                            }
+                            else Logger.WriteWarning("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteQueryParameters >> Collection specification is missing in attribute '" + attrib.Name + "'!");
+                        }
+                        if (!string.IsNullOrEmpty(paramList[attrib.Name].Default) && !attrib.IsMandatory)
+                        {
+                            this._JSONWriter.WritePropertyName("default"); this._JSONWriter.WriteValue(paramList[attrib.Name].Default);
+                        }
+                    }
+                    this._JSONWriter.WriteEndObject();
+                    result = true;
+                }
+            }
+            return result;
         }
 
         /// <summary>

@@ -398,7 +398,7 @@
     <Compile Include="src\SparxEA\EAClassifierManager.cs" />
     <Compile Include="src\Framework\SchemaManagement\XML\TextEncoder.cs" />
     <Compile Include="src\Framework\View\DiagramImplementation.cs" />
-    <Compile Include="src\Framework\Util\ModelElementDocumentation.cs" />
+    <Compile Include="src\Framework\Util\MEDocumentation.cs" />
     <Compile Include="src\Framework\Model\Implementation\ModelElementImplementation.cs" />
     <Compile Include="src\Framework\Model\Implementation\MEIPackage.cs" />
     <Compile Include="src\Framework\Model\Interface\ModelSlt.cs" />

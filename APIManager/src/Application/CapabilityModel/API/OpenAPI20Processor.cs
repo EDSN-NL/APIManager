@@ -139,8 +139,9 @@ namespace Plugin.Application.CapabilityModel.API
                             string tokenName = context.GetConfigProperty(_SchemaTokenName);
                             JSONSchema theSchema = GetSchema(capability.Name, tokenName, 
                                                              this._currentService.GetFQN("RESTOperation", Conversions.ToPascalCase(capability.AssignedRole), -1),
-                                                              capability.VersionString) as JSONSchema;
-                            if (theSchema != null) this._schema = new SchemaProcessor(theSchema);  // Create global schema processor in 'extSchema' mode.
+                                                             capability.VersionString) as JSONSchema;
+                            // Create global schema processor in 'ad-hoc external schema' mode.
+                            if (theSchema != null) this._schema = new SchemaProcessor(theSchema, this._panelIndex + 3);
                             else
                             {
                                 Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.ProcessCapability >> Unable to create JSON Schema instance!");
@@ -377,7 +378,7 @@ namespace Plugin.Application.CapabilityModel.API
                 var proc = handle.Unwrap() as Schema;
                 if (proc != null)
                 {
-                    proc.Initialize(Schema.SchemaType.Collection, name, namespaceToken, schemaNamespace, version);
+                    proc.Initialize(Schema.SchemaType.Definitions, name, namespaceToken, schemaNamespace, version);
                     if (!(proc is JSONSchema))
                     {
                         string message = "Unknown schema implementation '" + proc.GetType() + "'  has been defined for key '" + itfTypeKey + "'!";

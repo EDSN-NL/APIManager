@@ -170,10 +170,10 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             
                             // Add the association to the correct documentation context. Make sure to activate our original class, since recursive
                             // parsing will have changed it!
-                            string sourceScope = string.Empty;
-                            string contextID = docScope == ClassifierContext.DocScopeCode.Common ? this._commonDocContext.ContextID : this._currentOperationDocContext.ContextID;
                             if (this._useDocContext)  // We don't always have documentation context enabled!!
                             {
+                                string sourceScope = string.Empty;
+                                string contextID = docScope == ClassifierContext.DocScopeCode.Common ? this._commonDocContext.ContextID : this._currentOperationDocContext.ContextID;
                                 string targetNSToken = targetSchema.NSToken;
                                 if (nodeDocScope == ClassifierContext.DocScopeCode.Common)
                                 {

@@ -17,9 +17,9 @@ namespace Plugin.Application.CapabilityModel.API
         // Configuration properties used by this module:
         private const string _APISupportModelPathName   = "APISupportModelPathName";
         private const string _OperationResultClassName  = "OperationResultClassName";
-
-        // Separator between summary text and description text
-        private const string _Summary                   = "summary: ";
+        private const string _RESTParameterStereotype   = "RESTParameterStereotype";
+    
+        private const string _Summary = "summary: ";    // Separator between summary text and description text.
 
         // The status is used to track operations on the declaration.
         internal enum DeclarationStatus { Invalid, Created, Edited, Deleted }
@@ -41,6 +41,7 @@ namespace Plugin.Application.CapabilityModel.API
         private List<string> _consumedMIMEList;                     // Non-standard MIME types consumed by the operation.
         private string _summaryText;                                // Short description of operation.
         private string _description;                                // Long description of operation.
+        private SortedList<string, RESTParameterDeclaration> _queryParams;          // List of user-defined query parameters for this operation.
 
         /// <summary>
         /// Get or set the long description of the operation.
@@ -71,6 +72,11 @@ namespace Plugin.Application.CapabilityModel.API
                 }
             }
         }
+
+        /// <summary>
+        /// Returns the list of all query parameters defined for this operation.
+        /// </summary>
+        internal List<RESTParameterDeclaration> Parameters { get { return new List<RESTParameterDeclaration>(this._queryParams.Values); } }
 
         /// <summary>
         /// Returns the list of MIME types produced by the operation. Empty if only default MIME types are produced.
@@ -239,6 +245,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._publicAccess = false;
             this._producedMIMEList = new List<string>();
             this._consumedMIMEList = new List<string>();
+            this._queryParams = new SortedList<string, RESTParameterDeclaration>();
             this._description = string.Empty;
             this._summaryText = string.Empty;
 
@@ -266,6 +273,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._publicAccess = false;
             this._producedMIMEList = new List<string>();
             this._consumedMIMEList = new List<string>();
+            this._queryParams = new SortedList<string, RESTParameterDeclaration>();
             this._description = string.Empty;
             this._summaryText = string.Empty;
 
@@ -311,6 +319,21 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         this._description += firstLine ? documentation[i] : "  " + documentation[i];
                         firstLine = false;
+                    }
+                }
+            }
+
+            // Extract query parameters from the class. These are all attributes that have a scope of type 'Query'...
+            string RESTParameterStereotype = ContextSlt.GetContextSlt().GetConfigProperty(_RESTParameterStereotype);
+            foreach (MEAttribute attrib in operation.CapabilityClass.Attributes)
+            {
+                if (attrib.HasStereotype(RESTParameterStereotype))
+                {
+                    var paramDeclaration = new RESTParameterDeclaration(attrib);
+                    if (paramDeclaration.Scope == RESTParameterDeclaration.ParameterScope.Query)
+                    {
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationDeclaration(capability) >> Found query parameter '" + attrib.Name + "'...");
+                        this._queryParams.Add(attrib.Name, paramDeclaration);
                     }
                 }
             }
@@ -371,6 +394,116 @@ namespace Plugin.Application.CapabilityModel.API
                 }
             }
             return newResult;
+        }
+
+        /// <summary>
+        /// The method call will display the 'Edit Parameter' dialog so that the user can create a new parameter declaration object. 
+        /// On return from the dialog, if the parameter settings are Ok, the parameter declaration is initialized and the created 
+        /// parameter declaration object is returned to the caller.
+        /// </summary>
+        /// <returns>Created parameter declaration or NULL on cancel/errors.</returns>
+        internal RESTParameterDeclaration AddParameter()
+        {
+            var newParam = new RESTParameterDeclaration();
+            using (var dialog = new RESTParameterDialog(newParam))
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    if (dialog.Parameter.Cardinality.Item2 == 0 || dialog.Parameter.Cardinality.Item2 > 1)
+                    {
+                        if (!(dialog.Parameter.Classifier is MEDataType) && !(dialog.Parameter.Classifier is MEEnumeratedType))
+                        {
+                            MessageBox.Show("Parameter must be Data Type or Enumeration, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return null;
+                        }
+                        if (dialog.Parameter.CollectionFormat == RESTParameterDeclaration.QueryCollectionFormat.NA ||
+                            dialog.Parameter.CollectionFormat == RESTParameterDeclaration.QueryCollectionFormat.Unknown)
+                        {
+                            MessageBox.Show("Collection Format must be one of Multi, CSV, SSV, TSV or Pipes, please try again!",
+                                            "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return null;
+                        }
+                    }
+                    else dialog.Parameter.CollectionFormat = RESTParameterDeclaration.QueryCollectionFormat.NA;
+                    newParam = dialog.Parameter;
+                    newParam.Scope = RESTParameterDeclaration.ParameterScope.Query;
+                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                    this._queryParams.Add(newParam.Name, newParam);
+                }
+            }
+            return newParam;
+        }
+
+        /// <summary>
+        /// Deletes a parameter from the list. In fact, the record is not actually removed but marked as 'deleted'.
+        /// </summary>
+        /// <param name="paramName">Name of the parameter to be deleted.</param>
+        internal void DeleteParameter(string paramName)
+        {
+            if (this._queryParams.ContainsKey(paramName))
+            {
+                this._queryParams[paramName].Status = RESTParameterDeclaration.DeclarationStatus.Deleted;
+                if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+            }
+        }
+
+        /// <summary>
+        /// The method receives the name of an existing Query Parameter. It checks whether the operation indeed knows this parameter and if so,
+        /// it presents the current contents in a dialog box for the user to edit. On return, the new parameter is written to the query list.
+        /// If the parameter has been renamed by the user, the original record is deleted and replaced by the new record. If renaming resulted
+        /// in a name clash, the operation is aborted.
+        /// </summary>
+        /// <returns>Updated parameter declaration or NULL on cancel/errors.</returns>
+        internal RESTParameterDeclaration EditParameter(string paramName)
+        {
+            RESTParameterDeclaration editParam = null;
+            if (this._queryParams.ContainsKey(paramName))
+            {
+                string originalKey = paramName;
+                editParam = this._queryParams[paramName];
+                using (var dialog = new RESTParameterDialog(editParam))
+                {
+                    if (dialog.ShowDialog() == DialogResult.OK)
+                    {
+                        if (!(dialog.Parameter.Classifier is MEDataType) && !(dialog.Parameter.Classifier is MEEnumeratedType))
+                        {
+                            MessageBox.Show("Parameter must be Data Type or Enumeration, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return null;
+                        }
+                        if (dialog.Parameter.Cardinality.Item2 == 0 || dialog.Parameter.Cardinality.Item2 > 1)
+                        {
+                            if (dialog.Parameter.CollectionFormat == RESTParameterDeclaration.QueryCollectionFormat.NA ||
+                                dialog.Parameter.CollectionFormat == RESTParameterDeclaration.QueryCollectionFormat.Unknown)
+                            {
+                                MessageBox.Show("Collection Format must be one of Multi, CSV, SSV, TSV or Pipes, please try again!",
+                                                "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                return null;
+                            }
+                        }
+                        else dialog.Parameter.CollectionFormat = RESTParameterDeclaration.QueryCollectionFormat.NA;
+                        dialog.Parameter.Scope = RESTParameterDeclaration.ParameterScope.Query;
+
+                        if (dialog.Parameter.Name == originalKey || !this._queryParams.ContainsKey(dialog.Parameter.Name))
+                        {
+                            editParam = dialog.Parameter;
+                            if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+
+                            if (editParam.Name != originalKey)
+                            {
+                                this._queryParams.Remove(originalKey);
+                                this._queryParams.Add(editParam.Name, editParam);
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show("Renaming parameter resulted in duplicate name, please try again!",
+                                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            editParam = null;
+                        }
+                    }
+                }
+            }
+            return editParam;
         }
 
         /// <summary>

@@ -13,9 +13,10 @@ namespace Plugin.Application.CapabilityModel.API
     internal sealed class RESTParameterDeclaration
     {
         // Configuration properties used by this module...
-        private const string _RESTParameterStereotype   = "RESTParameterStereotype";
-        private const string _ParameterScopeTag         = "ParameterScopeTag";
-        private const string _CollectionFormatTag       = "CollectionFormatTag";
+        private const string _RESTParameterStereotype       = "RESTParameterStereotype";
+        private const string _ParameterScopeTag             = "ParameterScopeTag";
+        private const string _CollectionFormatTag           = "CollectionFormatTag";
+        private const string _AllowEmptyParameterValueTag   = "AllowEmptyParameterValueTag";
 
         // The status is used to track operations on the declaration.
         internal enum DeclarationStatus { Invalid, Created, Edited, Deleted }
@@ -48,6 +49,16 @@ namespace Plugin.Application.CapabilityModel.API
         private QueryCollectionFormat _collectionFormat; // In case of upper-limit cardinality >1: how do we separate values in the input?
         private ParameterScope _scope;          // Parameter scope.
         private DeclarationStatus _status;      // Status of this declaration record.
+        private bool _allowEmptyValue;          // True when parameter can have 'name only'.
+
+        /// <summary>
+        /// Get or set the 'Allow Empty Value' parameter property.
+        /// </summary>
+        internal bool AllowEmptyValue
+        {
+            get { return this._allowEmptyValue; }
+            set { this._allowEmptyValue = value; }
+        }
 
         /// <summary>
         /// Parameter lower- and higher cardinality boundaries. A high value of 0 is interpreted as 'infinite'.
@@ -137,6 +148,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._collectionFormat = QueryCollectionFormat.Unknown;
             this._scope = ParameterScope.Unknown;
             this._status = DeclarationStatus.Invalid;
+            this._allowEmptyValue = false;
         }
 
         /// <summary>
@@ -148,8 +160,10 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="deflt">Optional default value, can be NULL or empty string if not defined.</param>
         /// <param name="description">Parameter description.</param>
         /// <param name="card">Cardinality of the parameter occurance.</param>
+        /// <param name="allowEmptyValue">Set to true to allow the parameter to be specified by 'name only'.</param>
+        /// <param name="scope">Scope of this parameter (path, body, query or header)</param>
         /// <param name="collectionFmt">Mechanism used to separate values in case cardinality upper boundary >1.</param>
-        internal RESTParameterDeclaration(string name, MEClass classifier, string deflt, string description, Tuple<int,int> card, ParameterScope scope, QueryCollectionFormat collectionFmt = QueryCollectionFormat.Unknown)
+        internal RESTParameterDeclaration(string name, MEClass classifier, string deflt, string description, Tuple<int,int> card, bool allowEmptyValue, ParameterScope scope, QueryCollectionFormat collectionFmt = QueryCollectionFormat.Unknown)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTParameterDeclaration >> Creating new declaration with name '" + name + "' and classifier '" + classifier.Name + "'...");
             this._name = name;
@@ -159,6 +173,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._cardinality = card;
             this._collectionFormat = collectionFmt;
             this._scope = scope;
+            this._allowEmptyValue = allowEmptyValue;
             this._status = (name != string.Empty && classifier != null && scope != ParameterScope.Unknown)? DeclarationStatus.Created: DeclarationStatus.Invalid;
         }
 
@@ -180,8 +195,10 @@ namespace Plugin.Application.CapabilityModel.API
 
             string collectionFmt = attrib.GetTag(context.GetConfigProperty(_CollectionFormatTag));
             string scope = attrib.GetTag(context.GetConfigProperty(_ParameterScopeTag));
+            string emptyParam = attrib.GetTag(context.GetConfigProperty(_AllowEmptyParameterValueTag));
             this._scope = !string.IsNullOrEmpty(scope) ? EnumConversions<ParameterScope>.StringToEnum(scope) : ParameterScope.Unknown;
             this._collectionFormat = !string.IsNullOrEmpty(collectionFmt) ? EnumConversions<QueryCollectionFormat>.StringToEnum(collectionFmt) : QueryCollectionFormat.Unknown;
+            this._allowEmptyValue = !string.IsNullOrEmpty(emptyParam) ? string.Compare(emptyParam, "true", true) == 0 : false;
         }
 
         /// <summary>
@@ -200,6 +217,7 @@ namespace Plugin.Application.CapabilityModel.API
                 newAttrib.AddStereotype(context.GetConfigProperty(_RESTParameterStereotype));
                 newAttrib.SetTag(context.GetConfigProperty(_ParameterScopeTag), param._scope.ToString(), true);
                 newAttrib.SetTag(context.GetConfigProperty(_CollectionFormatTag), param._collectionFormat.ToString(), true);
+                newAttrib.SetTag(context.GetConfigProperty(_AllowEmptyParameterValueTag), param._allowEmptyValue.ToString(), true);
                 newAttrib.Annotation = param.Description;
             }
             

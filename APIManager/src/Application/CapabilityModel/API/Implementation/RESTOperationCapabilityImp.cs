@@ -108,6 +108,12 @@ namespace Plugin.Application.CapabilityModel.API
                     if (!string.IsNullOrEmpty(operation.Description)) documentation.Add(operation.Description);
                     if (documentation.Count > 0) MEChangeLog.SetRTFDocumentation(this._capabilityClass, documentation);
 
+                    // Define all query parameter attributes...
+                    foreach (RESTParameterDeclaration param in operation.Parameters)
+                    {
+                        RESTParameterDeclaration.ConvertToAttribute(this._capabilityClass, param);
+                    }
+
                     // Explicitly request a new Operation ID for this class (could not do this in the parent constructor since the capabilityClass
                     // object has not been initialized yet at that point).
                     AssignNewOperationID();

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Framework.Model;
-using Framework.Logging;
-using Framework.Context;
-using Framework.Util;
-using Framework.View;
+﻿using Framework.Logging;
 
 namespace Plugin.Application.CapabilityModel.API
 {
