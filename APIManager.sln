@@ -6,7 +6,7 @@ VisualStudioVersion = 15.0.26403.7
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APIManager", "APIManager\APIManager.csproj", "{386C6DA7-1C6C-45A1-A423-59DBCCD4F0B4}"
 EndProject
-Project("{CFEE4113-1246-4D54-95CB-156813CB8593}") = "WiXInstaller", "..\..\..\..\..\..\..\..\..\..\Mac\Home\UserData\Bedrijven\Customers\Enexis\ECDM ROOT\Sparx EA\Add-Ins\API Manager\WiXInstaller\WiXInstaller.wixproj", "{ECDD250E-B3ED-4572-9A24-CBF69C00F857}"
+Project("{CFEE4113-1246-4D54-95CB-156813CB8593}") = "WiXInstaller", "WiXInstaller\WiXInstaller.wixproj", "{ECDD250E-B3ED-4572-9A24-CBF69C00F857}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
