@@ -12,7 +12,7 @@ namespace Plugin.Application.Forms
     public partial class RESTResourceDialog : Form
     {
         // Configuration properties used by this module...
-        private const string _EmptyResourceName = "EmptyResourceName";
+        private const string _EmptyResourceName         = "EmptyResourceName";
 
         private RESTResourceDeclaration _resource;      // The resource declaration descriptor that we're creating / editing.
         private bool _isEdit;                           // True means we're editing a path expression, false when creating a new one.
@@ -70,32 +70,13 @@ namespace Plugin.Application.Forms
             // Initialize the drop-down box with the possible values of our Resource archetype enumeration...
             ResourceTypeBox.Items.AddRange(EnumConversions<RESTResourceCapability.ResourceArchetype>.GetNamesArray());
             
-            // Statement below enforces a 'SelectedIndexChanges' event, which will update _currentType!
+            // Statement below enforces a 'SelectedIndexChanges' event, which will update _currentType and set dialog items access 
+            // according to the resource type...
             ResourceTypeBox.SelectedIndex = this._isEdit ? (int)resource.Archetype : 0;
 
             // Assign context menus to the appropriate controls...
             OperationsList.ContextMenuStrip = OperationMenuStrip;
 
-            // Disable all controls that can not be selected by default...
-            switch (resource.Archetype)
-            {
-                case RESTResourceCapability.ResourceArchetype.Collection:
-                case RESTResourceCapability.ResourceArchetype.Store:
-                    PropertiesBox.Enabled = false;
-                    break;
-
-                case RESTResourceCapability.ResourceArchetype.Controller:
-                case RESTResourceCapability.ResourceArchetype.Document:
-                case RESTResourceCapability.ResourceArchetype.Unknown:
-                    PropertiesBox.Enabled = false;
-                    OperationsBox.Enabled = false;
-                    break;
-
-                case RESTResourceCapability.ResourceArchetype.Identifier:
-                    ResourceNameFld.Enabled = false;   // Identifier names can not be set by the user!
-                    PropertiesBox.Enabled = true;
-                    break;
-            }
             ResourceNameFld.Text = resource.Name;
             Ok.Enabled = this._isEdit;
             NewMinorVersion.Checked = false;
@@ -190,26 +171,52 @@ namespace Plugin.Application.Forms
                 case RESTResourceCapability.ResourceArchetype.Collection:
                 case RESTResourceCapability.ResourceArchetype.Store:
                 case RESTResourceCapability.ResourceArchetype.Controller:
+                    CreateDocument.Enabled = false;
+                    LinkDocument.Enabled = false;
                     PropertiesBox.Enabled = false;
                     OperationsBox.Enabled = true;
                     ResourceNameFld.Enabled = true;
+                    ResourceNameFld.ReadOnly = false;
+                    ResourceNameFld.Clear();
                     this._resource.ClearParameter();
+                    this._resource.ClearDocumentClass();
                     break;
 
                 case RESTResourceCapability.ResourceArchetype.Document:
-                case RESTResourceCapability.ResourceArchetype.Unknown:
+                    CreateDocument.Enabled = true;
+                    LinkDocument.Enabled = true;
                     PropertiesBox.Enabled = false;
                     OperationsBox.Enabled = false;
                     OperationsList.Items.Clear();
-                    ResourceNameFld.Enabled = true;
+                    ResourceNameFld.Enabled = false;
+                    ResourceNameFld.ReadOnly = true;
+                    ResourceNameFld.Clear();
                     this._resource.ClearParameter();
                     break;
 
+                case RESTResourceCapability.ResourceArchetype.Unknown:
+                    CreateDocument.Enabled = false;
+                    LinkDocument.Enabled = false;
+                    PropertiesBox.Enabled = false;
+                    OperationsBox.Enabled = false;
+                    OperationsList.Items.Clear();
+                    ResourceNameFld.Enabled = false;
+                    ResourceNameFld.ReadOnly = false;
+                    ResourceNameFld.Clear();
+                    this._resource.ClearParameter();
+                    this._resource.ClearDocumentClass();
+                    break;
+
                 case RESTResourceCapability.ResourceArchetype.Identifier:
+                    CreateDocument.Enabled = false;
+                    LinkDocument.Enabled = false;
                     PropertiesBox.Enabled = true;
                     OperationsBox.Enabled = true;
                     ResourceNameFld.Enabled = false;
+                    ResourceNameFld.ReadOnly = true;
+                    ResourceNameFld.Clear();
                     ResourceNameFld.Text = this._resource.Name;
+                    this._resource.ClearDocumentClass();
                     break;
             }
             this._hasType = this._resource.Archetype != RESTResourceCapability.ResourceArchetype.Unknown;
@@ -269,7 +276,6 @@ namespace Plugin.Application.Forms
                         }
                     }
                 }
-
                 if (isOk)
                 {
                     this._resource.Name = ResourceNameFld.Text;
@@ -289,6 +295,44 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
+        /// This event is raised when the user clicks the 'Create Document' button in order to create a new resource
+        /// of type 'Document'. The user must select an existing Business Document class from the model to be used as
+        /// the basis for the Document resource. The actual task of showing the dialog and validation the result is 
+        /// delegated to the ResourceDeclaration object.
+        /// We don't perform name validation here since the resource name is identical to the selected Business Component.
+        /// Since there are valid by definition, there is no need to check.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void CreateDocument_Click(object sender, EventArgs e)
+        {
+            ResourceNameFld.Text = this._resource.SetDocumentClass();
+            if (ResourceNameFld.Text != string.Empty)
+            {
+                this._resource.Name = ResourceNameFld.Text;
+                this._hasName = this._hasType = true;
+                CheckOk();
+            }
+        }
+
+        /// <summary>
+        /// This event is raised when the user clicks the 'Define Identifier' button. This will bring up the Parameter dialog, which
+        /// facilitates definition of a parameter to be used as Identifier for the Resourcer.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void DefineIdentifier_Click(object sender, EventArgs e)
+        {
+            RESTParameterDeclaration parameter = this._resource.SetParameter();
+            if (parameter != null && parameter.Status != RESTParameterDeclaration.DeclarationStatus.Invalid)
+            {
+                ParameterName.Text = parameter.Name;
+                ParameterClassifier.Text = parameter.Classifier.Name;
+                ValidateName();
+            }
+        }
+
+        /// <summary>
         /// This event is raised when the user has made changes to the documentation description field.
         /// The new text is copied to the resource declaration object.
         /// </summary>
@@ -297,17 +341,6 @@ namespace Plugin.Application.Forms
         private void DocDescription_Leave(object sender, EventArgs e)
         {
             this._resource.Description = DocDescription.Text;
-        }
-
-        /// <summary>
-        /// This event is raised when the user changes the state of the 'isTag' checkbox.
-        /// The new state is copied to the resource declaration object.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void IsTag_CheckedChanged(object sender, EventArgs e)
-        {
-            this._resource.IsTag = IsTag.Checked;
         }
 
         /// <summary>
@@ -333,19 +366,34 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
-        /// This event is raised when the user clicks the 'Define Identifier' button. This will bring up the Parameter dialog, which
-        /// facilitates definition of a parameter to be used as Identifier for the Resourcer.
+        /// This event is raised when the user changes the state of the 'isTag' checkbox.
+        /// The new state is copied to the resource declaration object.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void IsTag_CheckedChanged(object sender, EventArgs e)
+        {
+            this._resource.IsTag = IsTag.Checked;
+        }
+
+        /// <summary>
+        /// This event is raised when the user clicks the 'Link Document' button in order to associate the parent resource
+        /// with an existing Document resource. Clicking the button will present a list of existing Document resource for
+        /// the user to choose from. The actual task of showing the dialog and validation the result is delegated to the
+        /// ResourceDeclaration object.
+        /// We don't perform name validation here since we link to an existing capability that already has been validated
+        /// before.
         /// </summary>
         /// <param name="sender">Ignored.</param>
         /// <param name="e">Ignored.</param>
-        private void DefineIdentifier_Click(object sender, EventArgs e)
+        private void LinkDocument_Click(object sender, EventArgs e)
         {
-            RESTParameterDeclaration parameter = this._resource.SetParameter();
-            if (parameter != null && parameter.Status != RESTParameterDeclaration.DeclarationStatus.Invalid)
+            ResourceNameFld.Text = this._resource.LinkDocumentClass();
+            if (ResourceNameFld.Text != string.Empty)
             {
-                ParameterName.Text = parameter.Name;
-                ParameterClassifier.Text = parameter.Classifier.Name;
-                ValidateName();
+                this._resource.Name = ResourceNameFld.Text;
+                this._hasName = this._hasType = true;
+                CheckOk();
             }
         }
     }

@@ -153,11 +153,8 @@ namespace Plugin.Application.Events.API
                 {
                     if (currentClass.HasStereotype(operationClassStereotype) || currentClass.HasStereotype(operationClassRESTStereotype))
                     {
-                        if (currentClass.OwningPackage == this._serviceModelPackage || currentClass.OwningPackage == this._resourceCollectionPackage)
-                        {
-                            this._operationClass = currentClass;
-                            this._operationPackage = this._declarationPackage.FindPackage(this._operationClass.Name, operationPkgStereotype);
-                        }
+                        this._operationClass = currentClass;
+                        this._operationPackage = this._declarationPackage.FindPackage(this._operationClass.Name, operationPkgStereotype);
                     }
                     else if (currentClass.HasStereotype(interfaceContractClassStereotype))  this._interfaceClass = currentClass;
                     else if (currentClass.HasStereotype(resourceClassStereotype))           this._resourceClass = currentClass;
@@ -494,7 +491,8 @@ namespace Plugin.Application.Events.API
         }
 
         /// <summary>
-        /// Parse a REST Operation class, retrieving all Operation Result classes that are associated with the operation.
+        /// Parse a REST Operation class, retrieving all Operation Result classes that are associated with the operation. Since an operation can
+        /// also be associated with a Document Resource (in case of body parameters), we have to check for these also...
         /// </summary>
         /// <param name="operationClass">The operation class to be processed.</param>
         /// <param name="resourceNode">Parent resource node for registration.</param>
@@ -503,6 +501,7 @@ namespace Plugin.Application.Events.API
             Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext.ParseRESTOperation >> Parsing Operation '" + operationClass.Name + "'...");
             ContextSlt context = ContextSlt.GetContextSlt();
             string assocStereotype = context.GetConfigProperty(_MessageAssociationStereotype);
+            string resourceClassStereotype = context.GetConfigProperty(_ResourceClassStereotype);
             string operationResultRESTStereotype = context.GetConfigProperty(_RESTOperationResultStereotype);
             ModelSlt model = ModelSlt.GetModelSlt();
             TreeNode<MEClass> childNode = resourceNode.AddChild(operationClass);
@@ -511,6 +510,22 @@ namespace Plugin.Application.Events.API
                 if (childClass.HasStereotype(operationResultRESTStereotype))
                 {
                     Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext.ParseRESTOperation >> Found Operation Result '" + childClass.Name + "'...");
+                    TreeNode<MEClass> resultNode = childNode.AddChild(childClass);
+
+                    // Operation Result classes might be associated with Document Resources in case of body parameters. Check for these here...
+                    foreach (MEClass possibleResourceClass in model.GetAssociatedClasses(childClass, assocStereotype))
+                    {
+                        if (possibleResourceClass.HasStereotype(resourceClassStereotype))
+                        {
+                            Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext.ParseRESTOperation >> Found Operation Result Document Resource '" +
+                                             possibleResourceClass.Name + "'...");
+                            resultNode.AddChild(possibleResourceClass);
+                        }
+                    }
+                }
+                else if (childClass.HasStereotype(resourceClassStereotype))
+                {
+                    Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext.ParseRESTOperation >> Found Operation Document Resource '" + childClass.Name + "'...");
                     childNode.AddChild(childClass);
                 }
             }

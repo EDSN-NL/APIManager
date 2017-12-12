@@ -66,6 +66,8 @@
             this.DocDescription = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.DefineIdentifierToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.CreateDocument = new System.Windows.Forms.Button();
+            this.LinkDocument = new System.Windows.Forms.Button();
             this.OperationsBox.SuspendLayout();
             this.PropertiesBox.SuspendLayout();
             this.OperationMenuStrip.SuspendLayout();
@@ -75,20 +77,20 @@
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(366, 314);
+            this.Ok.Location = new System.Drawing.Point(370, 314);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
-            this.Ok.TabIndex = 8;
+            this.Ok.TabIndex = 10;
             this.Ok.Text = "Ok";
             this.Ok.UseVisualStyleBackColor = true;
             // 
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(447, 314);
+            this.Cancel.Location = new System.Drawing.Point(451, 314);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
-            this.Cancel.TabIndex = 7;
+            this.Cancel.TabIndex = 9;
             this.Cancel.Text = "Cancel";
             this.Cancel.UseVisualStyleBackColor = true;
             // 
@@ -110,7 +112,7 @@
             this.OperationsBox.Location = new System.Drawing.Point(260, 8);
             this.OperationsBox.Name = "OperationsBox";
             this.OperationsBox.Size = new System.Drawing.Size(266, 189);
-            this.OperationsBox.TabIndex = 4;
+            this.OperationsBox.TabIndex = 5;
             this.OperationsBox.TabStop = false;
             this.OperationsBox.Text = "Associated Operations";
             // 
@@ -192,10 +194,10 @@
             this.PropertiesBox.Controls.Add(this.label3);
             this.PropertiesBox.Controls.Add(this.ParameterName);
             this.PropertiesBox.Controls.Add(this.label2);
-            this.PropertiesBox.Location = new System.Drawing.Point(15, 81);
+            this.PropertiesBox.Location = new System.Drawing.Point(5, 81);
             this.PropertiesBox.Name = "PropertiesBox";
-            this.PropertiesBox.Size = new System.Drawing.Size(239, 116);
-            this.PropertiesBox.TabIndex = 3;
+            this.PropertiesBox.Size = new System.Drawing.Size(249, 116);
+            this.PropertiesBox.TabIndex = 6;
             this.PropertiesBox.TabStop = false;
             this.PropertiesBox.Text = "Identifier Properties";
             // 
@@ -276,25 +278,25 @@
             // NewMinorVersion
             // 
             this.NewMinorVersion.AutoSize = true;
-            this.NewMinorVersion.Location = new System.Drawing.Point(12, 328);
+            this.NewMinorVersion.Location = new System.Drawing.Point(12, 322);
             this.NewMinorVersion.Name = "NewMinorVersion";
             this.NewMinorVersion.Size = new System.Drawing.Size(138, 17);
-            this.NewMinorVersion.TabIndex = 6;
+            this.NewMinorVersion.TabIndex = 8;
             this.NewMinorVersion.Text = "Increment minor version";
             this.NewMinorVersion.UseVisualStyleBackColor = true;
             // 
             // ResourceNameFld
             // 
-            this.ResourceNameFld.Location = new System.Drawing.Point(87, 49);
+            this.ResourceNameFld.Location = new System.Drawing.Point(110, 49);
             this.ResourceNameFld.Name = "ResourceNameFld";
-            this.ResourceNameFld.Size = new System.Drawing.Size(167, 20);
+            this.ResourceNameFld.Size = new System.Drawing.Size(144, 20);
             this.ResourceNameFld.TabIndex = 2;
             this.ResourceNameFld.Leave += new System.EventHandler(this.ResourceNameFld_Leave);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(43, 52);
+            this.label1.Location = new System.Drawing.Point(66, 52);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(38, 13);
             this.label1.TabIndex = 0;
@@ -310,10 +312,10 @@
             this.DocumentationBox.Controls.Add(this.label5);
             this.DocumentationBox.Controls.Add(this.DocDescription);
             this.DocumentationBox.Controls.Add(this.label4);
-            this.DocumentationBox.Location = new System.Drawing.Point(12, 203);
+            this.DocumentationBox.Location = new System.Drawing.Point(5, 203);
             this.DocumentationBox.Name = "DocumentationBox";
-            this.DocumentationBox.Size = new System.Drawing.Size(511, 100);
-            this.DocumentationBox.TabIndex = 5;
+            this.DocumentationBox.Size = new System.Drawing.Size(521, 100);
+            this.DocumentationBox.TabIndex = 7;
             this.DocumentationBox.TabStop = false;
             this.DocumentationBox.Text = "Documentation";
             // 
@@ -394,6 +396,26 @@
             // 
             this.DefineIdentifierToolTip.ToolTipTitle = "Define Identifier";
             // 
+            // CreateDocument
+            // 
+            this.CreateDocument.Image = ((System.Drawing.Image)(resources.GetObject("CreateDocument.Image")));
+            this.CreateDocument.Location = new System.Drawing.Point(5, 46);
+            this.CreateDocument.Name = "CreateDocument";
+            this.CreateDocument.Size = new System.Drawing.Size(25, 25);
+            this.CreateDocument.TabIndex = 3;
+            this.CreateDocument.UseVisualStyleBackColor = true;
+            this.CreateDocument.Click += new System.EventHandler(this.CreateDocument_Click);
+            // 
+            // LinkDocument
+            // 
+            this.LinkDocument.Image = ((System.Drawing.Image)(resources.GetObject("LinkDocument.Image")));
+            this.LinkDocument.Location = new System.Drawing.Point(35, 46);
+            this.LinkDocument.Name = "LinkDocument";
+            this.LinkDocument.Size = new System.Drawing.Size(25, 25);
+            this.LinkDocument.TabIndex = 10;
+            this.LinkDocument.UseVisualStyleBackColor = true;
+            this.LinkDocument.Click += new System.EventHandler(this.LinkDocument_Click);
+            // 
             // RESTResourceDialog
             // 
             this.AcceptButton = this.Ok;
@@ -401,6 +423,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
             this.ClientSize = new System.Drawing.Size(534, 357);
+            this.Controls.Add(this.LinkDocument);
+            this.Controls.Add(this.CreateDocument);
             this.Controls.Add(this.DocumentationBox);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.ResourceNameFld);
@@ -466,5 +490,7 @@
         private System.Windows.Forms.TextBox ParameterClassifier;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.ToolTip DefineIdentifierToolTip;
+        private System.Windows.Forms.Button CreateDocument;
+        private System.Windows.Forms.Button LinkDocument;
     }
 }

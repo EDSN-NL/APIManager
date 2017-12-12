@@ -9,7 +9,7 @@ using Framework.View;
 namespace Plugin.Application.CapabilityModel.API
 {
     /// Represents a Resource Collection in a REST service. Resource collections can exist on root- or intermediate levels in a resource model
-    /// and can contain operations as well as Path Expressions as children.
+    /// and can contain operations as well as other resources as children.
     /// At root-level, a Resource Collection can be empty, which means that it does not appear as part of the URI. However, in the UML model,
     /// it must ALWAYS exist as a model element! Empty collections are identified by a reserved name "[Empty]". The use of angle brackets 
     /// facilitates introduction of multiple reserved names in the future.
@@ -47,6 +47,7 @@ namespace Plugin.Application.CapabilityModel.API
         private bool _isRootLevel;                                  // Indicates whether the resource is a root-level resourcr ("sub-API").
         private bool _isTag;                                        // Indicates whether the resource is marked as a tag.
         private RESTParameterDeclaration _parameter;                // In case of Identifier resources, this contains the parameter.
+        private MEClass _componentClass;                            // In case of Document resources, this is the associated Business Component.
 
         // Keep track of (extra) classes and associations to show in the resource diagram...
         private List<MEClass> _diagramClassList = new List<MEClass>();
@@ -60,6 +61,8 @@ namespace Plugin.Application.CapabilityModel.API
         /// IsRootLevel = Returns true if the resource represents a sub-API.
         /// IsTag = Returns true of the resource is marked as a tag.
         /// Parameter = Returns the parameter in case of an Identifier resource.
+        /// DocumentResources = Returns the list of Document Resources associated with this resource.
+        /// BusinessComponent = Returns the associated Business Component in case of Document resource.
         /// </summary>
         internal MEPackage ResourcePackage                          { get { return this._resourcePackage; } }
         internal RESTResourceCapability.ResourceArchetype Archetype { get { return this._archetype; } }
@@ -67,6 +70,7 @@ namespace Plugin.Application.CapabilityModel.API
         internal bool IsRootLevel                                   { get { return this._isRootLevel; } }
         internal bool IsTag                                         { get { return this._isTag; } }
         internal RESTParameterDeclaration Parameter                 { get { return this._parameter; } }
+        internal MEClass BusinessComponent                          { get { return this._componentClass; } }
 
         /// <summary>
         /// Creates a new resource based on a resource declaration object. This object contains all the information necessary to create 
@@ -85,6 +89,7 @@ namespace Plugin.Application.CapabilityModel.API
                 this._isCollection = (this._archetype == RESTResourceCapability.ResourceArchetype.Collection ||
                                       this._archetype == RESTResourceCapability.ResourceArchetype.Store);
                 this._isRootLevel = true;
+                this._componentClass = null;
 
                 ConstructCapability(parentInterface, resource); // Performs most of the work.
             }
@@ -236,31 +241,60 @@ namespace Plugin.Application.CapabilityModel.API
                 bool isFirst = true;
                 foreach (RESTResourceDeclaration resource in resources)
                 {
-                    var resourceCapability = new RESTResourceCapability(parentResource, resource);
-                    if (resourceCapability.Valid)
+                    RESTResourceCapability resourceCapability;
+                    bool noDocument = true;
+                    if (resource.Archetype == RESTResourceCapability.ResourceArchetype.Document)
                     {
-                        resourceCapability.InitialiseParent(parentResource);
-                        string roleName = RESTUtil.GetAssignedRoleName(resource.Name);
-                        newNames += (!isFirst) ? ", " + roleName : roleName;
-                        isFirst = false;
+                        resourceCapability = ((RESTService)RootService).FindDocumentResource(resource.Name);
+                        if (resourceCapability != null)
+                        {
+                            // Existing capability. In this case, we have to explicitly create an association with that resource 
+                            // Normally, this is taken care of by the child resource constructor but since we're not going to invoke this,
+                            // we have to create one manually.
+                            // First of all, we check whether we already have an association with this resource...
+                            foreach (Capability child in GetChildren()) if (child == resourceCapability) return true;
+                            string roleName = RESTUtil.GetAssignedRoleName(resource.DocumentClass.Name);
+                            var myEndpoint = new EndpointDescriptor(this._capabilityClass, "1", this._capabilityClass.Name, null, false);
+                            var documentEndpoint = new EndpointDescriptor(resourceCapability.CapabilityClass, "1", roleName, null, true);
+                            ModelSlt.GetModelSlt().CreateAssociation(myEndpoint, documentEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                            resourceCapability.InitialiseParent(parentResource);
+                            newNames += (!isFirst) ? ", " + roleName : roleName;
+                            isFirst = false;
+                            noDocument = false;
+                        }
                     }
-                    else
+
+                    if (noDocument)    // This is true for non-document resources or for new document resources.
                     {
-                        Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AddResources >> Failed to create resource '" + resource.Name + "'!");
-                        result = false;
+                        resourceCapability = new RESTResourceCapability(parentResource, resource);
+                        if (resourceCapability.Valid)
+                        {
+                            resourceCapability.InitialiseParent(parentResource);
+                            string roleName = RESTUtil.GetAssignedRoleName(resource.Name);
+                            newNames += (!isFirst) ? ", " + roleName : roleName;
+                            isFirst = false;
+                        }
+                        else
+                        {
+                            Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AddResources >> Failed to create resource '" + resource.Name + "'!");
+                            result = false;
+                        }
                     }
                 }
 
-                if (newMinorVersion)
+                if (result)
                 {
-                    var newVersion = new Tuple<int, int>(RootService.Version.Item1, RootService.Version.Item2 + 1);
-                    RootService.UpdateVersion(newVersion);
-                    newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-                    this._capabilityClass.Version = newVersion;
+                    if (newMinorVersion)
+                    {
+                        var newVersion = new Tuple<int, int>(RootService.Version.Item1, RootService.Version.Item2 + 1);
+                        RootService.UpdateVersion(newVersion);
+                        newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
+                        this._capabilityClass.Version = newVersion;
+                    }
+                    string logMessage = "Added child Resource(s): '" + newNames + "'";
+                    RootService.CreateLogEntry(logMessage + " to parent Resource '" + Name + "'.");
+                    CreateLogEntry(logMessage + ".");
                 }
-                string logMessage = "Added child Resource(s): '" + newNames + "'";
-                RootService.CreateLogEntry(logMessage + " to parent Resource '" + Name + "'.");
-                CreateLogEntry(logMessage + ".");
             }
             catch (Exception exc)
             {
@@ -314,6 +348,43 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Returns the file name (without extension) for this Capability. The extension is left out since this typically depends on the
+        /// chosen serialization mechanism. The filename returned by this method only provides a generic name to be used for further, serialization
+        /// dependent, processing.
+        /// </summary>
+        internal override string GetBaseFileName()
+        {
+            Tuple<int, int> version = this.CapabilityClass.Version;
+            return this._rootService.Name + "_" + this.Name + "_v" + version.Item1 + "p" + version.Item2;
+        }
+
+        /// <summary>
+        /// Returns a short textual identification of the capability type.
+        /// </summary>
+        /// <returns>Capability type name.</returns>
+        internal override string GetCapabilityType()
+        {
+            return "REST Resource [" + this._archetype.ToString() + "]";
+        }
+
+        /// <summary>
+        /// Creates an Interface object that matches the current Implementation.
+        /// </summary>
+        /// <returns>Interface object.</returns>
+        internal override Capability GetInterface() { return new RESTResourceCapability(this); }
+
+        /// <summary>
+        /// Process the capability (i.e. generate output according to provided processor.).
+        /// </summary>
+        /// <param name="stage">The processing stage we're currently in, passed verbatim to processor.</param>
+        /// <returns>True when processing can commence, false on errors.</returns>
+        internal override bool HandleCapability(CapabilityProcessor processor, ProcessingStage stage)
+        {
+            // Since all the actual work is being performed by the processor, simply pass information onwards...
+            return processor.ProcessCapability(new RESTResourceCapability(this), stage);
+        }
+
+        /// <summary>
         /// This function checks whether this resource has at least one associated operation.
         /// </summary>
         /// <returns>True if the resource contains at least one operation.</returns>
@@ -321,6 +392,21 @@ namespace Plugin.Application.CapabilityModel.API
         {
             foreach (Capability child in GetChildren()) if (child is RESTOperationCapability) return true;
             return false;
+        }
+
+        /// <summary>
+        /// This method is called whenever a (new) parent of the Capability has taken ownership of the Capability. 
+        /// If this parent is an Interface or a PathExpression, we have to register the current instance with the parent.
+        /// In all other cases, nothing will happen here!
+        /// </summary>
+        /// <param name="parent">The parent Capability that has taken ownership of this Capability.</param>
+        internal override void InitialiseParent(Capability parent)
+        {
+            if (parent is RESTInterfaceCapability || parent is RESTResourceCapability)
+            {
+                this._myParent = parent;
+                parent.AddChild(new RESTResourceCapability(this));
+            }
         }
 
         /// <summary>
@@ -379,85 +465,17 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Facilitates iteration over the set of child resources associated with this parent resource.
+        /// Facilitates iteration over the set of child resources associated with this parent resource. If the type
+        /// is not equal to 'Unknown', the method only returns children of archetype identified by 'type'.
         /// </summary>
         /// <returns>Resource Capability enumerator.</returns>
-        internal IEnumerable<RESTResourceCapability> ResourceList()
+        internal IEnumerable<RESTResourceCapability> ResourceList(RESTResourceCapability.ResourceArchetype type)
         {
             foreach (Capability cap in GetChildren())
             {
-                if (cap is RESTResourceCapability) yield return cap as RESTResourceCapability;
-            }
-        }
-
-        /// <summary>
-        /// Returns the list of all child resource capabilities associated with this parent resource.
-        /// </summary>
-        /// <returns>List of REST-Resource capabilities.</returns>
-        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal List<RESTResourceCapability> GetResources()
-        {
-            var collectionList = new List<RESTResourceCapability>();
-            foreach (Capability cap in GetChildren())
-            {
-                if (cap is RESTResourceCapability)
-                {
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.GetResourceCollections >> Found resource '" + cap.Name + "'!");
-                    collectionList.Add(cap as RESTResourceCapability);
-                }
-            }
-            return collectionList;
-        }
-
-        /// <summary>
-        /// Returns the file name (without extension) for this Capability. The extension is left out since this typically depends on the
-        /// chosen serialization mechanism. The filename returned by this method only provides a generic name to be used for further, serialization
-        /// dependent, processing.
-        /// </summary>
-        internal override string GetBaseFileName()
-        {
-            Tuple<int, int> version = this.CapabilityClass.Version;
-            return this._rootService.Name + "_" + this.Name + "_v" + version.Item1 + "p" + version.Item2;
-        }
-
-        /// <summary>
-        /// Returns a short textual identification of the capability type.
-        /// </summary>
-        /// <returns>Capability type name.</returns>
-        internal override string GetCapabilityType()
-        {
-            return "REST Resource [" + this._archetype.ToString() + "]";
-        }
-
-        /// <summary>
-        /// Creates an Interface object that matches the current Implementation.
-        /// </summary>
-        /// <returns>Interface object.</returns>
-        internal override Capability GetInterface() { return new RESTResourceCapability(this); }
-
-        /// <summary>
-        /// Process the capability (i.e. generate output according to provided processor.).
-        /// </summary>
-        /// <param name="stage">The processing stage we're currently in, passed verbatim to processor.</param>
-        /// <returns>True when processing can commence, false on errors.</returns>
-        internal override bool HandleCapability(CapabilityProcessor processor, ProcessingStage stage)
-        {
-            // Since all the actual work is being performed by the processor, simply pass information onwards...
-            return processor.ProcessCapability(new RESTResourceCapability(this), stage);
-        }
-
-        /// <summary>
-        /// This method is called whenever a (new) parent of the Capability has taken ownership of the Capability. 
-        /// If this parent is an Interface or a PathExpression, we have to register the current instance with the parent.
-        /// In all other cases, nothing will happen here!
-        /// </summary>
-        /// <param name="parent">The parent Capability that has taken ownership of this Capability.</param>
-        internal override void InitialiseParent(Capability parent)
-        {
-            if (parent is RESTInterfaceCapability || parent is RESTResourceCapability)
-            {
-                this._myParent = parent;
-                parent.AddChild(new RESTResourceCapability(this));
+                if (cap is RESTResourceCapability &&
+                    (type == RESTResourceCapability.ResourceArchetype.Unknown || ((RESTResourceCapability)cap).Archetype == type))
+                    yield return cap as RESTResourceCapability;
             }
         }
 
@@ -572,6 +590,18 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
 
+                // If we're a Document Resource, create the association with the Business Document and register this class as a document...
+                if (resource.DocumentClass != null)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.ConstructCapability >> Associate with Business Component '" + resource.DocumentClass.Name + "'...");
+                    string role = resource.DocumentClass.Name.EndsWith("Type") ? 
+                        resource.DocumentClass.Name.Substring(0, resource.DocumentClass.Name.IndexOf("Type")) : 
+                        resource.DocumentClass.Name;
+                    var componentEndpoint = new EndpointDescriptor(resource.DocumentClass, "1", role, null, true);
+                    model.CreateAssociation(resourceEndpoint, componentEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                    this._componentClass = resource.DocumentClass;
+                }
+
                 // And create the child resources that are associated with this Resource...
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.ConstructCapability >> Creating child resources...");
                 foreach (RESTResourceDeclaration childResource in resource.ChildResources)
@@ -628,10 +658,12 @@ namespace Plugin.Application.CapabilityModel.API
                 this._capabilityClass = hierarchy.Data;
                 this._isTag = false;
                 this._parameter = null;
+                this._componentClass = null;
                 string archetypeTagName = context.GetConfigProperty(_ArchetypeTag);
                 string RESTParamStereotype = context.GetConfigProperty(_RESTParameterStereotype);
                 string resourceClassStereotype = context.GetConfigProperty(_ResourceClassStereotype);
                 string operationClassStereotype = context.GetConfigProperty(_RESTOperationClassStereotype);
+                string businessComponentStereotype = context.GetConfigProperty(_BusinessComponentStereotype);
                 var resourceCapItf = new RESTResourceCapability(this);
                 this._archetype = (RESTResourceCapability.ResourceArchetype) Enum.Parse(typeof(RESTResourceCapability.ResourceArchetype), 
                                                                                         this._capabilityClass.GetTag(archetypeTagName), true);
@@ -646,6 +678,8 @@ namespace Plugin.Application.CapabilityModel.API
                     this._isTag = true;
                 }
                 this._isRootLevel = (string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_IsRootLevelTag)), "true", true) == 0);
+
+                if (this._archetype == RESTResourceCapability.ResourceArchetype.Document) ((RESTService)this._rootService).RegisterDocument(resourceCapItf);
 
                 // Check whether we have a parameter (in case of Identifier Resource)...
                 // If the class has multiple RESTParameter attributes, we simply take the first one we encounter (and issue a warning 'cause this is illegal)...
@@ -662,12 +696,36 @@ namespace Plugin.Application.CapabilityModel.API
                 }
 
                 // Creating all child resources and operations...
-                // In order to guarantee that capability processing is handled correctly, we MUST register all children BEFORE registering
+                // In order to guarantee that capability processing is handled correctly, we MUST register all operations BEFORE registering
                 // child resources. Since the order in which we receive them from the repository is undetermined, we keep a separate list
                 // of child resources at hand in which we store all encountered children. Since 'InitialiseParent' adds the resource to the
                 // END of the children list, we can now safely initialise all operations first and postpone registration of child resources
                 // until we processed all our children...
+                // EXCEPTION: If the resource contains child DOCUMENT resources, these must be FIRST, since operations might depend on them.
+                // That is why we must use two passes, first one to get all Document Resources, second pass to get all the others...
                 var childResources = new List<RESTResourceCapability>();
+                foreach (TreeNode<MEClass> node in hierarchy.Children)
+                {
+                    if (node.Data.HasStereotype(resourceClassStereotype))
+                    {
+                        string typeTag = node.Data.GetTag(archetypeTagName);
+                        if (!string.IsNullOrEmpty(typeTag) && 
+                            EnumConversions<RESTResourceCapability.ResourceArchetype>.StringToEnum(typeTag) == RESTResourceCapability.ResourceArchetype.Document)
+                        {
+                            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Found Document Resource '" + node.Data.Name + "'...");
+                            var resource = new RESTResourceCapability(resourceCapItf, node);
+                            if (!resource.Valid)
+                            {
+                                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Error creating Document '" + node.Data.Name + "'!");
+                                this._capabilityClass = null;
+                                return;
+                            }
+                            resource.InitialiseParent(resourceCapItf);
+                        }
+                    }
+                }
+
+                // Now that we have initialized our child Document Resources, look for all the others...
                 foreach (TreeNode<MEClass> node in hierarchy.Children)
                 {
                     if (node.Data.HasStereotype(operationClassStereotype))
@@ -683,14 +741,24 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                     else if (node.Data.HasStereotype(resourceClassStereotype))
                     {
-                        var resource = new RESTResourceCapability(resourceCapItf, node);
-                        if (!resource.Valid)
+                        string typeTag = node.Data.GetTag(archetypeTagName);
+                        if (!string.IsNullOrEmpty(typeTag) &&
+                            EnumConversions<RESTResourceCapability.ResourceArchetype>.StringToEnum(typeTag) != RESTResourceCapability.ResourceArchetype.Document)
                         {
-                            Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Error creating Path '" + node.Data.Name + "'!");
-                            this._capabilityClass = null;
-                            return;
+                            var resource = new RESTResourceCapability(resourceCapItf, node);
+                            if (!resource.Valid)
+                            {
+                                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Error creating Path '" + node.Data.Name + "'!");
+                                this._capabilityClass = null;
+                                return;
+                            }
+                            childResources.Add(resource);   // Deferring registration of parent until all child capabilities have been processed.
                         }
-                        childResources.Add(resource);   // Deferring registration of parent until all child capabilities have been processed.
+                    }
+                    else if (node.Data.HasStereotype(businessComponentStereotype))
+                    {
+                        // Document resources must have an association with a Business Component. If not Document resource, ignore!
+                        if (this._archetype == RESTResourceCapability.ResourceArchetype.Document) this._componentClass = node.Data;
                     }
                     else
                     {

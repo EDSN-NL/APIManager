@@ -20,9 +20,9 @@ namespace Plugin.Application.CapabilityModel.API
             private string _code;           // Actual HTTP Code.
             private string _description;    // Descriptive text for the code.
 
-            internal string Code        { get { return this._code; } }
-            internal string Description { get { return this._description; } }
-            internal string Label       { get { return this._code + " - " + this._description; } }
+            internal string Code            { get { return this._code; } }
+            internal string Description     { get { return this._description; } }
+            internal string Label           { get { return this._code + " - " + this._description; } }
 
             /// <summary>
             /// Create a new CodeDescriptor object based on Code and Description.
@@ -64,7 +64,7 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         // The status is used to track operations on the declaration.
-        internal enum DeclarationStatus { Invalid, Created, Edited, Deleted }
+        internal enum DeclarationStatus { Invalid, Created, Stable, Edited, Deleted }
 
         // Conversion tables for each HTTP Response category..
         private static readonly string[,] _InformationResponses =
@@ -149,12 +149,14 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _RESTOperationResultStereotype     = "RESTOperationResultStereotype";
         private const string _ResultCodeAttributeName           = "ResultCodeAttributeName";
         private const string _ResultCodeAttributeClassifier     = "ResultCodeAttributeClassifier";
+        private const string _ResourceClassStereotype           = "ResourceClassStereotype";
 
         private string _defaultResponseCode;        // Contains the OpenAPI default response code (typically, this is 'default').
         private RESTOperationResultCapability.ResponseCategory _category;   // Operation result category code.
         private string _resultCode;                 // Either an HTTP result code or default OpenAPI response code.
+        private string _originalCode;               // In case of Edit: if we replace the code by a new one, this contains the original code.
         private string _description;                // Descriptive text to go with the response.
-        private MEClass _responseType;              // In case of response schemas, this class represents the root of that schema.
+        private MEClass _responseDocumentClass;     // In case of response schemas, this class represents the Document Resource that is associated with that schema.
         private bool _hasMultipleResponses;         // True if response has cardinality > 1.
         private DeclarationStatus _status;          // Status of this declaration record.
         private DeclarationStatus _initialStatus;   // Original status of this declaration record.
@@ -181,23 +183,35 @@ namespace Plugin.Application.CapabilityModel.API
             get { return this._hasMultipleResponses; }
             set
             {
-                this._hasMultipleResponses = value;
-                if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
-                else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                if (this._hasMultipleResponses != value)
+                {
+                    this._hasMultipleResponses = value;
+                    if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
+                    else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                }
             }
         }
 
         /// <summary>
-        /// Returns or loads the optional result parameters. Returns NULL if no parameters are defined.
+        /// Get the Code value as it was BEFORE an edit operation on the result. Can be used to determine whether the object has been renamed.
         /// </summary>
-        internal MEClass Parameters
+        internal string OriginalCode { get { return this._originalCode; } }
+
+        /// <summary>
+        /// Returns or loads the optional Document Resource class that represents the response schema.
+        /// Returns NULL if no such resource is defined.
+        /// </summary>
+        internal MEClass ResponseDocumentClass
         {
-            get { return this._responseType; }
+            get { return this._responseDocumentClass; }
             set
             {
-                this._responseType = value;
-                if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
-                else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                if (this._responseDocumentClass != value)
+                {
+                    this._responseDocumentClass = value;
+                    if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
+                    else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                }
             }
         }
 
@@ -229,6 +243,41 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// This constructor creates a new operation result declaration descriptor using an existing Operation Result Capability.
+        /// It copies attributes from the capability and if we have a response body, locates the associated Document Resource in order
+        /// to set the 'cardinality indicator' to the appropriate value.
+        /// </summary>
+        /// <param name="resultCap">Operation Result Capability to use for initialisation.</param>
+        internal RESTOperationResultDeclaration(RESTOperationResultCapability resultCap)
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            this._defaultResponseCode = context.GetConfigProperty(_DefaultResponseCode);
+            this._category = resultCap.Category;
+            this._description = MEChangeLog.GetDocumentationAsText(resultCap.CapabilityClass);
+            this._status = DeclarationStatus.Stable;
+            this._initialStatus = DeclarationStatus.Stable;
+            this._responseDocumentClass = resultCap.ResponseBodyClass;
+            this._hasMultipleResponses = false;
+            this._resultCode = this._originalCode = resultCap.ResultCode;
+
+            // If we have a response type, we locate the association and inspect its target cardinality...
+            if (this._responseDocumentClass != null)
+            {
+                string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
+                foreach (MEAssociation association in resultCap.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                {
+                    if (association.Destination.EndPoint.HasStereotype(resourceStereotype) &&
+                        association.Destination.EndPoint.Name == this._responseDocumentClass.Name)
+                    {
+                        Tuple<int, int> card = association.GetCardinality(MEAssociation.AssociationEnd.Destination);
+                        this._hasMultipleResponses = (card.Item2 == 0 || card.Item2 > 1);
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Default constructor, which accepts only a response category code and no further information. This constructs a descriptor of which
         /// the values depend on the category that has been passed:
         /// Success - Default response descriptor, no body, only a result code and default OK description.
@@ -243,45 +292,40 @@ namespace Plugin.Application.CapabilityModel.API
 
             ContextSlt context = ContextSlt.GetContextSlt();
             this._defaultResponseCode = context.GetConfigProperty(_DefaultResponseCode);
-            this._responseType = null;
+            this._responseDocumentClass = null;
             this._category = category;
+            this._status = this._initialStatus = DeclarationStatus.Stable;
 
             switch (category)
             {
                 case RESTOperationResultCapability.ResponseCategory.Informational:
                     this._resultCode = "100";
                     this._description = GetResponseDescription();
-                    this._status = this._initialStatus = DeclarationStatus.Created;
                     break;
 
                 case RESTOperationResultCapability.ResponseCategory.Success:
                     this._resultCode = context.GetConfigProperty(_DefaultSuccessCode);
                     this._description = GetResponseDescription();
-                    this._status = this._initialStatus = DeclarationStatus.Created;
                     break;
 
                 case RESTOperationResultCapability.ResponseCategory.Redirection:
                     this._resultCode = "300";
                     this._description = GetResponseDescription();
-                    this._status = this._initialStatus = DeclarationStatus.Created;
                     break;
 
                 case RESTOperationResultCapability.ResponseCategory.ClientError:
                     this._resultCode = context.GetConfigProperty(_DefaultClientErrorCode);
                     this._description = GetResponseDescription();
-                    this._status = this._initialStatus = DeclarationStatus.Created;
                     break;
 
                 case RESTOperationResultCapability.ResponseCategory.ServerError:
                     this._resultCode = context.GetConfigProperty(_DefaultServerErrorCode);
                     this._description = GetResponseDescription();
-                    this._status = this._initialStatus = DeclarationStatus.Created;
                     break;
 
                 case RESTOperationResultCapability.ResponseCategory.Default:
                     this._resultCode = this._defaultResponseCode;
                     this._description = context.GetConfigProperty(_DefaultResponseDescription);
-                    this._status = this._initialStatus = DeclarationStatus.Created;
                     break;
 
                 default:
@@ -290,22 +334,24 @@ namespace Plugin.Application.CapabilityModel.API
                     this._status = this._initialStatus = DeclarationStatus.Invalid;
                     break;
             }
+            this._originalCode = this._resultCode;
         }
 
         /// <summary>
         /// Constructor that accepts code, description and an optional data-type response. In case of normal successfull completion of a request that
         /// accepts response parameters, an OK Result Declaration must be created that contains a class that specifies these parameters.
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="description"></param>
+        /// <param name="code">HTTP Result code to be associated with this result.</param>
+        /// <param name="description">Textual descr</param>
         /// <param name="type"></param>
         internal RESTOperationResultDeclaration(string code, string description, MEClass type = null)
         {
-            this._resultCode = code;
+            this._resultCode = this._originalCode = code;
             this._description = description;
-            this._responseType = type;
+            this._responseDocumentClass = type;
             this._category = (RESTOperationResultCapability.ResponseCategory)(int.Parse(code[0].ToString()));
             this._defaultResponseCode = ContextSlt.GetContextSlt().GetConfigProperty(_DefaultResponseCode);
+            this._status = this._initialStatus = DeclarationStatus.Stable;
         }
 
         /// <summary>
@@ -320,7 +366,7 @@ namespace Plugin.Application.CapabilityModel.API
             ModelSlt model = ModelSlt.GetModelSlt();
             MEClass resultClass = null;
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultDeclaration.AssignResultClass >> Creating class in parent '" + owningPackage.Name + "'...");
-            if (this._status != RESTOperationResultDeclaration.DeclarationStatus.Deleted)
+            if (this._status != DeclarationStatus.Deleted && this._status != DeclarationStatus.Invalid)
             {
                 string name = context.GetConfigProperty(_OperationResultPrefix) + this._resultCode;
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultDeclaration.AssignResultClass >> Creating class with name '" + name + "'...");
@@ -331,13 +377,13 @@ namespace Plugin.Application.CapabilityModel.API
                     MEAttribute newAttrib = resultClass.CreateAttribute(context.GetConfigProperty(_ResultCodeAttributeName), classifier,
                                                                         AttributeType.Attribute, this._resultCode, new Tuple<int, int>(1, 1), true);
                     resultClass.Annotation = this._description;
-                    if (this._responseType != null)
+                    if (this._responseDocumentClass != null)
                     {
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultDeclaration.AssignResultClass >> Associating with response type '" + this._responseType.Name + "'...");
-                        string roleName = Conversions.ToPascalCase(this._responseType.Name);
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultDeclaration.AssignResultClass >> Associating with response type '" + this._responseDocumentClass.Name + "'...");
+                        string roleName = Conversions.ToPascalCase(this._responseDocumentClass.Name);
                         if (roleName.EndsWith("Type")) roleName = roleName.Substring(0, roleName.IndexOf("Type"));
                         var parentEndpoint = new EndpointDescriptor(resultClass, "1", resultClass.Name, null, false);
-                        var typeEndpoint = new EndpointDescriptor(this._responseType, "1", roleName, null, true);
+                        var typeEndpoint = new EndpointDescriptor(this._responseDocumentClass, "1", roleName, null, true);
                         model.CreateAssociation(parentEndpoint, typeEndpoint, MEAssociation.AssociationType.MessageAssociation);
                     }
                 }

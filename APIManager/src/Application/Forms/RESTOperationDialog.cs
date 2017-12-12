@@ -18,9 +18,30 @@ namespace Plugin.Application.Forms
         private RESTOperationDeclaration _operation;    // The operation we're constructing or editing.
         private bool _hasName;                          // Set to true if we have a valid name.
         private bool _hasType;                          // Set to true if we have a valid type.
+        private bool _createMode;                       // 'True' in case of editing operation, false on create.
+        private bool _dirty;                            // 'True' when stuff has changed.
 
+        /// <summary>
+        /// Returns 'true' when Operation Minor Version must be updated.
+        /// </summary>
         internal bool MinorVersionIndicator         { get { return NewMinorVersion.Checked; }}
-        internal RESTOperationDeclaration Operation { get { return this._operation; } }
+        
+        /// <summary>
+        /// Returns the Operation Declaration created/edited by the dialog.
+        /// </summary>
+        internal RESTOperationDeclaration Operation
+        {
+            get
+            {
+                if (this._dirty)
+                {
+                    // We only update the status when stuff has actually changed...
+                    this._operation.Status = this._createMode ? RESTOperationDeclaration.DeclarationStatus.Created :
+                                                                RESTOperationDeclaration.DeclarationStatus.Edited;
+                }
+                return this._operation;
+            }
+        }
 
         /// <summary>
         /// Creates a new dialog that facilitates creation of a series of resources. Each resource is represented in the dialog
@@ -32,22 +53,23 @@ namespace Plugin.Application.Forms
             InitializeComponent();
             NewMinorVersion.Checked = false;
             this._operation = operation;
-
-            this.Text = (operation.Name == string.Empty) ? "Create new Operation" : "Edit existing Operation";
+            this._createMode = (operation.Name == string.Empty);
+            this.Text = this._createMode ? "Create new Operation": "Edit existing Operation";
             this.OperationNameFld.Text = operation.Name;
+            this._dirty = false;
 
             SummaryText.Text = operation.Summary;
             Description.Text = operation.Description;
 
-            // Set indicators according to current settings...
-            HasRequestParams.Checked = this._operation.RequestBodyIndicator;
-            HasResponseParams.Checked = this._operation.ResponseBodyIndicator;
-            HasPagination.Checked = this._operation.PaginationIndicator;
-            HasMultipleRequestParams.Checked = this._operation.RequestBodyCardinalityIndicator;
-            HasMultipleResponseParams.Checked = this._operation.ResponseBodyCardinalityIndicator;
-            OverrideSecurity.Checked = this._operation.PublicAccessIndicator;
+            // Show the associated default request- and response documents (if present)...
+            if (operation.RequestDocument != null) RequestTypeName.Text = operation.RequestDocument.Name;
+            if (operation.ResponseDocument != null) ResponseTypeName.Text = operation.ResponseDocument.Name;
 
-            // TO DO: INITIALIZE FILTER PARAMETERS AND RESPONSE CODES ACCORDING TO DECLARATION CONTENTS!!!!
+            // Set indicators according to current settings...
+            HasPagination.Checked = this._operation.PaginationIndicator;
+            RequestMultiple.Checked = this._operation.RequestBodyCardinalityIndicator;
+            ResponseMultiple.Checked = this._operation.ResponseBodyCardinalityIndicator;
+            OverrideSecurity.Checked = this._operation.PublicAccessIndicator;
 
             // Initialize the drop-down box with a human-friendly label of our OperationType enumeration...
             foreach (RESTOperationCapability.OperationType type in Enum.GetValues(typeof(RESTOperationCapability.OperationType)))
@@ -63,6 +85,17 @@ namespace Plugin.Application.Forms
             {
                 OperationTypeFld.SelectedIndex = 0;
                 this._operation.Archetype = RESTOperationCapability.LabelToOperationType(OperationTypeFld.Items[0].ToString());
+            }
+
+            // Load the list of Filter Parameters...
+            foreach (RESTParameterDeclaration queryParam in operation.Parameters)
+            {
+                if (queryParam.Status != RESTParameterDeclaration.DeclarationStatus.Invalid)
+                {
+                    ListViewItem newItem = new ListViewItem(queryParam.Name);
+                    newItem.SubItems.Add(queryParam.Classifier.Name);
+                    FilterParameterList.Items.Add(newItem);
+                }
             }
 
             // Load the result codes from the received operation declaration...
@@ -108,18 +141,16 @@ namespace Plugin.Application.Forms
                 case RESTOperationCapability.OperationType.Delete:
                 case RESTOperationCapability.OperationType.Head:
                     FilterGroup.Enabled = false;
-                    RequestParamGroup.Enabled = true;
-                    ResponseParamGroup.Enabled = false;
-                    HasResponseParams.Checked = false;
+                    RequestParamBox.Enabled = true;
+                    ResponseParamBox.Enabled = false;
                     HasPagination.Enabled = false;
                     HasPagination.Checked = false;
                     break;
 
                 case RESTOperationCapability.OperationType.Get:
                     FilterGroup.Enabled = true;
-                    RequestParamGroup.Enabled = true;
-                    ResponseParamGroup.Enabled = true;
-                    HasResponseParams.Checked = true;
+                    RequestParamBox.Enabled = true;
+                    ResponseParamBox.Enabled = true;
                     HasPagination.Enabled = true;
                     break;
 
@@ -127,25 +158,22 @@ namespace Plugin.Application.Forms
                 case RESTOperationCapability.OperationType.Post:
                 case RESTOperationCapability.OperationType.Put:
                     FilterGroup.Enabled = false;
-                    RequestParamGroup.Enabled = true;
-                    HasRequestParams.Checked = true;
-                    ResponseParamGroup.Enabled = true;
-                    HasResponseParams.Checked = false;
+                    RequestParamBox.Enabled = true;
+                    ResponseParamBox.Enabled = true;
                     HasPagination.Enabled = false;
                     HasPagination.Checked = false;
                     break;
 
                 default:
                     FilterGroup.Enabled = false;
-                    RequestParamGroup.Enabled = false;
-                    HasRequestParams.Checked = false;
-                    ResponseParamGroup.Enabled = false;
-                    HasResponseParams.Checked = false;
+                    RequestParamBox.Enabled = false;
+                    ResponseParamBox.Enabled = false;
                     HasPagination.Enabled = false;
                     HasPagination.Checked = false;
                     break;
             }
             this._hasType = this._operation.Archetype != RESTOperationCapability.OperationType.Unknown;
+            if (this._hasType) this._dirty = true;
             CheckOk();
         }
 
@@ -161,7 +189,7 @@ namespace Plugin.Application.Forms
             if (OperationNameFld.Text != string.Empty)
             {
                 OperationNameFld.Text = Conversions.ToPascalCase(OperationNameFld.Text);
-                if (!this._operation.IsValidName(OperationNameFld.Text))
+                if (this._createMode && !this._operation.IsValidName(OperationNameFld.Text))
                 {
                     MessageBox.Show("Operation '" + OperationNameFld.Text + "' is not unique, try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
@@ -169,6 +197,7 @@ namespace Plugin.Application.Forms
                 {
                     this._operation.Name = OperationNameFld.Text;
                     this._hasName = true;
+                    this._dirty = true;
                     CheckOk();
                 }
             }
@@ -188,6 +217,7 @@ namespace Plugin.Application.Forms
                 ListViewItem newItem = new ListViewItem(parameter.Name);
                 newItem.SubItems.Add(parameter.Classifier.Name);
                 FilterParameterList.Items.Add(newItem);
+                this._dirty = true;
             }
         }
 
@@ -209,6 +239,7 @@ namespace Plugin.Application.Forms
                 ListViewItem newItem = new ListViewItem(result.ResultCode);
                 newItem.SubItems.Add(result.Description);
                 ResponseCodeList.Items.Add(newItem);
+                this._dirty = true;
             }
         }
 
@@ -226,6 +257,7 @@ namespace Plugin.Application.Forms
                 ContextSlt context = ContextSlt.GetContextSlt();
                 this._operation.DeleteParameter(key.Text);
                 FilterParameterList.Items.Remove(key);
+                this._dirty = true;
             }
         }
 
@@ -246,6 +278,7 @@ namespace Plugin.Application.Forms
                 {
                     this._operation.DeleteOperationResult(key.Text);
                     ResponseCodeList.Items.Remove(key);
+                    this._dirty = true;
                 }
                 else MessageBox.Show("You are not allowed to remove this response code!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -269,6 +302,7 @@ namespace Plugin.Application.Forms
                 {
                     key.SubItems[0].Text = param.Name;
                     key.SubItems[1].Text = param.Classifier.Name;
+                    this._dirty = true;
                 }
             }
         }
@@ -294,6 +328,7 @@ namespace Plugin.Application.Forms
                     {
                         key.SubItems[0].Text = result.ResultCode;
                         key.SubItems[1].Text = result.Description;
+                        this._dirty = true;
                     }
                 }
                 else MessageBox.Show("You are not allowed to edit this response code!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -308,16 +343,13 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void Indicator_CheckedChanged(object sender, EventArgs e)
         {
-            this._operation.RequestBodyIndicator = HasRequestParams.Checked;
-            this._operation.ResponseBodyIndicator = HasResponseParams.Checked;
             this._operation.PaginationIndicator = HasPagination.Checked;
             this._operation.PublicAccessIndicator = OverrideSecurity.Checked;
-            this._operation.RequestBodyCardinalityIndicator = HasMultipleRequestParams.Checked;
-            this._operation.ResponseBodyCardinalityIndicator = HasMultipleResponseParams.Checked;
+            this._operation.RequestBodyCardinalityIndicator = RequestMultiple.Checked;
+            this._operation.ResponseBodyCardinalityIndicator = ResponseMultiple.Checked;
+            this._dirty = true;
 
-            Logger.WriteInfo("Plugin.Application.Forms.RESTOperationDialog.IndicatorCheckedChanged >> Collected indicators: RequestBodyIndicator = " + 
-                             this._operation.RequestBodyIndicator + Environment.NewLine +
-                             "ResponseBodyIndicator = " + this._operation.ResponseBodyIndicator + Environment.NewLine +
+            Logger.WriteInfo("Plugin.Application.Forms.RESTOperationDialog.IndicatorCheckedChanged >> Collected indicators: " + 
                              "MultipleRequestIndicator =" + this._operation.RequestBodyCardinalityIndicator + Environment.NewLine +
                              "MultipleResponseIndicator =" + this._operation.ResponseBodyCardinalityIndicator + Environment.NewLine +
                              "PaginationIndicator = " + this._operation.PaginationIndicator + Environment.NewLine +
@@ -344,6 +376,7 @@ namespace Plugin.Application.Forms
             this._operation.ClearConsumedMIMETypes();
             string[] MIMEList = ConsumesMIME.Text.Split(',');
             foreach (string MIMEEntry in MIMEList) this._operation.AddConsumedMIMEType(MIMEEntry.Trim());
+            this._dirty = true;
         }
 
         /// <summary>
@@ -358,6 +391,7 @@ namespace Plugin.Application.Forms
             this._operation.ClearProducedMIMETypes();
             string[] MIMEList = ProducesMIME.Text.Split(',');
             foreach (string MIMEEntry in MIMEList) this._operation.AddProducedMIMEType(MIMEEntry.Trim());
+            this._dirty = true;
         }
 
         /// <summary>
@@ -368,6 +402,7 @@ namespace Plugin.Application.Forms
         private void SummaryText_Leave(object sender, EventArgs e)
         {
             this._operation.Summary = SummaryText.Text;
+            this._dirty = true;
         }
 
         /// <summary>
@@ -378,6 +413,59 @@ namespace Plugin.Application.Forms
         private void Description_Leave(object sender, EventArgs e)
         {
             this._operation.Description = Description.Text;
+            this._dirty = true;
+        }
+
+        /// <summary>
+        /// This event is raised when the user clicks the 'Unlink Request' button.
+        /// Used to clear the current request Document Resource (if present).
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void RemoveRequest_Click(object sender, EventArgs e)
+        {
+            this._operation.ClearDocument(RESTOperationDeclaration._RequestIndicator);
+            RequestTypeName.Clear();
+            this._dirty = true;
+        }
+
+        /// <summary>
+        /// This event is raised when the user clicks the 'Unlink Response' button.
+        /// Used to clear the current response Document Resource (if present).
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void RemoveResponse_Click(object sender, EventArgs e)
+        {
+            this._operation.ClearDocument(RESTOperationDeclaration._ResponseIndicator);
+            ResponseTypeName.Clear();
+            this._dirty = true;
+        }
+
+        /// <summary>
+        /// This event is raised when the user clicks the 'Link Request' button.
+        /// Actual operation is delegated to the OperationDeclaration.SetDocument method.
+        /// Result is shown in the associated type-name field.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void SelectRequest_Click(object sender, EventArgs e)
+        {
+            RequestTypeName.Text = this._operation.SetDocument(RESTOperationDeclaration._RequestIndicator);
+            if (RequestTypeName.Text != string.Empty) this._dirty = true;
+        }
+
+        /// <summary>
+        /// This event is raised when the user clicks the 'Link Response' button.
+        /// Actual operation is delegated to the OperationDeclaration.SetDocument method.
+        /// Result is shown in the associated type-name field.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void SelectResponse_Click(object sender, EventArgs e)
+        {
+            ResponseTypeName.Text = this._operation.SetDocument(RESTOperationDeclaration._ResponseIndicator);
+            if (ResponseTypeName.Text != string.Empty) this._dirty = true;
         }
     }
 }

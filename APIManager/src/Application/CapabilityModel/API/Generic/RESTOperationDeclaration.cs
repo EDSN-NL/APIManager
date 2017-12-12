@@ -14,24 +14,30 @@ namespace Plugin.Application.CapabilityModel.API
     /// </summary>
     internal sealed class RESTOperationDeclaration
     {
+        // We use a boolean indicator to choose between request and response...
+        internal const bool _RequestIndicator           = false;
+        internal const bool _ResponseIndicator          = true;
+
         // Configuration properties used by this module:
         private const string _APISupportModelPathName   = "APISupportModelPathName";
         private const string _OperationResultClassName  = "OperationResultClassName";
         private const string _RESTParameterStereotype   = "RESTParameterStereotype";
-    
-        private const string _Summary = "summary: ";    // Separator between summary text and description text.
+        private const string _ResourceClassStereotype   = "ResourceClassStereotype";
+        private const string _PaginationClassName       = "PaginationClassName";
+
+        private const string _Summary = "summary: ";                // Separator between summary text and description text.
 
         // The status is used to track operations on the declaration.
-        internal enum DeclarationStatus { Invalid, Created, Edited, Deleted }
+        internal enum DeclarationStatus { Invalid, Created, Stable, Edited, Deleted }
 
         private string _name;                                       // Operation name.
         private RESTOperationCapability.OperationType _archetype;   // Associated HTTP type.
-        private Capability _parent;                                 // Represents the 'owner' of the operation.
+        private RESTResourceCapability _parent;                     // Represents the 'owner' of the operation.
         private MEClass _existingOperation;                         // Contains class in case operation has been constructed from existing class.
         private DeclarationStatus _status;                          // Status of this declaration record.
         private DeclarationStatus _initialStatus;                   // Original status of this declaration record.
-        private bool _hasRequestParameters;                         // A message definition is present in the request body.
-        private bool _hasResponseParameters;                        // A message definition is present in the response body.
+        private RESTResourceCapability _requestDocument;            // Resource document to be used for request.
+        private RESTResourceCapability _responseDocument;           // Resource document to be used for the default 'Ok' response.
         private bool _hasMultipleRequestParameters;                 // Request message definition has cardinality > 1.
         private bool _hasMultipleResponseParameters;                // Request message definition has cardinality > 1.
         private bool _hasPagination;                                // Operation must implement default pagination mechanism.
@@ -114,16 +120,16 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Get or set the 'has request body' indicator.
+        /// Get or set the Document Resource to be used as request body.
         /// </summary>
-        internal bool RequestBodyIndicator
+        internal RESTResourceCapability RequestDocument
         {
-            get { return this._hasRequestParameters; }
+            get { return this._requestDocument; }
             set
             {
-                if (this._hasRequestParameters != value)
+                if (this._requestDocument != value)
                 {
-                    this._hasRequestParameters = value;
+                    this._requestDocument = value;
                     if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 }
             }
@@ -146,22 +152,6 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Get or set the 'has response body' indicator.
-        /// </summary>
-        internal bool ResponseBodyIndicator
-        {
-            get { return this._hasResponseParameters; }
-            set
-            {
-                if (this._hasResponseParameters != value)
-                {
-                    this._hasResponseParameters = value;
-                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-                }
-            }
-        }
-
-        /// <summary>
         /// Get or set the response 'cardinality > 1' indicator.
         /// </summary>
         internal bool ResponseBodyCardinalityIndicator
@@ -172,6 +162,22 @@ namespace Plugin.Application.CapabilityModel.API
                 if (this._hasMultipleResponseParameters != value)
                 {
                     this._hasMultipleResponseParameters = value;
+                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get or set the Document Resource to be used as default response body.
+        /// </summary>
+        internal RESTResourceCapability ResponseDocument
+        {
+            get { return this._responseDocument; }
+            set
+            {
+                if (this._responseDocument != value)
+                {
+                    this._responseDocument = value;
                     if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 }
             }
@@ -229,31 +235,7 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Default constructor creates an empty, illegal, operation declaration using "a" capability as parent.
-        /// </summary>
-        internal RESTOperationDeclaration(Capability parent)
-        {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationDeclaration >> Creating empty declaration.");
-            this._name = string.Empty;
-            this._parent = parent;
-            this._existingOperation = null;
-            this._archetype = RESTOperationCapability.OperationType.Unknown;
-            this._status = this._initialStatus = DeclarationStatus.Invalid;
-            this._hasRequestParameters = false;
-            this._hasResponseParameters = false;
-            this._hasPagination = false;
-            this._publicAccess = false;
-            this._producedMIMEList = new List<string>();
-            this._consumedMIMEList = new List<string>();
-            this._queryParams = new SortedList<string, RESTParameterDeclaration>();
-            this._description = string.Empty;
-            this._summaryText = string.Empty;
-
-            CreateDefaultResults();
-        }
-
-        /// <summary>
-        /// Creates a new declaration descriptor using the provided parameters.
+        /// Creates a new, incomplete, declaration descriptor using the provided parameters.
         /// </summary>
         /// <param name="name">The name of the operation (unique within the API).</param>
         /// <param name="archetype">The archetype of the operation (the associated HTTP operation).</param>
@@ -265,10 +247,11 @@ namespace Plugin.Application.CapabilityModel.API
             this._archetype = archetype;
             this._existingOperation = null;
             this._status = DeclarationStatus.Invalid;
-            if (this._name != string.Empty && this._archetype != RESTOperationCapability.OperationType.Unknown) this._status = DeclarationStatus.Created;
             this._initialStatus = this.Status;
-            this._hasRequestParameters = false;
-            this._hasResponseParameters = false;
+            this._requestDocument = null;
+            this._responseDocument = null;
+            this._hasMultipleRequestParameters = false;
+            this._hasMultipleResponseParameters = false;
             this._hasPagination = false;
             this._publicAccess = false;
             this._producedMIMEList = new List<string>();
@@ -282,7 +265,6 @@ namespace Plugin.Application.CapabilityModel.API
 
         /// <summary>
         /// This constructor creates a new operation declaration descriptor using an existing Operation Capability.
-        /// TO DO: NOT ALL SETTINGS ARE PROPERLY COPIED FROM THE CAPABILITY!!!!
         /// </summary>
         /// <param name="operation">Operation Capability to use for initialisation.</param>
         internal RESTOperationDeclaration(RESTOperationCapability operation)
@@ -292,15 +274,19 @@ namespace Plugin.Application.CapabilityModel.API
             this._parent = new RESTResourceCapability(operation.Parent as RESTResourceCapabilityImp);
             this._existingOperation = operation.CapabilityClass;
             this._archetype = operation.HTTPType;
-            this._status = DeclarationStatus.Created;
-            this._initialStatus = this.Status;
-            this._hasRequestParameters = false;
-            this._hasResponseParameters = false;
+            this._status = DeclarationStatus.Stable;
+            this._initialStatus = DeclarationStatus.Stable;
+            this._requestDocument = null;
+            this._responseDocument = null;
+            this._hasMultipleRequestParameters = false;
+            this._hasMultipleResponseParameters = false;
             this._hasPagination = false;
             this._publicAccess = false;
             this._producedMIMEList = operation.ProducedMIMEList;
             this._consumedMIMEList = operation.ConsumedMIMEList;
-            
+            this._queryParams = new SortedList<string, RESTParameterDeclaration>();
+            this._resultList = new SortedList<string, RESTOperationResultDeclaration>();
+
             // Extract documentation from the class. This can be a multi-line object in which the first line might be the 'summary' description...
             List<string> documentation = MEChangeLog.GetDocumentationAsTextLines(operation.CapabilityClass);
             if (documentation.Count > 0)
@@ -337,7 +323,34 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
             }
-            CreateDefaultResults();
+
+            // Build the list of result declarations...
+            foreach (RESTOperationResultCapability result in operation.OperationResultList)
+                this._resultList.Add(result.ResultCode, new RESTOperationResultDeclaration(result));
+
+            // Load information regarding request- and response bodies...
+            this._requestDocument = operation.RequestBodyDocument;
+            this._responseDocument = operation.ResponseBodyDocument;
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
+            string paginationClassName = context.GetConfigProperty(_PaginationClassName);
+            foreach (MEAssociation association in operation.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+            {
+                if (association.Destination.EndPoint.HasStereotype(resourceStereotype))
+                {
+                    if (this._requestDocument != null && association.Destination.EndPoint.Name == this._requestDocument.Name)
+                    {
+                        Tuple<int, int> card = association.GetCardinality(MEAssociation.AssociationEnd.Destination);
+                        this._hasMultipleRequestParameters = (card.Item2 == 0 || card.Item2 > 1);
+                    }
+                    if (this._responseDocument != null && association.Destination.EndPoint.Name == this._responseDocument.Name)
+                    {
+                        Tuple<int, int> card = association.GetCardinality(MEAssociation.AssociationEnd.Destination);
+                        this._hasMultipleResponseParameters = (card.Item2 == 0 || card.Item2 > 1);
+                    }
+                }
+                else if (association.Destination.EndPoint.Name == paginationClassName) this._hasPagination = true;
+            }
         }
 
         /// <summary>
@@ -507,29 +520,21 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Assigns the specified parameter class to the result declaration identified by the specified code. If no result declaration exists
-        /// for that code, the function returns NULL. Otherwise, it returns the affected Result Declaration object.
-        /// Assigning a parameter class will overwrite any existing parameters for the result declaration!
-        /// </summary>
-        /// <param name="code">Result code to update.</param>
-        /// <param name="parameterClass">The parameter class to assign to the result declaration.</param>
-        /// <returns></returns>
-        internal RESTOperationResultDeclaration AddResultParameters(string code, MEClass parameterClass)
-        {
-            if (this._resultList.ContainsKey(code))
-            {
-                this._resultList[code].Parameters = parameterClass;
-                return this._resultList[code];
-            }
-            return null;
-        }
-
-        /// <summary>
         /// Remove the current Consumed MIME Types list.
         /// </summary>
         internal void ClearConsumedMIMETypes()
         {
             this._consumedMIMEList = new List<string>();
+        }
+
+        /// <summary>
+        /// Remove the selected request- or response document.
+        /// </summary>
+        /// <param name="isResponse">When 'true', we clear the response document, otherwise, we clear the request document.</param>
+        internal void ClearDocument(bool isResponse)
+        {
+            if (isResponse && this._responseDocument != null) this._responseDocument = null;
+            else if (!isResponse && this._requestDocument != null) this._requestDocument = null;
         }
 
         /// <summary>
@@ -608,6 +613,53 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Retrieve the list of Document Resources associated with our parent resource. If there are multiple, we ask the user to select
+        /// the one to use as request or response document. If there is only one, we take this. If there are none, we display an error to the user.
+        /// In short: We can ONLY link a document resource to an operation AFTER the user has associated the operation resource with at 
+        /// least one Document resource! Depending on the 'isResponse' flag, we either assign a document to Request or Response.
+        /// </summary>
+        /// <param name="isResponse">If 'true', we assign a document to default Ok response, otherwise, we assign to request.</param>
+        /// <returns>Name of selected resource or empty string in case of errors or cancel.</returns>
+        internal string SetDocument(bool isResponse)
+        {
+            var documentList = new List<Capability>();
+            string documentName = string.Empty;
+            foreach (RESTResourceCapability cap in this._parent.ResourceList(RESTResourceCapability.ResourceArchetype.Document)) documentList.Add(cap);
+            if (documentList.Count > 0)
+            {
+                // If we only have a single associated Document Resource, this is selected automatically. When there are multiple,
+                // we ask the user which one to use...
+                if (documentList.Count == 1)
+                {
+                    RESTResourceCapability document = documentList[0] as RESTResourceCapability;
+                    if (isResponse) this._responseDocument = document;
+                    else this._requestDocument = document;
+                    if (document != null) documentName = document.Name;
+                }
+                else
+                {
+                    using (CapabilityPicker dialog = new CapabilityPicker("Select Document resource", documentList, false, false))
+                    {
+                        if (dialog.ShowDialog() == DialogResult.OK)
+                        {
+                            List<Capability> checkedCapabilities = dialog.GetCheckedCapabilities();
+                            if (checkedCapabilities.Count > 0)
+                            {
+                                // If the user selected multiple, we take the first one.
+                                RESTResourceCapability document = checkedCapabilities[0] as RESTResourceCapability;
+                                if (isResponse) this._responseDocument = document;
+                                else this._requestDocument = document;
+                                if (document != null) documentName = document.Name;
+                            }
+                        }
+                    }
+                }
+            }
+            else MessageBox.Show("No suitable Document Resources to select, add one first!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return documentName;
+        }
+
+        /// <summary>
         /// Helper method that initialises the Operation Result list with four default responses: Default OK, Default Client Error, 
         /// Default Server Error and Generic (default) Error.
         /// </summary>
@@ -624,7 +676,7 @@ namespace Plugin.Application.CapabilityModel.API
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
             MEClass resultParam = model.FindClass(context.GetConfigProperty(_APISupportModelPathName), context.GetConfigProperty(_OperationResultClassName));
-            if (resultParam != null) defaultResponse.Parameters = resultParam;
+            if (resultParam != null) defaultResponse.ResponseDocumentClass = resultParam;
             else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationDeclaration.CreateDefaultResults >> Unable to find '" + 
                                    context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_OperationResultClassName));
         }

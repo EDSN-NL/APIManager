@@ -446,14 +446,11 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                 if (this._panel != null) this._panel.WriteInfo(this._panelIndex + 1, "Class: " + currentClass.Name + " has been assigned Qualified Name: " + qualifiedClassName);
 
                 // Safety catch for loops. Should not happen since inserting the name in the cache down here should prevent this method to be called a second time for the
-                // same class. But even so....better be safe then sorry.
-                if (this._cache.HasClassKey(classKeyToken))
-                {
-                    Logger.WriteWarning("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.processClass >> Loop detected in class: " + classKeyToken + ":" + currentClass.Name);
-                    if (this._panel != null) this._panel.WriteWarning(this._panelIndex + 1, "Loop detected around FQN: " + qualifiedClassName + ". Please check intentions.");
-                    return qualifiedClassName;
-                }
-                this._cache.AddQualifiedClassName(classKeyToken, qualifiedClassName);     // Make sure to remember that we have processed this class!
+                // same class. However, when we use the Schema Processor to generate JSON Schema's for OpenAPI, we call the processor on individual classes and it might
+                // happen that the parser meets the same class multiple times in the same context. In those cases, simply abort further processing since it has already
+                // been processed before!
+                if (this._cache.HasClassKey(classKeyToken)) return qualifiedClassName;
+                else this._cache.AddQualifiedClassName(classKeyToken, qualifiedClassName);     // Make sure to remember that we have processed this class!
 
                 // Prepare documentation. It is important to do this BEFORE we're adding attributes and associations so that the documentation context
                 // is properly set-up for the current class.

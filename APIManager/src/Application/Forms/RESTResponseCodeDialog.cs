@@ -148,14 +148,14 @@ namespace Plugin.Application.Forms
         /// </summary>
         private void AssignParameterClass()
         {
-            if (this._result.Parameters == null &&
+            if (this._result.ResponseDocumentClass == null &&
                 (this._result.Category == RESTOperationResultCapability.ResponseCategory.ClientError ||
                 this._result.Category == RESTOperationResultCapability.ResponseCategory.ServerError))
             {
                 ContextSlt context = ContextSlt.GetContextSlt();
                 ModelSlt model = ModelSlt.GetModelSlt();
                 MEClass resultParam = model.FindClass(context.GetConfigProperty(_APISupportModelPathName), context.GetConfigProperty(_OperationResultClassName));
-                if (resultParam != null) this._result.Parameters = resultParam;
+                if (resultParam != null) this._result.ResponseDocumentClass = resultParam;
                 else Logger.WriteError("Plugin.Application.Forms.RESTResponseCodeDialog.AssiognParameterClass >> Unable to find '" +
                                        context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_OperationResultClassName));
             }

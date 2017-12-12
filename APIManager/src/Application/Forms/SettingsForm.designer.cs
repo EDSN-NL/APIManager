@@ -617,7 +617,7 @@
             this.RAAPIKeyEdit.Image = ((System.Drawing.Image)(resources.GetObject("RAAPIKeyEdit.Image")));
             this.RAAPIKeyEdit.Location = new System.Drawing.Point(179, 79);
             this.RAAPIKeyEdit.Name = "RAAPIKeyEdit";
-            this.RAAPIKeyEdit.Size = new System.Drawing.Size(32, 23);
+            this.RAAPIKeyEdit.Size = new System.Drawing.Size(25, 25);
             this.RAAPIKeyEdit.TabIndex = 3;
             this.RAAPIKeyEdit.UseVisualStyleBackColor = true;
             this.RAAPIKeyEdit.Click += new System.EventHandler(this.RAAPIKeyEdit_Click);

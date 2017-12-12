@@ -17,11 +17,51 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Returns the HTTP Response Code or 'default' if this is the default response.
         /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
         internal string ResultCode
         {
             get
             {
                 if (this._imp != null) return ((RESTOperationResultCapabilityImp)this._imp).ResultCode;
+                else throw new MissingImplementationException("RESTOperationResultCapabilityImp");
+            }
+        }
+
+        /// <summary>
+        /// Returns the HTTP Response code category (100, 200, etc.) as an enumerated type.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal RESTOperationResultCapability.ResponseCategory Category
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationResultCapabilityImp)this._imp).Category;
+                else throw new MissingImplementationException("RESTOperationResultCapabilityImp");
+            }
+        }
+
+        /// <summary>
+        /// Returns 'true' in case cardinality of response body > 1. Undefined when no response body is available.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal bool HasMultipleResponses
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationResultCapabilityImp)this._imp).HasMultipleResponses;
+                else throw new MissingImplementationException("RESTOperationResultCapabilityImp");
+            }
+        }
+
+        /// <summary>
+        /// Returns the response body class (if present, otherwise the Property is NULL).
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal MEClass ResponseBodyClass
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationResultCapabilityImp)this._imp).ResponseBodyClass;
                 else throw new MissingImplementationException("RESTOperationResultCapabilityImp");
             }
         }
@@ -43,9 +83,9 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="parent">The operation for which we create the operation result.</param>
         /// <param name="operation">The associated operation result class.</param>
-        internal RESTOperationResultCapability(RESTOperationCapability parent, MEClass result) : base(result.ElementID)
+        internal RESTOperationResultCapability(RESTOperationCapability parent, TreeNode<MEClass> hierarchy) : base(hierarchy.Data.ElementID)
         {
-            if (!Valid) RegisterCapabilityImp(new RESTOperationResultCapabilityImp(parent, result));
+            if (!Valid) RegisterCapabilityImp(new RESTOperationResultCapabilityImp(parent, hierarchy));
         }
 
         /// <summary>
@@ -85,9 +125,9 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="result">Updated Operation Result properties.</param>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal void EditOperation(RESTOperationResultDeclaration result)
+        internal void Edit(RESTOperationResultDeclaration result)
         {
-            if (this._imp != null) ((RESTOperationResultCapabilityImp)this._imp).EditOperation(result);
+            if (this._imp != null) ((RESTOperationResultCapabilityImp)this._imp).Edit(result);
             else throw new MissingImplementationException("RESTOperationResultCapabilityImp");
         }
     }

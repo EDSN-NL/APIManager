@@ -13,26 +13,28 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _RESTOperationClassStereotype      = "RESTOperationClassStereotype";
         private const string _RESTOperationPkgStereotype        = "RESTOperationPkgStereotype";
         private const string _RESTOperationResultStereotype     = "RESTOperationResultStereotype";
-        private const string _RequestMessageAssemblyClassName   = "RequestMessageAssemblyClassName";
-        private const string _ResponseMessageAssemblyClassName  = "ResponseMessageAssemblyClassName";
-        private const string _RequestMessageRoleName            = "RequestMessageRoleName";
-        private const string _MessageAssemblyClassStereotype    = "MessageAssemblyClassStereotype";
+        private const string _ResourceClassStereotype           = "ResourceClassStereotype";
         private const string _RequestPkgName                    = "RequestPkgName";
         private const string _ResponsePkgName                   = "ResponsePkgName";
+        private const string _CommonPkgName                     = "CommonPkgName";
         private const string _RequestPkgStereotype              = "RequestPkgStereotype";
         private const string _ResponsePkgStereotype             = "ResponsePkgStereotype";
+        private const string _CommonPkgStereotype               = "CommonPkgStereotype";
         private const string _ArchetypeTag                      = "ArchetypeTag";
         private const string _PaginationClassName               = "PaginationClassName";
         private const string _PaginationRoleName                = "PaginationRoleName";
         private const string _APISupportModelPathName           = "APISupportModelPathName";
         private const string _DefaultSuccessCode                = "DefaultSuccessCode";
+        private const string _DefaultResponseCode               = "DefaultResponseCode";
         private const string _ConsumesMIMEListTag               = "ConsumesMIMEListTag";
         private const string _ProducesMIMEListTag               = "ProducesMIMEListTag";
 
-        private RESTResourceCapability _parent;                     // Parent resource capability that owns this operation.
+        private RESTResourceCapability _parent;                 // Parent resource capability that owns this operation.
         private RESTOperationCapability.OperationType _archetype;   // The HTTP operation type associated with the operation.
-        private List<string> _producedMIMETypes;                    // List of non-standard MIME types produced by the operation.
-        private List<string> _consumedMIMETypes;                    // List of non-standard MIME types consumed by the operation.
+        private List<string> _producedMIMETypes;                // List of non-standard MIME types produced by the operation.
+        private List<string> _consumedMIMETypes;                // List of non-standard MIME types consumed by the operation.
+        private RESTResourceCapability _requestBodyDocument;    // If the operation has a request body, this is the associated Document Resource.
+        private RESTResourceCapability _responseBodyDocument;   // If the operation has a response body, this is the associated Document Resource.
 
         /// <summary>
         /// Getters for class properties:
@@ -41,12 +43,36 @@ namespace Plugin.Application.CapabilityModel.API
         /// ConsumedMIMEList = Returns list of non-standard MIME types consumed by the operation.
         /// ProducedMIMEList = Returns list of non-standard MIME types produced by the operation.
         /// ParentResource = The resource that 'owns' this operation.
+        /// RequestBodyDocument = If the operation has a request body, this returns the associated Document Resource.
+        /// ResponseBodyDocument = If the operation has a default Ok response body, this gets/sets the associated Document Resource.
         /// </summary>
         internal RESTOperationCapability.OperationType HTTPType { get { return this._archetype; } }
         internal string HTTPTypeName                            { get { return this._archetype.ToString("G").ToLower(); } }
         internal List<string> ConsumedMIMEList                  { get { return this._consumedMIMETypes; } }
         internal List<string> ProducedMIMEList                  { get { return this._producedMIMETypes; } }
         internal RESTResourceCapability ParentResource          { get { return this._parent; } }
+        internal RESTResourceCapability RequestBodyDocument     { get { return this._requestBodyDocument; } }
+        internal RESTResourceCapability ResponseBodyDocument
+        {
+            get { return this._responseBodyDocument; }
+            set { this._responseBodyDocument = value; }
+        }
+
+        /// <summary>
+        /// Returns the list of Operation Result capabilities for this Operation.
+        /// </summary>
+        internal List<RESTOperationResultCapability> OperationResultList
+        {
+            get
+            {
+                var resultList = new List<RESTOperationResultCapability>();
+                foreach (Capability child in GetChildren())
+                {
+                    if (child is RESTOperationResultCapability) resultList.Add(child as RESTOperationResultCapability);
+                }
+                return resultList;
+            }
+        }
 
         /// <summary>
         /// Creates a new operation based on an operation declaration object. This object contains all the information necessary to create 
@@ -69,6 +95,8 @@ namespace Plugin.Application.CapabilityModel.API
                 var myInterface = new RESTOperationCapability(this);
                 this._consumedMIMETypes = operation.ConsumedMIMETypes;
                 this._producedMIMETypes = operation.ProducedMIMETypes;
+                this._requestBodyDocument = operation.RequestDocument;
+                this._responseBodyDocument = operation.ResponseDocument;
 
                 this._capabilityClass = OperationPackage.CreateClass(operation.Name, context.GetConfigProperty(_RESTOperationClassStereotype));
                 if (this._capabilityClass != null)
@@ -76,7 +104,6 @@ namespace Plugin.Application.CapabilityModel.API
                     this._capabilityClass.SetTag(context.GetConfigProperty(_ArchetypeTag), operation.Archetype.ToString());
                     this._capabilityClass.Version = new Tuple<int, int>(parentResource.RootService.MajorVersion, 0);
                     this._assignedRole = operation.Name;
-                    this._capabilityClass.SetTag(context.GetConfigProperty(_ArchetypeTag), this._archetype.ToString());
 
                     // Load MIME Types...
                     string MIMETypes = string.Empty;
@@ -124,49 +151,43 @@ namespace Plugin.Application.CapabilityModel.API
                     model.CreateAssociation(parentEndpoint, operationEndpoint, MEAssociation.AssociationType.MessageAssociation);
                     InitialiseParent(parentResource);
 
-                    // Check whether we must create an association with a request body...
-                    // Since all body classes end up in the same namespace, we create a unique name by combining the name of the operation with
-                    // the default name of the Request Message Assembly.
-                    // For a request Message Assembly, this results in '<Operation>RequestBodyType' as a resulting name.
-                    string classStereotype = context.GetConfigProperty(_MessageAssemblyClassStereotype);
-                    if (operation.RequestBodyIndicator)
-                    {
-                        string pkgName = context.GetConfigProperty(_RequestPkgName);
-                        string pkgStereotype = context.GetConfigProperty(_RequestPkgStereotype);
-                        string className = this.Name + context.GetConfigProperty(_RequestMessageAssemblyClassName);
-                        string cardinality = operation.RequestBodyCardinalityIndicator ? "1..*" : "1";
-                        MEPackage msgPackage = OperationPackage.FindPackage(pkgName, pkgStereotype);
-                        if (msgPackage == null) msgPackage = OperationPackage.CreatePackage(pkgName, pkgStereotype);
-                        MEClass msgClass = msgPackage.FindClass(className, classStereotype);
-                        if (msgClass == null) msgClass = msgPackage.CreateClass(className, classStereotype);
+                    // Each operation will receive by default a private packages for operation specific request- and response data models as
+                    // well as a 'Common' data model package.
+                    // We leave them empty but users can use these packages to create operation specific models and create Document Resources
+                    // that are associated with these models...
+                    string pkgName = context.GetConfigProperty(_ResponsePkgName);
+                    string pkgStereotype = context.GetConfigProperty(_ResponsePkgStereotype);
+                    MEPackage msgPackage = OperationPackage.FindPackage(pkgName, pkgStereotype);
+                    if (msgPackage == null) msgPackage = OperationPackage.CreatePackage(pkgName, pkgStereotype, 30);
+                    pkgName = context.GetConfigProperty(_RequestPkgName);
+                    pkgStereotype = context.GetConfigProperty(_RequestPkgStereotype);
+                    msgPackage = OperationPackage.FindPackage(pkgName, pkgStereotype);
+                    if (msgPackage == null) msgPackage = OperationPackage.CreatePackage(pkgName, pkgStereotype, 20);
+                    pkgName = context.GetConfigProperty(_CommonPkgName);
+                    pkgStereotype = context.GetConfigProperty(_CommonPkgStereotype);
+                    msgPackage = OperationPackage.FindPackage(pkgName, pkgStereotype);
+                    if (msgPackage == null) msgPackage = OperationPackage.CreatePackage(pkgName, pkgStereotype, 10);
 
-                        // Now we can create the association...
-                        var msgEndpoint = new EndpointDescriptor(msgClass, cardinality, context.GetConfigProperty(_RequestMessageRoleName), null, true);
-                        ModelSlt.GetModelSlt().CreateAssociation(operationEndpoint, msgEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                    // Check whether we must create an association with a request body...
+                    if (this._requestBodyDocument != null)
+                    {
+                        string roleName = RESTUtil.GetAssignedRoleName(this._requestBodyDocument.CapabilityClass.Name);
+                        if (roleName.EndsWith("Type")) roleName = roleName.Substring(0, roleName.IndexOf("Type"));
+                        string cardinality = operation.RequestBodyCardinalityIndicator ? "1..*" : "1";
+                        var componentEndpoint = new EndpointDescriptor(this._requestBodyDocument.CapabilityClass, cardinality, roleName, null, true);
+                        model.CreateAssociation(operationEndpoint, componentEndpoint, MEAssociation.AssociationType.MessageAssociation);
                     }
 
                     // Create Response Object classes for each operation result declaration...
-                    // Since all body classes end up in the same namespace, we create a unique name by combining the name of the operation with
-                    // the operation result code and the default name of the Response Message Assembly.
-                    // For a success response Message Assembly, this results in '<Operation>200ResponseBodyType' as a resulting name.
-                    // Since we can also have a result code 'default', we translate all codes to Pascal Case ('Default').
                     string defaultSuccess = context.GetConfigProperty(_DefaultSuccessCode);
                     foreach (RESTOperationResultDeclaration result in operation.OperationResults)
                     {
-                        if (operation.ResponseBodyIndicator && result.ResultCode == defaultSuccess)
+                        if (this._responseBodyDocument != null && result.ResultCode == defaultSuccess)
                         {
-                            // We need to link the default result descriptor with a result body. First of all, we must create a 
-                            // package and a class for this. They might already exist so check first...
-                            string pkgName = context.GetConfigProperty(_ResponsePkgName);
-                            string pkgStereotype = context.GetConfigProperty(_ResponsePkgStereotype);
-                            string className = this.Name + Conversions.ToPascalCase(result.ResultCode) + 
-                                               context.GetConfigProperty(_ResponseMessageAssemblyClassName);
-                            MEPackage msgPackage = OperationPackage.FindPackage(pkgName, pkgStereotype);
-                            if (msgPackage == null) msgPackage = OperationPackage.CreatePackage(pkgName, pkgStereotype);
-                            MEClass msgClass = msgPackage.FindClass(className, classStereotype);
-                            if (msgClass == null) msgClass = msgPackage.CreateClass(className, classStereotype);
+                            // If we need a response body, this must be linked to the default success result capability.
+                            // We assign the associated document class with the result parameter so it will be linked to the result class.
                             result.HasMultipleResponses = operation.ResponseBodyCardinalityIndicator;
-                            result.Parameters = msgClass;   // Assign as result parameters so it will be linked to the result class.
+                            result.ResponseDocumentClass = this._responseBodyDocument.CapabilityClass;
                         }
                         RESTOperationResultCapability newResult = new RESTOperationResultCapability(myInterface, result);
                         newResult.InitialiseParent(myInterface);
@@ -208,7 +229,7 @@ namespace Plugin.Application.CapabilityModel.API
         {
             try
             {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (existing) >> Creating new instance '" + 
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (existing) >> Creating new instance '" +
                                  parentResource.Name + "." + hierarchy.Data.Name + "'...");
                 ContextSlt context = ContextSlt.GetContextSlt();
                 this._parent = parentResource;
@@ -236,12 +257,13 @@ namespace Plugin.Application.CapabilityModel.API
 
                 // Construct all associated operation results...
                 string operationResultStereotype = context.GetConfigProperty(_RESTOperationResultStereotype);
+                string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
                 var myInterface = new RESTOperationCapability(this);
                 foreach (TreeNode<MEClass> node in hierarchy.Children)
                 {
                     if (node.Data.HasStereotype(operationResultStereotype))
                     {
-                        var resultCap = new RESTOperationResultCapability(myInterface, node.Data);
+                        var resultCap = new RESTOperationResultCapability(myInterface, node);
                         resultCap.InitialiseParent(myInterface);
                         if (!resultCap.Valid)
                         {
@@ -249,6 +271,13 @@ namespace Plugin.Application.CapabilityModel.API
                             this._capabilityClass = null;
                             return;
                         }
+                    }
+                    else if (node.Data.HasStereotype(resourceStereotype))
+                    {
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp >> Found request body '" +
+                                         node.Data.Name + "'...");
+                        // Here we can initialize by MEClass only since the capability must have been created earlier (in my parent Resource).
+                        this._requestBodyDocument = new RESTResourceCapability(node.Data);
                     }
                     else
                     {
@@ -272,7 +301,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         internal override void Delete()
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.delete >> Deleting the operation and all associated resources...");
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.Delete >> Deleting the operation and all associated resources...");
 
             this._parent.RemoveChild(new OperationCapability(this));                // Detaches the operation from the parent.
             base.Delete();                                                          // Deletes the class structure and package.
@@ -280,12 +309,141 @@ namespace Plugin.Application.CapabilityModel.API
 
         /// <summary>
         /// This method is invoked when the user has made one or more changes to an Operation Capability. The method receives an
-        /// Operation Declaration object that contains the (updated) information for the Operation.
+        /// Operation Declaration object that contains the (updated) information for the Operation. The method updates metadata and
+        /// associations where appropriate.
         /// </summary>
         /// <param name="operation">Updated Operation properties.</param>
-        internal void EditOperation(RESTOperationDeclaration operation)
+        /// <param name="minorVersionUpdate">Set to true to force update of API minor version.</param>
+        /// <returns>True on successfull completion, false on errors.</returns>
+        internal bool Edit(RESTOperationDeclaration operation, bool minorVersionUpdate)
         {
-            // NOT YET IMPLEMENTED
+            if (operation.Status == RESTOperationDeclaration.DeclarationStatus.Edited)
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.EditOperation >> Editing '" + operation.Name + "'...");
+                ContextSlt context = ContextSlt.GetContextSlt();
+                ModelSlt model = ModelSlt.GetModelSlt();
+
+                // Check whether our type has changed...
+                if (this._archetype != operation.Archetype)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.EditOperation >> Changed archetype from '" + 
+                                     this._archetype + "' to '" + operation.Archetype + "'!");
+                    this._archetype = operation.Archetype;
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_ArchetypeTag), operation.Archetype.ToString());
+                }
+                
+                // Check whether our name has changed...
+                if (this.Name != operation.Name)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.EditOperation >> Changed name from '" +
+                                     this.Name + "' to '" + operation.Name + "'!");
+                    if (this._capabilityClass.OwningPackage.Parent.FindPackage(operation.Name, context.GetConfigProperty(_RESTOperationPkgStereotype)) == null)
+                    {
+                        this._capabilityClass.OwningPackage.Name = operation.Name;
+                        this._capabilityClass.Name = operation.Name;
+                        this._assignedRole = operation.Name;
+                    }
+                    else
+                    {
+                        Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.EditOperation >> Operation rename from '" +
+                                           this.Name + "' to '" + operation.Name + "' failed: name already in use!");
+                        return false;
+                    }
+                }
+
+                // (Re-)Load MIME Types...
+                if (this._consumedMIMETypes != operation.ConsumedMIMETypes || this._producedMIMETypes != operation.ProducedMIMETypes)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.EditOperation >> MIME Types have changed!");
+                    string MIMETypes = string.Empty;
+                    this._consumedMIMETypes = operation.ConsumedMIMETypes;
+                    this._producedMIMETypes = operation.ProducedMIMETypes;
+                    if (this._producedMIMETypes != null && this._producedMIMETypes.Count > 0)
+                    {
+                        bool firstOne = true;
+                        foreach (string MIMEType in this._producedMIMETypes)
+                        {
+                            MIMETypes += firstOne ? MIMEType : "," + MIMEType;
+                            firstOne = false;
+                        }
+                    }
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_ProducesMIMEListTag), MIMETypes);
+                    MIMETypes = string.Empty;
+                    if (this._consumedMIMETypes != null && this._consumedMIMETypes.Count > 0)
+                    {
+                        bool firstOne = true;
+                        foreach (string MIMEType in this._consumedMIMETypes)
+                        {
+                            MIMETypes += firstOne ? MIMEType : "," + MIMEType;
+                            firstOne = false;
+                        }
+                    }
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_ConsumesMIMEListTag), MIMETypes);
+                }
+
+                // Replace the request- and response body elements...
+                // Check whether we must replace an existing association with a Document Resource...
+                var operationEndpoint = new EndpointDescriptor(this._capabilityClass, "1", this._assignedRole, null, true);
+                if (this._requestBodyDocument != operation.RequestDocument)
+                {
+                    if (this._requestBodyDocument != null)
+                    {
+                        foreach (MEAssociation assoc in this._capabilityClass.AssociationList)
+                        {
+                            if (assoc.Destination.EndPoint == this._requestBodyDocument.CapabilityClass)
+                            {
+                                this._capabilityClass.DeleteAssociation(assoc);
+                                this._requestBodyDocument = null;
+                                break;
+                            }
+                        }
+                    }
+                    if (operation.RequestDocument != null)
+                    {
+                        this._requestBodyDocument = operation.RequestDocument;
+                        string roleName = RESTUtil.GetAssignedRoleName(this._requestBodyDocument.CapabilityClass.Name);
+                        if (roleName.EndsWith("Type")) roleName = roleName.Substring(0, roleName.IndexOf("Type"));
+                        string cardinality = operation.RequestBodyCardinalityIndicator ? "1..*" : "1";
+                        var componentEndpoint = new EndpointDescriptor(this._requestBodyDocument.CapabilityClass, cardinality, roleName, null, true);
+                        model.CreateAssociation(operationEndpoint, componentEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                    }
+                }
+                
+                // (Re-)Load documentation...
+                List<string> documentation = new List<string>();
+                if (!string.IsNullOrEmpty(operation.Summary)) documentation.Add("Summary: " + operation.Summary);
+                if (!string.IsNullOrEmpty(operation.Description)) documentation.Add(operation.Description);
+                if (documentation.Count > 0) MEChangeLog.SetRTFDocumentation(this._capabilityClass, documentation);
+
+                // (re-)Define all query parameter attributes (ConvertToAttribute properly handles existing attributes)...
+                foreach (RESTParameterDeclaration param in operation.Parameters) RESTParameterDeclaration.ConvertToAttribute(this._capabilityClass, param);
+
+                // Create Response Object classes for each operation result declaration...
+                string defaultSuccess = context.GetConfigProperty(_DefaultSuccessCode);
+                foreach (RESTOperationResultDeclaration result in operation.OperationResults)
+                {
+                    // We need to perform a little trick in case of response body definitions: the associated Document Resource has been assigned
+                    // to the Operation and not to the Operation Result. However, it must be passed to the appropriate result in order to properly
+                    // establish the association. So, we must check whether we have 'caught' the default OK response and if so, patch the Result
+                    // Declaration object so it holds the class reference...
+                    if (this._responseBodyDocument != operation.ResponseDocument && result.ResultCode == defaultSuccess)
+                    {
+                        result.HasMultipleResponses = operation.ResponseBodyCardinalityIndicator;
+                        result.ResponseDocumentClass = operation.ResponseDocument != null? operation.ResponseDocument.CapabilityClass: null;
+                        result.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
+                    }
+                    UpdateOperationResult(result);
+                    this._responseBodyDocument = operation.ResponseDocument;
+                }
+                
+                if (minorVersionUpdate)
+                {
+                    var newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
+                    this._capabilityClass.Version = newVersion;
+                }
+                CreateLogEntry("Changes made to Operation.");
+            }
+            return true;
         }
 
         /// <summary>
@@ -336,6 +494,54 @@ namespace Plugin.Application.CapabilityModel.API
             {
                 this._parent = parent as RESTResourceCapability;
                 parent.AddChild(new RESTOperationCapability(this));
+            }
+        }
+
+        /// <summary>
+        /// This helper method is used to update the Operation Result object specified by the 'result' parameter.
+        /// Depending on the result status, a new entry is created, an existing entry removed or an existing entry is updated.
+        /// </summary>
+        /// <param name="result">Operation Result declaration metadata.</param>
+        private void UpdateOperationResult(RESTOperationResultDeclaration result)
+        {
+            string defaultResponse = ContextSlt.GetContextSlt().GetConfigProperty(_DefaultResponseCode);
+            var myInterface = new RESTOperationCapability(this);
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdateOperationResult >> Updating result code '" + result.ResultCode + "'...");
+
+            // Default response can not be edited and invalid status should be ignored...
+            if (result.ResultCode == defaultResponse || result.Status == RESTOperationResultDeclaration.DeclarationStatus.Invalid) return;
+            else
+            {
+                if (result.Status == RESTOperationResultDeclaration.DeclarationStatus.Created)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdateOperationResult >> Creating new result object...");
+                    RESTOperationResultCapability newResult = new RESTOperationResultCapability(myInterface, result);
+                    newResult.InitialiseParent(myInterface);
+                }
+                else if (result.Status == RESTOperationResultDeclaration.DeclarationStatus.Deleted)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdateOperationResult >> Removing result object...");
+                    foreach (Capability cap in GetChildren())
+                    {
+                        if (cap is RESTOperationResultCapability && ((RESTOperationResultCapability)cap).ResultCode == result.ResultCode)
+                        {
+                            DeleteChild(cap.Implementation, true);
+                            return;
+                        }
+                    }
+                }
+                else if (result.Status == RESTOperationResultDeclaration.DeclarationStatus.Edited)
+                {
+                    foreach (Capability cap in GetChildren())
+                    {
+                        if (cap is RESTOperationResultCapability && ((RESTOperationResultCapability)cap).ResultCode == result.OriginalCode)
+                        {
+                            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdateOperationResult >> Edit result object...");
+                            ((RESTOperationResultCapability)cap).Edit(result);
+                            return;
+                        }
+                    }
+                }
             }
         }
     }

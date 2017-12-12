@@ -202,7 +202,8 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// A static helper function that transforms the Parameter declaration to an attribute of the specified class.
+        /// A static helper function that transforms the Parameter declaration to an attribute of the specified class. Depending on the status
+        /// of the parameter, an attribute is created, removed or replaced in the parent class.
         /// </summary>
         /// <param name="parent">Class in which we're going to create the attribute.</param>
         /// <param name="param">The parameter declaration to transform.</param>
@@ -211,7 +212,7 @@ namespace Plugin.Application.CapabilityModel.API
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             MEAttribute newAttrib = null;
-            if (param.Classifier is MEDataType && param.Status != RESTParameterDeclaration.DeclarationStatus.Deleted)
+            if (param.Classifier is MEDataType && param.Status == DeclarationStatus.Created)
             {
                 newAttrib = parent.CreateAttribute(param.Name, (MEDataType)param.Classifier, AttributeType.Attribute, param.Default, param.Cardinality, false);
                 newAttrib.AddStereotype(context.GetConfigProperty(_RESTParameterStereotype));
@@ -219,6 +220,34 @@ namespace Plugin.Application.CapabilityModel.API
                 newAttrib.SetTag(context.GetConfigProperty(_CollectionFormatTag), param._collectionFormat.ToString(), true);
                 newAttrib.SetTag(context.GetConfigProperty(_AllowEmptyParameterValueTag), param._allowEmptyValue.ToString(), true);
                 newAttrib.Annotation = param.Description;
+            }
+            else if (param.Status == DeclarationStatus.Deleted)
+            {
+                foreach (MEAttribute attrib in parent.Attributes)
+                {
+                    if (attrib.Name == param.Name)
+                    {
+                        parent.DeleteAttribute(attrib);
+                        break;
+                    }
+                }
+            }
+            else if (param.Status == DeclarationStatus.Edited)
+            {
+                foreach (MEAttribute attrib in parent.Attributes)
+                {
+                    if (attrib.Name == param.Name)
+                    {
+                        parent.DeleteAttribute(attrib);
+                        newAttrib = parent.CreateAttribute(param.Name, (MEDataType)param.Classifier, AttributeType.Attribute, param.Default, param.Cardinality, false);
+                        newAttrib.AddStereotype(context.GetConfigProperty(_RESTParameterStereotype));
+                        newAttrib.SetTag(context.GetConfigProperty(_ParameterScopeTag), param._scope.ToString(), true);
+                        newAttrib.SetTag(context.GetConfigProperty(_CollectionFormatTag), param._collectionFormat.ToString(), true);
+                        newAttrib.SetTag(context.GetConfigProperty(_AllowEmptyParameterValueTag), param._allowEmptyValue.ToString(), true);
+                        newAttrib.Annotation = param.Description;
+                        break;
+                    }
+                }
             }
             
             // Parameters of type Class must be treated differently since an attribute can only be a simple type!

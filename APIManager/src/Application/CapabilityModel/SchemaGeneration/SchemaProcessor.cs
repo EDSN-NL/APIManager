@@ -280,8 +280,13 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         {
             if (this._cache == null) this._cache = ClassCacheSlt.GetClassCacheSlt(); // Obtain a valid context for processing.
             if (this._panel == null) this._panel = ProgressPanelSlt.GetProgressPanelSlt();
-            return ProcessClass(messageClass, token, 
-                                new Tuple<ClassifierContext.ScopeCode, ClassifierContext.DocScopeCode>(ClassifierContext.ScopeCode.Operation, ClassifierContext.DocScopeCode.Common));
+            string qualifiedClassName = GetQualifiedClassName((messageClass.AliasName != string.Empty) ? messageClass.AliasName : messageClass.Name, 
+                                                              ClassifierContext.ScopeCode.Operation);
+            return (this._cache.HasClassKey(token))? qualifiedClassName:
+                                                     ProcessClass(messageClass, token, 
+                                                                  new Tuple<ClassifierContext.ScopeCode, 
+                                                                            ClassifierContext.DocScopeCode>(ClassifierContext.ScopeCode.Operation, 
+                                                                                                            ClassifierContext.DocScopeCode.Common));
         }
 
         /// <summary>

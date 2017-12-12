@@ -68,25 +68,25 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Facilitates iteration over the set of child resources associated with this resource.
+        /// Facilitates iteration over the set of child resources associated with this parent resource. If the type
+        /// is not equal to 'Unknown', the method only returns children of archetype identified by 'type'.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
+        public IEnumerable<RESTResourceCapability> ResourceList(ResourceArchetype type)
+        {
+            if (this._imp != null) return ((RESTResourceCapabilityImp)this._imp).ResourceList(type);
+            else throw new MissingImplementationException("RESTResourceCapabilityImp");
+        }
+
+        /// <summary>
+        /// Facilitates iteration over the set of child resources associated with this parent resource. This implements the
+        /// 'ResourceList' method from the IRESTResourceContainer interface and simply invokes ResourcesList(Unknown).
         /// </summary>
         /// <returns>Resource Capability enumerator.</returns>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
         public IEnumerable<RESTResourceCapability> ResourceList()
         {
-            if (this._imp != null) return ((RESTResourceCapabilityImp)this._imp).ResourceList();
-            else throw new MissingImplementationException("RESTResourceCapabilityImp");
-        }
-
-        /// <summary>
-        /// Returns the list of all child resource capabilities associated with this resource.
-        /// </summary>
-        /// <returns>List of REST-Resource capabilities.</returns>
-        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        public List<RESTResourceCapability> GetResources()
-        {
-            if (this._imp != null) return ((RESTResourceCapabilityImp)this._imp).GetResources();
-            else throw new MissingImplementationException("RESTResourceCapabilityImp");
+            return ResourceList(ResourceArchetype.Unknown);
         }
 
         /// <summary>

@@ -62,7 +62,8 @@ namespace Plugin.Application.Events.API
             // object by using the 'MEClass' constructor, which fetches the appropriate implementation object from the registry...
             var myService = new RESTService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
             var myInterface = new RESTInterfaceCapability(svcContext.InterfaceClass);
-            List<Capability> allResources = myInterface.GetResources().ConvertAll(BaseConverter);
+            var allResources = new List<Capability>();
+            foreach (Capability cap in myInterface.ResourceList()) allResources.Add(cap);
 
             using (var picker = new CapabilityPicker("Select root Resource(s) to include in the interface:", allResources, true, false))
             {
@@ -101,13 +102,5 @@ namespace Plugin.Application.Events.API
             }
             if (processor != null) myInterface.HandleCapabilities(processor);
         }
-
-        /// <summary>
-        /// Helper function that aids in the conversion of base-class Capabilities to OperationCapabilities.
-        /// It effectively does nothing since an OperationCapability 'is' a Capability but the Lists do not know that ;-)
-        /// </summary>
-        /// <param name="cap">Capability base.</param>
-        /// <returns>Actual derived OperationCapability object.</returns>
-        private Capability BaseConverter(RESTResourceCapability cap) { return cap; }
     }
 }

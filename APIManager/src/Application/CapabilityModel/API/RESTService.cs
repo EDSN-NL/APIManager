@@ -18,6 +18,12 @@ namespace Plugin.Application.CapabilityModel.API
         internal const string _DataModelPkgStereotype               = "DataModelPkgStereotype";
 
         private List<RESTResourceCapability> _tagList;              // The list of REST Resources that are also used as Tags in the interface.
+        private List<RESTResourceCapability> _documentList;         // The list of REST Document resources for this API.
+
+        /// <summary>
+        /// Returns the list of Document Resources for this API.
+        /// </summary>
+        internal List<RESTResourceCapability> DocumentList { get { return this._documentList; } }
 
         /// <summary>
         /// Returns the list of Resources that are marked as 'tags'.
@@ -47,6 +53,7 @@ namespace Plugin.Application.CapabilityModel.API
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
             this._tagList = new List<RESTResourceCapability>();
+            this._documentList = new List<RESTResourceCapability>();
 
             try
             {
@@ -96,6 +103,20 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Searches the list of registered Document resource for a resource with the given name. If found, the capability is returned.
+        /// </summary>
+        /// <param name="name">Name to be found.</param>
+        /// <returns>Document resource with given name or NULL if not found.</returns>
+        internal RESTResourceCapability FindDocumentResource(string name)
+        {
+            foreach (RESTResourceCapability cap in this._documentList)
+            {
+                if (cap.Name == name) return cap;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Constructor used to create a service hierarchy based on an existing structure. The structure must have been collected
         /// earlier (e.g. by instantiating a 'ServiceContext' object) and contains all classes from the Service downwards (Service ->
         /// Interfaces -> CommonSchema + ResourceCollection -> Paths/Operations/ResourceCollections).
@@ -107,6 +128,7 @@ namespace Plugin.Application.CapabilityModel.API
             try
             {
                 this._tagList = new List<RESTResourceCapability>();
+                this._documentList = new List<RESTResourceCapability>();
                 foreach (TreeNode<MEClass> node in hierarchy.Children) AddCapability(new RESTInterfaceCapability(this, node));
             }
             catch (Exception exc)
@@ -114,6 +136,16 @@ namespace Plugin.Application.CapabilityModel.API
                 Logger.WriteError("Plugin.Application.CapabilityModel.APIProcessor.RESTService (existing) >> Error creating capability structure because: " + exc.Message);
                 this._serviceClass = null;   // Assures that instance is declared invalid.
             }
+        }
+
+        /// <summary>
+        /// Registers the provided resource as an element of the document list. We register the resource only if there is not yet a 
+        /// similarly named resource in the list.
+        /// </summary>
+        /// <param name="documentResource">The resource to be registered.</param>
+        internal void RegisterDocument(RESTResourceCapability documentResource)
+        {
+            if (!this._documentList.Contains(documentResource)) this._documentList.Add(documentResource);
         }
 
         /// <summary>

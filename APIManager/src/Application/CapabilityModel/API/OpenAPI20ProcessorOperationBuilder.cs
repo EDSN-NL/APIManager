@@ -16,11 +16,11 @@ namespace Plugin.Application.CapabilityModel.API
     internal partial class OpenAPI20Processor : CapabilityProcessor
     {
         // Configuration properties used by this module...
-        private const string _ConsumesMIMEListTag               = "ConsumesMIMEListTag";
-        private const string _ProducesMIMEListTag               = "ProducesMIMEListTag";
-        private const string _PaginationClassName               = "PaginationClassName";
-        private const string _OperationResultClassName          = "OperationResultClassName";
-        private const string _MessageAssemblyClassStereotype    = "MessageAssemblyClassStereotype";
+        private const string _ConsumesMIMEListTag       = "ConsumesMIMEListTag";
+        private const string _ProducesMIMEListTag       = "ProducesMIMEListTag";
+        private const string _PaginationClassName       = "PaginationClassName";
+        private const string _OperationResultClassName  = "OperationResultClassName";
+        private const string _ResourceClassStereotype   = "ResourceClassStereotype";
 
         // Separator between summary text and description text
         private const string _Summary = "summary: ";
@@ -127,11 +127,12 @@ namespace Plugin.Application.CapabilityModel.API
                     this._JSONWriter.WriteValue(resultDocumentation);
                 }
 
-                // Check whether we must support a default response body or body parameters...
+                // Check whether we must support a default response body or body parameters. If this is the case, we must have an association
+                // with a Document Resource, which in turn contains an association with the Business Component that we must use as schema root.
                 string defaultResponseClass = context.GetConfigProperty(_OperationResultClassName);
-                string msgAssemblyStereotype = context.GetConfigProperty(_MessageAssemblyClassStereotype);
+                string resourceClassStereotype = context.GetConfigProperty(_ResourceClassStereotype);
 
-                // Go over each association, looking for stuff to process....
+                // Go over each association, looking for default response classes...
                 foreach (MEAssociation assoc in operationResult.CapabilityClass.AssociationList)
                 {
                     if (assoc.Destination.EndPoint.Name == defaultResponseClass)
@@ -139,12 +140,15 @@ namespace Plugin.Application.CapabilityModel.API
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Found default response class, generate reference...");
                         result = WriteDefaultResponse(assoc.Destination.EndPoint);
                     }
-                    else if (assoc.Destination.EndPoint.HasStereotype(msgAssemblyStereotype))
-                    {
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Found a body parameter...");
-                        result = WriteResponseBodyParameter(assoc.Destination.EndPoint, assoc.GetCardinality(MEAssociation.AssociationEnd.Destination));
-                    }
                 }
+
+                if (operationResult.ResponseBodyClass != null)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Found a body parameter...");
+                    var cardinality = new Tuple<int, int>(1, operationResult.HasMultipleResponses ? 0 : 1);
+                    result = WriteResponseBodyParameter(operationResult.ResponseBodyClass, cardinality);
+                }
+                
             } this._JSONWriter.WriteEndObject();
             return true;
         }
@@ -176,9 +180,8 @@ namespace Plugin.Application.CapabilityModel.API
 
             if (result)
             {
-                // Check whether we must support pagination and body parameters...
                 string paginationClass = context.GetConfigProperty(_PaginationClassName);
-                string msgAssemblyStereotype = context.GetConfigProperty(_MessageAssemblyClassStereotype);
+                string resourceClassStereotype = context.GetConfigProperty(_ResourceClassStereotype);
 
                 // Check if we have any query parameters...
                 result = WriteQueryParameters(operation.CapabilityClass);
@@ -193,7 +196,7 @@ namespace Plugin.Application.CapabilityModel.API
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildParameters >> Found Pagination class! Processing query parameters...");
                         result = WritePagination(assoc.Destination.EndPoint);
                     }
-                    else if (assoc.Destination.EndPoint.HasStereotype(msgAssemblyStereotype))
+                    else if (assoc.Destination.EndPoint.HasStereotype(resourceClassStereotype))
                     {
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildParameters >> Found a body parameter...");
                         result = WriteRequestBodyParameter(assoc.Destination.EndPoint, assoc.GetCardinality(MEAssociation.AssociationEnd.Destination));
@@ -277,7 +280,7 @@ namespace Plugin.Application.CapabilityModel.API
                         this._JSONWriter.WritePropertyName("allowEmptyValue"); this._JSONWriter.WriteValue(paramList[attrib.Name].AllowEmptyValue);
 
                         // Collect the JSON Schema for the attribute as a string...
-                        string attribText = attrib.GetClassifierAsText();
+                        string attribText = attrib.GetClassifierAsJSONSchemaText();
                         attribText = attribText.Substring(1, attribText.Length - 2);    // Get rid of '{' and '}' from the schema.
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteQueryParameters >> Got attribute: '" + attribText + "'...");
                         this._JSONWriter.WriteRaw("," + attribText);
@@ -294,7 +297,8 @@ namespace Plugin.Application.CapabilityModel.API
                         }
                         if (!string.IsNullOrEmpty(paramList[attrib.Name].Default) && !attrib.IsMandatory)
                         {
-                            this._JSONWriter.WritePropertyName("default"); this._JSONWriter.WriteValue(paramList[attrib.Name].Default);
+                            this._JSONWriter.WritePropertyName("default");
+                            this._JSONWriter.WriteValue(paramList[attrib.Name].Default);
                         }
                     }
                     this._JSONWriter.WriteEndObject();
@@ -305,29 +309,44 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Writes a request body parameter using the specified message Profile root. Each operation may have at most ONE body parameter and each
-        /// must refer to an, operation specific, unique message model. The root of this model is a Message Assembly class that may- or may not
-        /// have private properties.
-        /// The operation initiates schema generation for the associated message model and writes a reference to that model.
+        /// Writes a request body parameter using the specified Document Resource, which in turn has a reference to the Business Component that
+        /// acts as the schema root. Each operation may have at most ONE body parameter and each must refer to an, operation specific, unique 
+        /// message model. The root of this model is a Business Component.
+        /// The operation initiates schema generation for the associated message model and writes a reference to that model. If the cardinality
+        /// of the Document Resource association is > 1, we generate an array of references instead of a single reference.
         /// </summary>
-        /// <param name="messageProfile">The top of the message profile.</param>
+        /// <param name="documentResourceClass">The DocumentResource class that contains the association with our schema root.</param>
         /// <param name="cardinality">The cardinality of the request object association. If upper limit > 1, we must create an array.</param>
         /// <returns>True when processed ok, false on errors.</returns>
-        private bool WriteRequestBodyParameter(MEClass messageProfile, Tuple<int,int> cardinality)
+        private bool WriteRequestBodyParameter(MEClass documentResourceClass, Tuple<int,int> cardinality)
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestBodyParameter >> Processing body class '" + messageProfile.Name + "'...");
-            this._panel.WriteInfo(this._panelIndex + 3, "Processing Request Message Body '" + messageProfile.Name + "'...");
-            string qualifiedClassName = this._schema.ProcessClass(messageProfile, messageProfile.Name);
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestBodyParameter >> Processing body class '" + documentResourceClass.Name + "'...");
+            this._panel.WriteInfo(this._panelIndex + 3, "Processing Request Message Body '" + documentResourceClass.Name + "'...");
             bool result = false;
+            string qualifiedClassName = string.Empty;
+            MEClass schemaClass = null;
+
+            // Locate the business component with the same name as the Document Resource class...
+            foreach (MEAssociation association in documentResourceClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+            {
+                if (association.Destination.EndPoint.Name == documentResourceClass.Name)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestBodyParameter >> Found Business Component, processing...");
+                    qualifiedClassName = this._schema.ProcessClass(association.Destination.EndPoint, documentResourceClass.Name);
+                    schemaClass = association.Destination.EndPoint;
+                    break;
+                }
+            }
+
             if (qualifiedClassName != string.Empty)
             {
                 this._JSONWriter.WriteStartObject();
                 {
                     this._JSONWriter.WritePropertyName("name"); this._JSONWriter.WriteValue("body");
                     this._JSONWriter.WritePropertyName("in"); this._JSONWriter.WriteValue("body");
-                    if (!string.IsNullOrEmpty(messageProfile.Annotation))
+                    if (!string.IsNullOrEmpty(schemaClass.Annotation))
                     {
-                        this._JSONWriter.WritePropertyName("description"); this._JSONWriter.WriteValue(messageProfile.Annotation);
+                        this._JSONWriter.WritePropertyName("description"); this._JSONWriter.WriteValue(schemaClass.Annotation);
                     }
                     this._JSONWriter.WritePropertyName("required"); this._JSONWriter.WriteValue(true);
 
@@ -364,21 +383,30 @@ namespace Plugin.Application.CapabilityModel.API
 
         /// <summary>
         /// Writes a request body parameter using the specified message Profile root. Each operation may have at most ONE body parameter and each
-        /// must refer to an, operation specific, unique message model. The root of this model is a Message Assembly class that may- or may not
-        /// have private properties. The method always creates a reference to the Message Assembly class. If the association role has a cardinality
-        /// > 1, we create an array of references.
-        /// The method checks whether the Message Assembly has associations. If so, it is considered a complex model and added as a reference.
-        /// If the Message Assemble does not have associations, it is expanded in-line in the response as a response object.
+        /// must refer to an, operation specific, unique message model. The root of this model is specified by a Document Resource class that in turn
+        /// contains an association with the Business Component that acts as the actual message root.The method always creates a reference to this
+        /// Business Component class. If the association role has a cardinality > 1, we create an array of references.
         /// </summary>
-        /// <param name="messageProfile">The top of the message profile.</param>
-        /// <param name="cardinality">The cardinality of the response object association. If upper limit > 1, we must create an array.</param>
+        /// <param name="documentResourceClass">The DocumentResource class that contains the association with our schema root.</param>
+        /// <param name="cardinality">The cardinality of the Document Resource association. If upper limit > 1, we must create an array.</param>
         /// <returns>True when processed ok, false on errors.</returns>
-        private bool WriteResponseBodyParameter(MEClass messageProfile, Tuple<int,int> cardinality)
+        private bool WriteResponseBodyParameter(MEClass documentResourceClass, Tuple<int,int> cardinality)
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Processing body class '" + messageProfile.Name + "'...");
-            this._panel.WriteInfo(this._panelIndex + 3, "Processing Response Message Body '" + messageProfile.Name + "'...");
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Processing document class '" + documentResourceClass.Name + "'...");
+            this._panel.WriteInfo(this._panelIndex + 3, "Processing Response Message Body '" + documentResourceClass.Name + "'...");
             bool result = false;
-            string qualifiedClassName = this._schema.ProcessClass(messageProfile, messageProfile.Name);
+            string qualifiedClassName = string.Empty;
+
+            // Locate the business component with the same name as the Document Resource class...
+            foreach (MEAssociation association in documentResourceClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+            {
+                if (association.Destination.EndPoint.Name == documentResourceClass.Name)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Found Business Component, processing...");
+                    qualifiedClassName = this._schema.ProcessClass(association.Destination.EndPoint, documentResourceClass.Name);
+                    break;
+                }
+            }
 
             if (qualifiedClassName != string.Empty)
             {
@@ -441,7 +469,7 @@ namespace Plugin.Application.CapabilityModel.API
                         this._JSONWriter.WritePropertyName("required");     this._JSONWriter.WriteValue(true);
 
                         // Collect the JSON Schema for the attribute as a string...
-                        string attribText = attrib.GetClassifierAsText();
+                        string attribText = attrib.GetClassifierAsJSONSchemaText();
                         attribText = attribText.Substring(1, attribText.Length - 2);    // Get rid of '{' and '}' from the schema.
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteIdentifierParameter >> Got attribute: '" + attribText + "'...");
                         this._JSONWriter.WriteRaw("," + attribText);
@@ -492,7 +520,7 @@ namespace Plugin.Application.CapabilityModel.API
                     this._JSONWriter.WritePropertyName("required"); this._JSONWriter.WriteValue(attrib.IsMandatory ? true : false);
 
                     // Collect the JSON Schema for the attribute as a string...
-                    string attribText = attrib.GetClassifierAsText();
+                    string attribText = attrib.GetClassifierAsJSONSchemaText();
                     attribText = attribText.Substring(1, attribText.Length - 2);    // Get rid of '{' and '}' from the schema.
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WritePagination >> Got attribute: '" + attribText + "'...");
                     this._JSONWriter.WriteRaw("," + attribText);

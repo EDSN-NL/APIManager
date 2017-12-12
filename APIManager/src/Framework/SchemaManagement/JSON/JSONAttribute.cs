@@ -216,7 +216,7 @@ namespace Framework.Util.SchemaManagement.JSON
         /// When expanded in-line, the method returns the 'bare minimum' schema text (no Title, no AdditionalItems and no description).
         /// </summary>
         /// <returns>Formatted text string that describes the attribute in JSON Schema.</returns>
-        internal string GetClassifierAsText()
+        internal string GetClassifierAsJSONSchemaText()
         {
             if (this._classifier != null && this._classifier.IsReferenceType)
             {

@@ -89,6 +89,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="resources\Settings.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\EditRESTOperationEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\AddRESTOperationEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\AddRESTResourceEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\CreateRESTServiceDeclarationEvent.cs" />
@@ -206,12 +207,6 @@
     </Compile>
     <Compile Include="src\Application\Forms\RESTAuthEditAPIKeys.Designer.cs">
       <DependentUpon>RESTAuthEditAPIKeys.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Application\Forms\RESTResponseManager.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="src\Application\Forms\RESTResponseManager.Designer.cs">
-      <DependentUpon>RESTResponseManager.cs</DependentUpon>
     </Compile>
     <Compile Include="src\Framework\Model\Interface\MEClassMetaData.cs" />
     <Compile Include="src\Framework\SchemaManagement\JSON\JSONPropertyInterface.cs" />
@@ -559,9 +554,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Application\Forms\RESTAuthEditAPIKeys.resx">
       <DependentUpon>RESTAuthEditAPIKeys.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RESTResponseManager.resx">
-      <DependentUpon>RESTResponseManager.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Application\Forms\SettingsForm.resx">
       <DependentUpon>SettingsForm.cs</DependentUpon>

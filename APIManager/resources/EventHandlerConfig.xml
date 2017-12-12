@@ -151,6 +151,13 @@
              <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
            </StereotypeList>
          </EventHandler>
+         <EventHandler ID="Operation: Edit">
+           <HandlerFQN>Plugin.Application.Events.API.EditRESTOperationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on REST Operations. -->
+             <StereotypeName>Enexis ECDM::RESTOperation</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
          <EventHandler ID="Resource: Add">
            <HandlerFQN>Plugin.Application.Events.API.AddRESTResourceEvent</HandlerFQN>
            <StereotypeList>
@@ -360,6 +367,13 @@
            <StereotypeList>
              <!-- This event only works on Resources. -->
              <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Operation: Edit">
+           <HandlerFQN>Plugin.Application.Events.API.EditRESTOperationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on REST Operations. -->
+             <StereotypeName>Enexis ECDM::RESTOperation</StereotypeName>
            </StereotypeList>
          </EventHandler>
          <EventHandler ID="Resource: Add">

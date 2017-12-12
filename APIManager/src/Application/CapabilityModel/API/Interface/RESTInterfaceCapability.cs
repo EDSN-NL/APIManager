@@ -85,17 +85,6 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Returns the list of all resource capabilities associated with this Interface.
-        /// </summary>
-        /// <returns>List of REST-Resource capabilities.</returns>
-        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        public List<RESTResourceCapability> GetResources()
-        {
-            if (this._imp != null) return ((RESTInterfaceCapabilityImp)this._imp).GetResources();
-            else throw new MissingImplementationException("RESTInterfaceCapabilityImp");
-        }
-
-        /// <summary>
         /// Create constructor, used to create a new instance of an Interface. The constructor assumes that the package structure
         /// exists and that there exists a service to which we can connect the new capability. The constructor creates the
         /// appropriate model elements in the correct packages and links stuff together. If no collectionNames are specified, the

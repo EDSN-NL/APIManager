@@ -69,6 +69,19 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Returns the list of Operation Result capabilities for this Operation.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
+        internal List<RESTOperationResultCapability> OperationResultList
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).OperationResultList;
+                else throw new MissingImplementationException("RESTOperationCapabilityImp");
+            }
+        }
+
+        /// <summary>
         /// Returns the resource that 'owns' this operation.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
@@ -91,6 +104,38 @@ namespace Plugin.Application.CapabilityModel.API
             get
             {
                 if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).ProducedMIMEList;
+                else throw new MissingImplementationException("RESTOperationCapabilityImp");
+            }
+        }
+
+        /// <summary>
+        /// Returns the Document resource that is used as request body (if assigned). The property is NULL when no request body is defined.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
+        internal RESTResourceCapability RequestBodyDocument
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).RequestBodyDocument;
+                else throw new MissingImplementationException("RESTOperationCapabilityImp");
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the Document resource that is used as default 'Ok' response body. The returned property is NULL when no 
+        /// response body is defined.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
+        internal RESTResourceCapability ResponseBodyDocument
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).ResponseBodyDocument;
+                else throw new MissingImplementationException("RESTOperationCapabilityImp");
+            }
+            set
+            {
+                if (this._imp != null) ((RESTOperationCapabilityImp)this._imp).ResponseBodyDocument = value;
                 else throw new MissingImplementationException("RESTOperationCapabilityImp");
             }
         }
@@ -142,10 +187,12 @@ namespace Plugin.Application.CapabilityModel.API
         /// Operation Declaration object that contains the (updated) information for the Operation.
         /// </summary>
         /// <param name="operation">Updated Operation properties.</param>
+        /// <param name="minorVersionUpdate">Set to 'true' to force update of the minor version of the API.</param>
+        /// <returns>True on successfull completion, false on errors.</returns>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal void EditOperation(RESTOperationDeclaration operation)
+        internal bool Edit(RESTOperationDeclaration operation, bool minorVersionUpdate)
         {
-            if (this._imp != null) ((RESTOperationCapabilityImp)this._imp).EditOperation(operation);
+            if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).Edit(operation, minorVersionUpdate);
             else throw new MissingImplementationException("RESTOperationCapabilityImp");
         }
 

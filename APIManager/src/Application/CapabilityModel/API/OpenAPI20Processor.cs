@@ -181,16 +181,20 @@ namespace Plugin.Application.CapabilityModel.API
                         }
                         else if (capability is RESTResourceCapability)
                         {
-                            this._panel.WriteInfo(this._panelIndex + 1, "Processing Resource '" + capability.Name + "'...");
-                            if (this._inOperationResult)
+                            // We MUST NOT process Document Resources, these are just placeholders for the message schemas!
+                            if (((RESTResourceCapability)capability).Archetype != RESTResourceCapability.ResourceArchetype.Document)
                             {
-                                this._JSONWriter.WriteEndObject();      // Close previous response parameter.
-                                this._JSONWriter.WriteEndObject();      // And close the 'responses' section.
-                            }
-                            this._inOperationResult = false;
+                                this._panel.WriteInfo(this._panelIndex + 1, "Processing Resource '" + capability.Name + "'...");
+                                if (this._inOperationResult)
+                                {
+                                    this._JSONWriter.WriteEndObject();      // Close previous response parameter.
+                                    this._JSONWriter.WriteEndObject();      // And close the 'responses' section.
+                                }
+                                this._inOperationResult = false;
 
-                            // We set 'currentResource' in here as part of the path-construction process...
-                            DefinePath(capability as RESTResourceCapability);
+                                // We set 'currentResource' in here as part of the path-construction process...
+                                DefinePath(capability as RESTResourceCapability);
+                            }
                         }
                         else if (capability is RESTOperationCapability)
                         {
@@ -219,8 +223,9 @@ namespace Plugin.Application.CapabilityModel.API
 
                     // During post-processing we're saving the generated interface as well as all documentation...
                     // Since processing stage ended with path-processing, the first thing we do here is end the 'paths' section.
-                    // We use Interface Capability for re-initializing our context since that will be the first capability to be called
+                    // We use Interface Capability for clearing our context since that will be the first capability to be called
                     // in post-processing stage...
+                    // Basically, all other capabilities are ignored here (except for increasing the progress bar)...
                     case ProcessingStage.PostProcess:
                         if (capability is RESTInterfaceCapability)
                         {
@@ -242,15 +247,15 @@ namespace Plugin.Application.CapabilityModel.API
                             this._JSONWriter.WriteEndObject();          // End of OpenAPI definition object.
                             this._JSONWriter.Flush();
                             result = SaveProcessedCapability();
+
+                            // Release resources...
+                            this._isPathInitialized = false;
+                            this._panel.Done();
+                            this._JSONWriter.Close();
+                            this._outputWriter.Close();
+                            ClassCacheSlt.GetClassCacheSlt().Flush();   // Remove all collected resources on exit.
                         }
                         this._panel.IncreaseBar(1);
-
-                        // Release resources...
-                        this._isPathInitialized = false;
-                        this._panel.Done();
-                        this._JSONWriter.Close();
-                        this._outputWriter.Close();
-                        ClassCacheSlt.GetClassCacheSlt().Flush();   // Remove all collected resources on exit.
                         break;
 
                     // Cancelling stage is used to send a message and deleting the Common Schema...

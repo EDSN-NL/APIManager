@@ -15,16 +15,33 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _ResultCodeAttributeClassifier     = "ResultCodeAttributeClassifier";
         private const string _CoreDataTypesPathName             = "CoreDataTypesPathName";
         private const string _RESTOperationResultStereotype     = "RESTOperationResultStereotype";
+        private const string _ResourceClassStereotype           = "ResourceClassStereotype";
         private const string _DefaultResponseCode               = "DefaultResponseCode";
 
-        private RESTOperationCapability _parent;                            // Parent operation capability that owns this result.
         private RESTOperationResultCapability.ResponseCategory _category;   // The result category code
         private string _resultCode;                                         // Operation result code (must match category).
+        private MEClass _responseBodyClass;                                 // Response body class in case result has a body.
+        private bool _multipleResponses;                                    // True when cardinality of response body is > 1.
+
+        /// <summary>
+        /// Returns 'true' in case cardinality of response body > 1. Undefined when no response body is available.
+        /// </summary>
+        internal bool HasMultipleResponses { get { return this._multipleResponses; } }
 
         /// <summary>
         /// Returns the HTTP response code as a string. 
         /// </summary>
         internal string ResultCode  { get { return this._resultCode; } }
+
+        /// <summary>
+        /// Returns the response category code (100, 200, 300, etc.)
+        /// </summary>
+        internal RESTOperationResultCapability.ResponseCategory Category { get { return this._category; } }
+
+        /// <summary>
+        /// Returns the response body class (if present, otherwise the Property is NULL).
+        /// </summary>
+        internal MEClass ResponseBodyClass { get { return this._responseBodyClass; } }
         
         /// <summary>
         /// Creates a new operation result capability based on a declaration object. This object contains all the information necessary to create 
@@ -40,9 +57,10 @@ namespace Plugin.Application.CapabilityModel.API
                                  parentOperation.Name + "." + result.ResultCode + "'...");
                 ContextSlt context = ContextSlt.GetContextSlt();
                 ModelSlt model = ModelSlt.GetModelSlt();
-                this._parent = parentOperation;
                 this._category = result.Category;
                 this._resultCode = result.ResultCode;
+                this._responseBodyClass = result.ResponseDocumentClass;
+                this._multipleResponses = result.HasMultipleResponses;
                 this._assignedRole = context.GetConfigProperty(_OperationResultPrefix) + Conversions.ToPascalCase(this._resultCode);
                 this._capabilityClass = parentOperation.OperationPackage.CreateClass(this._assignedRole + "Type", context.GetConfigProperty(_RESTOperationResultStereotype));
                 var myEndpoint = new EndpointDescriptor(this._capabilityClass, "1", this.AssignedRole, null, false);
@@ -53,13 +71,13 @@ namespace Plugin.Application.CapabilityModel.API
                     this._capabilityClass.CreateAttribute(context.GetConfigProperty(_ResultCodeAttributeName), classifier,
                                                           AttributeType.Attribute, this._resultCode, new Tuple<int, int>(1, 1), true);
                     MEChangeLog.SetRTFDocumentation(this._capabilityClass, result.Description);
-                    if (result.Parameters != null)
+                    if (result.ResponseDocumentClass != null)
                     {
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp (declaration) >> Associating with response type '" + result.Parameters.Name + "'...");
-                        string roleName = Conversions.ToPascalCase(result.Parameters.Name);
-                        string cardinality = result.HasMultipleResponses ? "1..*" : "1";
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp (declaration) >> Associating with response type '" + result.ResponseDocumentClass.Name + "'...");
+                        string roleName = RESTUtil.GetAssignedRoleName(result.ResponseDocumentClass.Name);
                         if (roleName.EndsWith("Type")) roleName = roleName.Substring(0, roleName.IndexOf("Type"));
-                        var typeEndpoint = new EndpointDescriptor(result.Parameters, cardinality, roleName, null, true);
+                        string cardinality = result.HasMultipleResponses ? "1..*" : "1";
+                        var typeEndpoint = new EndpointDescriptor(result.ResponseDocumentClass, cardinality, roleName, null, true);
                         model.CreateAssociation(myEndpoint, typeEndpoint, MEAssociation.AssociationType.MessageAssociation);
                     }
                 }
@@ -83,31 +101,64 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Generic constructor to be used for existing class models. The constructor initialises local context.
         /// </summary>
-        /// <param name="myCollection">The resource collection for which we create the operation.</param>
+        /// <param name="hierarchy">The resource collection nodefor which we create the operation.</param>
         /// <param name="operationClass">Class associated with the operation.</param>
-        internal RESTOperationResultCapabilityImp(RESTOperationCapability parentOperation, MEClass resultClass): base(parentOperation.RootService)
+        internal RESTOperationResultCapabilityImp(RESTOperationCapability parentOperation, TreeNode<MEClass> hierarchy): base(parentOperation.RootService)
         {
             try
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp (existing) >> Creating new instance '" + 
-                                 parentOperation.Name + "." + resultClass.Name + "'...");
+                                 parentOperation.Name + "." + hierarchy.Data.Name + "'...");
                 ContextSlt context = ContextSlt.GetContextSlt();
-                this._parent = parentOperation;
-                this._capabilityClass = resultClass;
+                this._capabilityClass = hierarchy.Data;
                 this._assignedRole = parentOperation.FindChildClassRole(this._capabilityClass.Name, context.GetConfigProperty(_RESTOperationResultStereotype));
                 this._resultCode = string.Empty;
+                this._responseBodyClass = null;
+                this._multipleResponses = false;
                 this._category = RESTOperationResultCapability.ResponseCategory.Unknown;
-                string resultCodeAttibName = context.GetConfigProperty(_ResultCodeAttributeName);
+                string resultCodeAttribName = context.GetConfigProperty(_ResultCodeAttributeName);
                 string defaultResponse = context.GetConfigProperty(_DefaultResponseCode);
 
-                foreach (MEAttribute attrib in resultClass.Attributes)
+                foreach (MEAttribute attrib in hierarchy.Data.Attributes)
                 {
-                    if (attrib.Name == resultCodeAttibName)
+                    if (attrib.Name == resultCodeAttribName)
                     {
                         this._resultCode = attrib.FixedValue;
                         this._category = (this._resultCode == defaultResponse)? RESTOperationResultCapability.ResponseCategory.Default:
                                          (RESTOperationResultCapability.ResponseCategory)(int.Parse(this._resultCode[0].ToString()));
                         break;
+                    }
+                }
+
+                // Look for a Document Resource, which in turn has an association with the Business Component that we must use as the 
+                // root of our response schema. We link to the document resource since that is how the model is constructed and which 
+                // is expected by the schema generator.
+                // There can be at most ONE such associated Document, so we quit after finding the first one.
+                string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
+                foreach (TreeNode<MEClass> node in hierarchy.Children)
+                {
+                    if (node.Data.HasStereotype(resourceStereotype))
+                    {
+                        this._responseBodyClass = node.Data;
+                        parentOperation.ResponseBodyDocument = new RESTResourceCapability(node.Data);
+                        // Now we have to figure out what the cardinality with the Document Resource is like...
+                        foreach (MEAssociation association in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                        {
+                            if (association.Destination.EndPoint == this._responseBodyClass)
+                            {
+                                Tuple<int,int> cardinality = association.GetCardinality(MEAssociation.AssociationEnd.Destination);
+                                this._multipleResponses = cardinality.Item2 == 0 || cardinality.Item2 > 1;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp >> Unknown child type '" +
+                                          node.GetType() + "' with name '" + node.Data.Name + "'!");
+                        this._capabilityClass = null;
+                        return;
                     }
                 }
             }
@@ -135,9 +186,31 @@ namespace Plugin.Application.CapabilityModel.API
         /// Operation Result Declaration object that contains the (updated) information for the Result.
         /// </summary>
         /// <param name="result">Updated Operation Result properties.</param>
-        internal void EditOperation(RESTOperationResultDeclaration result)
+        internal void Edit(RESTOperationResultDeclaration result)
         {
-            // NOT YET IMPLEMENTED
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string newRoleName = context.GetConfigProperty(_OperationResultPrefix) + Conversions.ToPascalCase(result.ResultCode);
+            string newName = newRoleName + "Type";
+
+            if (this._capabilityClass.Name != newName)
+            {
+                this._resultCode = result.ResultCode;
+                this._category = (RESTOperationResultCapability.ResponseCategory)(int.Parse(this._resultCode[0].ToString()));
+                string resultCodeAttribName = context.GetConfigProperty(_ResultCodeAttributeName);
+                Rename(newName);
+
+                foreach (MEAttribute attrib in this._capabilityClass.Attributes)
+                {
+                    if (attrib.Name == resultCodeAttribName)
+                    {
+                        attrib.FixedValue = this._resultCode;
+                        break;
+                    }
+                }
+            }
+
+            UpdateResponseDocument(result);
+            MEChangeLog.SetRTFDocumentation(this._capabilityClass, result.Description);
         }
 
         /// <summary>
@@ -181,10 +254,64 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="parent">The parent Capability that has taken ownership of this Capability.</param>
         internal override void InitialiseParent(Capability parent)
         {
-            if (parent is RESTOperationCapability)
+            if (parent is RESTOperationCapability) parent.AddChild(new RESTOperationResultCapability(this));
+        }
+
+        /// <summary>
+        /// Overrides the default parent 'rename' method. This method replaces the name of the class as well as the role of the association
+        /// between parent and child. In this case, the role name is defines as the class name, minus 'Type' extension.
+        /// </summary>
+        /// <param name="newName">New name for the class.</param>
+        internal override void Rename(string newName)
+        {
+            this._capabilityClass.Name = newName;
+            this._assignedRole = newName.Substring(0, newName.IndexOf("Type"));
+            foreach (MEAssociation association in Parent.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
             {
-                this._parent = parent as RESTOperationCapability;
-                parent.AddChild(new RESTOperationResultCapability(this));
+                if (association.Destination.EndPoint == this._capabilityClass)
+                {
+                    association.SetName(this._assignedRole, MEAssociation.AssociationEnd.Destination);
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// The method checks that we have indeed received a new response document. If so, it removes the association with the existing
+        /// document (if one is present) and creates a new association with the provided Document Resource class.
+        /// If the provided document is NULL, the existing association is removed.
+        /// The cardinality of the new association is defined by 'hasMultipleResponses'.
+        /// </summary>
+        /// <param name="newDocument">Optional new Document Resource to be used as response.</param>
+        /// <param name="hasMultipleResponses">When true, the cardinality of the new association will be '1..n' instead of '1'.</param>
+        private void UpdateResponseDocument(RESTOperationResultDeclaration result)
+        {
+            if (result.ResponseDocumentClass != this._responseBodyClass && this._responseBodyClass != null)
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp.UpdateResponseDocument >> Removing existing association with '" + this._responseBodyClass.Name + "'...");
+                foreach (MEAssociation association in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                {
+                    if (association.Destination.EndPoint == this._responseBodyClass)
+                    {
+                        this._capabilityClass.DeleteAssociation(association);
+                        this._responseBodyClass = null;
+                        this._multipleResponses = false;
+                        break;
+                    }
+                }
+            }
+
+            if (result.ResponseDocumentClass != null)
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp.UpdateResponseDocument >> Associating with new response type '" + result.ResponseDocumentClass.Name + "'...");
+                string roleName = RESTUtil.GetAssignedRoleName(result.ResponseDocumentClass.Name);
+                if (roleName.EndsWith("Type")) roleName = roleName.Substring(0, roleName.IndexOf("Type"));
+                string cardinality = result.HasMultipleResponses ? "1..*" : "1";
+                var typeEndpoint = new EndpointDescriptor(result.ResponseDocumentClass, cardinality, roleName, null, true);
+                var myEndpoint = new EndpointDescriptor(this.CapabilityClass, "1", Name, null, false);
+                ModelSlt.GetModelSlt().CreateAssociation(myEndpoint, typeEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                this._responseBodyClass = result.ResponseDocumentClass;
+                this._multipleResponses = result.HasMultipleResponses;
             }
         }
     }

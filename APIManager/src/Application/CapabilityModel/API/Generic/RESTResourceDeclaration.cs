@@ -26,14 +26,16 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _RESTParameterStereotype       = "RESTParameterStereotype";
         private const string _ParameterScopeTag             = "ParameterScopeTag";
         private const string _CollectionFormatTag           = "CollectionFormatTag";
+        private const string _BusinessComponentStereotype   = "BusinessComponentStereotype";
 
-        private Capability _parent;                                     // The capability that acts as parent for the resource.
+        private Capability _parent;                                     // The capability that acts as parent for the resource. Either an Interface or a Resource.
         private MEClass _existingResource;                              // Contains associated class in case of existing resource.
         private string _name;                                           // Resource name.
         private RESTResourceCapability.ResourceArchetype _archetype;    // Associated resource archetype.
         private SortedList<string, RESTOperationDeclaration> _operationList;    // Operations associated with this resource.
         private SortedList<string, RESTResourceDeclaration> _children;  // List of child resource descriptors.
         private RESTParameterDeclaration _parameter;                    // Parameter specification in case of 'Identifier' resource.
+        private MEClass _documentClass;                                 // Either a Business Component or an existing Document Resource class.
         private DeclarationStatus _status;                              // Status of this declaration record.
         private DeclarationStatus _initialStatus;                       // Used to keep track of status change from empty to created.
         private string _description;                                    // Description text entered by user.
@@ -58,6 +60,13 @@ namespace Plugin.Application.CapabilityModel.API
             get { return this._description; }
             set { this._description = value; }
         }
+
+        /// <summary>
+        /// Returns the associated Business Component in case of Document resources. If the user has associated the declaration
+        /// with an existing Document Resource, the property returns the Document Resource class instead!
+        /// Returns NULL when neither component is defined.
+        /// </summary>
+        internal MEClass DocumentClass { get { return this._documentClass; } }
 
         /// <summary>
         /// Get or set the description for external documentation.
@@ -157,6 +166,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._description = string.Empty;
             this._externalDocDescription = string.Empty;
             this._externalDocURL = string.Empty;
+            this._documentClass = null;
             this._isTag = false;
         }
 
@@ -179,6 +189,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._description = string.Empty;
             this._externalDocDescription = string.Empty;
             this._externalDocURL = string.Empty;
+            this._documentClass = null;
             this._isTag = false;
         }
 
@@ -203,13 +214,14 @@ namespace Plugin.Application.CapabilityModel.API
             this._description = string.Empty;
             this._externalDocDescription = string.Empty;
             this._externalDocURL = string.Empty;
+            this._documentClass = null;
             this._isTag = false;
         }
 
         /// <summary>
         /// Constructor that creates a resource declaration based on an existing resource class. We check whether the provided class is indeed a child of the
         /// specified parent. If this is not the case, the status is set to 'Invalid'.
-        /// TODO: INITIALIZE LISTS USING CONTENTS OF CLASS!!!
+        /// TODO: INITIALIZE LISTS USING CONTENTS OF CLASS (NOT ALL IS DONE YET)!!!
         /// </summary>
         /// <param name="resourceClass">Associated resource class.</param>
         /// <param name="parent">Pa</param>
@@ -222,6 +234,7 @@ namespace Plugin.Application.CapabilityModel.API
             string repositoryRootName = context.GetConfigProperty(_RootPkgName);
             string containerStereotype = context.GetConfigProperty(_ServiceContainerPkgStereotype);
             string RESTParameterStereotype = context.GetConfigProperty(_RESTParameterStereotype);
+            string businessComponentStereotype = context.GetConfigProperty(_BusinessComponentStereotype);
 
             // The resource must be a child of the current service declaration...
             // We search upwards until we either find our parent, reacht container level or, as a last safety catch, the top of the repository...
@@ -255,8 +268,26 @@ namespace Plugin.Application.CapabilityModel.API
                 }
             }
 
+            // If we are a 'document' resource, locate the associated Business Component...
+            // In theory, the Document Resource class name MUST be identical to the associated Business Component. However, it is
+            // possible to rename the resource class so we still look for the stereotype to be sure we have the correct component.
+            foreach (MEAssociation association in resourceClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+            {
+                if (association.Destination.EndPoint.HasStereotype(businessComponentStereotype))
+                {
+                    this._documentClass = association.Destination.EndPoint;
+                    if (this._documentClass.Name != this._name)
+                    {
+                        Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTResourceDeclaration >> Document Resource '" +
+                                            this._name + "' does not match associated Business Document '" + this._documentClass.Name + "'!");
+                    }
+                    break;
+                }
+            }
+
             // Check all preconditions for the status to be valid...
-            this._status = (currentPkg == rootPkg && this._name != string.Empty && this._archetype != RESTResourceCapability.ResourceArchetype.Unknown) ? DeclarationStatus.Created : DeclarationStatus.Invalid;
+            this._status = (currentPkg == rootPkg && this._name != string.Empty && 
+                            this._archetype != RESTResourceCapability.ResourceArchetype.Unknown) ? DeclarationStatus.Created : DeclarationStatus.Invalid;
             this._initialStatus = this._status;
         }
 
@@ -277,7 +308,10 @@ namespace Plugin.Application.CapabilityModel.API
                 return null;
             }
 
-            var newOperation = new RESTOperationDeclaration(this._parent);
+            RESTResourceCapability parentResource = null;
+            if (this._parent is RESTResourceCapability) parentResource = this._parent as RESTResourceCapability;
+
+            var newOperation = new RESTOperationDeclaration(parentResource, string.Empty, RESTOperationCapability.OperationType.Unknown);
             using (var dialog = new RESTOperationDialog(newOperation))
             {
                 dialog.DisableMinorVersion();
@@ -347,11 +381,65 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Can be used to reset the Document Class property. This also clears the Resource Declaration name!
+        /// If no Document Class property has been set, the method performs no actions.
+        /// </summary>
+        internal void ClearDocumentClass()
+        {
+            if (this._documentClass != null)
+            {
+                this._documentClass = null;
+                this._name = string.Empty;
+            }
+        }
+
+        /// <summary>
         /// Removes the parameter definition from the current Resource Declaration;
         /// </summary>
         internal void ClearParameter()
         {
             this._parameter = null;
+        }
+
+        /// <summary>
+        /// This method assigns an existing Document Resource class to the Document Class property. It checks the list of registered Document
+        /// Resources that is maintained at Service level. If there is only one registered Document, it is selected automatically. If there are
+        /// multiple, the method presents the Capability Picker in order to let the user select the desired Document.
+        /// </summary>
+        /// <returns>Name of selected component or empty string in case of errors/cancel.</returns>
+        internal string LinkDocumentClass()
+        {
+            var documentList = new List<Capability>();
+            string documentName = string.Empty;
+            if (((RESTService)this._parent.RootService).DocumentList.Count > 0)
+            {
+                // If we only have a single defined Document Resource, this is selected automatically. When there are multiple,
+                // we ask the user which one to use...
+                if (((RESTService)this._parent.RootService).DocumentList.Count == 1)
+                {
+                    this._documentClass = ((RESTService)this._parent.RootService).DocumentList[0].CapabilityClass;
+                    documentName = this._documentClass.Name;
+                }
+                else
+                {
+                    foreach (Capability cap in ((RESTService)this._parent.RootService).DocumentList) documentList.Add(cap);
+                    using (CapabilityPicker dialog = new CapabilityPicker("Select Document resource", documentList, false, false))
+                    {
+                        if (dialog.ShowDialog() == DialogResult.OK)
+                        {
+                            List<Capability> checkedCapabilities = dialog.GetCheckedCapabilities();
+                            if (checkedCapabilities.Count > 0)
+                            {
+                                // If the user selected multiple, we take the first one.
+                                this._documentClass = checkedCapabilities[0].CapabilityClass;
+                                documentName = this._documentClass.Name;
+                            }
+                        }
+                    }
+                }
+            }
+            else MessageBox.Show("No suitable Document Resources to select, add one first!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return documentName;
         }
 
         /// <summary>
@@ -406,6 +494,43 @@ namespace Plugin.Application.CapabilityModel.API
                 }
             }
             return this._parameter;
+        }
+
+        /// <summary>
+        /// This method assigns a (new) class to the Document Class property. It presents a class selector to the user, which facilitates
+        /// browsing of the component tree and selecting the appropriate Business Document. When we have a valid parent Capability, the
+        /// method verifies whether the component selected by the user is indeed part of our API.
+        /// </summary>
+        /// <returns>Name of selected component or empty string in case of errors/cancel.</returns>
+        internal string SetDocumentClass()
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string selectedName = string.Empty;
+            MEClass selectedClass = context.SelectClass(new List<string> { context.GetConfigProperty(_BusinessComponentStereotype) });
+            if (selectedClass != null)
+            {
+                if (this._parent != null)
+                {
+                    // If we have a parent, we can validate that the selected class is indeed part of my API...
+                    MEPackage declPackage = this._parent.RootService.DeclarationPkg;
+                    if (selectedClass.OwningPackage.Parent == declPackage || selectedClass.OwningPackage.Parent.Parent == declPackage)
+                    {
+                        selectedName = selectedClass.Name;
+                        this._documentClass = selectedClass;
+                        this._name = selectedName;
+                    }
+                    else MessageBox.Show("Selected component is not part of current API, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                }
+                else
+                {
+                    // If we don't have a (valid) parent, we simply assume that this is a valid selection.
+                    selectedName = selectedClass.Name;
+                    this._documentClass = selectedClass;
+                    this._name = selectedName;
+                }
+            }
+            return selectedName;
         }
 
         /// <summary>
