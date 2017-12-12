@@ -368,8 +368,6 @@ namespace APIManager.SparxEA
         /// Poll its members to retrieve model data and user interface status information.</param>
         public override void EA_OnPostInitialized(EA.Repository repository)
         {
-            // This is here solely for debugging support. Remove before production!
-            MessageBox.Show("Waiting to start...");
             try
             {
                 // Controller singleton receives the implementation objects for context and model and performs subsequent initialization.
