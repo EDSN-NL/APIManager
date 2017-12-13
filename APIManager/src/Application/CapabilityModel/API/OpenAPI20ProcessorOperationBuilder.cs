@@ -164,18 +164,22 @@ namespace Plugin.Application.CapabilityModel.API
             bool result = true;
             this._schema.CurrentCapability = operation;
             ContextSlt context = ContextSlt.GetContextSlt();
-            if (this._currentResource.Archetype == RESTResourceCapability.ResourceArchetype.Identifier)
+
+            // The operation can be assigned directly to an Identifier Resource, or it can be further "down the line" from earlier Identifier Resources.
+            // In all cases, we have collected the applicable Identifier Resources in the 'identifierList' property. We have to generate Identifier
+            // definitions for ALL entries in that list...
+            foreach (RESTResourceCapability identifierResource in this._identifierList)
             {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildParameters >> Identifier resource '" + this._currentResource.Name + "', build path parameter...");
-                RESTParameterDeclaration resourceParam = this._currentResource.Parameter;
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildParameters >> Processing Identifier resource '" + identifierResource.Name + "', build path parameter...");
+                RESTParameterDeclaration resourceParam = identifierResource.Parameter;
                 if (resourceParam == null)
                 {
-                    Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildParameters >> Required ID parameter in Identifier Resource '" + 
-                                      this._currentResource.Name + "' is missing!");
+                    Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildParameters >> Required ID parameter in Identifier Resource '" +
+                                      identifierResource.Name + "' is missing!");
                 }
-                else result = WriteIdentifierParameter(operation);    // Locate and write the Identifier Parameter.
-                if (!result) Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildParameters >> Required ID parameter in Identifier Resource '" +
-                                                this._currentResource.Name + "' is missing!");
+                else result = WriteIdentifierParameter(identifierResource);   // Locate and write the Identifier Parameter.
+                if (!result) Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildParameters >> Failed to write ID parameter in Identifier Resource '" +
+                                                identifierResource.Name + "'!");
             }
 
             if (result)
@@ -342,7 +346,10 @@ namespace Plugin.Application.CapabilityModel.API
             {
                 this._JSONWriter.WriteStartObject();
                 {
-                    this._JSONWriter.WritePropertyName("name"); this._JSONWriter.WriteValue("body");
+                    string className = qualifiedClassName.Substring(qualifiedClassName.IndexOf(':') + 1);
+                    string propertyName = className.EndsWith("Type") ? className.Substring(0, className.IndexOf("Type")) : className;
+                    propertyName = RESTUtil.GetAssignedRoleName(propertyName);
+                    this._JSONWriter.WritePropertyName("name"); this._JSONWriter.WriteValue(propertyName);
                     this._JSONWriter.WritePropertyName("in"); this._JSONWriter.WriteValue("body");
                     if (!string.IsNullOrEmpty(schemaClass.Annotation))
                     {
@@ -353,7 +360,6 @@ namespace Plugin.Application.CapabilityModel.API
                     // Since we 'might' use alias names in classes, the returned name 'might' be different from the offered name. To make sure we're referring
                     // to the correct name, we take the returned FQN and remove the token part. Remainder is the 'formal' type name.
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestBodyParameter >> Gotten FQN '" + qualifiedClassName + "'.");
-                    string className = qualifiedClassName.Substring(qualifiedClassName.IndexOf(':')+1);
                     this._JSONWriter.WritePropertyName("schema"); this._JSONWriter.WriteStartObject();
                     {
                         if (cardinality.Item2 == 0 || cardinality.Item2 > 1)
@@ -440,19 +446,18 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Searches the provided Operation capability for an Identifier Parameter and if found, writes the associated OpenAPI contents.
+        /// Searches the provided Identifier Resource capability for an Identifier Parameter and if found, writes the associated OpenAPI contents.
         /// This method should only be called in case of 'Identifier' resources and there should only be a single matching parameter.
-        /// The parameter is indicated by a class attribute marked with stereotype 'RESTParameter' and it should match the parameter as stored
-        /// in the Parameter property of the current resource. If the original class contained multiple parameters, we will use only the first
-        /// one found (and since order is not necessarily guaranteed, this could result in unwanted behavior).
+        /// The parameter is indicated by a class attribute marked with stereotype 'RESTParameter'. If the original class contained multiple 
+        /// parameters, we will use only the first one found (and since order is not necessarily guaranteed, this could result in unwanted behavior).
         /// </summary>
-        /// <param name="operation">Operation to be processed.</param>
+        /// <param name="identifierResource">The Identifier Resource to be processed.</param>
         /// <returns>True if parameter found and written, false when not found.</returns>
-        private bool WriteIdentifierParameter(RESTOperationCapability operation)
+        private bool WriteIdentifierParameter(RESTResourceCapability identifierResource)
         {
             bool result = false;
-            RESTParameterDeclaration resourceParam = this._currentResource.Parameter;
-            List<SchemaAttribute> resourceProperties = this._schema.ProcessProperties(this._currentResource.CapabilityClass);
+            RESTParameterDeclaration resourceParam = identifierResource.Parameter;
+            List<SchemaAttribute> resourceProperties = this._schema.ProcessProperties(identifierResource.CapabilityClass);
             foreach (JSONContentAttribute attrib in resourceProperties)
             {
                 if (attrib.Name == resourceParam.Name)

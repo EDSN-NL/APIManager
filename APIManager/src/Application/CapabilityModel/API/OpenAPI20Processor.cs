@@ -39,6 +39,7 @@ namespace Plugin.Application.CapabilityModel.API
         private RESTResourceCapability _currentResource;            // The resource that is currently being processed.
         private int _capabilityCounter;                 // The total number of capabilities (itf, resource, operation, result) to process.
         private string _defaultResponseClassifier;      // Contains the classifier name of the default response once processed.
+        private List<RESTResourceCapability> _identifierList;       // Contains all identifiers detected in the current path. 
 
         // Since we have to terminate JSON objects properly, we must know whether we are in the last operation result of a resource.
         // If we start a new resource, we might have to close the previous one. Also, we have to close the last resource but this we can handle at
@@ -82,6 +83,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._APIAccessLevel = string.Empty;
             this._accessLevels = null;
             this._defaultResponseClassifier = string.Empty;
+            this._identifierList = null;
         }
 
         /// <summary>
@@ -129,11 +131,12 @@ namespace Plugin.Application.CapabilityModel.API
                             // Initialize our resources and open the JSON output stream...
                             var itf = capability as RESTInterfaceCapability;
                             this._accessLevels = new List<Tuple<string, string>>();
+                            this._identifierList = new List<RESTResourceCapability>();
                             this._outputWriter = new StringWriter();
                             this._JSONWriter = new JsonTextWriter(this._outputWriter);
                             this._JSONWriter.Formatting = Newtonsoft.Json.Formatting.Indented;
                             this._JSONWriter.WriteStartObject();
-                            BuildHeader(this._JSONWriter, itf); // Prepare the generic OpenAPI data.
+                            BuildHeader(this._JSONWriter, itf);     // Prepare the generic OpenAPI data.
 
                             // Retrieve the schema to be used for all definitions...
                             string tokenName = context.GetConfigProperty(_SchemaTokenName);
@@ -191,8 +194,6 @@ namespace Plugin.Application.CapabilityModel.API
                                     this._JSONWriter.WriteEndObject();      // And close the 'responses' section.
                                 }
                                 this._inOperationResult = false;
-
-                                // We set 'currentResource' in here as part of the path-construction process...
                                 DefinePath(capability as RESTResourceCapability);
                             }
                         }
@@ -286,57 +287,6 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This method is invoked when a (new) resource is passed in the 'Processing' phase.
-        /// Postcondition is a path prepared for further processing.
-        /// </summary>
-        /// <param name="resource">The new resource that we are going to process.</param>
-        private bool DefinePath (RESTResourceCapability resource)
-        {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.DefinePath >> Received new resource '" + resource.Name + "'...");
-            if (resource.IsRootLevel)
-            {
-                // If we have a root-level resource, this implies that we must start a new sub-API. If the current path has contents, we were processing
-                // another sub-API and this must be terminated first (WriteEndObject). Next, we re-initialize the path using the current resource
-                // name and start a new path object.
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.DefinePath >> Rootlevel resource, simply reset current path");
-                if (this._currentPath != string.Empty) this._JSONWriter.WriteEndObject(); // Close previous path object.
-                this._currentPath = "/" + RESTUtil.GetAssignedRoleName(resource.Name);
-            }
-            else
-            {
-                // If we have a non-root (= intermediate) resource, we MUST have a previous resource and a path. If not, something has gone wrong
-                // in the processing sequence!
-                if (this._currentResource == null || string.IsNullOrEmpty(this._currentPath))
-                {
-                    Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.DefinePath >> Wrong context for a non-root resource!");
-                    return false;
-                }
-
-                if (this._currentResource.HasOperations()) this._JSONWriter.WriteEndObject(); // Close previous path object.
-
-                // If the current resource is a NOT a child of the 'previous current' resource, we have reached a 'fork' in the tree and must
-                // replace the last path entry by a new one.
-                if (resource.Parent != this._currentResource.Implementation)
-                {
-                    // Remove the previous child resource...
-                    this._currentPath = this._currentPath.Substring(0, this._currentPath.LastIndexOf('/'));
-                }
-                if (resource.Name != ContextSlt.GetContextSlt().GetConfigProperty(_EmptyResourceName))
-                    this._currentPath += "/" + RESTUtil.GetAssignedRoleName(resource.Name);
-            }
-
-            // We must write the path ONLY if the new resource has operations. Otherwise, this is just an intermediate URL element...
-            if (resource.HasOperations())
-            {
-                this._JSONWriter.WritePropertyName(this._currentPath);
-                this._JSONWriter.WriteStartObject();
-            }
-            this._currentResource = resource;
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.DefinePath >> Current path: '" + this._currentPath + "'...");
-            return true;
-        }
-
-        /// <summary>
         /// This method is invoked when we want to save the processed Interface Capability to an output file. Since all definitions are collected
         /// into a single OpenAPI 2.0 file, the Interface is in fact the ONLY capability that gets to be saved!
         /// The method does not perform any control operations on the stream (e.g. does not attempt to 
@@ -359,6 +309,88 @@ namespace Plugin.Application.CapabilityModel.API
                     using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8)) writer.Write(api);
                 }
             }
+        }
+
+        /// <summary>
+        /// This method is invoked when a (new) resource is passed in the 'Processing' phase. First of all we check whether the new resource is a
+        /// root-level resource (a 'sub-API'). If this is the case, we simply discard all current context and start from scratch.
+        /// If we are not a root-level resource, we must check whether we start a new 'fork'. This is the case if the parent of the new resource
+        /// is different from the current resource (e.g. the one that we processed last time). If not, we simply append the new resource to the
+        /// current path and be done.
+        /// In case of a fork, we must back-track in the class hierarchy until we find our parent. The means that we remove the 'tail-end' of the
+        /// path until the parents match again. This also requires removing Identifier Resources from the Identifiers list if these happen to be
+        /// nodes in the path that we don't use anymore.
+        /// Lucky for us, the order in which resources are processed is predetermined. It is a recursive process in which we process a resource,
+        /// then process al child resources of that resource. In other words: there will never be 'jumps' across the hierarchy, processing resembles
+        /// a stack-model.
+        /// Postcondition is a path prepared for either subsequence resources or operations on that part of the path.
+        /// </summary>
+        /// <param name="resource">The new resource that we are going to process.</param>
+        private bool DefinePath(RESTResourceCapability resource)
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.DefinePath >> Received new resource '" + resource.Name + "'...");
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.DefinePath >> Current path is: '" + this._currentPath + "'...");
+
+            if (resource.IsRootLevel)
+            {
+                // If we have a root-level resource, this implies that we must start a new sub-API. If the current path has contents, we were processing
+                // another sub-API and this must be terminated first (WriteEndObject). Next, we re-initialize the path using the current resource
+                // name and start a new path object.
+                // If the resource is an Identifier, we have to add it to the list of Identifiers.
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.DefinePath >> Rootlevel resource, simply reset current path");
+                if (this._currentPath != string.Empty)
+                {
+                    // Close previous path object.
+                    this._JSONWriter.WriteEndObject();
+                    this._identifierList.Clear();
+                }
+                if (resource.Name != ContextSlt.GetContextSlt().GetConfigProperty(_EmptyResourceName))
+                    this._currentPath = "/" + RESTUtil.GetAssignedRoleName(resource.Name);
+                else this._currentPath = "/";
+                if (resource.Archetype == RESTResourceCapability.ResourceArchetype.Identifier) this._identifierList.Add(resource);
+            }
+            else
+            {
+                // If we have a non-root (= intermediate) resource, we MUST have a previous resource and a path. If not, something has gone wrong
+                // in the processing sequence!
+                if (this._currentResource == null || string.IsNullOrEmpty(this._currentPath))
+                {
+                    Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.DefinePath >> Wrong context for a non-root resource!");
+                    return false;
+                }
+
+                if (this._currentResource.HasOperations()) this._JSONWriter.WriteEndObject();   // Close previous path object.
+
+                // If the current resource is a NOT a child of the 'previous current' resource, we have reached a 'fork' in the tree and must
+                // 'back-track' to the correct parent node. If we encounter Identifiers along the way, these have to be removed as well...
+                if (resource.Parent != this._currentResource.Implementation)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.DefinePath >> Fork detected!");
+                    CapabilityImp currentNode = this._currentResource.Implementation;   // This is the current node in the path.
+                    while (currentNode != resource.Parent)
+                    {
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.DefinePath >> checking '" +
+                                         currentNode.Name + "' against '" + resource.Parent.Name + "'...");
+                        this._currentPath = this._currentPath.Substring(0, this._currentPath.LastIndexOf('/'));
+                        if (this._identifierList.Count > 0 && this._identifierList[this._identifierList.Count - 1].Implementation == currentNode)
+                            this._identifierList.RemoveAt(this._identifierList.Count - 1);
+                        currentNode = currentNode.Parent;
+                    }
+                }
+                if (resource.Name != ContextSlt.GetContextSlt().GetConfigProperty(_EmptyResourceName))
+                    this._currentPath += "/" + RESTUtil.GetAssignedRoleName(resource.Name);
+                if (resource.Archetype == RESTResourceCapability.ResourceArchetype.Identifier) this._identifierList.Add(resource);
+            }
+
+            // We must write the path ONLY if the new resource has operations. Otherwise, this is just an intermediate URL element...
+            if (resource.HasOperations())
+            {
+                this._JSONWriter.WritePropertyName(this._currentPath);
+                this._JSONWriter.WriteStartObject();
+            }
+            this._currentResource = resource;
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.DefinePath >> New path: '" + this._currentPath + "'...");
+            return true;
         }
 
         /// <summary>

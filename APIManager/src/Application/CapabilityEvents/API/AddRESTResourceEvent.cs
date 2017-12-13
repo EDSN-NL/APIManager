@@ -32,7 +32,7 @@ namespace Plugin.Application.Events.API
 
         /// <summary>
         /// Resources can be added to other resources or to a RESTInterface capability.
-        /// Resources of archetype Controller or Document can NOT be used as parent.
+        /// Resources of archetype Unknown or Document can NOT be used as parent.
         /// The default event context checker has verified the Stereotype of the selected class to be either an Interface or a Resource.
         /// We have to check whether we have the correct class and the correct archetype...
         /// </summary>
@@ -51,9 +51,8 @@ namespace Plugin.Application.Events.API
                         if (!string.IsNullOrEmpty(typeTagValue))
                         {
                             var type = EnumConversions<RESTResourceCapability.ResourceArchetype>.StringToEnum(typeTagValue);
-                            if (type == RESTResourceCapability.ResourceArchetype.Collection ||
-                                type == RESTResourceCapability.ResourceArchetype.Store ||
-                                type == RESTResourceCapability.ResourceArchetype.Identifier) return true;
+                            if (type != RESTResourceCapability.ResourceArchetype.Unknown &&
+                                type != RESTResourceCapability.ResourceArchetype.Document) return true;
                         }
                     }
                     else return true;   // Must be an interface (we can only get Interface or Resource in this method)!
