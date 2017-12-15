@@ -590,13 +590,13 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
 
-                // If we're a Document Resource, create the association with the Business Document and register this class as a document...
+                // If we're a Document Resource, create the association with the Business Document and register this class as a document.
+                // We use the resource name as basis for the role name. This assures that we get the proper role in case the Business Document
+                // uses an Alias name (that would already have been incorporated in the resource name at moment of assignment in the user dialog)...
                 if (resource.DocumentClass != null)
                 {
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.ConstructCapability >> Associate with Business Component '" + resource.DocumentClass.Name + "'...");
-                    string role = resource.DocumentClass.Name.EndsWith("Type") ? 
-                        resource.DocumentClass.Name.Substring(0, resource.DocumentClass.Name.IndexOf("Type")) : 
-                        resource.DocumentClass.Name;
+                    string role = resource.Name.EndsWith("Type") ? resource.Name.Substring(0, resource.Name.IndexOf("Type")) : resource.Name;
                     var componentEndpoint = new EndpointDescriptor(resource.DocumentClass, "1", role, null, true);
                     model.CreateAssociation(resourceEndpoint, componentEndpoint, MEAssociation.AssociationType.MessageAssociation);
                     this._componentClass = resource.DocumentClass;

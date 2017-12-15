@@ -221,7 +221,6 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Constructor that creates a resource declaration based on an existing resource class. We check whether the provided class is indeed a child of the
         /// specified parent. If this is not the case, the status is set to 'Invalid'.
-        /// TODO: INITIALIZE LISTS USING CONTENTS OF CLASS (NOT ALL IS DONE YET)!!!
         /// </summary>
         /// <param name="resourceClass">Associated resource class.</param>
         /// <param name="parent">Pa</param>
@@ -512,10 +511,11 @@ namespace Plugin.Application.CapabilityModel.API
                 if (this._parent != null)
                 {
                     // If we have a parent, we can validate that the selected class is indeed part of my API...
+                    // We also have to check whether the selected class has an Alias name defined. If so, we use that name instead of the class name.
                     MEPackage declPackage = this._parent.RootService.DeclarationPkg;
                     if (selectedClass.OwningPackage.Parent == declPackage || selectedClass.OwningPackage.Parent.Parent == declPackage)
                     {
-                        selectedName = selectedClass.Name;
+                        selectedName = !string.IsNullOrEmpty(selectedClass.AliasName) ? selectedClass.AliasName : selectedClass.Name;
                         this._documentClass = selectedClass;
                         this._name = selectedName;
                     }
@@ -525,7 +525,8 @@ namespace Plugin.Application.CapabilityModel.API
                 else
                 {
                     // If we don't have a (valid) parent, we simply assume that this is a valid selection.
-                    selectedName = selectedClass.Name;
+                    // We also have to check whether the selected class has an Alias name defined. If so, we use that name instead of the class name.
+                    selectedName = !string.IsNullOrEmpty(selectedClass.AliasName) ? selectedClass.AliasName : selectedClass.Name;
                     this._documentClass = selectedClass;
                     this._name = selectedName;
                 }

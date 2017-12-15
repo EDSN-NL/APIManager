@@ -16,11 +16,12 @@ namespace Plugin.Application.CapabilityModel.API
     internal partial class OpenAPI20Processor : CapabilityProcessor
     {
         // Configuration properties used by this module...
-        private const string _ConsumesMIMEListTag       = "ConsumesMIMEListTag";
-        private const string _ProducesMIMEListTag       = "ProducesMIMEListTag";
-        private const string _PaginationClassName       = "PaginationClassName";
-        private const string _OperationResultClassName  = "OperationResultClassName";
-        private const string _ResourceClassStereotype   = "ResourceClassStereotype";
+        private const string _ConsumesMIMEListTag           = "ConsumesMIMEListTag";
+        private const string _ProducesMIMEListTag           = "ProducesMIMEListTag";
+        private const string _PaginationClassName           = "PaginationClassName";
+        private const string _OperationResultClassName      = "OperationResultClassName";
+        private const string _ResourceClassStereotype       = "ResourceClassStereotype";
+        private const string _BusinessComponentStereotype   = "BusinessComponentStereotype";
 
         // Separator between summary text and description text
         private const string _Summary = "summary: ";
@@ -283,7 +284,8 @@ namespace Plugin.Application.CapabilityModel.API
                         this._JSONWriter.WritePropertyName("required"); this._JSONWriter.WriteValue(attrib.IsMandatory);
                         this._JSONWriter.WritePropertyName("allowEmptyValue"); this._JSONWriter.WriteValue(paramList[attrib.Name].AllowEmptyValue);
 
-                        // Collect the JSON Schema for the attribute as a string...
+                        // Collect the JSON Schema for the attribute as a string. Note that this includes possible default values, min- and max
+                        // values, etc....
                         string attribText = attrib.GetClassifierAsJSONSchemaText();
                         attribText = attribText.Substring(1, attribText.Length - 2);    // Get rid of '{' and '}' from the schema.
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteQueryParameters >> Got attribute: '" + attribText + "'...");
@@ -298,11 +300,6 @@ namespace Plugin.Application.CapabilityModel.API
                                 this._JSONWriter.WriteValue(collectionFormat.ToString().ToLower());
                             }
                             else Logger.WriteWarning("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteQueryParameters >> Collection specification is missing in attribute '" + attrib.Name + "'!");
-                        }
-                        if (!string.IsNullOrEmpty(paramList[attrib.Name].Default) && !attrib.IsMandatory)
-                        {
-                            this._JSONWriter.WritePropertyName("default");
-                            this._JSONWriter.WriteValue(paramList[attrib.Name].Default);
                         }
                     }
                     this._JSONWriter.WriteEndObject();
@@ -402,11 +399,12 @@ namespace Plugin.Application.CapabilityModel.API
             this._panel.WriteInfo(this._panelIndex + 3, "Processing Response Message Body '" + documentResourceClass.Name + "'...");
             bool result = false;
             string qualifiedClassName = string.Empty;
+            string businessComponentStereotype = ContextSlt.GetContextSlt().GetConfigProperty(_BusinessComponentStereotype);
 
-            // Locate the business component with the same name as the Document Resource class...
+            // Locate the associated business component. We can't check by name since it might have used an Alias name...
             foreach (MEAssociation association in documentResourceClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
             {
-                if (association.Destination.EndPoint.Name == documentResourceClass.Name)
+                if (association.Destination.EndPoint.HasStereotype(businessComponentStereotype))
                 {
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Found Business Component, processing...");
                     qualifiedClassName = this._schema.ProcessClass(association.Destination.EndPoint, documentResourceClass.Name);

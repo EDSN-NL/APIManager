@@ -19,7 +19,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _AllowEmptyParameterValueTag   = "AllowEmptyParameterValueTag";
 
         // The status is used to track operations on the declaration.
-        internal enum DeclarationStatus { Invalid, Created, Edited, Deleted }
+        internal enum DeclarationStatus { Invalid, Stable, Created, Edited, Deleted }
 
         // Indicates Parameter scope...
         // Form = Parameter is passed as a form (in the body).
@@ -57,7 +57,15 @@ namespace Plugin.Application.CapabilityModel.API
         internal bool AllowEmptyValue
         {
             get { return this._allowEmptyValue; }
-            set { this._allowEmptyValue = value; }
+            set
+            {
+                if (this._allowEmptyValue != value)
+                {
+                    this._allowEmptyValue = value;
+                    this._status = (this._status == DeclarationStatus.Invalid || 
+                                    this._status == DeclarationStatus.Created) ? DeclarationStatus.Created : DeclarationStatus.Edited; 
+                }
+            }
         }
 
         /// <summary>
@@ -66,7 +74,15 @@ namespace Plugin.Application.CapabilityModel.API
         internal Tuple<int, int> Cardinality
         {
             get { return this._cardinality; }
-            set { this._cardinality = value; }
+            set
+            {
+                if (this._cardinality != value)
+                {
+                    this._cardinality = value;
+                    this._status = (this._status == DeclarationStatus.Invalid ||
+                                    this._status == DeclarationStatus.Created) ? DeclarationStatus.Created : DeclarationStatus.Edited;
+                }
+            }
         }
 
         /// <summary>
@@ -75,7 +91,15 @@ namespace Plugin.Application.CapabilityModel.API
         internal string Default
         {
             get { return this._defaultValue; }
-            set { this._defaultValue = value; }
+            set
+            {
+                if (this._defaultValue != value)
+                {
+                    this._defaultValue = value;
+                    this._status = (this._status == DeclarationStatus.Invalid ||
+                                    this._status == DeclarationStatus.Created) ? DeclarationStatus.Created : DeclarationStatus.Edited;
+                }
+            }
         }
 
         /// <summary>
@@ -84,7 +108,15 @@ namespace Plugin.Application.CapabilityModel.API
         internal string Description
         {
             get { return this._description; }
-            set { this._description = value; }
+            set
+            {
+                if (this._description != value)
+                {
+                    this._description = value;
+                    this._status = (this._status == DeclarationStatus.Invalid ||
+                                    this._status == DeclarationStatus.Created) ? DeclarationStatus.Created : DeclarationStatus.Edited;
+                }
+            }
         }
 
         /// <summary>
@@ -93,7 +125,15 @@ namespace Plugin.Application.CapabilityModel.API
         internal string Name
         {
             get { return this._name; }
-            set { this._name = value; }
+            set
+            {
+                if (this._name != value)
+                {
+                    this._name = value;
+                    this._status = (this._status == DeclarationStatus.Invalid ||
+                                    this._status == DeclarationStatus.Created) ? DeclarationStatus.Created : DeclarationStatus.Edited;
+                }
+            }
         }
 
         /// <summary>
@@ -102,7 +142,15 @@ namespace Plugin.Application.CapabilityModel.API
         internal ParameterScope Scope
         {
             get { return this._scope; }
-            set { this._scope = value; }
+            set
+            {
+                if (this._scope != value)
+                {
+                    this._scope = value;
+                    this._status = (this._status == DeclarationStatus.Invalid ||
+                                    this._status == DeclarationStatus.Created) ? DeclarationStatus.Created : DeclarationStatus.Edited;
+                }
+            }
         }
 
         /// <summary>
@@ -122,7 +170,15 @@ namespace Plugin.Application.CapabilityModel.API
         internal MEClass Classifier
         {
             get { return this._classifier; }
-            set { this._classifier = value; }
+            set
+            {
+                if (this._classifier != value)
+                {
+                    this._classifier = value;
+                    this._status = (this._status == DeclarationStatus.Invalid ||
+                                    this._status == DeclarationStatus.Created) ? DeclarationStatus.Created : DeclarationStatus.Edited;
+                }
+            }
         }
 
         /// <summary>
@@ -131,7 +187,15 @@ namespace Plugin.Application.CapabilityModel.API
         internal QueryCollectionFormat CollectionFormat
         {
             get { return this._collectionFormat; }
-            set { this._collectionFormat = value; }
+            set
+            {
+                if (this._collectionFormat != value)
+                {
+                    this._collectionFormat = value;
+                    this._status = (this._status == DeclarationStatus.Invalid ||
+                                    this._status == DeclarationStatus.Created) ? DeclarationStatus.Created : DeclarationStatus.Edited;
+                }
+            }
         }
 
         /// <summary>
@@ -174,7 +238,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._collectionFormat = collectionFmt;
             this._scope = scope;
             this._allowEmptyValue = allowEmptyValue;
-            this._status = (name != string.Empty && classifier != null && scope != ParameterScope.Unknown)? DeclarationStatus.Created: DeclarationStatus.Invalid;
+            this._status = (name != string.Empty && classifier != null && scope != ParameterScope.Unknown)? DeclarationStatus.Stable: DeclarationStatus.Invalid;
         }
 
         /// <summary>
@@ -191,7 +255,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._description = attrib.Annotation;
             this._defaultValue = !string.IsNullOrEmpty(attrib.DefaultValue) ? attrib.DefaultValue : attrib.FixedValue;
             this._cardinality = attrib.Cardinality;
-            this._status = DeclarationStatus.Created;
+            this._status = DeclarationStatus.Stable;
 
             string collectionFmt = attrib.GetTag(context.GetConfigProperty(_CollectionFormatTag));
             string scope = attrib.GetTag(context.GetConfigProperty(_ParameterScopeTag));
@@ -212,6 +276,7 @@ namespace Plugin.Application.CapabilityModel.API
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             MEAttribute newAttrib = null;
+            // Note that an Enumeration is also a MEDataType, so this would cover both flavors...
             if (param.Classifier is MEDataType && param.Status == DeclarationStatus.Created)
             {
                 newAttrib = parent.CreateAttribute(param.Name, (MEDataType)param.Classifier, AttributeType.Attribute, param.Default, param.Cardinality, false);
@@ -234,6 +299,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             else if (param.Status == DeclarationStatus.Edited)
             {
+                bool foundIt = false;
                 foreach (MEAttribute attrib in parent.Attributes)
                 {
                     if (attrib.Name == param.Name)
@@ -245,8 +311,17 @@ namespace Plugin.Application.CapabilityModel.API
                         newAttrib.SetTag(context.GetConfigProperty(_CollectionFormatTag), param._collectionFormat.ToString(), true);
                         newAttrib.SetTag(context.GetConfigProperty(_AllowEmptyParameterValueTag), param._allowEmptyValue.ToString(), true);
                         newAttrib.Annotation = param.Description;
+                        foundIt = true;
                         break;
                     }
+                }
+                if (!foundIt)
+                {
+                    // Since it is difficult to get the status correct between Created and Edited, we assume that an 'Edited' status on a
+                    // non-existing attribute actually means that we want to create it. Anyway, it has a valid status and is not present in the
+                    // class, so change to 'Created' and re-invoke the method...
+                    param.Status = DeclarationStatus.Created;
+                    return ConvertToAttribute(parent, param);
                 }
             }
             

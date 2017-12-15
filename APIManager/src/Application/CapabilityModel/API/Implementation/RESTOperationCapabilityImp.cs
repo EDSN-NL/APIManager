@@ -16,10 +16,8 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _ResourceClassStereotype           = "ResourceClassStereotype";
         private const string _RequestPkgName                    = "RequestPkgName";
         private const string _ResponsePkgName                   = "ResponsePkgName";
-        private const string _CommonPkgName                     = "CommonPkgName";
         private const string _RequestPkgStereotype              = "RequestPkgStereotype";
         private const string _ResponsePkgStereotype             = "ResponsePkgStereotype";
-        private const string _CommonPkgStereotype               = "CommonPkgStereotype";
         private const string _ArchetypeTag                      = "ArchetypeTag";
         private const string _PaginationClassName               = "PaginationClassName";
         private const string _PaginationRoleName                = "PaginationRoleName";
@@ -151,10 +149,11 @@ namespace Plugin.Application.CapabilityModel.API
                     model.CreateAssociation(parentEndpoint, operationEndpoint, MEAssociation.AssociationType.MessageAssociation);
                     InitialiseParent(parentResource);
 
-                    // Each operation will receive by default a private packages for operation specific request- and response data models as
-                    // well as a 'Common' data model package.
+                    // Each operation will receive by default a private packages for operation specific request- and response data models.
                     // We leave them empty but users can use these packages to create operation specific models and create Document Resources
-                    // that are associated with these models...
+                    // that are associated with these models.
+                    // Note that we don't create an operation-specific 'Common' package, since this would be identical to the top-level
+                    // Data Model package (all operations share the same namespace)! 
                     string pkgName = context.GetConfigProperty(_ResponsePkgName);
                     string pkgStereotype = context.GetConfigProperty(_ResponsePkgStereotype);
                     MEPackage msgPackage = OperationPackage.FindPackage(pkgName, pkgStereotype);
@@ -163,10 +162,6 @@ namespace Plugin.Application.CapabilityModel.API
                     pkgStereotype = context.GetConfigProperty(_RequestPkgStereotype);
                     msgPackage = OperationPackage.FindPackage(pkgName, pkgStereotype);
                     if (msgPackage == null) msgPackage = OperationPackage.CreatePackage(pkgName, pkgStereotype, 20);
-                    pkgName = context.GetConfigProperty(_CommonPkgName);
-                    pkgStereotype = context.GetConfigProperty(_CommonPkgStereotype);
-                    msgPackage = OperationPackage.FindPackage(pkgName, pkgStereotype);
-                    if (msgPackage == null) msgPackage = OperationPackage.CreatePackage(pkgName, pkgStereotype, 10);
 
                     // Check whether we must create an association with a request body...
                     if (this._requestBodyDocument != null)

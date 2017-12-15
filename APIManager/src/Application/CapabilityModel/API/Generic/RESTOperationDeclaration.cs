@@ -624,6 +624,7 @@ namespace Plugin.Application.CapabilityModel.API
         {
             var documentList = new List<Capability>();
             string documentName = string.Empty;
+            if (this._parent == null) return string.Empty;  // Nothing (yet) to do.
             foreach (RESTResourceCapability cap in this._parent.ResourceList(RESTResourceCapability.ResourceArchetype.Document)) documentList.Add(cap);
             if (documentList.Count > 0)
             {
