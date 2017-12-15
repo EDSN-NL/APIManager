@@ -10,11 +10,14 @@ namespace Plugin.Application.Forms
         {
             InitializeComponent();
             this.Text = String.Format("About {0}", AssemblyTitle);
-            this.labelProductName.Text = AssemblyProduct;
-            this.labelVersion.Text = String.Format("Version {0}", AssemblyVersion);
-            this.labelCopyright.Text = AssemblyCopyright;
-            this.labelCompanyName.Text = AssemblyCompany;
-            this.textBoxDescription.Text = AssemblyDescription;
+            this.ProductNameLabel.Text = AssemblyProduct;
+            this.ProductVersionLabel.Text = String.Format("Version {0}", AssemblyVersion);
+            this.CopyrightLabel.Text = AssemblyCopyright;
+            this.CompanyNameLabel.Text = AssemblyCompany;
+            this.DescriptionTextBox.Text = AssemblyDescription;
+            this.TrademarkLabel.Text = AssemblyTrademark;
+
+            Ok.Select();
         }
 
         #region Assembly Attribute Accessors
@@ -41,6 +44,19 @@ namespace Plugin.Application.Forms
             get
             {
                 return Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            }
+        }
+
+        internal string AssemblyTrademark
+        {
+            get
+            {
+                object[] attributes = Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(AssemblyTrademarkAttribute), false);
+                if (attributes.Length == 0)
+                {
+                    return "";
+                }
+                return ((AssemblyTrademarkAttribute)attributes[0]).Trademark;
             }
         }
 

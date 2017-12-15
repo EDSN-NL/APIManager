@@ -42,7 +42,7 @@
     <RegisterForComInterop>True</RegisterForComInterop>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>resources\APIManager.ico</ApplicationIcon>
+    <ApplicationIcon>ECDMLogo.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
@@ -444,6 +444,7 @@
     <Compile Include="src\SparxEA\EAModelTransformSupport.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ECDMLogo.ico" />
     <Content Include="resources\APIManager.ico" />
     <None Include="resources\OpenAPI20Header.txt" />
     <None Include="packages.config" />
@@ -464,6 +465,8 @@
     <None Include="resources\ASCIIDocEmptyClassTemplate.txt" />
     <None Include="resources\ASCIIDocCommonClasses-backup.txt" />
     <None Include="resources\ASCIIDocMessageClasses-backup.txt" />
+    <None Include="resources\ECDMLogo.ico" />
+    <None Include="resources\ECDMLogo.png" />
     <Content Include="resources\EDSN-LDT-MappingTable.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

@@ -304,6 +304,26 @@ namespace APIManager.SparxEA.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon ECDMLogo {
+            get {
+                object obj = ResourceManager.GetObject("ECDMLogo", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap ECDMLogoPNG {
+            get {
+                object obj = ResourceManager.GetObject("ECDMLogoPNG", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to administrativestatustype:	CodeType;
         ///addresstext:				TextType;
         ///amount:						AmountType;
@@ -338,7 +358,7 @@ namespace APIManager.SparxEA.Properties {
         ///    
         ///    &lt;Identification&gt;
         ///        &lt;ShortName xml:lang=&quot;en&quot;&gt;@NAME@&lt;/ShortName&gt;
-        ///        &lt;Version&gt; [rest of string was truncated]&quot;;.
+        ///        [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string GenericodeSetTemplate {
             get {
@@ -357,7 +377,7 @@ namespace APIManager.SparxEA.Properties {
         ///    
         ///    &lt;Identification&gt;
         ///        &lt;ShortName xml:lang=&quot;en&quot;&gt;@NAME@&lt;/ShortName&gt;
-        ///        &lt;LongName xm [rest of string was truncated]&quot;;.
+        ///        &lt;L [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string GenericodeTemplate {
             get {
