@@ -147,6 +147,19 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Converts the given type identifier to the proper Data Type object. Based on the meta-type of the retrieved object,
+        /// the returned type is constructed as either an MEDataType, MEEnumeratedType or an MEUnion.
+        /// </summary>
+        /// <param name="typeGUID">Globally unique object identifier, must be of a data type!</param>
+        /// <returns>Appropriate data type object.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal MEDataType GetDataType(string typeGUID)
+        {
+            if (this._modelImp != null) return this._modelImp.GetDataType(typeGUID);
+            else throw new MissingImplementationException("ModelImplementation");
+        }
+
+        /// <summary>
         /// Factory method for the construction of DiagramImlementation objects according to Diagram ID.
         /// </summary>
         /// <param name="diagramID">The unique tool-specific diagram identifier.</param>
@@ -175,6 +188,20 @@ namespace Framework.Model
         internal ModelElementImplementation GetModelElementImplementation(ModelElementType type, int elementID)
         {
             if (this._modelImp != null) return this._modelImp.GetModelElementImplementation(type, elementID);
+            else throw new MissingImplementationException("ModelImplementation");
+        }
+
+        /// <summary>
+        /// This is a factory method that constructs the proper ModelElementImplementation object according to the provided type and
+        /// globally unique object ID (GUID).
+        /// </summary>
+        /// <param name="type">The requested model element type.</param>
+        /// <param name="elementGUID">The globally unique element identifier.</param>
+        /// <returns>Proper implementation object or NULL in case of errors.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal ModelElementImplementation GetModelElementImplementation(ModelElementType type, string elementGUID)
+        {
+            if (this._modelImp != null) return this._modelImp.GetModelElementImplementation(type, elementGUID);
             else throw new MissingImplementationException("ModelImplementation");
         }
 

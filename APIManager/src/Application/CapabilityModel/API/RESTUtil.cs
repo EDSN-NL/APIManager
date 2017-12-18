@@ -1,4 +1,6 @@
-﻿using Framework.Logging;
+﻿using System.Collections.Generic;
+using Framework.Logging;
+using Framework.Context;
 
 namespace Plugin.Application.CapabilityModel.API
 {
@@ -55,6 +57,48 @@ namespace Plugin.Application.CapabilityModel.API
             }
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTUtil.GetAssignedRoleName >> Returning: '" + assignedRole + "'.");
             return assignedRole;
+        }
+
+        /// <summary>
+        /// Utility function that retrieves the list of REST Header parameters from Configuration.
+        /// </summary>
+        /// <returns>Header Parameter declarations or empty list in case of no definitions (or errors).</returns>
+        internal static List<RESTParameterDeclaration> GetHeaderParameters()
+        {
+            string parameterEncoding = ContextSlt.GetContextSlt().GetStringSetting(FrameworkSettings._RESTHeaderParameters);
+            var parameterList = new List<RESTParameterDeclaration>();
+            while (parameterEncoding != string.Empty)
+            {
+                if (parameterEncoding[0] == '{')
+                {
+                    int endOfParameter = parameterEncoding.IndexOf("}");
+                    string singleParameter = parameterEncoding.Substring(1, endOfParameter - 1);
+                    parameterEncoding = (endOfParameter + 1 < parameterEncoding.Length) ? parameterEncoding.Substring(endOfParameter + 1) : string.Empty;
+                    RESTParameterDeclaration param = RESTParameterDeclaration.Deserialize(singleParameter);
+                    parameterList.Add(param);
+                }
+                else
+                {
+                    Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTUtil.GetHeaderParameters >> Parameter configuration appears to be corrupt, no result!");
+                    break;
+                }
+            }
+            return parameterList;
+        }
+
+        /// <summary>
+        /// Utility function that writes a list of REST Header Parameters to Configuration. This list will replace any list that is already stored.
+        /// Each parameter will be stored in the configuration as a Base64-encoded string setting, enclosed in '{ }'...
+        /// </summary>
+        /// <param name="parameterList">List of REST Header Parameters to be stored.</param>
+        internal static void SetHeaderParameters(List<RESTParameterDeclaration> parameterList)
+        {
+            string parameterEncoding = string.Empty;
+            foreach (RESTParameterDeclaration param in parameterList)
+            {
+                parameterEncoding += "{" + RESTParameterDeclaration.Serialize(param) + "}";
+            }
+            ContextSlt.GetContextSlt().SetStringSetting(FrameworkSettings._RESTHeaderParameters, parameterEncoding);
         }
     }
 }

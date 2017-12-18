@@ -13,6 +13,13 @@
         internal MEFacet(int facetID) : base(ModelElementType.Facet, facetID) { }
 
         /// <summary>
+        /// Construct a new UML 'Facet' artifact by associating MEFacet with the appropriate implementation object.
+        /// The actual registration and construction is all performed by the base class constructor.
+        /// </summary>
+        /// <param name="facetGUID">Globally unique instance identifier of the facet artifact.</param>
+        internal MEFacet(string facetGUID) : base(ModelElementType.Facet, facetGUID) { }
+
+        /// <summary>
         /// Construct a new UML 'Facet' artifact by associating MEFacet with the given implementation object.
         /// The actual registration and construction is all performed by the base class constructor.
         /// </summary>

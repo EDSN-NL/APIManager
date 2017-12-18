@@ -15,17 +15,18 @@ namespace Plugin.Application.CapabilityModel.API
     internal sealed class RESTOperationDeclaration
     {
         // We use a boolean indicator to choose between request and response...
-        internal const bool _RequestIndicator           = false;
-        internal const bool _ResponseIndicator          = true;
+        internal const bool _RequestIndicator               = false;
+        internal const bool _ResponseIndicator              = true;
 
         // Configuration properties used by this module:
-        private const string _APISupportModelPathName   = "APISupportModelPathName";
-        private const string _OperationResultClassName  = "OperationResultClassName";
-        private const string _RESTParameterStereotype   = "RESTParameterStereotype";
-        private const string _ResourceClassStereotype   = "ResourceClassStereotype";
-        private const string _PaginationClassName       = "PaginationClassName";
+        private const string _APISupportModelPathName       = "APISupportModelPathName";
+        private const string _OperationResultClassName      = "OperationResultClassName";
+        private const string _RESTParameterStereotype       = "RESTParameterStereotype";
+        private const string _ResourceClassStereotype       = "ResourceClassStereotype";
+        private const string _PaginationClassName           = "PaginationClassName";
+        private const string _UseRESTHeaderParametersTag    = "UseRESTHeaderParametersTag";
 
-        private const string _Summary = "summary: ";                // Separator between summary text and description text.
+        private const string _Summary = "summary: ";        // Separator between summary text and description text.
 
         // The status is used to track operations on the declaration.
         internal enum DeclarationStatus { Invalid, Created, Stable, Edited, Deleted }
@@ -42,12 +43,35 @@ namespace Plugin.Application.CapabilityModel.API
         private bool _hasMultipleResponseParameters;                // Request message definition has cardinality > 1.
         private bool _hasPagination;                                // Operation must implement default pagination mechanism.
         private bool _publicAccess;                                 // Security must be overruled for this operation.
+        private bool _useHeaderParameters;                          // Operation uses configured Header Parameters.
         private SortedList<string, RESTOperationResultDeclaration> _resultList;     // Set of result declarations (one for each unique HTTP result code).
         private List<string> _producedMIMEList;                     // Non-standard MIME types produced by the operation.
         private List<string> _consumedMIMEList;                     // Non-standard MIME types consumed by the operation.
         private string _summaryText;                                // Short description of operation.
         private string _description;                                // Long description of operation.
         private SortedList<string, RESTParameterDeclaration> _queryParams;          // List of user-defined query parameters for this operation.
+
+        /// <summary>
+        /// Get or set the archetype of this operation, i.e. the associated HTTP operation.
+        /// </summary>
+        internal RESTOperationCapability.OperationType Archetype
+        {
+            get { return this._archetype; }
+            set
+            {
+                if (this._archetype != value)
+                {
+                    this._archetype = value;
+                    if (this._initialStatus == DeclarationStatus.Invalid && this._name != string.Empty) this._status = DeclarationStatus.Created;
+                    else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the list of MIME types consumed by the operation. Empty of only default MIME types are consumed.
+        /// </summary>
+        internal List<string> ConsumedMIMETypes { get { return this._consumedMIMEList; } }
 
         /// <summary>
         /// Get or set the long description of the operation.
@@ -59,9 +83,34 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Parameter name.
+        /// </summary>
+        internal string Name
+        {
+            get { return this._name; }
+            set
+            {
+                if (this._name != value)
+                {
+                    this._name = value;
+                    if (this._initialStatus == DeclarationStatus.Invalid && this._archetype != RESTOperationCapability.OperationType.Unknown) this._status = DeclarationStatus.Created;
+                    else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                }
+            }
+        }
+
+        /// <summary>
         /// If the operation declaration is based on an existing operation, this property returns the associated operation class.
         /// </summary>
         internal MEClass OperationClass { get { return this._existingOperation; } }
+
+        /// <summary>
+        /// Returns the list of operation result declarations...
+        /// </summary>
+        internal List<RESTOperationResultDeclaration> OperationResults
+        {
+            get { return new List<RESTOperationResultDeclaration>(this._resultList.Values); }
+        }
 
         /// <summary>
         /// Get or set the 'has pagination' indicator
@@ -90,11 +139,6 @@ namespace Plugin.Application.CapabilityModel.API
         internal List<string> ProducedMIMETypes { get { return this._producedMIMEList; } }
 
         /// <summary>
-        /// Returns the list of MIME types consumed by the operation. Empty of only default MIME types are consumed.
-        /// </summary>
-        internal List<string> ConsumedMIMETypes { get { return this._consumedMIMEList; } }
-
-        /// <summary>
         /// Get or set the 'has public access' indicator
         /// </summary>
         internal bool PublicAccessIndicator
@@ -108,15 +152,6 @@ namespace Plugin.Application.CapabilityModel.API
                     if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 }
             }
-        }
-
-        /// <summary>
-        /// Get or set the short operation description.
-        /// </summary>
-        internal string Summary
-        {
-            get { return this._summaryText; }
-            set { this._summaryText = value; }
         }
 
         /// <summary>
@@ -184,11 +219,12 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Returns the list of operation result declarations...
+        /// Get or set the short operation description.
         /// </summary>
-        internal List<RESTOperationResultDeclaration> OperationResults
+        internal string Summary
         {
-            get { return new List<RESTOperationResultDeclaration>(this._resultList.Values); }
+            get { return this._summaryText; }
+            set { this._summaryText = value; }
         }
 
         /// <summary>
@@ -200,34 +236,19 @@ namespace Plugin.Application.CapabilityModel.API
             set { this._status = value; }
         }
 
-        /// <summary>
-        /// Parameter name.
-        /// </summary>
-        internal string Name
-        {
-            get { return this._name; }
-            set
-            {
-                if (this._name != value)
-                {
-                    this._name = value;
-                    if (this._initialStatus == DeclarationStatus.Invalid && this._archetype != RESTOperationCapability.OperationType.Unknown) this._status = DeclarationStatus.Created;
-                    else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-                }
-            }
-        }
 
         /// <summary>
-        /// Get or set the archetype of this operation, i.e. the associated HTTP operation.
+        /// Get or set the 'Use Header Parameters' class property. A value of 'true' indicates that the operation must
+        /// use the configured Header Parameters.
         /// </summary>
-        internal RESTOperationCapability.OperationType Archetype
+        internal bool UseHeaderParametersIndicator
         {
-            get { return this._archetype; }
+            get { return this._useHeaderParameters; }
             set
             {
-                if (this._archetype != value)
+                if (this._useHeaderParameters != value)
                 {
-                    this._archetype = value;
+                    this._useHeaderParameters = value;
                     if (this._initialStatus == DeclarationStatus.Invalid && this._name != string.Empty) this._status = DeclarationStatus.Created;
                     else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 }
@@ -259,6 +280,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._queryParams = new SortedList<string, RESTParameterDeclaration>();
             this._description = string.Empty;
             this._summaryText = string.Empty;
+            this._useHeaderParameters = true;
 
             CreateDefaultResults();
         }
@@ -286,6 +308,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._consumedMIMEList = operation.ConsumedMIMEList;
             this._queryParams = new SortedList<string, RESTParameterDeclaration>();
             this._resultList = new SortedList<string, RESTOperationResultDeclaration>();
+            this._useHeaderParameters = operation.UseHeaderParameters;
 
             // Extract documentation from the class. This can be a multi-line object in which the first line might be the 'summary' description...
             List<string> documentation = MEChangeLog.GetDocumentationAsTextLines(operation.CapabilityClass);

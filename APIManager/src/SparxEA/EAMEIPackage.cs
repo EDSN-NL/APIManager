@@ -60,6 +60,32 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Creates a new EA package implementation from a repository global identifier (GUID).
+        /// </summary>
+        /// <param name="model">The associated model implementation.</param>
+        /// <param name="packageGUID">The EA Package global identifier (GUID) on which the implementation is based.</param>
+        internal EAMEIPackage(EAModelImplementation model, string packageGUID) : base(model)
+        {
+            this._package = model.Repository.GetPackageByGuid(packageGUID);
+            if (this._package != null)
+            {
+                this._name = this._package.Name;
+                this._elementID = this._package.PackageID;
+                this._globalID = packageGUID;
+                this._aliasName = this._package.Alias ?? string.Empty;
+
+                // Register this package in the package tree. If the package has a parent, we attempt to link to it...
+                // In EA an empty package ID is represented by value '0', we use '-1' instead.
+                int parentID = this._package.ParentID;
+                RegisterPackage(this._elementID, parentID == 0 ? -1 : parentID);
+            }
+            else
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIPackage >> Failed to retrieve EA Package with GUID: " + packageGUID);
+            }
+        }
+
+        /// <summary>
         /// Constructor that creates a new implementation instance based on a provided EA package instance.
         /// </summary>
         /// <param name="model">The associated model implementation.</param>

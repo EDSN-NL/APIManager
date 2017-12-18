@@ -39,6 +39,26 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// The internal constructor is called with an EA-specific association identifier.
+        /// Note that connectors 'might' have a name, but this is not guaranteed.
+        /// </summary>
+        internal EAMEIAssociation(EAModelImplementation model, string associationGUID) : base(model)
+        {
+            this._connector = model.Repository.GetConnectorByGuid(associationGUID);
+            if (this._connector != null)
+            {
+                this._name = this._connector.Name;
+                this._elementID = this._connector.ConnectorID;
+                this._globalID = associationGUID;
+                this._aliasName = this._connector.Alias ?? string.Empty;
+            }
+            else
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIAssociation >> Failed to retrieve EA Connector with GUID: " + associationGUID);
+            }
+        }
+
+        /// <summary>
         /// Constructor that creates a new implementation instance based on a provided EA connector instance.
         /// </summary>
         /// <param name="model">The associated model implementation.</param>

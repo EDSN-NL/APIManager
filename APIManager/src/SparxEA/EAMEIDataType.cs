@@ -68,6 +68,45 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// The internal constructor is called to initialize the repository.
+        /// </summary>
+        internal EAMEIDataType(EAModelImplementation model, string classGUID) : base(model)
+        {
+            this._classPart = model.GetModelElementImplementation(ModelElementType.Class, classGUID) as EAMEIClass;
+            this._name = this._classPart.Name;
+            this._elementID = this._classPart.ElementID;
+            this._globalID = this._classPart.GlobalID;
+            this._aliasName = this._classPart.AliasName;
+
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string myMetaType = this._classPart.MetaType;
+
+            if (string.Compare(myMetaType, context.GetConfigProperty(_MetaTypeComplexDataType), StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                // Special condition: we want to treat external schema references different from 'ordinary' complex types
+                // since these are not really types, but rather a schema descriptor.
+                if (string.Compare(this._name, context.GetConfigProperty(_MetaTypeExtSchema), StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    this._metaType = MEDataType.MetaDataType.ExtSchemaType;
+                }
+                else
+                {
+                    this._metaType = MEDataType.MetaDataType.ComplexType;
+                }
+            }
+            else if (string.Compare(myMetaType, context.GetConfigProperty(_MetaTypeSimpleDataType), StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                this._metaType = MEDataType.MetaDataType.SimpleType;
+            }
+            else
+            {
+                // We don't recognize the meta type at this level. Probably we're dealing with a specialized
+                // data type that must initialize meta type properly. Leave at 'unknown' for now.
+                Logger.WriteInfo("SparxEA.Model.EAMEIDataType >> Unknown meta type, specialized data type?");
+            }
+        }
+
+        /// <summary>
         /// Constructor that creates a new implementation instance based on a provided EA element instance and an explicit
         /// meta-type. This constructor is typically used ONLY for creation of new data types (in which case we do not have the
         /// stereotypes assigned which we need to distinguish between simple- and complex types.

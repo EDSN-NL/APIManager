@@ -82,6 +82,7 @@ namespace Plugin.Application.Forms
             this.RemoveResponse = new System.Windows.Forms.Button();
             this.SelectResponse = new System.Windows.Forms.Button();
             this.ResponseTypeName = new System.Windows.Forms.TextBox();
+            this.UseHeaderParameters = new System.Windows.Forms.CheckBox();
             this.OperationGroup.SuspendLayout();
             this.FilterGroup.SuspendLayout();
             this.ResponseCodeGroup.SuspendLayout();
@@ -99,7 +100,7 @@ namespace Plugin.Application.Forms
             this.Cancel.Location = new System.Drawing.Point(513, 481);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
-            this.Cancel.TabIndex = 11;
+            this.Cancel.TabIndex = 12;
             this.Cancel.Text = "Cancel";
             this.Cancel.UseVisualStyleBackColor = true;
             // 
@@ -109,7 +110,7 @@ namespace Plugin.Application.Forms
             this.Ok.Location = new System.Drawing.Point(432, 481);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
-            this.Ok.TabIndex = 12;
+            this.Ok.TabIndex = 13;
             this.Ok.Text = "Ok";
             this.Ok.UseVisualStyleBackColor = true;
             // 
@@ -180,7 +181,7 @@ namespace Plugin.Application.Forms
             this.NewMinorVersion.Location = new System.Drawing.Point(12, 489);
             this.NewMinorVersion.Name = "NewMinorVersion";
             this.NewMinorVersion.Size = new System.Drawing.Size(138, 17);
-            this.NewMinorVersion.TabIndex = 10;
+            this.NewMinorVersion.TabIndex = 11;
             this.NewMinorVersion.Text = "Increment minor version";
             this.NewMinorVersion.UseVisualStyleBackColor = true;
             // 
@@ -193,7 +194,7 @@ namespace Plugin.Application.Forms
             this.FilterGroup.Location = new System.Drawing.Point(12, 112);
             this.FilterGroup.Name = "FilterGroup";
             this.FilterGroup.Size = new System.Drawing.Size(282, 180);
-            this.FilterGroup.TabIndex = 6;
+            this.FilterGroup.TabIndex = 7;
             this.FilterGroup.TabStop = false;
             this.FilterGroup.Text = "Filter parameters";
             // 
@@ -259,7 +260,7 @@ namespace Plugin.Application.Forms
             this.HasPagination.Location = new System.Drawing.Point(218, 89);
             this.HasPagination.Name = "HasPagination";
             this.HasPagination.Size = new System.Drawing.Size(76, 17);
-            this.HasPagination.TabIndex = 5;
+            this.HasPagination.TabIndex = 6;
             this.HasPagination.Text = "Pagination";
             this.HasPagination.UseVisualStyleBackColor = true;
             this.HasPagination.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
@@ -270,7 +271,7 @@ namespace Plugin.Application.Forms
             this.OverrideSecurity.Location = new System.Drawing.Point(120, 89);
             this.OverrideSecurity.Name = "OverrideSecurity";
             this.OverrideSecurity.Size = new System.Drawing.Size(92, 17);
-            this.OverrideSecurity.TabIndex = 4;
+            this.OverrideSecurity.TabIndex = 5;
             this.OverrideSecurity.Text = "Public access";
             this.OverrideSecurity.UseVisualStyleBackColor = true;
             this.OverrideSecurity.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
@@ -284,7 +285,7 @@ namespace Plugin.Application.Forms
             this.ResponseCodeGroup.Location = new System.Drawing.Point(306, 112);
             this.ResponseCodeGroup.Name = "ResponseCodeGroup";
             this.ResponseCodeGroup.Size = new System.Drawing.Size(282, 180);
-            this.ResponseCodeGroup.TabIndex = 7;
+            this.ResponseCodeGroup.TabIndex = 8;
             this.ResponseCodeGroup.TabStop = false;
             this.ResponseCodeGroup.Text = "Response codes";
             // 
@@ -397,7 +398,7 @@ namespace Plugin.Application.Forms
             this.MimeBox.Location = new System.Drawing.Point(12, 298);
             this.MimeBox.Name = "MimeBox";
             this.MimeBox.Size = new System.Drawing.Size(576, 49);
-            this.MimeBox.TabIndex = 8;
+            this.MimeBox.TabIndex = 9;
             this.MimeBox.TabStop = false;
             this.MimeBox.Text = "MIME types";
             // 
@@ -443,7 +444,7 @@ namespace Plugin.Application.Forms
             this.DocumentationBox.Location = new System.Drawing.Point(12, 353);
             this.DocumentationBox.Name = "DocumentationBox";
             this.DocumentationBox.Size = new System.Drawing.Size(576, 122);
-            this.DocumentationBox.TabIndex = 9;
+            this.DocumentationBox.TabIndex = 10;
             this.DocumentationBox.TabStop = false;
             this.DocumentationBox.Text = "Documentation";
             // 
@@ -577,6 +578,17 @@ namespace Plugin.Application.Forms
             this.ResponseTypeName.Size = new System.Drawing.Size(138, 20);
             this.ResponseTypeName.TabIndex = 0;
             // 
+            // UseHeaderParameters
+            // 
+            this.UseHeaderParameters.AutoSize = true;
+            this.UseHeaderParameters.Location = new System.Drawing.Point(12, 89);
+            this.UseHeaderParameters.Name = "UseHeaderParameters";
+            this.UseHeaderParameters.Size = new System.Drawing.Size(98, 17);
+            this.UseHeaderParameters.TabIndex = 4;
+            this.UseHeaderParameters.Text = "Header params";
+            this.UseHeaderParameters.UseVisualStyleBackColor = true;
+            this.UseHeaderParameters.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
+            // 
             // RESTOperationDialog
             // 
             this.AcceptButton = this.Ok;
@@ -584,6 +596,7 @@ namespace Plugin.Application.Forms
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
             this.ClientSize = new System.Drawing.Size(600, 522);
+            this.Controls.Add(this.UseHeaderParameters);
             this.Controls.Add(this.ResponseParamBox);
             this.Controls.Add(this.RequestParamBox);
             this.Controls.Add(this.DocumentationBox);
@@ -674,5 +687,6 @@ namespace Plugin.Application.Forms
         private Button RemoveResponse;
         private CheckBox RequestMultiple;
         private CheckBox ResponseMultiple;
+        private CheckBox UseHeaderParameters;
     }
 }

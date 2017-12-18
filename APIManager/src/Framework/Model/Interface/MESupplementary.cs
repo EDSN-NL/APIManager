@@ -9,8 +9,15 @@
         /// Construct a new supplementary attribute by associating MESupplementary with the appropriate implementation object.
         /// The actual registration and construction is all performed by the base class constructor.
         /// </summary>
-        /// <param name="suppID">Tool-specific instance identifier of the facet artifact within the tool repository.</param>
+        /// <param name="suppID">Tool-specific instance identifier of the supplementary attribute artifact within the tool repository.</param>
         internal MESupplementary(int suppID) : base(ModelElementType.Supplementary, suppID) { }
+
+        /// <summary>
+        /// Construct a new supplementary attribute by associating MESupplementary with the appropriate implementation object.
+        /// The actual registration and construction is all performed by the base class constructor.
+        /// </summary>
+        /// <param name="suppGUID">Globally unique instance identifier of the supplementary attribute artifact.</param>
+        internal MESupplementary(string suppGUID) : base(ModelElementType.Supplementary, suppGUID) { }
 
         /// <summary>
         /// Construct a new supplementary attribute by associating MESupplementary with the given implementation object.

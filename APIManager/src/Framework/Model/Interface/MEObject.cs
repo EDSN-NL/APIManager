@@ -32,6 +32,13 @@ namespace Framework.Model
         internal MEObject(int objectID) : base(ModelElementType.Object, objectID) { }
 
         /// <summary>
+        /// Construct a new UML 'Object' artifact by associating MEObject with the appropriate implementation object.
+        /// The actual registration and construction is all performed by the base class constructor.
+        /// </summary>
+        /// <param name="objectGUID">Globally unique instance identifier of the object artifact.</param>
+        internal MEObject(string objectGUID) : base(ModelElementType.Object, objectGUID) { }
+
+        /// <summary>
         /// Construct a new UML 'Object' artifact by associating MEObject with the given implementation object.
         /// The actual registration and construction is all performed by the base class constructor.
         /// </summary>

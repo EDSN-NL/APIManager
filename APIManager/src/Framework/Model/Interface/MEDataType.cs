@@ -132,6 +132,14 @@ namespace Framework.Model
         internal MEDataType(int typeID) : base(ModelElementType.DataType, typeID) { }
 
         /// <summary>
+        /// Construct a new UML 'Data Type' artifact by associating MEDataType with the appropriate 
+        /// implementation object.
+        /// The actual registration and construction is all performed by the base class constructor.
+        /// </summary>
+        /// <param name="classGUID">Globally unique instance identifier of the data type artifact.</param>
+        internal MEDataType(string typeGUID) : base(ModelElementType.DataType, typeGUID) { }
+
+        /// <summary>
         /// Construct a new UML 'Data Type' artifact by associating MEDataType with the given implementation object.
         /// The actual registration and construction is all performed by the base class constructor.
         /// </summary>
@@ -155,5 +163,12 @@ namespace Framework.Model
         /// <param name="type">Type of derived class.</param>
         /// <param name="classId">Instance ID of associated repository entry.</param>
         protected MEDataType(ModelElementType type, int classId) : base(type, classId) { }
+
+        /// <summary>
+        /// Special constructor to be used by specialized classes that have to pass alternative type identifiers.
+        /// </summary>
+        /// <param name="type">Type of derived class.</param>
+        /// <param name="classGUID">Globally unique instance ID of associated type.</param>
+        protected MEDataType(ModelElementType type, string classGUID) : base(type, classGUID) { }
     }
 }

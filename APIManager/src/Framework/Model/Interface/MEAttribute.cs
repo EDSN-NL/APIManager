@@ -128,6 +128,13 @@ namespace Framework.Model
         internal MEAttribute(int attribID) : base(ModelElementType.Attribute, attribID) { }
 
         /// <summary>
+        /// Construct a new UML 'Attribute' artifact by associating MEAttribute with the appropriate implementation object.
+        /// The actual registration and construction is all performed by the base class constructor.
+        /// </summary>
+        /// <param name="attribGUID">Globally unique instance identifier of the attribute artifact.</param>
+        internal MEAttribute(string attribGUID) : base(ModelElementType.Attribute, attribGUID) { }
+
+        /// <summary>
         /// Construct a new UML 'Attribute' artifact by associating MEAttribute with the given implementation object.
         /// The actual registration and construction is all performed by the base class constructor.
         /// </summary>
@@ -151,5 +158,12 @@ namespace Framework.Model
         /// <param name="type">Type of derived class.</param>
         /// <param name="classId">Instance ID of associated repository entry.</param>
         protected MEAttribute(ModelElementType type, int classId) : base(type, classId) { }
+
+        /// <summary>
+        /// Special constructor to be used by specialized classes that have to pass alternative type identifiers.
+        /// </summary>
+        /// <param name="type">Type of derived class.</param>
+        /// <param name="classGUID">Globally unique instance ID of associated type.</param>
+        protected MEAttribute(ModelElementType type, string classGUID) : base(type, classGUID) { }
     }
 }

@@ -162,6 +162,13 @@ namespace Framework.Model
         internal MEClass(int classID) : base(ModelElementType.Class, classID) { }
 
         /// <summary>
+        /// Construct a new UML 'Class' artifact by associating MEClass with the appropriate implementation object.
+        /// The actual registration and construction is all performed by the base class constructor.
+        /// </summary>
+        /// <param name="classGUID">Globally-unique instance identifier of the class artifact.</param>
+        internal MEClass(string classGUID) : base(ModelElementType.Class, classGUID) { }
+
+        /// <summary>
         /// Construct a new UML 'Class' artifact by associating MEClass with the given implementation object.
         /// The actual registration and construction is all performed by the base class constructor.
         /// </summary>
@@ -340,5 +347,12 @@ namespace Framework.Model
         /// <param name="type">Type of derived class.</param>
         /// <param name="classId">Instance ID of associated repository entry.</param>
         protected MEClass(ModelElementType type, int classId) : base(type, classId) { }
+
+        /// <summary>
+        /// Special constructor to be used by specialized classes that have to pass alternative type identifiers.
+        /// </summary>
+        /// <param name="type">Type of derived class.</param>
+        /// <param name="classGUID">Globally unique instance ID of associated type.</param>
+        protected MEClass(ModelElementType type, string classGUID) : base(type, classGUID) { }
     }
 }

@@ -63,6 +63,13 @@ namespace Framework.Model
         internal MEPackage(int packageID) : base(ModelElementType.Package, packageID) { }
 
         /// <summary>
+        /// Construct a new UML 'Package' artifact by associating MEPackage with the appropriate implementation object.
+        /// The actual registration and construction is all performed by the base class constructor.
+        /// </summary>
+        /// <param name="packageGUID">Globally unique instance identifier of the package artifact.</param>
+        internal MEPackage(string packageGUID) : base(ModelElementType.Package, packageGUID) { }
+
+        /// <summary>
         /// Construct a new UML 'Package' artifact by associating MEPackage with the given implementation object.
         /// The actual registration and construction is all performed by the base class constructor.
         /// </summary>

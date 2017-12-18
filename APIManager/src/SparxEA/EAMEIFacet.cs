@@ -32,6 +32,18 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Fetches attribute information from EA repository and initializes the implementation object.
+        /// </summary>
+        internal EAMEIFacet(EAModelImplementation model, string attribGUID) : base(model)
+        {
+            this._attributePart = model.GetModelElementImplementation(ModelElementType.Attribute, attribGUID) as EAMEIAttribute;
+            this._name = this._attributePart.Name;
+            this._elementID = this._attributePart.ElementID;
+            this._globalID = this._attributePart.GlobalID;
+            this._aliasName = this._attributePart.AliasName;
+        }
+
+        /// <summary>
         /// Constructor that creates a new implementation instance based on a provided EA attribute instance.
         /// </summary>
         /// <param name="model">The associated model implementation.</param>

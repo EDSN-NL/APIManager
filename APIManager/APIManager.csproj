@@ -79,6 +79,7 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization.Formatters.Soap" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Services" />
@@ -242,6 +243,7 @@
     <Compile Include="src\Framework\SchemaManagement\SchemaAttribute.cs" />
     <Compile Include="src\Framework\SchemaManagement\Facet.cs" />
     <Compile Include="src\Framework\SchemaManagement\PrimitiveType.cs" />
+    <Compile Include="src\Framework\Util\Compression.cs" />
     <Compile Include="src\Framework\Util\IllegalEnumException.cs" />
     <Compile Include="src\Framework\Util\IllegalCardinalityException.cs" />
     <Compile Include="src\Framework\SchemaManagement\XML\XMLSchema.cs" />

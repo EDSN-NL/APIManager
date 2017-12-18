@@ -71,6 +71,25 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Creates a new EA Class implementation based on repository GUID.
+        /// </summary>
+        internal EAMEIClass(EAModelImplementation model, string classGUID) : base(model)
+        {
+            this._element = model.Repository.GetElementByGuid(classGUID);
+            if (this._element != null)
+            {
+                this._name = this._element.Name;
+                this._elementID = this._element.ElementID;
+                this._globalID = classGUID;
+                this._aliasName = this._element.Alias ?? string.Empty;
+            }
+            else
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIClass >> Failed to retrieve EA Element with GUID: " + classGUID);
+            }
+        }
+
+        /// <summary>
         /// Constructor that creates a new implementation instance based on a provided EA element instance.
         /// </summary>
         /// <param name="model">The associated model implementation.</param>

@@ -276,6 +276,29 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// The ModelElement constructor performs the work of actually obtaining the proper implementation object and
+        /// registering the occurence of a new interface by incrementing the interface reference count at the implementation.
+        /// </summary>
+        /// <param name="type">Type of the derived ModelElement, defines the implementation object.</param>
+        /// <param name="elementGUID">Globally Unique ID of the object within the Tool Repository.</param>
+        protected ModelElement(ModelElementType type, string elementGUID)
+        {
+            this._disposed = false;
+            this._imp = ModelSlt.GetModelSlt().GetModelElementImplementation(type, elementGUID);
+            if (this._imp != null)
+            {
+                // We don't have to check here for different implementations, since we have created the implementation through the model
+                // interface, which checks the list of registered implementations...
+                ModelElementImplementation refImp = this._imp.AddReference();
+            }
+            else
+            {
+                Logger.WriteError("Framework.Model.ModelElement >> Could not obtain implementation object of type: '" +
+                                  type + "' and instance GUID: '" + elementGUID + "'!");
+            }
+        }
+
+        /// <summary>
         /// Create a new Model Element based on a provided implementation object.
         /// </summary>
         /// <param name="imp">The implementation to be used.</param>

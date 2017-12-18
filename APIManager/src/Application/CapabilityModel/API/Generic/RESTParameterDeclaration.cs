@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
+using System.Xml.Serialization;
 using Framework.Model;
 using Framework.Logging;
 using Framework.Context;
@@ -7,6 +8,22 @@ using Framework.Util;
 
 namespace Plugin.Application.CapabilityModel.API
 {
+    /// <summary>
+    /// Helper class for proper XML serialization of Parameter Declaration objects (for this to work, all data must be public)...
+    /// </summary>
+    public sealed class RESTParameterState
+    {
+        public string _name;                    // Property name.
+        public string _classifierGUID;          // Global ID of the classifier type.
+        public string _defaultValue;            // Default value (if applicable).
+        public string _description;             // Property notes.
+        public int[]  _cardinality;             // Property cardinality, item2 == 0 --> Undefined.
+        public string _collectionFormat;        // In case of upper-limit cardinality >1: how do we separate values in the input?
+        public string _scope;                   // Parameter scope.
+        public string _status;                  // Status of this declaration record.
+        public bool _allowEmptyValue;           // True when parameter can have 'name only'.    
+    }
+
     /// <summary>
     /// A simple helper class that bundles the components that make up a REST parameter (attributes of a Path Expression or operation).
     /// </summary>
@@ -332,6 +349,79 @@ namespace Plugin.Application.CapabilityModel.API
                                     param.Name + "' to an attribute of class '" + parent.Name + "' is not supported!");
             }
             return newAttrib;
+        }
+
+        /// <summary>
+        /// Serialize the specified parameter declaration object to an XML string that can be stored and later used to 
+        /// reconstruct the instance.
+        /// </summary>
+        /// <returns>Object state as an XML string or empty string on errors.</returns>
+        internal static string Serialize(RESTParameterDeclaration param)
+        {
+            try
+            {
+                var stateObject = new RESTParameterState
+                {
+                    _name = param._name,
+                    _classifierGUID = param._classifier != null ? param._classifier.GlobalID : string.Empty,
+                    _defaultValue = param._defaultValue,
+                    _description = param._description,
+                    _cardinality = new int[] { param._cardinality.Item1, param._cardinality.Item2 },
+                    _collectionFormat = param._collectionFormat.ToString(),
+                    _scope = param._scope.ToString(),
+                    _status = param._status.ToString(),
+                    _allowEmptyValue = param._allowEmptyValue
+                };
+
+                XmlSerializer serializer = new XmlSerializer(typeof(RESTParameterState));
+                using (StringWriter textWriter = new StringWriter())
+                {
+                    serializer.Serialize(textWriter, stateObject);
+                    return Compression.Zip(textWriter.ToString());
+                }
+            }
+            catch (Exception exc)
+            {
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.RestParameterDeclaration.Serialize >> Serialization failed because: " + exc.Message);
+            }
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Reconstruct (deserialize) a RESTParameterDeclaration object from specified serialized string.
+        /// </summary>
+        /// <param name="stateString">Must be obtained from earlier call to Serialize.</param>
+        /// <returns>Associated parameter declaration object or null on errors.</returns>
+        internal static RESTParameterDeclaration Deserialize(string stateString)
+        {
+            try
+            {
+                RESTParameterState stateObject;
+                XmlSerializer serializer = new XmlSerializer(typeof(RESTParameterState));
+                using (StringReader textReader = new StringReader(Compression.Unzip(stateString)))
+                {
+                    stateObject = (RESTParameterState)serializer.Deserialize(textReader);
+                }
+
+                RESTParameterDeclaration param = new RESTParameterDeclaration
+                {
+                    _name = stateObject._name,
+                    _classifier = stateObject._classifierGUID != string.Empty ? ModelSlt.GetModelSlt().GetDataType(stateObject._classifierGUID) : null,
+                    _defaultValue = stateObject._defaultValue,
+                    _description = stateObject._description,
+                    _cardinality = new Tuple<int, int>(stateObject._cardinality[0], stateObject._cardinality[1]),
+                    _collectionFormat = EnumConversions<QueryCollectionFormat>.StringToEnum(stateObject._collectionFormat),
+                    _scope = EnumConversions<ParameterScope>.StringToEnum(stateObject._scope),
+                    _status = EnumConversions<DeclarationStatus>.StringToEnum(stateObject._status),
+                    _allowEmptyValue = stateObject._allowEmptyValue
+                };
+                return param;
+            }
+            catch (Exception exc)
+            {
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.RestParameterDeclaration.Deserialize >> Deserialization failed because: " + exc.Message);
+            }
+            return null;
         }
     }
 }

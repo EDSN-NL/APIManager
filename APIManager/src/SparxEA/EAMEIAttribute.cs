@@ -35,6 +35,25 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Fetches attribute information from EA repository and initializes the implementation object.
+        /// </summary>
+        internal EAMEIAttribute(EAModelImplementation model, string attribGUID) : base(model)
+        {
+            this._attribute = model.Repository.GetAttributeByGuid(attribGUID);
+            if (this._attribute == null)
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIAttribute >> Failed to retrieve EA Attribute with GUID: " + attribGUID);
+            }
+            else
+            {
+                this._name = this._attribute.Name;
+                this._elementID = this._attribute.AttributeID;
+                this._globalID = attribGUID;
+                this._aliasName = this._attribute.Alias ?? string.Empty;
+            }
+        }
+
+        /// <summary>
         /// Constructor that creates a new implementation instance based on a provided EA attribute instance.
         /// </summary>
         /// <param name="model">The associated model implementation.</param>

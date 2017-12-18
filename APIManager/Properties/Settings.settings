@@ -77,5 +77,8 @@
     <Setting Name="RESTSchemes" Type="System.String" Scope="User">
       <Value Profile="(Default)">https</Value>
     </Setting>
+    <Setting Name="RESTHeaderParameters" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -102,6 +102,14 @@ namespace Framework.Model
         internal abstract MEDataType GetDataType(int typeID);
 
         /// <summary>
+        /// Converts the given type identifier to the proper Data Type object. Based on the meta-type of the retrieved object,
+        /// the returned type is constructed as either an MEDataType, MEEnumeratedType or an MEUnion.
+        /// </summary>
+        /// <param name="typeGUID">Globally unique object identifier, must be of a data type!</param>
+        /// <returns>Appropriate data type object.</returns>
+        internal abstract MEDataType GetDataType(string typeGUID);
+
+        /// <summary>
         /// Factory method must be implemented by derived tool-specific implementation objects and is responsible for the construction
         /// of new Diagram implementation objects.
         /// </summary>
@@ -117,6 +125,15 @@ namespace Framework.Model
         /// <param name="elementID">Tool-specific unique instance ID.</param>
         /// <returns>Model Element implementation or NULL in case of errors.</returns>
         internal abstract ModelElementImplementation GetModelElementImplementation(ModelElementType type, int elementID);
+
+        /// <summary>
+        /// Factory method must be implemented by derived tool-specific implementation objects and is responsible for the
+        /// construction of proper Model Element implementation objects, using a globally unique ID (GUID) as key.
+        /// </summary>
+        /// <param name="type">Type of object to created.</param>
+        /// <param name="elementGUID">Tool-specific globally unique element ID (GUID).</param>
+        /// <returns>Model Element implementation or NULL in case of errors.</returns>
+        internal abstract ModelElementImplementation GetModelElementImplementation(ModelElementType type, string elementGUID);
 
         /// <summary>
         /// Retrieves the model repository type. Typically, this requires a tool-specific implementation.

@@ -136,6 +136,13 @@ namespace Framework.Model
         internal MEAssociation(int associationID) : base(ModelElementType.Association, associationID) { }
 
         /// <summary>
+        /// Construct a new generic UML Association artifact that connects two MEClass instances.
+        /// The actual registration and construction is all performed by the base class constructor.
+        /// </summary>
+        /// <param name="associationGUID">Globally-unique identifier of the association.</param>
+        internal MEAssociation(string associationGUID) : base(ModelElementType.Association, associationGUID) { }
+
+        /// <summary>
         /// Construct a new generic UML Association artifact by associating with the given implementation object.
         /// The actual registration and construction is all performed by the base class constructor.
         /// </summary>

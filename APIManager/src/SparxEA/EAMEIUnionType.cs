@@ -31,6 +31,18 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// The internal constructor is called to initialize the repository.
+        /// </summary>
+        internal EAMEIUnionType(EAModelImplementation model, string classGUID) : base(model)
+        {
+            this._classPart = model.GetModelElementImplementation(ModelElementType.Class, classGUID) as EAMEIClass;
+            this._name = this._classPart.Name;
+            this._elementID = this._classPart.ElementID;
+            this._globalID = this._classPart.GlobalID;
+            this._aliasName = this._classPart.AliasName;
+        }
+
+        /// <summary>
         /// Constructor that creates a new implementation instance based on a provided EA element instance.
         /// </summary>
         /// <param name="model">The associated model implementation.</param>

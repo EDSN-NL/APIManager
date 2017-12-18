@@ -15,6 +15,14 @@
         internal MEUnionType(int unionID) : base(ModelElementType.Union, unionID) { }
 
         /// <summary>
+        /// Construct a new Union data type by associating MEUnionType with the appropriate 
+        /// implementation object.
+        /// The actual registration and construction is all performed by the base class constructor.
+        /// </summary>
+        /// <param name="unionGUID">Globally unique instance identifier of the union.</param>
+        internal MEUnionType(string unionGUID) : base(ModelElementType.Union, unionGUID) { }
+
+        /// <summary>
         /// Construct a new Union data type by associating MEUnionType with the given 
         /// implementation object.
         /// The actual registration and construction is all performed by the base class constructor.

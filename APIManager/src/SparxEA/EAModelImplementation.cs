@@ -340,6 +340,39 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Converts the given type identifier to the proper Data Type object. Based on the meta-type of the retrieved object,
+        /// the returned type is constructed as either an MEDataType, MEEnumeratedType or an MEUnion.
+        /// </summary>
+        /// <param name="typeGUID">Globally unique object identifier, must be of a data type!</param>
+        /// <returns>Appropriate data type object.</returns>
+        internal override MEDataType GetDataType(string typeGUID)
+        {
+            var element = Repository.GetElementByGuid(typeGUID) as EA.Element;
+            MEDataType dataType = null;
+            ContextSlt context = ContextSlt.GetContextSlt();
+
+            if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeComplexDataType), StringComparison.OrdinalIgnoreCase) == 0 ||
+                String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeSimpleDataType), StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                dataType = new MEDataType(element.ElementID);
+            }
+            else if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeEnumeration), StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                dataType = new MEEnumeratedType(element.ElementID);
+            }
+            else if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeUnion), StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                dataType = new MEUnionType(element.ElementID);
+            }
+            else
+            {
+                Logger.WriteError("SparxEA.Model.EAModelImplementation.getDataType >> Element '" + element.Name +
+                                 "'is of illegal type '" + element.MetaType + "', giving up!");
+            }
+            return dataType;
+        }
+
+        /// <summary>
         /// Factory method that constructs a Diagram Implementation object according to the provided instance ID.
         /// The method searches the dictionary first in order to avoid having to create redundant objects. This also assures that
         /// multiple diagram interfaces all reference THE SAME implementation instance and thus maintain stable state.
@@ -455,6 +488,79 @@ namespace SparxEA.Model
                         Logger.WriteError("SparxEA.Model.EAModelImplementation.getModelElementImplementation >> Illegal type '" + type + "' passed to method!");
                         break;
                 }
+            }
+            return imp;
+        }
+
+        /// <summary>
+        /// Factory method that constructs the appropriate Model Element Implementation object according to the provided type and instance ID.
+        /// The method searches the dictionary first in order to avoid having to create redundant objects. This also assures that
+        /// multiple interfaces of a particular type/instance all reference THE SAME implementation instance and thus maintain
+        /// stable state.
+        /// </summary>
+        /// <param name="type">The type of implementation object to create.</param>
+        /// <param name="elementID">Instance identifier within the tool-specific repository.</param>
+        /// <returns>ModelElementImplementation object or NULL in case of errors.</returns>
+        internal override ModelElementImplementation GetModelElementImplementation(ModelElementType type, string elementGUID)
+        {
+            ModelElementImplementation imp = null;
+            switch (type)
+            {
+                case ModelElementType.Association:
+                    imp = new EAMEIAssociation(this, elementGUID);
+                    break;
+
+                case ModelElementType.Attribute:
+                    imp = new EAMEIAttribute(this, elementGUID);
+                    break;
+
+                case ModelElementType.Class:
+                    imp = new EAMEIClass(this, elementGUID);
+                    break;
+
+                case ModelElementType.DataType:
+                    imp = new EAMEIDataType(this, elementGUID);
+                    break;
+
+                case ModelElementType.Enumeration:
+                    imp = new EAMEIEnumeratedType(this, elementGUID);
+                    break;
+
+                case ModelElementType.Facet:
+                    imp = new EAMEIFacet(this, elementGUID);
+                    break;
+
+                case ModelElementType.Object:
+                    imp = new EAMEIObject(this, elementGUID);
+                    break;
+
+                case ModelElementType.Package:
+                    imp = new EAMEIPackage(this, elementGUID);
+                    break;
+
+                case ModelElementType.Supplementary:
+                    imp = new EAMEISupplementary(this, elementGUID);
+                    break;
+
+                case ModelElementType.Union:
+                    imp = new EAMEIUnionType(this, elementGUID);
+                    break;
+
+                default:
+                    Logger.WriteError("SparxEA.Model.EAModelImplementation.getModelElementImplementation >> Illegal type '" + type + "' passed to method!");
+                    break;
+            }
+
+            // If we have created a new object, we use this to check if we already have a similar one registered using its
+            // database identifier (ElementID). If so, we return the existing object instead of the newly created one.
+            // If not found, we return the newly created instance. Note that we DO NOT register the instance here.
+            // Instead, registering / de-registering of implementation objects is the responsibility of those objects
+            // themselves and is managed by monitoring the association count between implementation objects and their
+            // corresponding interfaces.
+            if (imp != null)
+            {
+                ModelElementImplementation altImp = FindRegisteredElementImp(type, imp.ElementID);
+                return (altImp != null) ? altImp : imp;
             }
             return imp;
         }

@@ -34,6 +34,14 @@ namespace Framework.Model
         internal MEEnumeratedType(int enumID) : base(ModelElementType.Enumeration, enumID) { }
 
         /// <summary>
+        /// Construct a new UML 'Enumerated Type' artifact by associating MEEnumeratedType with the appropriate 
+        /// implementation object.
+        /// The actual registration and construction is all performed by the base class constructor.
+        /// </summary>
+        /// <param name="enumGUID">Globally unique instance identifier of the enumeration artifact.</param>
+        internal MEEnumeratedType(string enumGUID) : base(ModelElementType.Enumeration, enumGUID) { }
+
+        /// <summary>
         /// Construct a new UML 'Enumerated Type' artifact by associating MEEnumeratedType with the given 
         /// implementation object.
         /// The actual registration and construction is all performed by the base class constructor.

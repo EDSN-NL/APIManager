@@ -26,6 +26,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _DefaultResponseCode               = "DefaultResponseCode";
         private const string _ConsumesMIMEListTag               = "ConsumesMIMEListTag";
         private const string _ProducesMIMEListTag               = "ProducesMIMEListTag";
+        private const string _UseRESTHeaderParametersTag        = "UseRESTHeaderParametersTag";
 
         private RESTResourceCapability _parent;                 // Parent resource capability that owns this operation.
         private RESTOperationCapability.OperationType _archetype;   // The HTTP operation type associated with the operation.
@@ -33,11 +34,13 @@ namespace Plugin.Application.CapabilityModel.API
         private List<string> _consumedMIMETypes;                // List of non-standard MIME types consumed by the operation.
         private RESTResourceCapability _requestBodyDocument;    // If the operation has a request body, this is the associated Document Resource.
         private RESTResourceCapability _responseBodyDocument;   // If the operation has a response body, this is the associated Document Resource.
+        private bool _useHeaderParameters;                      // Set to 'true' when operation muse use configured Header Parameters.
 
         /// <summary>
         /// Getters for class properties:
         /// HTTPType = Returns the HTTP operation type that is associated with this REST operation (as an enumeration).
         /// HTTPTypeName = Returns the name of the HTTP operation as a lowercase string.
+        /// UseHeaderParameters = Returns true if the operation muse use configured Header Parameters.
         /// ConsumedMIMEList = Returns list of non-standard MIME types consumed by the operation.
         /// ProducedMIMEList = Returns list of non-standard MIME types produced by the operation.
         /// ParentResource = The resource that 'owns' this operation.
@@ -46,6 +49,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         internal RESTOperationCapability.OperationType HTTPType { get { return this._archetype; } }
         internal string HTTPTypeName                            { get { return this._archetype.ToString("G").ToLower(); } }
+        internal bool UseHeaderParameters                       { get { return this._useHeaderParameters; } }
         internal List<string> ConsumedMIMEList                  { get { return this._consumedMIMETypes; } }
         internal List<string> ProducedMIMEList                  { get { return this._producedMIMETypes; } }
         internal RESTResourceCapability ParentResource          { get { return this._parent; } }
@@ -95,11 +99,13 @@ namespace Plugin.Application.CapabilityModel.API
                 this._producedMIMETypes = operation.ProducedMIMETypes;
                 this._requestBodyDocument = operation.RequestDocument;
                 this._responseBodyDocument = operation.ResponseDocument;
+                this._useHeaderParameters = operation.UseHeaderParametersIndicator;
 
                 this._capabilityClass = OperationPackage.CreateClass(operation.Name, context.GetConfigProperty(_RESTOperationClassStereotype));
                 if (this._capabilityClass != null)
                 {
-                    this._capabilityClass.SetTag(context.GetConfigProperty(_ArchetypeTag), operation.Archetype.ToString());
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_ArchetypeTag), operation.Archetype.ToString(), true);
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_UseRESTHeaderParametersTag), operation.UseHeaderParametersIndicator.ToString(), true);
                     this._capabilityClass.Version = new Tuple<int, int>(parentResource.RootService.MajorVersion, 0);
                     this._assignedRole = operation.Name;
 
@@ -114,7 +120,7 @@ namespace Plugin.Application.CapabilityModel.API
                             firstOne = false;
                         }
                     }
-                    this._capabilityClass.SetTag(context.GetConfigProperty(_ProducesMIMEListTag), MIMETypes);
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_ProducesMIMEListTag), MIMETypes, true);
                     MIMETypes = string.Empty;
                     if (this._consumedMIMETypes != null && this._consumedMIMETypes.Count > 0)
                     {
@@ -125,7 +131,7 @@ namespace Plugin.Application.CapabilityModel.API
                             firstOne = false;
                         }
                     }
-                    this._capabilityClass.SetTag(context.GetConfigProperty(_ConsumesMIMEListTag), MIMETypes);
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_ConsumesMIMEListTag), MIMETypes, true);
 
                     // Load the documentation...
                     List<string> documentation = new List<string>();
@@ -230,9 +236,10 @@ namespace Plugin.Application.CapabilityModel.API
                 this._parent = parentResource;
                 this._capabilityClass = hierarchy.Data;
                 this._assignedRole = parentResource.FindChildClassRole(this._capabilityClass.Name, context.GetConfigProperty(_RESTOperationClassStereotype));
-                string operationArchetype = this._capabilityClass.GetTag(ContextSlt.GetContextSlt().GetConfigProperty(_ArchetypeTag));
+                string operationArchetype = this._capabilityClass.GetTag(context.GetConfigProperty(_ArchetypeTag));
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (existing) >> Operation is of archetype: '" + operationArchetype + "'...");
                 this._archetype = EnumConversions<RESTOperationCapability.OperationType>.StringToEnum(operationArchetype);
+                this._useHeaderParameters = string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_UseRESTHeaderParametersTag)), "true", true) == 0;
 
                 // Retrieve the MIME types...
                 this._consumedMIMETypes = new List<string>();
@@ -344,6 +351,13 @@ namespace Plugin.Application.CapabilityModel.API
                                            this.Name + "' to '" + operation.Name + "' failed: name already in use!");
                         return false;
                     }
+                }
+
+                // Check changes to 'use header parameters'...
+                if (operation.UseHeaderParametersIndicator != this._useHeaderParameters)
+                {
+                    this._useHeaderParameters = operation.UseHeaderParametersIndicator;
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_UseRESTHeaderParametersTag), operation.UseHeaderParametersIndicator.ToString());
                 }
 
                 // (Re-)Load MIME Types...

@@ -70,6 +70,7 @@ namespace Plugin.Application.Forms
             RequestMultiple.Checked = this._operation.RequestBodyCardinalityIndicator;
             ResponseMultiple.Checked = this._operation.ResponseBodyCardinalityIndicator;
             OverrideSecurity.Checked = this._operation.PublicAccessIndicator;
+            UseHeaderParameters.Checked = this._operation.UseHeaderParametersIndicator;
 
             // Initialize the drop-down box with a human-friendly label of our OperationType enumeration...
             foreach (RESTOperationCapability.OperationType type in Enum.GetValues(typeof(RESTOperationCapability.OperationType)))
@@ -254,7 +255,6 @@ namespace Plugin.Application.Forms
             if (FilterParameterList.SelectedItems.Count > 0)
             {
                 ListViewItem key = FilterParameterList.SelectedItems[0];
-                ContextSlt context = ContextSlt.GetContextSlt();
                 this._operation.DeleteParameter(key.Text);
                 FilterParameterList.Items.Remove(key);
                 this._dirty = true;
@@ -347,12 +347,14 @@ namespace Plugin.Application.Forms
             this._operation.PublicAccessIndicator = OverrideSecurity.Checked;
             this._operation.RequestBodyCardinalityIndicator = RequestMultiple.Checked;
             this._operation.ResponseBodyCardinalityIndicator = ResponseMultiple.Checked;
+            this._operation.UseHeaderParametersIndicator = UseHeaderParameters.Checked;
             this._dirty = true;
 
             Logger.WriteInfo("Plugin.Application.Forms.RESTOperationDialog.IndicatorCheckedChanged >> Collected indicators: " + 
                              "MultipleRequestIndicator =" + this._operation.RequestBodyCardinalityIndicator + Environment.NewLine +
                              "MultipleResponseIndicator =" + this._operation.ResponseBodyCardinalityIndicator + Environment.NewLine +
                              "PaginationIndicator = " + this._operation.PaginationIndicator + Environment.NewLine +
+                             "UseHeaderParametersIndicator = " + this._operation.UseHeaderParametersIndicator + Environment.NewLine +
                              "PublicAccessIndicator = " + this._operation.PublicAccessIndicator);
         }
 
