@@ -236,6 +236,7 @@
 					<Stereotype name="RESTOperation" metatype="RESTOperation" notes="An Operation is associated with EITHER a PathExpression OR a ResourceCollection. In case of PathExpression, the operation receives the parameters from the Path.&#xA;Additional parameters can be added by explicitly choosing them in the &quot;Edit Operation&quot; dialogue.&#xA;Each parameter is an attribute of the Operation class with the appropriate stereotype (PathExpression attributes are considered part of the Operation even though they are not explicitly defined as such):&#xA;PathParam, QueryParam, HeaderParam, FormParam, BodyParam.&#xA;&#xA;Unlike SOAP operations, where an Operation is ALWAYS associated with a Business Message, RESTOperations are selectively associated with a Request- or  Response payload through the use of an attribute with stereotype &quot;BodyParam&quot;. In this case, the classifier is the 'aggregate root' of the message (i.e. the MessageAssembly).&#xA;&#xA;Responses are created by inserting an attribute of which the name matches the HTTP response code.&#xA;Type is optional but when specified, MUST be the 'aggregate root' of the response message (i.e. the MessageAssembly).&#xA;Stereotype in this case is BodyParam.&#xA;In case of HTTP Errors, the name is still the HTTP error code, but type must be 'none' and stereotype is ErrorParam." cx="0" cy="0" bgcolor="11009769" fontcolor="-1" bordercolor="-1" borderwidth="1" hideicon="0" generalizes="Operation" baseStereotypes="Operation">
 						<TaggedValues>
 							<Tag name="archetype" type="enumeration" description="" unit="" values="Get,Put,Post,Delete,Options,Head,Patch" default=""/>
+							<Tag name="useHeaderParameters" type="boolean" description="Set to 'true' to indicate that the operation uses configured Header Parameters." unit="" values="true,false" default="true"/>
 							<Tag name="consumesMIMEList" type="string" description="Comma separated list of MIME types that can be consumed by this operation." unit="" values="" default="application/json"/>
 							<Tag name="producesMIMEList" type="string" description="Comma separated list of MIME types that can be produced through this operation." unit="" values="" default="application/json"/>
 						</TaggedValues>
@@ -442,7 +443,7 @@
 						</AppliesTo>
 						<TaggedValues>
 							<Tag name="Enexis ECDM::InterfaceContract(UML::Class)" type="" description="" unit="" values="" default="Interface"/>
-							<Tag name="Enexis ECDM::RESTOperation(UML::Operation)" type="" description="" unit="" values="" default="Operation"/>
+							<Tag name="Enexis ECDM::RESTOperation(UML::Class)" type="" description="" unit="" values="" default="Operation"/>
 							<Tag name="Enexis ECDM::RESTOperationResult(UML::Class)" type="" description="" unit="" values="" default="OperationResult"/>
 							<Tag name="Enexis ECDM::RESTResource(UML::Class)" type="" description="" unit="" values="" default="Resource"/>
 						</TaggedValues>
