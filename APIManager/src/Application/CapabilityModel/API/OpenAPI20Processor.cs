@@ -40,6 +40,7 @@ namespace Plugin.Application.CapabilityModel.API
         private JsonTextWriter _JSONWriter;             // Used to format the JSON code for the OpenAPI output stream.
         private string _currentPath;                    // Contains the OpenAPI Path that is currently being processed.
         private RESTResourceCapability _currentResource;            // The resource that is currently being processed.
+        private RESTOperationCapability _currentOperation;          // The operation that is currently being processed.
         private int _capabilityCounter;                 // The total number of capabilities (itf, resource, operation, result) to process.
         private string _defaultResponseClassifier;      // Contains the classifier name of the default response once processed.
         private List<RESTResourceCapability> _identifierList;       // Contains all identifiers detected in the current path. 
@@ -90,6 +91,8 @@ namespace Plugin.Application.CapabilityModel.API
             this._defaultResponseClassifier = string.Empty;
             this._identifierList = null;
             this._headerParameterClass = null;
+            this._currentResource = null;
+            this._currentOperation = null;
         }
 
         /// <summary>
@@ -137,6 +140,7 @@ namespace Plugin.Application.CapabilityModel.API
                             // Initialize our resources and open the JSON output stream...
                             var itf = capability as RESTInterfaceCapability;
                             this._accessLevels = new List<Tuple<string, string>>();
+                            this._currentOperation = null;
                             CreateHeaderParameters(capability.RootService as RESTService);
                             this._identifierList = new List<RESTResourceCapability>();
                             this._outputWriter = new StringWriter();
@@ -199,6 +203,7 @@ namespace Plugin.Application.CapabilityModel.API
                                 {
                                     this._JSONWriter.WriteEndObject();      // Close previous response parameter.
                                     this._JSONWriter.WriteEndObject();      // And close the 'responses' section.
+                                    this._currentOperation = null;          // Remove the previous Operation capability.
                                 }
                                 this._inOperationResult = false;
                                 DefinePath(capability as RESTResourceCapability);
@@ -212,6 +217,7 @@ namespace Plugin.Application.CapabilityModel.API
                                 this._JSONWriter.WriteEndObject();      // And close the 'responses' section.
                             }
                             this._inOperationResult = false;
+                            this._currentOperation = capability as RESTOperationCapability;
                             this._panel.WriteInfo(this._panelIndex + 2, "Processing Operation '" + capability.Name + "'...");
                             BuildOperation(capability as RESTOperationCapability);
                         }

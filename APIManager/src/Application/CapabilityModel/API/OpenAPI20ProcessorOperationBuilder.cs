@@ -149,7 +149,8 @@ namespace Plugin.Application.CapabilityModel.API
                     var cardinality = new Tuple<int, int>(1, operationResult.HasMultipleResponses ? 0 : 1);
                     result = WriteResponseBodyParameter(operationResult.ResponseBodyClass, cardinality);
                 }
-                
+
+                if (this._currentOperation.UseHeaderParameters) WriteResponseHeaderParameters();
             } this._JSONWriter.WriteEndObject();
             return true;
         }
@@ -209,7 +210,7 @@ namespace Plugin.Application.CapabilityModel.API
                 }
 
                 // Finally, check if whe have any header parameters...
-                if (operation.UseHeaderParameters) WriteHeaderParameters();
+                if (operation.UseHeaderParameters) WriteRequestHeaderParameters();
             }
             return result;
         }
@@ -254,12 +255,12 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This method iterates over all attributes of the (temporary) Header Parameters class. For each attribute, a Parameter Object
-        /// is created in the OpenAPI definition. If the class is not defined (or has no attributes), no actions are performed.
+        /// This method iterates over all attributes of the (temporary) Header Parameters class. For each attribute, a Request Header 
+        /// Parameter Object is created in the OpenAPI definition. If the class is not defined (or has no attributes), no actions are performed.
         /// </summary>
-        private void WriteHeaderParameters()
+        private void WriteRequestHeaderParameters()
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteHeaderParameters >> Looking for header parameters...");
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestHeaderParameters >> Looking for header parameters...");
             if (this._headerParameterClass == null) return;         // Nothing to do.
 
             var sortedParamList = new SortedList<string, RESTParameterDeclaration>();
@@ -268,7 +269,7 @@ namespace Plugin.Application.CapabilityModel.API
 
             foreach (JSONContentAttribute attrib in headerProperties)
             {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteHeaderParameters >> Processing '" + attrib.Name + "'...");
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestHeaderParameters >> Processing '" + attrib.Name + "'...");
                     this._JSONWriter.WriteStartObject();
                 {
                     this._JSONWriter.WritePropertyName("name"); this._JSONWriter.WriteValue(attrib.Name);
@@ -283,7 +284,7 @@ namespace Plugin.Application.CapabilityModel.API
                     // values, etc....
                     string attribText = attrib.GetClassifierAsJSONSchemaText();
                     attribText = attribText.Substring(1, attribText.Length - 2);    // Get rid of '{' and '}' from the schema.
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteHeaderParameters >> Got attribute: '" + attribText + "'...");
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestHeaderParameters >> Got attribute: '" + attribText + "'...");
                     this._JSONWriter.WriteRaw("," + attribText);
                     if (attrib.IsListRequired)
                     {
@@ -294,10 +295,61 @@ namespace Plugin.Application.CapabilityModel.API
                             this._JSONWriter.WritePropertyName("collectionFormat");
                             this._JSONWriter.WriteValue(collectionFormat.ToString().ToLower());
                         }
-                        else Logger.WriteWarning("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteHeaderParameters >> Collection specification is missing in attribute '" + attrib.Name + "'!");
+                        else Logger.WriteWarning("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestHeaderParameters >> Collection specification is missing in attribute '" + attrib.Name + "'!");
                     }
                 }
                 this._JSONWriter.WriteEndObject();
+            }
+        }
+
+        /// <summary>
+        /// This method iterates over all attributes of the (temporary) Header Parameters class. For each attribute, a Request Header 
+        /// Parameter Object is created in the OpenAPI definition. If the class is not defined (or has no attributes), no actions are performed.
+        /// </summary>
+        private void WriteResponseHeaderParameters()
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Looking for header parameters...");
+            if (this._headerParameterClass == null) return;         // Nothing to do.
+
+            var sortedParamList = new SortedList<string, RESTParameterDeclaration>();
+            foreach (RESTParameterDeclaration param in this._headerParameterDeclarations) sortedParamList.Add(param.Name, param);
+            List<SchemaAttribute> headerProperties = this._schema.ProcessProperties(this._headerParameterClass);
+
+            if (headerProperties.Count > 0)
+            {
+                this._JSONWriter.WritePropertyName("headers"); this._JSONWriter.WriteStartObject();
+                {
+                    foreach (JSONContentAttribute attrib in headerProperties)
+                    {
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Processing '" + attrib.Name + "'...");
+                        this._JSONWriter.WritePropertyName(attrib.Name); this._JSONWriter.WriteStartObject();
+                        {
+                            if (!string.IsNullOrEmpty(attrib.Annotation))
+                            {
+                                this._JSONWriter.WritePropertyName("description"); this._JSONWriter.WriteValue(attrib.Annotation);
+                                this._JSONWriter.WriteRaw(",");
+                            }
+
+                            // Collect the JSON Schema for the attribute as a string. Note that this includes possible default values, min- and max
+                            // values, etc....
+                            string attribText = attrib.GetClassifierAsJSONSchemaText();
+                            attribText = attribText.Substring(1, attribText.Length - 2);    // Get rid of '{' and '}' from the schema.
+                            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Got attribute: '" + attribText + "'...");
+                            this._JSONWriter.WriteRaw(attribText);
+                            if (attrib.IsListRequired)
+                            {
+                                RESTParameterDeclaration.QueryCollectionFormat collectionFormat = sortedParamList[attrib.Name].CollectionFormat;
+                                if (collectionFormat != RESTParameterDeclaration.QueryCollectionFormat.Unknown &&
+                                    collectionFormat != RESTParameterDeclaration.QueryCollectionFormat.NA)
+                                {
+                                    this._JSONWriter.WritePropertyName("collectionFormat");
+                                    this._JSONWriter.WriteValue(collectionFormat.ToString().ToLower());
+                                }
+                                else Logger.WriteWarning("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Collection specification is missing in attribute '" + attrib.Name + "'!");
+                            }
+                        } this._JSONWriter.WriteEndObject();
+                    }
+                } this._JSONWriter.WriteEndObject();
             }
         }
 
