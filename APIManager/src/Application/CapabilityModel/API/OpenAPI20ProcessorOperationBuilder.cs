@@ -18,7 +18,8 @@ namespace Plugin.Application.CapabilityModel.API
         // Configuration properties used by this module...
         private const string _ConsumesMIMEListTag           = "ConsumesMIMEListTag";
         private const string _ProducesMIMEListTag           = "ProducesMIMEListTag";
-        private const string _PaginationClassName           = "PaginationClassName";
+        private const string _RequestPaginationClassName    = "RequestPaginationClassName";
+        private const string _ResponsePaginationClassName   = "ResponsePaginationClassName";
         private const string _OperationResultClassName      = "OperationResultClassName";
         private const string _ResourceClassStereotype       = "ResourceClassStereotype";
         private const string _BusinessComponentStereotype   = "BusinessComponentStereotype";
@@ -186,7 +187,7 @@ namespace Plugin.Application.CapabilityModel.API
 
             if (result)
             {
-                string paginationClass = context.GetConfigProperty(_PaginationClassName);
+                string paginationClassName = context.GetConfigProperty(_RequestPaginationClassName);
                 string resourceClassStereotype = context.GetConfigProperty(_ResourceClassStereotype);
 
                 // Check if we have any query parameters...
@@ -197,7 +198,7 @@ namespace Plugin.Application.CapabilityModel.API
                 // processing loop as child capabilities of the Operation.
                 foreach (MEAssociation assoc in operation.CapabilityClass.AssociationList)
                 {
-                    if (assoc.Destination.EndPoint.Name == paginationClass)
+                    if (assoc.Destination.EndPoint.Name == paginationClassName)
                     {
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildParameters >> Found Pagination class! Processing query parameters...");
                         result = WritePagination(assoc.Destination.EndPoint);
@@ -213,6 +214,37 @@ namespace Plugin.Application.CapabilityModel.API
                 if (operation.UseHeaderParameters) WriteRequestHeaderParameters();
             }
             return result;
+        }
+
+        /// <summary>
+        /// Helper function that searches the current Operation for an association with a Response Pagination class and, when found, returns 
+        /// a JSON-schema formatted string with all attribute definitions.
+        /// </summary>
+        /// <returns>List of attributes as a JSON formatted string. Empty string if association not found or no attributes are defined.</returns>
+        private string GetResponsePaginationSchema()
+        {
+            string paginationClassName = ContextSlt.GetContextSlt().GetConfigProperty(_ResponsePaginationClassName);
+            string responseSchema = string.Empty;
+            foreach (MEAssociation assoc in this._currentOperation.CapabilityClass.AssociationList)
+            {
+                if (assoc.Destination.EndPoint.Name == paginationClassName)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.GetResponsePaginationSchema >> Found Pagination class, processing...");
+                    List<SchemaAttribute> paginationProperties = this._schema.ProcessProperties(assoc.Destination.EndPoint);
+                    bool firstOne = true;
+                    foreach (JSONContentAttribute attrib in paginationProperties)
+                    {
+                        if (!firstOne) responseSchema += ", ";
+                        else firstOne = false;
+                        responseSchema += "\"" + RESTUtil.GetAssignedRoleName(attrib.Name) + "\": ";
+                        string attribText = attrib.GetClassifierAsJSONSchemaText();
+                        responseSchema += attribText;
+                    }
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.GetResponsePaginationSchema >> Properties: '" + responseSchema + "'...");
+                    break;
+                }
+            }
+            return responseSchema;
         }
 
         /// <summary>
@@ -500,9 +532,10 @@ namespace Plugin.Application.CapabilityModel.API
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Processing document class '" + documentResourceClass.Name + "'...");
             this._panel.WriteInfo(this._panelIndex + 3, "Processing Response Message Body '" + documentResourceClass.Name + "'...");
+            ContextSlt context = ContextSlt.GetContextSlt();
             bool result = false;
             string qualifiedClassName = string.Empty;
-            string businessComponentStereotype = ContextSlt.GetContextSlt().GetConfigProperty(_BusinessComponentStereotype);
+            string businessComponentStereotype = context.GetConfigProperty(_BusinessComponentStereotype);
 
             // Locate the associated business component. We can't check by name since it might have used an Alias name...
             foreach (MEAssociation association in documentResourceClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
@@ -515,6 +548,10 @@ namespace Plugin.Application.CapabilityModel.API
                 }
             }
 
+            // Search our operation for an association with the Response Pagination class. If found, we have to change our response from a simple
+            // (array of-) reference(s), to an object including the pagination properties, followed by the actual (array of-) response(s)...
+            string paginationPropertiesSchema = GetResponsePaginationSchema();
+
             if (qualifiedClassName != string.Empty)
             {
                 // Since we 'might' use alias names in classes, the returned name 'might' be different from the offered name. To make sure we're referring
@@ -523,23 +560,18 @@ namespace Plugin.Application.CapabilityModel.API
                 string className = qualifiedClassName.Substring(qualifiedClassName.IndexOf(':') + 1);
                 this._JSONWriter.WritePropertyName("schema"); this._JSONWriter.WriteStartObject();
                 {
-                    if (cardinality.Item2 == 0 || cardinality.Item2 > 1)
+                    if (paginationPropertiesSchema != string.Empty)
                     {
-                        this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("array");
-                        this._JSONWriter.WritePropertyName("items"); this._JSONWriter.WriteStartObject();
+                        this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("object");
+                        this._JSONWriter.WritePropertyName("properties"); this._JSONWriter.WriteStartObject();
                         {
-                            this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
-                        } this._JSONWriter.WriteEndObject();
-                        if (cardinality.Item1 > 1)
-                        {
-                            this._JSONWriter.WritePropertyName("minItems"); this._JSONWriter.WriteValue(cardinality.Item1);
+                            this._JSONWriter.WriteRaw(paginationPropertiesSchema + ", \"data\": {");
+                            WriteResponseBodyReference(className, cardinality);
+                            this._JSONWriter.WriteRaw("}");
                         }
-                        if (cardinality.Item2 != 0)
-                        {
-                            this._JSONWriter.WritePropertyName("maxItems"); this._JSONWriter.WriteValue(cardinality.Item2);
-                        }
+                        this._JSONWriter.WriteEndObject();
                     }
-                    else this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
+                    else WriteResponseBodyReference(className, cardinality);
                 } this._JSONWriter.WriteEndObject();
                 result = true;
             }
@@ -646,6 +678,33 @@ namespace Plugin.Application.CapabilityModel.API
                 result = true;
             }
             return result;
+        }
+
+        /// <summary>
+        /// Helper method that writes a reference to the Response Body, either as a single reference or, in case of cardinality > 1, as an
+        /// array of references.
+        /// </summary>
+        /// <param name="className">Name of the body class that must be referenced.</param>
+        /// <param name="cardinality">Cardinality of the association.</param>
+        private void WriteResponseBodyReference(string className, Tuple<int, int> cardinality)
+        {
+            if (cardinality.Item2 == 0 || cardinality.Item2 > 1)
+            {
+                this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("array");
+                this._JSONWriter.WritePropertyName("items"); this._JSONWriter.WriteStartObject();
+                {
+                    this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
+                } this._JSONWriter.WriteEndObject();
+                if (cardinality.Item1 > 1)
+                {
+                    this._JSONWriter.WritePropertyName("minItems"); this._JSONWriter.WriteValue(cardinality.Item1);
+                }
+                if (cardinality.Item2 != 0)
+                {
+                    this._JSONWriter.WritePropertyName("maxItems"); this._JSONWriter.WriteValue(cardinality.Item2);
+                }
+            }
+            else this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
         }
     }
 }

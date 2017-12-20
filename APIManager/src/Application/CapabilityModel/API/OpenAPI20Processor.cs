@@ -4,15 +4,12 @@ using System.Text;
 using System.Runtime.Remoting;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Schema;
-using Newtonsoft.Json.Linq;
 using Framework.Util.SchemaManagement;
 using Framework.Util.SchemaManagement.JSON;
 using Framework.Logging;
 using Framework.Util;
 using Framework.Context;
 using Framework.Model;
-using Plugin.Application.CapabilityModel.ASCIIDoc;
 using Plugin.Application.CapabilityModel.SchemaGeneration;
 
 namespace Plugin.Application.CapabilityModel.API

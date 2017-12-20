@@ -23,7 +23,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _OperationResultClassName      = "OperationResultClassName";
         private const string _RESTParameterStereotype       = "RESTParameterStereotype";
         private const string _ResourceClassStereotype       = "ResourceClassStereotype";
-        private const string _PaginationClassName           = "PaginationClassName";
+        private const string _RequestPaginationClassName    = "RequestPaginationClassName";
         private const string _UseRESTHeaderParametersTag    = "UseRESTHeaderParametersTag";
 
         private const string _Summary = "summary: ";        // Separator between summary text and description text.
@@ -356,7 +356,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._responseDocument = operation.ResponseBodyDocument;
             ContextSlt context = ContextSlt.GetContextSlt();
             string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
-            string paginationClassName = context.GetConfigProperty(_PaginationClassName);
+            string paginationClassName = context.GetConfigProperty(_RequestPaginationClassName);
             foreach (MEAssociation association in operation.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
             {
                 if (association.Destination.EndPoint.HasStereotype(resourceStereotype))
@@ -372,6 +372,7 @@ namespace Plugin.Application.CapabilityModel.API
                         this._hasMultipleResponseParameters = (card.Item2 == 0 || card.Item2 > 1);
                     }
                 }
+                // With regard to pagination, we only look for the request class (it should have both a request- and a response)...
                 else if (association.Destination.EndPoint.Name == paginationClassName) this._hasPagination = true;
             }
         }

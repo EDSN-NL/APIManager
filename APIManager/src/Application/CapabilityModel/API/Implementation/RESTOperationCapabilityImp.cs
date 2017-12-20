@@ -19,7 +19,8 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _RequestPkgStereotype              = "RequestPkgStereotype";
         private const string _ResponsePkgStereotype             = "ResponsePkgStereotype";
         private const string _ArchetypeTag                      = "ArchetypeTag";
-        private const string _PaginationClassName               = "PaginationClassName";
+        private const string _RequestPaginationClassName        = "RequestPaginationClassName";
+        private const string _ResponsePaginationClassName       = "ResponsePaginationClassName";
         private const string _PaginationRoleName                = "PaginationRoleName";
         private const string _APISupportModelPathName           = "APISupportModelPathName";
         private const string _DefaultSuccessCode                = "DefaultSuccessCode";
@@ -194,20 +195,30 @@ namespace Plugin.Application.CapabilityModel.API
                         newResult.InitialiseParent(myInterface);
                     }
 
-                    // Check whether we have to use Pagination...
+                    // Check whether we have to use Pagination. If so, we first attempt to create an association with the Request Pagination parameters,
+                    // followed by the Response Pagination parameters...
                     if (operation.PaginationIndicator)
                     {
                         MEClass paginationClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName), 
-                                                                  context.GetConfigProperty(_PaginationClassName));
+                                                                  context.GetConfigProperty(_RequestPaginationClassName));
                         if (paginationClass != null)
                         {
                             var paginationEndpoint = new EndpointDescriptor(paginationClass, "1", context.GetConfigProperty(_PaginationRoleName), null, true);
                             model.CreateAssociation(operationEndpoint, paginationEndpoint, MEAssociation.AssociationType.MessageAssociation);
-                        }
-                        else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (declaration) >> Unable to retrieve Pagination class '" + 
-                                               context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_PaginationClassName) + "'!");
-                    }
+                            paginationClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
+                                                              context.GetConfigProperty(_ResponsePaginationClassName));
+                            if (paginationClass != null)
+                            {
+                                paginationEndpoint = new EndpointDescriptor(paginationClass, "1", context.GetConfigProperty(_PaginationRoleName), null, true);
+                                model.CreateAssociation(operationEndpoint, paginationEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                            }
+                            else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (declaration) >> Unable to retrieve Response Pagination class '" +
+                                                   context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_ResponsePaginationClassName) + "'!");
 
+                        }
+                        else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (declaration) >> Unable to retrieve Request Pagination class '" + 
+                                               context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_RequestPaginationClassName) + "'!");
+                    }
                     CreateLogEntry("Initial release.");
                 }
             }
