@@ -43,6 +43,7 @@ namespace Plugin.Application.Forms
             this._isEdit = resource.Status != RESTResourceDeclaration.DeclarationStatus.Invalid;
             this.Text = this._isEdit ? "Edit Resource" : "Create new Resource";
             this._resource = resource;
+
             ResourceNameFld.Text = resource.Name;
             ParameterName.Text = resource.Parameter.Name;
             ParameterClassifier.Text = resource.Parameter.Classifier != null? resource.Parameter.Classifier.Name: string.Empty;
@@ -180,6 +181,11 @@ namespace Plugin.Application.Forms
                     ResourceNameFld.Clear();
                     this._resource.ClearParameter();
                     this._resource.ClearDocumentClass();
+                    if (!this._isEdit)
+                    {
+                        this._resource.IsTag = true;
+                        IsTag.Checked = true;
+                    }
                     break;
 
                 case RESTResourceCapability.ResourceArchetype.Document:
@@ -192,6 +198,8 @@ namespace Plugin.Application.Forms
                     ResourceNameFld.ReadOnly = true;
                     ResourceNameFld.Clear();
                     this._resource.ClearParameter();
+                    this._resource.IsTag = false;
+                    IsTag.Checked = false;
                     break;
 
                 case RESTResourceCapability.ResourceArchetype.Unknown:
@@ -205,6 +213,8 @@ namespace Plugin.Application.Forms
                     ResourceNameFld.Clear();
                     this._resource.ClearParameter();
                     this._resource.ClearDocumentClass();
+                    this._resource.IsTag = false;
+                    IsTag.Checked = false;
                     break;
 
                 case RESTResourceCapability.ResourceArchetype.Identifier:
@@ -217,6 +227,11 @@ namespace Plugin.Application.Forms
                     ResourceNameFld.Clear();
                     ResourceNameFld.Text = this._resource.Name;
                     this._resource.ClearDocumentClass();
+                    if (!this._isEdit)
+                    {
+                        this._resource.IsTag = true;
+                        IsTag.Checked = true;
+                    }
                     break;
             }
             this._hasType = this._resource.Archetype != RESTResourceCapability.ResourceArchetype.Unknown;

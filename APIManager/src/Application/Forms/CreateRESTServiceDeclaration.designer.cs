@@ -85,7 +85,6 @@ namespace Plugin.Application.Forms
             this.APINameFld.Name = "APINameFld";
             this.APINameFld.Size = new System.Drawing.Size(235, 23);
             this.APINameFld.TabIndex = 1;
-            this.APINameFld.TextChanged += new System.EventHandler(this.APINameFld_TextChanged);
             this.APINameFld.Leave += new System.EventHandler(this.APIName_TextChanged);
             // 
             // Cancel

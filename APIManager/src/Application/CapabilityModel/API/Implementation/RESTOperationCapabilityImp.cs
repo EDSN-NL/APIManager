@@ -371,6 +371,9 @@ namespace Plugin.Application.CapabilityModel.API
                     this._capabilityClass.SetTag(context.GetConfigProperty(_UseRESTHeaderParametersTag), operation.UseHeaderParametersIndicator.ToString());
                 }
 
+                // Make sure to update pagination: add if required and not there yet or remove if not required anymore...
+                UpdatePagination(operation.PaginationIndicator);
+
                 // (Re-)Load MIME Types...
                 if (this._consumedMIMETypes != operation.ConsumedMIMETypes || this._producedMIMETypes != operation.ProducedMIMETypes)
                 {
@@ -514,6 +517,72 @@ namespace Plugin.Application.CapabilityModel.API
             {
                 this._parent = parent as RESTResourceCapability;
                 parent.AddChild(new RESTOperationCapability(this));
+            }
+        }
+
+        /// <summary>
+        /// Helper method that updates the current pagination settings: add them if required, remove if not required anymore.
+        /// </summary>
+        /// <param name="mustHavePagination">Post-condition: True if the capability must have pagination.</param>
+        private void UpdatePagination(bool mustHavePagination)
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string requestPaginationClassName = context.GetConfigProperty(_RequestPaginationClassName);
+            string responsePaginationClassName = context.GetConfigProperty(_ResponsePaginationClassName);
+            bool hasPagination = false;
+            MEAssociation requestPaginationAssociation = null;
+            MEAssociation responsePaginationAssociation = null;
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdatePagination >> Requested pagination: '" + mustHavePagination + "'...");
+
+            // First of all, check to see whether we already have pagination and work from there...
+            // We itereate over all message associations and attempt to collect the existing associations...
+            foreach (MEAssociation assoc in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+            {
+                if (assoc.Destination.EndPoint.Name == requestPaginationClassName)
+                {
+                    requestPaginationAssociation = assoc;
+                    hasPagination = true;
+                }
+                else if (assoc.Destination.EndPoint.Name == responsePaginationClassName)
+                {
+                    responsePaginationAssociation = assoc;
+                    hasPagination = true;
+                }
+            }
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdatePagination >> Current pagination: '" + hasPagination + "'...");
+
+            if (hasPagination == mustHavePagination) return;    // We already match our post-condition, nothing to do!
+            else if (hasPagination && !mustHavePagination)      // We have pagination but don't need it anymore, get rid of associations...
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdatePagination >> Deleting existing associations...");
+                this._capabilityClass.DeleteAssociation(requestPaginationAssociation);
+                this._capabilityClass.DeleteAssociation(responsePaginationAssociation);
+                return;
+            }
+            else                                                //We don't have pagination but must get it now. Create the appropriate associations...
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdatePagination >> Creating new associations...");
+                ModelSlt model = ModelSlt.GetModelSlt();
+                var operationEndpoint = new EndpointDescriptor(this._capabilityClass, "1", this._assignedRole, null, true);
+                MEClass paginationClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
+                                                          context.GetConfigProperty(_RequestPaginationClassName));
+                if (paginationClass != null)
+                {
+                    var paginationEndpoint = new EndpointDescriptor(paginationClass, "1", context.GetConfigProperty(_PaginationRoleName), null, true);
+                    model.CreateAssociation(operationEndpoint, paginationEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                    paginationClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
+                                                      context.GetConfigProperty(_ResponsePaginationClassName));
+                    if (paginationClass != null)
+                    {
+                        paginationEndpoint = new EndpointDescriptor(paginationClass, "1", context.GetConfigProperty(_PaginationRoleName), null, true);
+                        model.CreateAssociation(operationEndpoint, paginationEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                    }
+                    else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdatePagination >> Unable to retrieve Response Pagination class '" +
+                                           context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_ResponsePaginationClassName) + "'!");
+
+                }
+                else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp >> Unable to retrieve Request Pagination class '" +
+                                       context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_RequestPaginationClassName) + "'!");
             }
         }
 

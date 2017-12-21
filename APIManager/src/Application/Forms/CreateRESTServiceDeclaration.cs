@@ -24,7 +24,7 @@ namespace Plugin.Application.Forms
                 {
                     contactEMail    = ContactEMailFld.Text,
                     contactName     = ContactNameFld.Text,
-                    contactURL      = LicenseURLFld.Text,
+                    contactURL      = ContactURLFld.Text,
                     description     = APIDescriptionFld.Text,
                     licenseName     = LicenseNameFld.Text,
                     licenseURL      = LicenseURLFld.Text,
@@ -205,11 +205,6 @@ namespace Plugin.Application.Forms
                     myItem.SubItems[1].Text = resource.Archetype.ToString();
                 }
             }
-        }
-
-        private void APINameFld_TextChanged(object sender, EventArgs e)
-        {
-
         }
     }
 }
