@@ -7,11 +7,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle ("API Manager")]
-[assembly: AssemblyDescription("API Manager is a Sparx Enterprise Architect plugin that is used to manage formal API specifications from UML models. It supports generation of SOAP/WSDL and/or REST/OpenAPI 2.0 interfaces as well as messages according to XSD or JSON schema's.")]
+[assembly: AssemblyDescription ("API Manager is a Sparx Enterprise Architect plugin that is used to manage formal API specifications from UML models. It supports generation of SOAP/WSDL and/or REST/OpenAPI 2.0 interfaces as well as messages according to XSD or JSON schema's.")]
 [assembly: AssemblyConfiguration ("")]
 [assembly: AssemblyCompany ("Enexis ICT - BaVo Vernieuwing")]
 [assembly: AssemblyProduct ("APIManager")]
-[assembly: AssemblyCopyright("Copyright ©  2017, Enexis B.V.")]
+[assembly: AssemblyCopyright ("Copyright ©  2017, Enexis B.V.")]
 [assembly: AssemblyTrademark ("Created for Enexis by Nebulon b.v. (info@nebulon.nl)")]
 [assembly: AssemblyCulture ("")]
 // Most of this solution is 'internal reference only'. The only components that MUST be 'COM-Visible' are the 
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.1.1.4")]
-[assembly: AssemblyFileVersion("1.1.1.4")]
+[assembly: AssemblyVersion ("1.1.1.5")]
+[assembly: AssemblyFileVersion ("1.1.1.5")]
