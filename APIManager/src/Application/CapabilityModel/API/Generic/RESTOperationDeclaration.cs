@@ -297,6 +297,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._description = string.Empty;
             this._summaryText = string.Empty;
             this._useHeaderParameters = true;
+            this._useLinkHeaders = false;
 
             CreateDefaultResults();
         }
@@ -325,6 +326,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._queryParams = new SortedList<string, RESTParameterDeclaration>();
             this._resultList = new SortedList<string, RESTOperationResultDeclaration>();
             this._useHeaderParameters = operation.UseHeaderParameters;
+            this._useLinkHeaders = operation.UseLinkHeaders;
 
             // Extract documentation from the class. This can be a multi-line object in which the first line might be the 'summary' description...
             List<string> documentation = MEChangeLog.GetDocumentationAsTextLines(operation.CapabilityClass);
