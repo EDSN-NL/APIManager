@@ -281,7 +281,13 @@ namespace Plugin.Application.Forms
                             this._resource.Archetype == RESTResourceCapability.ResourceArchetype.Store)
                         {
                             isOk = this._resource.Parent.RootService.ModelPkg.IsUniqueName(ResourceNameFld.Text);
-                            if (!isOk) errorText = "Resource Collection name '" + ResourceNameFld.Text + "' is not unique, try again!";
+                            if (!isOk)
+                            {
+                                if (MessageBox.Show("Resource Collection name '" + ResourceNameFld.Text +
+                                                    "' is not unique, are you sure?", "Warning", MessageBoxButtons.YesNo,
+                                                    MessageBoxIcon.Warning) == DialogResult.Yes) isOk = true;
+                                else return;
+                            }
                         }
                         else
                         {

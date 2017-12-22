@@ -22,7 +22,6 @@ namespace Framework.Util.SchemaManagement.JSON
         private JSchema _simpleAttributeClassifier; // Simplified definition, created for use of attributes as Properties in special contexts.
         private JSONClassifier _classifier;         // The associated classifier object in case of complex types.
         private string _annotation;                 // Contains the annotation text of the attribute.
-        private Tuple<int, int> _cardinality;       // True is associated attribute has cardinality > 1.
 
         /// <summary>
         /// Implementation of the JSON Property interface:
@@ -30,9 +29,9 @@ namespace Framework.Util.SchemaManagement.JSON
         /// Name = Returns the associated property name.
         /// SequenceKey = Returns the sequence identifier of the content property.
         /// </summary>
-        public JSchema JSchema      { get { return this._attributeClassifier; } }
-        public new string Name      { get { return base.Name; } }
-        public new int SequenceKey  { get { return base.SequenceKey; } }
+        public JSchema JSchema                      { get { return this._attributeClassifier; } }
+        public new string Name                      { get { return base.Name; } }
+        public new int SequenceKey                  { get { return base.SequenceKey; } }
 
         /// <summary>
         /// Returns the annotation text of the attribute.
@@ -155,7 +154,6 @@ namespace Framework.Util.SchemaManagement.JSON
                 }
 
                 // If upper boundary of cardinality > 1 (or 0, which means unbounded), we have to create an array of type, instead of only the type.
-                this._cardinality = cardinality;
                 if (cardinality.Item2 == 0 || cardinality.Item2 > 1)
                 {
                     // If the classifier name ends with 'Type', we remove this before adding a new post-fix 'ListType'...
@@ -210,28 +208,61 @@ namespace Framework.Util.SchemaManagement.JSON
         /// definition from JSON Text files such as OpenAPI. In this case, we consider attributes as properties of an API operation instead 
         /// of using them as attributes of a class. By processing the attributes separately we can use them as stand-alone type definitions.
         /// If the attribute is a primitive type, the returned definition is a 'stand-alone' section (e.g. does not contain any external references).
-        /// If the attribute is a constructed type (i.e. the assigned classifier is an enumeration or a data type that contains supplementary
-        /// attributes), the returned definition contains a reference to the classifier and the caller must assure that the appropriate 
-        /// 'definitions' section is inserted (taken from the associated JSON Schema object).
+        /// In case of enumerations, we take the actual enumerated-value list from the schema and translate this into a local string array.
+        /// All other constructed types are returned as references to a schema (which may or may not work, depending on the scope of the
+        /// classifier definition at the caller-end).
         /// When expanded in-line, the method returns the 'bare minimum' schema text (no Title, no AdditionalItems and no description).
         /// </summary>
-        /// <returns>Formatted text string that describes the attribute in JSON Schema.</returns>
+        /// <returns>Formatted text string that describes the attribute in JSON Schema, alas WITHOUT surrounding braces!.</returns>
         internal string GetClassifierAsJSONSchemaText()
         {
-            if (this._classifier != null && this._classifier.IsReferenceType)
+            string schemaString = string.Empty;
+            string enumList = this._attributeClassifier.ToString();
+            if (enumList.Contains("enum"))
             {
-                string schemaString = "{\"schema\": ";
-                string typeRef = "{\"$ref\": \"#/definitions/" + this._classifier.Name + "\"}";
-                if (this._cardinality.Item2 == 0 || this._cardinality.Item2 > 1)
+                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute.GetClassifierAsJSONSchemaText >> Got me an enumeration!");
+                enumList = enumList.Substring(enumList.IndexOf("\"enum\":"));
+                enumList = enumList.Substring(0, enumList.IndexOf(']') + 1);
+
+                schemaString = "\"type\": ";
+                if (this.Cardinality.Item2 == 0 || this.Cardinality.Item2 > 1)
                 {
-                    schemaString = schemaString + "{\"type\": \"array\", \"items\": " + typeRef + "}";
-                    if (this._cardinality.Item1 > 0)  schemaString += ", \"minItems\": " + this._cardinality.Item1;
-                    if (this._cardinality.Item2 != 0) schemaString += ", \"maxItems\": " + this._cardinality.Item2;
-                    return schemaString + "}";
+                    schemaString += "\"array\", \"items\": {\"type\": \"string\", " + enumList;
+                    if (!string.IsNullOrEmpty(DefaultValue)) schemaString += ", \"default\": \"" + DefaultValue + "\"";
+                    schemaString += "}";
+                    if (this.Cardinality.Item1 > 0) schemaString += ", \"minItems\": " + this.Cardinality.Item1;
+                    if (this.Cardinality.Item2 != 0) schemaString += ", \"maxItems\": " + this.Cardinality.Item2;
                 }
-                else return schemaString + typeRef + "}"; 
+                else
+                {
+                    schemaString += "\"string\", " + enumList;
+                    if (!string.IsNullOrEmpty(DefaultValue)) schemaString += ", \"default\": \"" + DefaultValue + "\"";
+                }
             }
-            else return this._simpleAttributeClassifier.ToString();
+            else
+            {
+                // This covers all 'non-enumerated type' complex classifiers. No guarantee that this reference will work in all contexts!...
+                if (this._classifier != null && this._classifier.IsReferenceType)
+                {
+                    Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute.GetClassifierAsJSONSchemaText >> Got me a schema reference!");
+                    schemaString = "\"schema\": ";
+                    string typeRef = "{\"$ref\": \"#/definitions/" + this._classifier.Name + "\"}";
+                    if (this.Cardinality.Item2 == 0 || this.Cardinality.Item2 > 1)
+                    {
+                        schemaString = schemaString + "{\"type\": \"array\", \"items\": " + typeRef + "}";
+                        if (this.Cardinality.Item1 > 0) schemaString += ", \"minItems\": " + this.Cardinality.Item1;
+                        if (this.Cardinality.Item2 != 0) schemaString += ", \"maxItems\": " + this.Cardinality.Item2;
+                    }
+                    else schemaString += typeRef;
+                }
+                else
+                {
+                    schemaString = this._simpleAttributeClassifier.ToString();
+                    if (schemaString[0] == '{') schemaString = schemaString.Substring(1, schemaString.LastIndexOf('}') - 1);
+                }
+            }
+            Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute.GetClassifierAsJSONSchemaText >> Constructed schema '" + schemaString + "'.");
+            return schemaString;
         }
     }
 

@@ -238,7 +238,7 @@ namespace Plugin.Application.CapabilityModel.API
                         else firstOne = false;
                         responseSchema += "\"" + RESTUtil.GetAssignedRoleName(attrib.Name) + "\": ";
                         string attribText = attrib.GetClassifierAsJSONSchemaText();
-                        responseSchema += attribText;
+                        responseSchema += "{" + attribText + "}";
                     }
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.GetResponsePaginationSchema >> Properties: '" + responseSchema + "'...");
                     break;
@@ -315,7 +315,6 @@ namespace Plugin.Application.CapabilityModel.API
                     // Collect the JSON Schema for the attribute as a string. Note that this includes possible default values, min- and max
                     // values, etc....
                     string attribText = attrib.GetClassifierAsJSONSchemaText();
-                    attribText = attribText.Substring(1, attribText.Length - 2);    // Get rid of '{' and '}' from the schema.
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestHeaderParameters >> Got attribute: '" + attribText + "'...");
                     this._JSONWriter.WriteRaw("," + attribText);
                     if (attrib.IsListRequired)
@@ -365,7 +364,6 @@ namespace Plugin.Application.CapabilityModel.API
                             // Collect the JSON Schema for the attribute as a string. Note that this includes possible default values, min- and max
                             // values, etc....
                             string attribText = attrib.GetClassifierAsJSONSchemaText();
-                            attribText = attribText.Substring(1, attribText.Length - 2);    // Get rid of '{' and '}' from the schema.
                             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Got attribute: '" + attribText + "'...");
                             this._JSONWriter.WriteRaw(attribText);
                             if (attrib.IsListRequired)
@@ -420,9 +418,8 @@ namespace Plugin.Application.CapabilityModel.API
                         this._JSONWriter.WritePropertyName("allowEmptyValue"); this._JSONWriter.WriteValue(paramList[attrib.Name].AllowEmptyValue);
 
                         // Collect the JSON Schema for the attribute as a string. Note that this includes possible default values, min- and max
-                        // values, etc....
+                        // values, etc.
                         string attribText = attrib.GetClassifierAsJSONSchemaText();
-                        attribText = attribText.Substring(1, attribText.Length - 2);    // Get rid of '{' and '}' from the schema.
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteQueryParameters >> Got attribute: '" + attribText + "'...");
                         this._JSONWriter.WriteRaw("," + attribText);
                         if (attrib.IsListRequired)
@@ -608,7 +605,6 @@ namespace Plugin.Application.CapabilityModel.API
 
                         // Collect the JSON Schema for the attribute as a string...
                         string attribText = attrib.GetClassifierAsJSONSchemaText();
-                        attribText = attribText.Substring(1, attribText.Length - 2);    // Get rid of '{' and '}' from the schema.
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteIdentifierParameter >> Got attribute: '" + attribText + "'...");
                         this._JSONWriter.WriteRaw("," + attribText);
                         if (attrib.IsListRequired)
@@ -659,7 +655,6 @@ namespace Plugin.Application.CapabilityModel.API
 
                     // Collect the JSON Schema for the attribute as a string...
                     string attribText = attrib.GetClassifierAsJSONSchemaText();
-                    attribText = attribText.Substring(1, attribText.Length - 2);    // Get rid of '{' and '}' from the schema.
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WritePagination >> Got attribute: '" + attribText + "'...");
                     this._JSONWriter.WriteRaw("," + attribText);
                     if (attrib.IsListRequired)

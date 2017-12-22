@@ -12,18 +12,19 @@ namespace Framework.Util.SchemaManagement
         internal enum AttributeTypeCode { Supplementary, Content };
 
         private bool _isValid;
-        private string _attName;          // The name of the attribute, must NOT end with 'Type'.
-        private string _attClassifier;    // The name of the classifier, MUST end with 'Type'.
-        private string _attClassifierNs;  // The namespace in which the classifier is defined.
-        private string _NSToken;              // Namespace token, identifying the namespace in which the attribute is defined. 
-        private AttributeTypeCode _attType;   // Indicates whether this is a content- or supplementary attribute.
-        private bool _isOptional;         // Indicates whether the attribute is mandatory or optional.
-        private int _sequenceKey;         // Sorting key.
-        private Schema _schema;           // The schema in which we're creating the attribute.
-        private bool _listRequired;       // Set to 'true' in case attribute cardinality suggests an array to be created.
-        private List<MEDocumentation> _annotation;    // Attribute annotation.
-        private string _defaultValue;     // Attribute default value, mutual exclusive with fixed value!
-        private string _fixedValue;       // Attribute fixed value, mutual exclusive with default value!
+        private string _attName;                    // The name of the attribute, must NOT end with 'Type'.
+        private string _attClassifier;              // The name of the classifier, MUST end with 'Type'.
+        private string _attClassifierNs;            // The namespace in which the classifier is defined.
+        private string _NSToken;                    // Namespace token, identifying the namespace in which the attribute is defined. 
+        private AttributeTypeCode _attType;         // Indicates whether this is a content- or supplementary attribute.
+        private bool _isOptional;                   // Indicates whether the attribute is mandatory or optional.
+        private int _sequenceKey;                   // Sorting key.
+        private Schema _schema;                     // The schema in which we're creating the attribute.
+        private bool _listRequired;                 // Set to 'true' in case attribute cardinality suggests an array to be created.
+        private List<MEDocumentation> _annotation;  // Attribute annotation.
+        private string _defaultValue;               // Attribute default value, mutual exclusive with fixed value!
+        private string _fixedValue;                 // Attribute fixed value, mutual exclusive with default value!
+        private Tuple<int, int> _cardinality;       // Attribute cardinality. Upper limit = 0 --> Unbounded.
 
         /// <summary>
         /// Getters for properties of Attribute:
@@ -39,6 +40,7 @@ namespace Framework.Util.SchemaManagement
         /// IsListRequired = True in case attribute cardinality suggests that we must create an array of attributes.
         /// DefaultValue = The default value of the attribute (if defined).
         /// FixedValue = The read-only, fixed, value of the attribute (if defined).
+        /// Cardinality = Returns attribute cardinality as two integers (lower and upper boundary). Upper = 0 --> Unbounded.
         /// </summary>
         internal bool IsValid
         {
@@ -64,6 +66,7 @@ namespace Framework.Util.SchemaManagement
         internal bool IsListRequired              { get { return this._listRequired; } }
         internal string DefaultValue              { get { return this._defaultValue; } }
         internal string FixedValue                { get { return this._fixedValue; } }
+        internal Tuple<int,int> Cardinality       { get { return this._cardinality; } }
 
         /// <summary>
         /// Inherited from base class, will return the name and classifier of the attribute in format 'name: classifier'
@@ -101,6 +104,7 @@ namespace Framework.Util.SchemaManagement
             this._fixedValue = fixedValue;
             this._schema = schema;
             this._isValid = false;
+            this._cardinality = cardinality;
 
             if (cardinality.Item1 < 0 || cardinality.Item2 < 0 || (cardinality.Item2 != 0 && (cardinality.Item1 > cardinality.Item2)))
             {
