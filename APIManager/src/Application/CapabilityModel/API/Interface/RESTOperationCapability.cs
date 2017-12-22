@@ -154,6 +154,19 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Returns true when the operation must define Link Headers in the Ok response.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
+        internal bool UseLinkHeaders
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).UseLinkHeaders;
+                else throw new MissingImplementationException("RESTOperationCapabilityImp");
+            }
+        }
+
+        /// <summary>
         /// Constructor to be used for existing REST Operation associated with a resource collection. The constructor receives
         /// the existing operation class and builds an in-memory representation for further processing.
         /// </summary>

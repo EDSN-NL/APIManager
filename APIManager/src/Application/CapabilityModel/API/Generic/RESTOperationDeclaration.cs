@@ -24,7 +24,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _RESTParameterStereotype       = "RESTParameterStereotype";
         private const string _ResourceClassStereotype       = "ResourceClassStereotype";
         private const string _RequestPaginationClassName    = "RequestPaginationClassName";
-        private const string _UseRESTHeaderParametersTag    = "UseRESTHeaderParametersTag";
+        //private const string _RESTUseHeaderParametersTag    = "RESTUseHeaderParametersTag";
 
         private const string _Summary = "summary: ";        // Separator between summary text and description text.
 
@@ -44,6 +44,7 @@ namespace Plugin.Application.CapabilityModel.API
         private bool _hasPagination;                                // Operation must implement default pagination mechanism.
         private bool _publicAccess;                                 // Security must be overruled for this operation.
         private bool _useHeaderParameters;                          // Operation uses configured Header Parameters.
+        private bool _useLinkHeaders;                               // Operations uses response Link Headers.
         private SortedList<string, RESTOperationResultDeclaration> _resultList;     // Set of result declarations (one for each unique HTTP result code).
         private List<string> _producedMIMEList;                     // Non-standard MIME types produced by the operation.
         private List<string> _consumedMIMEList;                     // Non-standard MIME types consumed by the operation.
@@ -236,6 +237,21 @@ namespace Plugin.Application.CapabilityModel.API
             set { this._status = value; }
         }
 
+        /// <summary>
+        ///  Get or set the 'Use Link Headers' indicator.
+        /// </summary>
+        internal bool UseLinkHeaderIndicator
+        {
+            get { return this._useLinkHeaders; }
+            set
+            {
+                if (this._useLinkHeaders != value)
+                {
+                    this._useLinkHeaders = value;
+                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                }
+            }
+        }
 
         /// <summary>
         /// Get or set the 'Use Header Parameters' class property. A value of 'true' indicates that the operation must

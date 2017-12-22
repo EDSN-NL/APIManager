@@ -83,6 +83,7 @@ namespace Plugin.Application.Forms
             this.SelectResponse = new System.Windows.Forms.Button();
             this.ResponseTypeName = new System.Windows.Forms.TextBox();
             this.UseHeaderParameters = new System.Windows.Forms.CheckBox();
+            this.UseLinkHeaders = new System.Windows.Forms.CheckBox();
             this.OperationGroup.SuspendLayout();
             this.FilterGroup.SuspendLayout();
             this.ResponseCodeGroup.SuspendLayout();
@@ -97,7 +98,7 @@ namespace Plugin.Application.Forms
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(513, 481);
+            this.Cancel.Location = new System.Drawing.Point(513, 504);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
             this.Cancel.TabIndex = 12;
@@ -107,7 +108,7 @@ namespace Plugin.Application.Forms
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(432, 481);
+            this.Ok.Location = new System.Drawing.Point(432, 504);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
             this.Ok.TabIndex = 13;
@@ -178,7 +179,7 @@ namespace Plugin.Application.Forms
             // 
             this.NewMinorVersion.AutoSize = true;
             this.NewMinorVersion.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.NewMinorVersion.Location = new System.Drawing.Point(12, 489);
+            this.NewMinorVersion.Location = new System.Drawing.Point(12, 512);
             this.NewMinorVersion.Name = "NewMinorVersion";
             this.NewMinorVersion.Size = new System.Drawing.Size(138, 17);
             this.NewMinorVersion.TabIndex = 11;
@@ -191,7 +192,7 @@ namespace Plugin.Application.Forms
             this.FilterGroup.Controls.Add(this.DeleteFilter);
             this.FilterGroup.Controls.Add(this.FilterParameterList);
             this.FilterGroup.Controls.Add(this.AddFilter);
-            this.FilterGroup.Location = new System.Drawing.Point(12, 112);
+            this.FilterGroup.Location = new System.Drawing.Point(12, 135);
             this.FilterGroup.Name = "FilterGroup";
             this.FilterGroup.Size = new System.Drawing.Size(282, 180);
             this.FilterGroup.TabIndex = 7;
@@ -282,7 +283,7 @@ namespace Plugin.Application.Forms
             this.ResponseCodeGroup.Controls.Add(this.DeleteResponseCode);
             this.ResponseCodeGroup.Controls.Add(this.AddResponseCode);
             this.ResponseCodeGroup.Controls.Add(this.ResponseCodeList);
-            this.ResponseCodeGroup.Location = new System.Drawing.Point(306, 112);
+            this.ResponseCodeGroup.Location = new System.Drawing.Point(306, 135);
             this.ResponseCodeGroup.Name = "ResponseCodeGroup";
             this.ResponseCodeGroup.Size = new System.Drawing.Size(282, 180);
             this.ResponseCodeGroup.TabIndex = 8;
@@ -395,7 +396,7 @@ namespace Plugin.Application.Forms
             this.MimeBox.Controls.Add(this.label4);
             this.MimeBox.Controls.Add(this.ProducesMIME);
             this.MimeBox.Controls.Add(this.label3);
-            this.MimeBox.Location = new System.Drawing.Point(12, 298);
+            this.MimeBox.Location = new System.Drawing.Point(12, 321);
             this.MimeBox.Name = "MimeBox";
             this.MimeBox.Size = new System.Drawing.Size(576, 49);
             this.MimeBox.TabIndex = 9;
@@ -441,7 +442,7 @@ namespace Plugin.Application.Forms
             this.DocumentationBox.Controls.Add(this.Description);
             this.DocumentationBox.Controls.Add(this.SummaryText);
             this.DocumentationBox.Controls.Add(this.label5);
-            this.DocumentationBox.Location = new System.Drawing.Point(12, 353);
+            this.DocumentationBox.Location = new System.Drawing.Point(12, 376);
             this.DocumentationBox.Name = "DocumentationBox";
             this.DocumentationBox.Size = new System.Drawing.Size(576, 122);
             this.DocumentationBox.TabIndex = 10;
@@ -589,13 +590,25 @@ namespace Plugin.Application.Forms
             this.UseHeaderParameters.UseVisualStyleBackColor = true;
             this.UseHeaderParameters.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
             // 
+            // UseLinkHeaders
+            // 
+            this.UseLinkHeaders.AutoSize = true;
+            this.UseLinkHeaders.Location = new System.Drawing.Point(12, 112);
+            this.UseLinkHeaders.Name = "UseLinkHeaders";
+            this.UseLinkHeaders.Size = new System.Drawing.Size(87, 17);
+            this.UseLinkHeaders.TabIndex = 14;
+            this.UseLinkHeaders.Text = "Link headers";
+            this.UseLinkHeaders.UseVisualStyleBackColor = true;
+            this.UseLinkHeaders.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
+            // 
             // RESTOperationDialog
             // 
             this.AcceptButton = this.Ok;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(600, 522);
+            this.ClientSize = new System.Drawing.Size(600, 546);
+            this.Controls.Add(this.UseLinkHeaders);
             this.Controls.Add(this.UseHeaderParameters);
             this.Controls.Add(this.ResponseParamBox);
             this.Controls.Add(this.RequestParamBox);
@@ -688,5 +701,6 @@ namespace Plugin.Application.Forms
         private CheckBox RequestMultiple;
         private CheckBox ResponseMultiple;
         private CheckBox UseHeaderParameters;
+        private CheckBox UseLinkHeaders;
     }
 }

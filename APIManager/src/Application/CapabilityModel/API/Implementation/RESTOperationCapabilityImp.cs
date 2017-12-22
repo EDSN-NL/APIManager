@@ -27,7 +27,8 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _DefaultResponseCode               = "DefaultResponseCode";
         private const string _ConsumesMIMEListTag               = "ConsumesMIMEListTag";
         private const string _ProducesMIMEListTag               = "ProducesMIMEListTag";
-        private const string _UseRESTHeaderParametersTag        = "UseRESTHeaderParametersTag";
+        private const string _RESTUseHeaderParametersTag        = "RESTUseHeaderParametersTag";
+        private const string _RESTUseLinkHeaderTag              = "RESTUseLinkHeaderTag";
 
         private RESTResourceCapability _parent;                 // Parent resource capability that owns this operation.
         private RESTOperationCapability.OperationType _archetype;   // The HTTP operation type associated with the operation.
@@ -36,12 +37,14 @@ namespace Plugin.Application.CapabilityModel.API
         private RESTResourceCapability _requestBodyDocument;    // If the operation has a request body, this is the associated Document Resource.
         private RESTResourceCapability _responseBodyDocument;   // If the operation has a response body, this is the associated Document Resource.
         private bool _useHeaderParameters;                      // Set to 'true' when operation muse use configured Header Parameters.
+        private bool _useLinkHeaders;                           // Set to 'true' when the response must contain a definition for Link Headers.
 
         /// <summary>
         /// Getters for class properties:
         /// HTTPType = Returns the HTTP operation type that is associated with this REST operation (as an enumeration).
         /// HTTPTypeName = Returns the name of the HTTP operation as a lowercase string.
         /// UseHeaderParameters = Returns true if the operation muse use configured Header Parameters.
+        /// UseLinkHeaders = Returns true if the operation Ok response must contain a definition for Link Headers.
         /// ConsumedMIMEList = Returns list of non-standard MIME types consumed by the operation.
         /// ProducedMIMEList = Returns list of non-standard MIME types produced by the operation.
         /// ParentResource = The resource that 'owns' this operation.
@@ -51,6 +54,7 @@ namespace Plugin.Application.CapabilityModel.API
         internal RESTOperationCapability.OperationType HTTPType { get { return this._archetype; } }
         internal string HTTPTypeName                            { get { return this._archetype.ToString("G").ToLower(); } }
         internal bool UseHeaderParameters                       { get { return this._useHeaderParameters; } }
+        internal bool UseLinkHeaders                            { get { return this._useLinkHeaders; } }
         internal List<string> ConsumedMIMEList                  { get { return this._consumedMIMETypes; } }
         internal List<string> ProducedMIMEList                  { get { return this._producedMIMETypes; } }
         internal RESTResourceCapability ParentResource          { get { return this._parent; } }
@@ -106,7 +110,8 @@ namespace Plugin.Application.CapabilityModel.API
                 if (this._capabilityClass != null)
                 {
                     this._capabilityClass.SetTag(context.GetConfigProperty(_ArchetypeTag), operation.Archetype.ToString(), true);
-                    this._capabilityClass.SetTag(context.GetConfigProperty(_UseRESTHeaderParametersTag), operation.UseHeaderParametersIndicator.ToString(), true);
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_RESTUseHeaderParametersTag), operation.UseHeaderParametersIndicator.ToString(), true);
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_RESTUseLinkHeaderTag), operation.UseLinkHeaderIndicator.ToString(), true);
                     this._capabilityClass.Version = new Tuple<int, int>(parentResource.RootService.MajorVersion, 0);
                     this._assignedRole = operation.Name;
 
@@ -250,7 +255,8 @@ namespace Plugin.Application.CapabilityModel.API
                 string operationArchetype = this._capabilityClass.GetTag(context.GetConfigProperty(_ArchetypeTag));
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (existing) >> Operation is of archetype: '" + operationArchetype + "'...");
                 this._archetype = EnumConversions<RESTOperationCapability.OperationType>.StringToEnum(operationArchetype);
-                this._useHeaderParameters = string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_UseRESTHeaderParametersTag)), "true", true) == 0;
+                this._useHeaderParameters = string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_RESTUseHeaderParametersTag)), "true", true) == 0;
+                this._useLinkHeaders = string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_RESTUseLinkHeaderTag)), "true", true) == 0;
 
                 // Retrieve the MIME types...
                 this._consumedMIMETypes = new List<string>();
@@ -364,11 +370,16 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
 
-                // Check changes to 'use header parameters'...
+                // Check changes to 'use header parameters' and 'use link header'...
                 if (operation.UseHeaderParametersIndicator != this._useHeaderParameters)
                 {
                     this._useHeaderParameters = operation.UseHeaderParametersIndicator;
-                    this._capabilityClass.SetTag(context.GetConfigProperty(_UseRESTHeaderParametersTag), operation.UseHeaderParametersIndicator.ToString());
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_RESTUseHeaderParametersTag), operation.UseHeaderParametersIndicator.ToString());
+                }
+                if (operation.UseLinkHeaderIndicator != this._useLinkHeaders)
+                {
+                    this._useLinkHeaders = operation.UseLinkHeaderIndicator;
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_RESTUseLinkHeaderTag), operation.UseLinkHeaderIndicator.ToString());
                 }
 
                 // Make sure to update pagination: add if required and not there yet or remove if not required anymore...

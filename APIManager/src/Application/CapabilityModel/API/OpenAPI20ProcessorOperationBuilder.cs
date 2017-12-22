@@ -151,7 +151,8 @@ namespace Plugin.Application.CapabilityModel.API
                     result = WriteResponseBodyParameter(operationResult.ResponseBodyClass, cardinality);
                 }
 
-                if (this._currentOperation.UseHeaderParameters) WriteResponseHeaderParameters();
+                if (this._currentOperation.UseHeaderParameters || 
+                    this._currentOperation.UseLinkHeaders) WriteResponseHeaderParameters(operationResult.Category);
             } this._JSONWriter.WriteEndObject();
             return true;
         }
@@ -337,16 +338,20 @@ namespace Plugin.Application.CapabilityModel.API
         /// This method iterates over all attributes of the (temporary) Header Parameters class. For each attribute, a Request Header 
         /// Parameter Object is created in the OpenAPI definition. If the class is not defined (or has no attributes), no actions are performed.
         /// </summary>
-        private void WriteResponseHeaderParameters()
+        private void WriteResponseHeaderParameters(RESTOperationResultCapability.ResponseCategory category)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Looking for header parameters...");
-            if (this._headerParameterClass == null) return;         // Nothing to do.
+            if (this._headerParameterClass == null && !this._currentOperation.UseLinkHeaders) return;         // Nothing to do.
 
+            var headerProperties = new List<SchemaAttribute>();
             var sortedParamList = new SortedList<string, RESTParameterDeclaration>();
-            foreach (RESTParameterDeclaration param in this._headerParameterDeclarations) sortedParamList.Add(param.Name, param);
-            List<SchemaAttribute> headerProperties = this._schema.ProcessProperties(this._headerParameterClass);
+            if (this._headerParameterClass != null)
+            {
+                foreach (RESTParameterDeclaration param in this._headerParameterDeclarations) sortedParamList.Add(param.Name, param);
+                headerProperties = this._schema.ProcessProperties(this._headerParameterClass);
+            }
 
-            if (headerProperties.Count > 0)
+            if (this._currentOperation.UseLinkHeaders || headerProperties.Count > 0)
             {
                 this._JSONWriter.WritePropertyName("headers"); this._JSONWriter.WriteStartObject();
                 {
@@ -377,6 +382,27 @@ namespace Plugin.Application.CapabilityModel.API
                                 }
                                 else Logger.WriteWarning("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Collection specification is missing in attribute '" + attrib.Name + "'!");
                             }
+                        } this._JSONWriter.WriteEndObject();
+                    }
+
+                    // When instructed to do so, we create a definition for the 'Link' header parameter as a comma-separated array of strings...
+                    // But we ONLY do this for 'success' responses!
+                    if (this._currentOperation.UseLinkHeaders && category == RESTOperationResultCapability.ResponseCategory.Success)
+                    {
+                        this._JSONWriter.WritePropertyName("Link"); this._JSONWriter.WriteStartObject();
+                        {
+                            this._JSONWriter.WritePropertyName("description");
+                            this._JSONWriter.WriteValue("The Link header field provides a means for describing a relationship between two " +
+                                                        "resources, generally between the requested resource and some other resource. An entity MAY " +
+                                                        "include multiple Link values. Links at the metainformation level typically indicate " +
+                                                        "relationships like hierarchical structure and navigation paths. The Link field is " +
+                                                        "semantically equivalent to the <LINK> element in HTML.");
+                            this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("array");
+                            this._JSONWriter.WritePropertyName("items"); this._JSONWriter.WriteStartObject();
+                            {
+                                this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("string");
+                            } this._JSONWriter.WriteEndObject();
+                            this._JSONWriter.WritePropertyName("collectionFormat"); this._JSONWriter.WriteValue("csv");
                         } this._JSONWriter.WriteEndObject();
                     }
                 } this._JSONWriter.WriteEndObject();
