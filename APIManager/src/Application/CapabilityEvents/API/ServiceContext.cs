@@ -37,6 +37,8 @@ namespace Plugin.Application.Events.API
         private const string _ResourceClassStereotype           = "ResourceClassStereotype";
         private const string _RESTOperationClassStereotype      = "RESTOperationClassStereotype";
         private const string _RESTOperationResultStereotype     = "RESTOperationResultStereotype";
+        private const string _DataModelPkgName                  = "DataModelPkgName";
+        private const string _DataModelPkgStereotype            = "DataModelPkgStereotype";
 
         private MEClass         _serviceClass;                  // Identifies the service.
         private MEClass         _interfaceClass;                // Contains interface class currently selected by user (if applicable).
@@ -106,6 +108,8 @@ namespace Plugin.Application.Events.API
             string resourceClassStereotype          = context.GetConfigProperty(_ResourceClassStereotype);
             string resourceCollectionPkgStereotype  = context.GetConfigProperty(_ResourceCollectionPkgStereotype);
             string rootPackageName                  = context.GetConfigProperty(_RootPkgName);
+            string dataModelPkgName                 = context.GetConfigProperty(_DataModelPkgName);
+            string dataModelPkgStereotype           = context.GetConfigProperty(_DataModelPkgStereotype);
 
             // Check what the Repository knows about our context...
             MEClass currentClass            = context.CurrentClass;
@@ -136,10 +140,11 @@ namespace Plugin.Application.Events.API
                 this._diagram = currentDiagram;
                 if (currentDiagram.Name == context.GetConfigProperty(_ServiceModelDiagramName))
                 {
-                    // If we're on a service model diagram, we can extract the service model package. Next, we check if there are any resource-
-                    // collection packages present underneath. If so, we know this is a REST service!
+                    // If we're on a service model diagram, we can extract the service model package and take its parent to get to the declaration
+                    // package. Next, we check whether the declaration package contains a 'DataModel' package, which should only be there in case
+                    // of REST services...
                     this._serviceModelPackage = currentDiagram.OwningPackage;
-                    this._type = (this._serviceModelPackage.FindPackage(string.Empty, resourceCollectionPkgStereotype) != null) ? ServiceType.REST : ServiceType.SOAP;
+                    this._type = (this._serviceModelPackage.Parent.FindPackage(dataModelPkgName, dataModelPkgStereotype) != null) ? ServiceType.REST : ServiceType.SOAP;
                 }
                 else // We're on a Resource Collection diagram...
                 {
@@ -250,11 +255,11 @@ namespace Plugin.Application.Events.API
             if (this._resourceCollectionPackage == null && this._resourceClass != null) this._resourceCollectionPackage = this._resourceClass.OwningPackage;
 
             // If we have not been able to determine the type of service before, we perform another attempt here now we should have collected
-            // most (if not all) of our context. We check whether the Service Model package contains any Resource Collection type packages.
+            // most (if not all) of our context. We check whether the Declaration package contains a DataModel package.
             // If so, this is a REST service, otherwise, we assume it is a SOAP service...
             if (this._serviceModelPackage != null && this._type == ServiceType.Unknown)
             {
-                this._type = (this._serviceModelPackage.FindPackage(string.Empty, resourceCollectionPkgStereotype) != null) ? ServiceType.REST : ServiceType.SOAP;
+                this._type = (this._declarationPackage.FindPackage(dataModelPkgName, dataModelPkgStereotype) != null) ? ServiceType.REST : ServiceType.SOAP;
             }
 
             if (this._diagram == null)
