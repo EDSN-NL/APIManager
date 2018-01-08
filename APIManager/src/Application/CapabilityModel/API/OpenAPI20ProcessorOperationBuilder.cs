@@ -483,13 +483,17 @@ namespace Plugin.Application.CapabilityModel.API
             this._panel.WriteInfo(this._panelIndex + 3, "Processing Request Message Body '" + documentResourceClass.Name + "'...");
             bool result = false;
             string qualifiedClassName = string.Empty;
+            string businessComponentStereotype = ContextSlt.GetContextSlt().GetConfigProperty(_BusinessComponentStereotype);
             MEClass schemaClass = null;
 
-            // Locate the business component with the same name as the Document Resource class...
+            // Locate the associated Business Component...
             foreach (MEAssociation association in documentResourceClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
             {
-                if (association.Destination.EndPoint.Name == documentResourceClass.Name)
+                if (association.Destination.EndPoint.HasStereotype(businessComponentStereotype))
                 {
+                    // Note that we might have used an Alias name for our Business Component (in order to create unique / meaningfull names)
+                    // and thus the Document Resource class is named after the Alias. We MUST use that name for all references to the Business
+                    // Component and thus we use the Document Resource class name to be sure we have the correct name...
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestBodyParameter >> Found Business Component, processing...");
                     qualifiedClassName = this._schema.ProcessClass(association.Destination.EndPoint, documentResourceClass.Name);
                     schemaClass = association.Destination.EndPoint;
