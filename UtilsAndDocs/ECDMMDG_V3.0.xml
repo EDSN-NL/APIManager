@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="windows-1252"?>
 <MDG.Technology version="1.0"><Documentation id="ECDM_MDG_V3" name="Enexis ECDM" version="3.0" notes="Incorporates the ECDM Profile, diagram and toolbox.&#xA;Enhanced for REST functionality"/><UMLProfiles><UMLProfile profiletype="uml2">
-			<Documentation id="9B84831D-3" name="Enexis ECDM" version="3.0" notes="20170918: Vs 3.0:	Enhanced Service Profile for use with REST."/>
+			<Documentation id="9B84831D-3" name="Enexis ECDM" version="3.1" notes="20170918: Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109: Vs 3.1:   Added 'nillable' tag to Content Attributes."/>
 			<Content>
 				<Stereotypes>
 					<Stereotype name="ASMBIE" notes="Association Message Business Information Entity." cx="0" cy="0" bgcolor="11009769" fontcolor="3947580" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAssoc" baseStereotypes="ECDMAssoc"/>
@@ -57,7 +57,11 @@
 							<Tag name="containerType" type="enumeration" description="" unit="" values="ApplicationAdapter,ExternalPartyAdapter,Functional" default=""/>
 						</TaggedValues>
 					</Stereotype>
-					<Stereotype name="Content" notes="This stereotype must be be used to mark an attribute as &quot;regular content&quot; of a type. These are typically translated into XSD 'Elements'." cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAttrib" baseStereotypes="ECDMAttrib"/>
+					<Stereotype name="Content" notes="This stereotype must be be used to mark an attribute as &quot;regular content&quot; of a type. These are typically translated into XSD 'Elements'." cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAttrib" baseStereotypes="ECDMAttrib">
+						<TaggedValues>
+							<Tag name="nillable" type="boolean" description="When present and set to 'true', this indicates that implementations can specify the value of the attribute as 'NULL'. This is typically used only in XSD/XML implementations." unit="" values="true,false" default=""/>
+						</TaggedValues>
+					</Stereotype>
 					<Stereotype name="CoreComponent" notes="Aggregate Core Component (ACC), reusable core component (no business context)." cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMComponent" baseStereotypes="ECDMComponent"/>
 					<Stereotype name="DEPRECATED" notes="This Stereotype is used to mark a particular element as Deprecated. Deprecated elements must NOT be used in API definitions!" cx="0" cy="0" bgcolor="33023" fontcolor="-1" bordercolor="-1" borderwidth="1" hideicon="0" generalizes="ECDMRoot" baseStereotypes="ECDMRoot">
 						<AppliesTo>
@@ -237,6 +241,7 @@
 						<TaggedValues>
 							<Tag name="archetype" type="enumeration" description="" unit="" values="Get,Put,Post,Delete,Options,Head,Patch" default=""/>
 							<Tag name="useHeaderParameters" type="boolean" description="Set to 'true' to indicate that the operation uses configured Header Parameters." unit="" values="true,false" default="true"/>
+							<Tag name="useLinkHeaders" type="boolean" description="Set to 'true' to indicate that the operation response might use 'Link' header parameters." unit="" values="true,false" default="false"/>
 							<Tag name="consumesMIMEList" type="string" description="Comma separated list of MIME types that can be consumed by this operation." unit="" values="" default="application/json"/>
 							<Tag name="producesMIMEList" type="string" description="Comma separated list of MIME types that can be produced through this operation." unit="" values="" default="application/json"/>
 						</TaggedValues>
