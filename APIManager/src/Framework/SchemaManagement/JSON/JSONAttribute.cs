@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json.Schema;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using Framework.Logging;
 
 namespace Framework.Util.SchemaManagement.JSON
@@ -62,6 +63,7 @@ namespace Framework.Util.SchemaManagement.JSON
         /// <param name="annotation">Optional comment for the content element. Empty list in case no comment is present.</param>
         /// <param name="defaultValue">Optional default value.</param>
         /// <param name="fixedValue">Optional fixed value.</param>
+        /// <param name="isNillable">Set to 'true' to indicate that the attribute supports a NULL value.</param>
         internal JSONContentAttribute(JSONSchema schema,
                                       string attributeName,
                                       string classifierName,
@@ -69,8 +71,9 @@ namespace Framework.Util.SchemaManagement.JSON
                                       ChoiceGroup choiceGroup,
                                       Tuple<int, int> cardinality,
                                       List<MEDocumentation> annotation,
-                                      string defaultValue, string fixedValue) :
-            base(schema, attributeName, classifierName, sequenceKey, choiceGroup, cardinality, annotation, defaultValue, fixedValue)
+                                      string defaultValue, string fixedValue,
+                                      bool isNillable) :
+            base(schema, attributeName, classifierName, sequenceKey, choiceGroup, cardinality, annotation, defaultValue, fixedValue, isNillable)
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Creating attribute '" + attributeName + "' with classifier '" + classifierName +
                              "' and cardinality '" + cardinality.Item1 + "-" + cardinality.Item2 + "'.");
@@ -110,7 +113,7 @@ namespace Framework.Util.SchemaManagement.JSON
 
                 // Unfortunately, since JSchema does not implement a proper copy constructor, we have to create two entirely different attribute
                 // objects so we can differentiate between the 'rich' version (including a Title and an AdditionalItems clause) and the simple
-                // version that does not have these. We can't assign one to the other since in the end out variables are all pointers!
+                // version, which does not have these. We can't assign one to the other since these are all pointers!
                 var attribClassifier = new JSchema { Title = classifierName };
                 var simpleAttributeClassifier = new JSchema();
                 this._classifier = classifier;
@@ -199,6 +202,16 @@ namespace Framework.Util.SchemaManagement.JSON
                 }
                 this._attributeClassifier.Description = this._annotation;
             }
+
+            // If the attribute is nillable, we must create a classifier that is actually an array consisting of the actual classifier
+            // and the special keyword 'null'. We ignore this for the 'simple' classifiers since the context in which these are used
+            // does not allow the 'null' value anyway...
+            if (isNillable)
+            {
+                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Nillable attribute!");
+                this._attributeClassifier.Type |= JSchemaType.Null;
+            }
+
             this.IsValid = true;
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Successfully created attribute.");
         }

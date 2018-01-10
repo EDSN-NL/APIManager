@@ -399,7 +399,8 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
             scope = (scope == ClassifierContext.ScopeCode.Remote) ? ClassifierContext.ScopeCode.Interface : scope;  // We treat Remote equal to Interface!
             string classNs = (scope == ClassifierContext.ScopeCode.Interface) ? this._commonSchema.NSToken : this._schema.NSToken;
 
-            if (scope == ClassifierContext.ScopeCode.Message && !className.StartsWith(this._currentCapability.AssignedRole))
+            string role = this._currentCapability.AssignedRole;
+            if (scope == ClassifierContext.ScopeCode.Message && !(className.StartsWith(role) || className.EndsWith(role)))
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.GetQualifiedClassName >> Message scope, use role '" + 
                                  this._currentCapability.AssignedRole + "' as prefix...");
