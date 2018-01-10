@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="windows-1252"?>
 <UMLProfile profiletype="uml2">
-	<Documentation id="9B84831D-3" name="Enexis ECDM" version="3.1" notes="20170918: Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109: Vs 3.1:   Added 'nillable' tag to Content Attributes."/>
+	<Documentation id="9B84831D-3" name="Enexis ECDM" version="3.2" notes="20170918:  Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109:  Vs 3.1:	Added support for 'nillable' elements.&#xA;20180110:  Vs 3.2:	Added 'alternativeNaming' tag to CommonSchema (SOAP backwards compatibility)."/>
 	<Content>
 		<Stereotypes>
 			<Stereotype name="ASMBIE" notes="Association Message Business Information Entity." cx="0" cy="0" bgcolor="11009769" fontcolor="3947580" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAssoc" baseStereotypes="ECDMAssoc"/>
@@ -50,6 +50,7 @@
 					<Tag name="fileName" type="string" description="Contains the associated schema name WITHOUT the path name." unit="" values="" default=""/>
 					<Tag name="pathName" type="string" description="Contains the absolute pathname to the schema file." unit="" values="" default=""/>
 					<Tag name="nsToken" type="string" description="Stores the namespace mnemonic name." unit="" values="" default=""/>
+					<Tag name="useAlternativeNaming" type="boolean" description="Set this tag to 'true' to force the 'original' naming convention for the Common Namespace. This implies that the name of the schema is changed to &quot;Common&quot;  (instead of &quot;CommonSchema&quot;) and the namespace will not include the container name. This results in a naming convention that is compatible with the original plugin (and which is inherently wrong because it might lead to naming conflicts).&#xA;The option is included to facilitate backwards compatibility for SOAP services." unit="" values="true,false" default=""/>
 				</TaggedValues>
 			</Stereotype>
 			<Stereotype name="Container" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="3947580" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMComponent" baseStereotypes="ECDMComponent">
