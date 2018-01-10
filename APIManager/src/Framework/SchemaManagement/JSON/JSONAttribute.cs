@@ -202,6 +202,7 @@ namespace Framework.Util.SchemaManagement.JSON
                 }
                 this._attributeClassifier.Description = this._annotation;
             }
+<<<<<<< .mine
 
             // If the attribute is nillable, we must add another type qualifier. 
             // We ignore this for the 'simple' classifiers since the context in which these are used
@@ -212,6 +213,18 @@ namespace Framework.Util.SchemaManagement.JSON
                 this._attributeClassifier.Type |= JSchemaType.Null;
             }
 
+=======
+
+            // If the attribute is nillable, we must create a classifier that is actually an array consisting of the actual classifier
+            // and the special keyword 'null'. We ignore this for the 'simple' classifiers since the context in which these are used
+            // does not allow the 'null' value anyway...
+            if (isNillable)
+            {
+                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Nillable attribute!");
+                this._attributeClassifier.Type |= JSchemaType.Null;
+            }
+
+>>>>>>> .theirs
             this.IsValid = true;
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Successfully created attribute.");
         }
