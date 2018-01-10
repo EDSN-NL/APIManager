@@ -207,14 +207,16 @@ namespace Plugin.Application.CapabilityModel.API
                         }
                         else if (capability is CommonSchemaCapability)
                         {
+                            this._commonSchemaCapability = capability as CommonSchemaCapability;
                             string commonSchemaName = this._currentService.Name + "." + Conversions.ToPascalCase(capability.AssignedRole);
+                            string alternativeNamespaceTag = this._commonSchemaCapability.AlternativeNamespaceTag;
                             string namespaceTag = (this._interfaceType == InterfaceType.SOAP) ? "SOAPOperation" : "RESTOperation";
+                            if (alternativeNamespaceTag != string.Empty) namespaceTag = alternativeNamespaceTag;
                             this._panel.WriteInfo(this._panelIndex + 1, "Pre-processing Common Schema...");
                             this._commonSchema = GetSchema(Schema.SchemaType.Common, commonSchemaName,
                                                            capability.CapabilityClass.GetTag(context.GetConfigProperty(_NSTokenTag)),
                                                            this._currentService.GetFQN(namespaceTag, Conversions.ToPascalCase(capability.AssignedRole), -1),
                                                            capability.VersionString);
-                            this._commonSchemaCapability = capability as CommonSchemaCapability;
                             if (useCommonDocContext) DocManagerSlt.GetDocManagerSlt().InitializeCommonDocContext(this._commonSchema.NSToken,
                                                                                                                  commonSchemaName, 
                                                                                                                  MEChangeLog.GetDocumentationAsText(capability.CapabilityClass));

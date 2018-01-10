@@ -16,8 +16,17 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _CommonSchemaRoleName          = "CommonSchemaRoleName";
         private const string _CommonSchemaNSToken           = "CommonSchemaNSToken";
         private const string _NSTokenTag                    = "NSTokenTag";
+        private const string _UseAlternativeNamingTag       = "UseAlternativeNamingTag";
+        private const string _AlternativeCommonNS           = "AlternativeCommonNS";
 
         private InterfaceCapability _interfaceCapability;   // Represents the 'owning' interface.
+        private bool _useAlternativeNaming;                 // Set to 'true' to support the 'old' naming convention.
+        private string _alternativeNamespaceTag;            // Stores namespace construction tag when AlternativeNamespace is true.
+
+        /// <summary>
+        /// Returns an alternative namespace for the Common Schema (if required). Returns empty string when standard namespace applies.
+        /// </summary>
+        internal string AlternativeNamespaceTag             { get { return this._alternativeNamespaceTag; } }
 
         /// <summary>
         /// Returns the namespace token used for the Common Schema. It's defined as a local property since the common schema is required by
@@ -36,6 +45,8 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// The 'new instance' constructor is used to create a new CommonSchema class in the capability model. The constructor creates a new
         /// instance in the container package of the provided parent service. It also initializes the namespace token for the common schema.
+        /// By default, the 'useAlternativeNaming' property is set to 'false'. The only way to change this is for the user to manually edit
+        /// the property using the UML tool user interface.
         /// </summary>
         /// <param name="myInterface">Parent service instance.</param>
         internal CommonSchemaCapabilityImp(InterfaceCapability myInterface): base(myInterface.RootService)
@@ -46,7 +57,9 @@ namespace Plugin.Application.CapabilityModel.API
             this._capabilityClass = myInterface.RootService.ModelPkg.CreateClass(context.GetConfigProperty(_CommonSchemaClassName), 
                                                                                  context.GetConfigProperty(_CommonSchemaClassStereotype));
             this._capabilityClass.SetTag(context.GetConfigProperty(_NSTokenTag), context.GetConfigProperty(_CommonSchemaNSToken), true);
+            this._capabilityClass.SetTag(context.GetConfigProperty(_UseAlternativeNamingTag), "false", true);
             this._capabilityClass.Version = new Tuple<int, int>(myInterface.RootService.MajorVersion, 0);
+            this._alternativeNamespaceTag = string.Empty;
 
             // Create the associations with our interface...
             this._assignedRole = context.GetConfigProperty(_CommonSchemaRoleName);
@@ -70,6 +83,9 @@ namespace Plugin.Application.CapabilityModel.API
             this._interfaceCapability = myInterface;
             this._capabilityClass = commonSchema;
             this._assignedRole = myInterface.FindChildClassRole(context.GetConfigProperty(_CommonSchemaClassName), context.GetConfigProperty(_CommonSchemaClassStereotype));
+            string alternativeNamingTag = commonSchema.GetTag(context.GetConfigProperty(_UseAlternativeNamingTag));
+            this._useAlternativeNaming = !string.IsNullOrEmpty(alternativeNamingTag) && string.Compare(alternativeNamingTag, "true", true) == 0;
+            this._alternativeNamespaceTag = this._useAlternativeNaming ? _AlternativeCommonNS : string.Empty;
         }
 
         /// <summary>
@@ -80,7 +96,7 @@ namespace Plugin.Application.CapabilityModel.API
         internal override string GetBaseFileName()
         {
             Tuple<int, int> version = this.CapabilityClass.Version;
-            return this._rootService.Name + "_" + this.Name + "_v" + version.Item1 + "p" + version.Item2;
+            return this._rootService.Name + "_" + (this._useAlternativeNaming? this._assignedRole: this.Name) + "_v" + version.Item1 + "p" + version.Item2;
         }
 
         /// <summary>

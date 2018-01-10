@@ -24,6 +24,19 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Returns an alternative namespace for the Common Schema (if required). Returns empty string when standard namespace applies.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
+        internal string AlternativeNamespaceTag
+        {
+            get
+            {
+                if (this._imp != null) return ((CommonSchemaCapabilityImp)this._imp).AlternativeNamespaceTag;
+                else throw new MissingImplementationException("InterfaceCapabilityImp");
+            }
+        }
+
+        /// <summary>
         /// The 'new instance' constructor is used to create a new CommonSchema class in the capability model. The constructor creates a new
         /// instance in the container package of the provided parent service. It also initializes the namespace token for the common schema.
         /// </summary>
