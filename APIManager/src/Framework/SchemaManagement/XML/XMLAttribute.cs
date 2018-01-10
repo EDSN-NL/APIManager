@@ -47,6 +47,7 @@ namespace Framework.Util.SchemaManagement.XML
         /// <param name="annotation">Optional comment for the content element. Empty list in case no comment is present.</param>
         /// <param name="defaultValue">Optional default value.</param>
         /// <param name="fixedValue">Optional fixed value.</param>
+        /// <param name="isNillable">Set to 'true' to indicate that the attribute supports a NULL value.</param>
         internal XMLContentAttribute(XMLSchema schema,
                                    string name,
                                    string classifier,
@@ -54,8 +55,9 @@ namespace Framework.Util.SchemaManagement.XML
                                    ChoiceGroup choiceGroup,
                                    Tuple<int, int> cardinality,
                                    List<MEDocumentation> annotation,
-                                   string defaultValue, string fixedValue): 
-            base(schema, name, classifier, sequenceKey, choiceGroup, cardinality, annotation, defaultValue, fixedValue)
+                                   string defaultValue, string fixedValue,
+                                   bool nillable): 
+            base(schema, name, classifier, sequenceKey, choiceGroup, cardinality, annotation, defaultValue, fixedValue, nillable)
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLContentAttribute >> Creating attribute '" + name + "' with classifier '" + classifier + 
                              "' and cardinality '" + cardinality.Item1 + "-" + cardinality.Item2 + "'.");
@@ -67,6 +69,7 @@ namespace Framework.Util.SchemaManagement.XML
                     Name = name
                 };
                 this._attribute.SchemaTypeName = new XmlQualifiedName(this.Classifier, this.ClassifierNS);
+                this._attribute.IsNillable = IsNillable;
                 if (cardinality.Item2 == 0)
                 {
                     this._attribute.MaxOccursString = "unbounded";

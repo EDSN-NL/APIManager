@@ -152,16 +152,19 @@ namespace Framework.Util.SchemaManagement
     internal abstract class ContentAttribute : SchemaAttribute
     {
         private ChoiceGroup _choiceGroup;       // Identification of (optional) choice group that this attribute belongs to. 
+        private bool _nillable;                 // Set to 'true' to indicate that the attribute supports a NULL value.
 
         /// <summary>
         /// Getters for properties of Content Attribute:
         /// ChoiceGroupID = Returns the Choice Group identifier of this attribute (if any).
         /// ChoiceGroupSequenceID = Returns the Choice Group sequence identifier of this attribute (if any). This represents the order within the choice group.
         /// IsChoiceElement = Returns 'true' is this attribute is part of a Choice group.
+        /// IsNillable = Returns 'true' if the attribute supports a NULL value.
         /// </summary>
-        internal string ChoiceGroupID             { get { return (this._choiceGroup != null) ? this._choiceGroup.GroupID : string.Empty; } }
-        internal string ChoiceGroupSequenceID     { get { return (this._choiceGroup != null) ? this._choiceGroup.SequenceID : string.Empty; } }
-        internal bool IsChoiceElement             { get { return this._choiceGroup != null; } }
+        internal string ChoiceGroupID           { get { return (this._choiceGroup != null) ? this._choiceGroup.GroupID : string.Empty; } }
+        internal string ChoiceGroupSequenceID   { get { return (this._choiceGroup != null) ? this._choiceGroup.SequenceID : string.Empty; } }
+        internal bool IsChoiceElement           { get { return this._choiceGroup != null; } }
+        internal bool IsNillable                { get { return this._nillable; } }
 
         /// <summary>
         /// Construct a new content attribute. These attributes MUST be used in the context of the associated ABIE of which they are declared as attributes.
@@ -183,19 +186,22 @@ namespace Framework.Util.SchemaManagement
         /// <param name="annotation">Optional comment for the content element. Empty list in case no comment is present.</param>
         /// <param name="defaultValue">Optional default value.</param>
         /// <param name="fixedValue">Optional fixed value.</param>
+        /// <param name="isNillable">Set to 'true' to indicate that the attribute supports a NULL value.</param>
         internal ContentAttribute(Schema schema,
-                                string name,
-                                string classifier,
-                                int sequenceKey,
-                                ChoiceGroup choiceGroup,
-                                Tuple<int, int> cardinality,
-                                List<MEDocumentation> annotation,
-                                string defaultValue, string fixedValue): 
+                                  string name,
+                                  string classifier,
+                                  int sequenceKey,
+                                  ChoiceGroup choiceGroup,
+                                  Tuple<int, int> cardinality,
+                                  List<MEDocumentation> annotation,
+                                  string defaultValue, string fixedValue,
+                                  bool isNillable): 
             base(schema, name, classifier, sequenceKey, cardinality, annotation,defaultValue, fixedValue, AttributeTypeCode.Content)
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.ContentAttribute >> Creating attribute '" + name + "' with classifier '" + classifier +
                              "' and cardinality '" + cardinality.Item1 + "-" + cardinality.Item2 + "'.");
             this._choiceGroup = choiceGroup;
+            this._nillable = isNillable;
         }
     }
 

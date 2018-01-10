@@ -20,6 +20,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         // Configuration properties used by this module...
         private const string _SequenceKeyTag                        = "SequenceKeyTag";
         private const string _ChoiceKeyTag                          = "ChoiceKeyTag";
+        private const string _NillableTag                           = "NillableTag";
         private const string _BDTUnionStereotype                    = "BDTUnionStereotype";
         private const string _HierarchyOffset                       = "HierarchyOffset";
         private const string _PrimitiveDataTypeStereotype           = "PrimitiveDataTypeStereotype";
@@ -345,15 +346,17 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                         int sequenceKey = attribute.SequenceKey + sequenceBase;
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Attribute '" + attribute.Name + "' has sequence: " + sequenceKey);
                         ContentAttribute contentAttrib = null;
+                        string nillableTag = attribute.GetTag(context.GetConfigProperty(_NillableTag));
+                        bool isNillable = !string.IsNullOrEmpty(nillableTag) && string.Compare(nillableTag, "true", true) == 0;
                         if (targetSchema is XMLSchema)
                         {
                             contentAttrib = new XMLContentAttribute((XMLSchema)targetSchema, attributeName, classifierCtx.Name, sequenceKey, choiceGroup, cardinality,
-                                                                    attribute.GetDocumentation(), attribute.DefaultValue, string.Empty);
+                                                                    attribute.GetDocumentation(), attribute.DefaultValue, string.Empty, isNillable);
                         }
                         else
                         {
                             contentAttrib = new JSONContentAttribute((JSONSchema)targetSchema, attributeName, classifierCtx.Name, sequenceKey, choiceGroup, cardinality,
-                                                                     attribute.GetDocumentation(), attribute.DefaultValue, string.Empty);
+                                                                     attribute.GetDocumentation(), attribute.DefaultValue, string.Empty, isNillable);
                         }
                         attribList.Add(contentAttrib);
                         if (this._useDocContext)
@@ -625,15 +628,17 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
 
                     Schema targetSchema = classifierCtx.IsInCommonSchema? this._commonSchema : this._schema;
                     ContentAttribute contentAttrib = null;
+                    string nillableTag = attribute.GetTag(ContextSlt.GetContextSlt().GetConfigProperty(_NillableTag));
+                    bool isNillable = !string.IsNullOrEmpty(nillableTag) && string.Compare(nillableTag, "true", true) == 0;
                     if (targetSchema is XMLSchema)
                     {
                         contentAttrib = new XMLContentAttribute((XMLSchema)targetSchema, attributeName, classifierCtx.Name, sequenceKey, choiceGroup,
-                                                                cardinality, attribute.GetDocumentation(), defaultVal, string.Empty);
+                                                                cardinality, attribute.GetDocumentation(), defaultVal, string.Empty, isNillable);
                     }
                     else
                     {
                         contentAttrib = new JSONContentAttribute((JSONSchema)targetSchema, attributeName, classifierCtx.Name, sequenceKey, choiceGroup,
-                                                                 cardinality, attribute.GetDocumentation(), defaultVal, string.Empty);
+                                                                 cardinality, attribute.GetDocumentation(), defaultVal, string.Empty, isNillable);
                     }
                     return contentAttrib;
                 }
