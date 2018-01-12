@@ -157,6 +157,7 @@ namespace SparxEA.Model
 
             var newElement = this._package.Elements.AddNew(name, "Class") as EA.Element;
             newElement.Update();        // Update immediately to properly finish the create.
+            this._package.Elements.Refresh();
             bool needUpdate = false;
 
             if (!string.IsNullOrEmpty(stereotype))
@@ -172,8 +173,6 @@ namespace SparxEA.Model
             }
 
             if (needUpdate) newElement.Update();
-            this._package.Elements.Refresh();
-
             return new MEClass(newElement.ElementID);
         }
 
@@ -201,7 +200,7 @@ namespace SparxEA.Model
 
             var newElement = this._package.Elements.AddNew(name, "DataType") as EA.Element;
             newElement.Update();        // Update immediately to properly finish the create.
-            this._package.Update();
+            this._package.Elements.Refresh();
 
             ContextSlt context = ContextSlt.GetContextSlt();
             string stereotype;
@@ -240,7 +239,6 @@ namespace SparxEA.Model
             newElement.StereotypeEx = stereotype;
             if (sortID != -1) newElement.TreePos = sortID;
             newElement.Update();
-            this._package.Elements.Refresh();
             return returnType;
         }
 
@@ -281,7 +279,7 @@ namespace SparxEA.Model
 
             var newPackage = this._package.Packages.AddNew(name, "Package") as EA.Package;
             newPackage.Update();    // Update immediately to properly finish the creation!
-            this._package.Update();
+            this._package.Packages.Refresh();
             bool needUpdate = false;
 
             if (!string.IsNullOrEmpty(stereotype))
@@ -297,7 +295,6 @@ namespace SparxEA.Model
             }
 
             if (needUpdate) newPackage.Update();
-            this._package.Packages.Refresh();
             return new MEPackage(newPackage.PackageID);
         }
 
@@ -311,6 +308,7 @@ namespace SparxEA.Model
         {
             Logger.WriteInfo("SparxEA.Model.EAMEIPackage.deleteClass >> Deleting class '" + thisOne.Name + "' from package '" + this._package.Name + "' with '" + this._package.Elements.Count + "' elements...");
 
+            this._package.Elements.Refresh();   // Make sure that we're looking at the most up-to-date state.
             for (short i = 0; i < this._package.Elements.Count; i++)
             {
                 Logger.WriteInfo("SparxEA.Model.EAMEIPackage.deleteClass >> Examining index: " + i);
@@ -335,6 +333,7 @@ namespace SparxEA.Model
         /// <param name="child">Package to be deleted.</param>
         internal override void DeletePackage(MEPackage child)
         {
+            this._package.Packages.Refresh();   // Make sure that we're looking at the most up-to-date state.
             for (short i = 0; i < this._package.Packages.Count; i++)
             {
                 var childPackage = this._package.Packages.GetAt(i) as EA.Package;
@@ -358,6 +357,7 @@ namespace SparxEA.Model
         /// <returns>Class instance found or NULL when not found.</returns>
         internal override MEClass FindClass(string className, string stereotype)
         {
+            this._package.Elements.Refresh();   // Make sure that we're looking at the most up-to-date state.
             foreach (EA.Element element in this._package.Elements)
             {
                 if (element.Name == className)
@@ -386,6 +386,7 @@ namespace SparxEA.Model
         internal override MEDataType FindDataType(string typeName, string stereotype)
         {
             ModelSlt model = ModelSlt.GetModelSlt();
+            this._package.Elements.Refresh();   // Make sure that we're looking at the most up-to-date state.
             foreach (EA.Element element in this._package.Elements)
             {
                 if (element.Name == typeName)
@@ -405,6 +406,7 @@ namespace SparxEA.Model
         /// <returns>Diagram instance found or NULL when not found.</returns>
         internal override Framework.View.Diagram FindDiagram(string diagramName)
         {
+            this._package.Diagrams.Refresh();   // Make sure that we're looking at the most up-to-date state.
             foreach (EA.Diagram diagram in this._package.Diagrams)
             {
                 if (string.IsNullOrEmpty(diagramName) || (diagram.Name == diagramName)) return new Framework.View.Diagram(diagram.DiagramID);
@@ -516,6 +518,7 @@ namespace SparxEA.Model
             string componentStereotype = context.GetConfigProperty(_BusinessComponentStereotype);
             string enumStereotype = context.GetConfigProperty(_BDTEnumStereotype);
 
+            this._package.Elements.Refresh();   // Assures that we're looking at the most up-to-date contents.
             foreach (EA.Element element in this._package.Elements)
             {
                 if (!string.IsNullOrEmpty(stereotype))
