@@ -13,7 +13,14 @@ namespace Framework.Controller
     {
         // This is the actual Controller singleton. It is created automatically on first load.
         private static readonly ControllerSlt _controller = new ControllerSlt();
-        private EventManager _eventManager;  // The Event Manager is wrapped and controlled by the ControllerSlt and must not be used directly!
+        private EventManager _eventManager; // The Event Manager is wrapped and controlled by the ControllerSlt and must not be used directly!
+        private bool _enableScopeSwitch;    // Set to 'true' to process Scope Switches, 'false' to ignore them. 
+
+        /// <summary>
+        /// Enables or disables scope switches. Since EA generates scope switches whenever a new object is created and we want to defer the switch
+        /// until we are certain that the created object has reached a valid state, we can use this property to block scope switch processing.
+        /// </summary>
+        internal bool EnableScopeSwitch   { set { this._enableScopeSwitch = value; } }
 
         /// <summary>
         /// Removes all current context from both the model and the context environments. Can be used to force a 'clean slate'.
@@ -84,6 +91,7 @@ namespace Framework.Controller
             ModelSlt.GetModelSlt().Initialize(modelImp);
             ContextSlt.GetContextSlt().Initialize(contextImp);
             this._eventManager = new EventManager();    // Will create all events as defined in configuration file.
+            this._enableScopeSwitch = true;
         }
 
         /// <summary>
@@ -106,6 +114,7 @@ namespace Framework.Controller
         internal void ShutDown()
         {
             this._eventManager = null;
+            this._enableScopeSwitch = false;
             ContextSlt.GetContextSlt().ShutDown();  // Since context uses the model, close this one first!
             ModelSlt.GetModelSlt().ShutDown();
         }
@@ -113,13 +122,14 @@ namespace Framework.Controller
         /// <summary>
         /// Called when the user has clicked on a modelling element, a diagram or a package. The method is used to pass
         /// this information to the context so that the current scope can be updated. 
+        /// The context switch is only executed when 'EnableScopeSwitch' is set to 'true'.
         /// </summary>
         /// <param name="newScope">The type of element that has received focus.</param>
         /// <param name="itemID">Identification of that element within the tool repository (tool-dependent format)</param>
         /// <param name="uniqueID">Globally-unique ID of the item.</param>
         internal void SwitchScope(ContextScope newScope, int itemID, string uniqueID)
         {
-            ContextSlt.GetContextSlt().SwitchScope(newScope, itemID, uniqueID);
+            if (this._enableScopeSwitch) ContextSlt.GetContextSlt().SwitchScope(newScope, itemID, uniqueID);
         }
 
         /// <summary>

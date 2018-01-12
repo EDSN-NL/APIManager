@@ -5,6 +5,7 @@ using EA;
 using Framework.Context;
 using Framework.Logging;
 using Framework.Model;
+using Framework.Controller;
 
 namespace SparxEA.Model
 {
@@ -124,7 +125,6 @@ namespace SparxEA.Model
                     Logger.WriteError("SparxEA.Model.EAMEIPackage.AddStereotype >> Package '" + this._package.Name + "' not yet fully initialized!");
                     return;
                 }
-
                 string stereoTypes = this._package.Element.StereotypeEx;
                 if (!this._package.Element.HasStereotype(stereotype))
                 {
@@ -155,8 +155,11 @@ namespace SparxEA.Model
                 throw new ArgumentException(message);
             }
 
+            // Prevent the 'AddNew' + 'Update' to generate scope switches until we're ready for them...
+            ControllerSlt.GetControllerSlt().EnableScopeSwitch = false;
+
             var newElement = this._package.Elements.AddNew(name, "Class") as EA.Element;
-            newElement.Update();        // Update immediately to properly finish the create.
+            newElement.Update();        // Update immediately to properly finish the create. Note that this triggers a Scope Switch to incomplete object!
             this._package.Elements.Refresh();
             bool needUpdate = false;
 
@@ -173,6 +176,7 @@ namespace SparxEA.Model
             }
 
             if (needUpdate) newElement.Update();
+            ControllerSlt.GetControllerSlt().EnableScopeSwitch = true;
             return new MEClass(newElement.ElementID);
         }
 
@@ -197,6 +201,9 @@ namespace SparxEA.Model
                 Logger.WriteError(message);
                 throw new ArgumentException(message);
             }
+            
+            // Prevent the 'AddNew' + 'Update' to generate scope switches until we're ready for them...
+            ControllerSlt.GetControllerSlt().EnableScopeSwitch = false;
 
             var newElement = this._package.Elements.AddNew(name, "DataType") as EA.Element;
             newElement.Update();        // Update immediately to properly finish the create.
@@ -234,11 +241,13 @@ namespace SparxEA.Model
                     string msg = "SparxEA.Model.EAMEIPackage.createDataType >> Illegal meta type '" + metaType + "' passed to package '" +
                                  this._name + " when creating data type '" + name + "'!";
                     Logger.WriteError(msg);
+                    ControllerSlt.GetControllerSlt().EnableScopeSwitch = true;
                     throw new ArgumentException(msg);
             }
             newElement.StereotypeEx = stereotype;
             if (sortID != -1) newElement.TreePos = sortID;
             newElement.Update();
+            ControllerSlt.GetControllerSlt().EnableScopeSwitch = true;
             return returnType;
         }
 
@@ -250,10 +259,14 @@ namespace SparxEA.Model
         internal override Framework.View.Diagram CreateDiagram(string diagramName)
         {
             if (string.IsNullOrEmpty(diagramName)) diagramName = this.Name;
+           
+            // Prevent the 'AddNew' + 'Update' to generate scope switches until we're ready for them...
+            ControllerSlt.GetControllerSlt().EnableScopeSwitch = false;
 
             var diagram = this._package.Diagrams.AddNew(diagramName, "Logical") as EA.Diagram;
             diagram.Update();
             this._package.Diagrams.Refresh();
+            ControllerSlt.GetControllerSlt().EnableScopeSwitch = true;
             return new Framework.View.Diagram(diagram.DiagramID);
         }
 
@@ -277,15 +290,19 @@ namespace SparxEA.Model
                 throw new ArgumentException(message);
             }
 
+            // Prevent the 'AddNew' + 'Update' to generate scope switches until we're ready for them...
+            ControllerSlt.GetControllerSlt().EnableScopeSwitch = false;
+
             var newPackage = this._package.Packages.AddNew(name, "Package") as EA.Package;
             newPackage.Update();    // Update immediately to properly finish the creation!
+            newPackage.Element.Update();
             this._package.Packages.Refresh();
             bool needUpdate = false;
 
             if (!string.IsNullOrEmpty(stereotype))
             {
                 newPackage.Element.StereotypeEx = stereotype;
-                needUpdate = true;
+                newPackage.Element.Update();
             }
 
             if (sortID != -1)
@@ -295,6 +312,9 @@ namespace SparxEA.Model
             }
 
             if (needUpdate) newPackage.Update();
+            newPackage.Update();
+            newPackage.Element.Update();
+            ControllerSlt.GetControllerSlt().EnableScopeSwitch = true;
             return new MEPackage(newPackage.PackageID);
         }
 
