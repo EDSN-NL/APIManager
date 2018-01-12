@@ -322,17 +322,5 @@ namespace APIManager.SparxEA.Properties {
                 this["RESTSchemes"] = value;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string RESTHeaderParameters {
-            get {
-                return ((string)(this["RESTHeaderParameters"]));
-            }
-            set {
-                this["RESTHeaderParameters"] = value;
-            }
-        }
     }
 }

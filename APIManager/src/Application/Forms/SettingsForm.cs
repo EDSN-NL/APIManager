@@ -13,7 +13,6 @@ namespace Plugin.Application.Forms
         private string _rootPath;
         private string _imageType;
         private string _interfaceType;
-        private SortedList<string, RESTParameterDeclaration> _parameterList; 
 
         /// <summary>
         /// the SettingsForm works in close cooperation with the FrameworkSettings component (accessed via Context) and is used to
@@ -48,17 +47,6 @@ namespace Plugin.Application.Forms
             RAAPIKeys.Text                          = context.GetStringSetting(FrameworkSettings._RESTAuthAPIKeys);
             RESTHostName.Text                       = context.GetStringSetting(FrameworkSettings._RESTHostName);
             RESTSchemes.Text                        = context.GetStringSetting(FrameworkSettings._RESTSchemes);
-
-            // We retrieve the set of REST header parameters from our configuration..
-            this._parameterList = new SortedList<string, RESTParameterDeclaration>();
-            var paramList = RESTUtil.GetHeaderParameters();
-            foreach (RESTParameterDeclaration param in paramList)
-            {
-                this._parameterList.Add(param.Name, param);
-                ListViewItem newItem = new ListViewItem(param.Name);
-                newItem.SubItems.Add(param.Classifier.Name);
-                ParameterList.Items.Add(newItem);
-            }
 
             RAScheme.Items.AddRange(new object[]
             {
@@ -137,9 +125,6 @@ namespace Plugin.Application.Forms
             context.SetStringSetting(FrameworkSettings._RESTAuthAPIKeys, RAAPIKeys.Text);
             context.SetStringSetting(FrameworkSettings._RESTHostName, RESTHostName.Text);
             context.SetStringSetting(FrameworkSettings._RESTSchemes, RESTSchemes.Text);
-
-            // Retrieve the REST Header parameters and write them to Configuration in serialized format...
-            RESTUtil.SetHeaderParameters(new List<RESTParameterDeclaration>(this._parameterList.Values));
 
             // Check root path, should not end with separator (should not happen since user can not type the path, just to be save...)
             if (this._rootPath.EndsWith("/") || this._rootPath.EndsWith("\\"))
@@ -263,84 +248,6 @@ namespace Plugin.Application.Forms
             using (RESTAuthEditAPIKeys editDialog = new RESTAuthEditAPIKeys(RAAPIKeys.Text))
             {
                 if (editDialog.ShowDialog() == DialogResult.OK) RAAPIKeys.Text = editDialog.APIKeys;
-            }
-        }
-
-        /// <summary>
-        /// This event is raised in order to add the name entered in the adjecent field to the list of REST Header Parameters.
-        /// </summary>
-        /// <param name="sender">Ignored.</param>
-        /// <param name="e">Ignored.</param>
-        private void AddParameter_Click(object sender, EventArgs e)
-        {
-            RESTParameterDeclaration newParam = new RESTParameterDeclaration();
-            using (RESTParameterDialog dialog = new RESTParameterDialog(newParam))
-            {
-                if (dialog.ShowDialog() == DialogResult.OK)
-                {
-                    if (!this._parameterList.ContainsKey(dialog.Parameter.Name))
-                    {
-                        this._parameterList.Add(dialog.Parameter.Name, dialog.Parameter);
-                        ListViewItem newItem = new ListViewItem(dialog.Parameter.Name);
-                        newItem.SubItems.Add(dialog.Parameter.Classifier.Name);
-                        ParameterList.Items.Add(newItem);
-                    }
-                    else MessageBox.Show("Duplicate parameter, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
-        /// <summary>
-        /// This event is raised in order to delete the selected REST Header Parameter from the list of parameters.
-        /// </summary>
-        /// <param name="sender">Ignored.</param>
-        /// <param name="e">Ignored.</param>
-        private void DeleteParameter_Click(object sender, EventArgs e)
-        {
-            if (ParameterList.SelectedItems.Count > 0)
-            {
-                ListViewItem key = ParameterList.SelectedItems[0];
-                this._parameterList.Remove(key.Text);
-                ParameterList.Items.Remove(key);
-            }
-        }
-
-        /// <summary>
-        /// This event is raised when the user selected the 'edit parameter' button. It retrieves the parameter settings and
-        /// subsequently shows the 'edit parameter' dialog that the user can utilize in order to update parameter settings.
-        /// </summary>
-        /// <param name="sender">Ignored.</param>
-        /// <param name="e">Ignored.</param>
-        private void EditParameter_Click(object sender, EventArgs e)
-        {
-            if (ParameterList.SelectedItems.Count > 0)
-            {
-                ListViewItem key = ParameterList.SelectedItems[0];
-                string originalName = key.Text;
-                RESTParameterDeclaration param = this._parameterList[key.Text];
-                using (RESTParameterDialog dialog = new RESTParameterDialog(param))
-                {
-                    if (dialog.ShowDialog() == DialogResult.OK)
-                    {
-                        if (dialog.Parameter.Name == originalName || !this._parameterList.ContainsKey(dialog.Parameter.Name))
-                        {
-                            param = dialog.Parameter;
-                            if (param.Name != originalName)
-                            {
-                                this._parameterList.Remove(originalName);
-                                this._parameterList.Add(param.Name, param);
-                            }
-                            else this._parameterList[originalName] = dialog.Parameter;
-                            ParameterList.SelectedItems[0].Text = dialog.Parameter.Name;
-                            ParameterList.SelectedItems[0].SubItems[1].Text = dialog.Parameter.Classifier.Name;
-                        }
-                        else
-                        {
-                            MessageBox.Show("Renaming parameter resulted in duplicate name, please try again!",
-                                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                    }
-                }
             }
         }
     }

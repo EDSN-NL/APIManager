@@ -21,8 +21,12 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _RequestPaginationClassName    = "RequestPaginationClassName";
         private const string _ResponsePaginationClassName   = "ResponsePaginationClassName";
         private const string _OperationResultClassName      = "OperationResultClassName";
+        private const string _RequestHdrParamClassName      = "RequestHdrParamClassName";
+        private const string _ResponseHdrParamClassName     = "ResponseHdrParamClassName";
         private const string _ResourceClassStereotype       = "ResourceClassStereotype";
         private const string _BusinessComponentStereotype   = "BusinessComponentStereotype";
+        private const string _APISupportModelPathName       = "APISupportModelPathName";
+        private const string _CollectionFormatTag           = "CollectionFormatTag";
 
         // Separator between summary text and description text
         private const string _Summary = "summary: ";
@@ -294,12 +298,24 @@ namespace Plugin.Application.CapabilityModel.API
         private void WriteRequestHeaderParameters()
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestHeaderParameters >> Looking for header parameters...");
-            if (this._headerParameterClass == null) return;         // Nothing to do.
+            ContextSlt context = ContextSlt.GetContextSlt();
+            ModelSlt model = ModelSlt.GetModelSlt();
+            MEClass parameterClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
+                                                     context.GetConfigProperty(_RequestHdrParamClassName));
+            if (parameterClass == null) return;     // Nothing to do.
 
-            var sortedParamList = new SortedList<string, RESTParameterDeclaration>();
-            foreach (RESTParameterDeclaration param in this._headerParameterDeclarations) sortedParamList.Add(param.Name, param);
-            List<SchemaAttribute> headerProperties = this._schema.ProcessProperties(this._headerParameterClass);
+            // Create a separate list of all collection formats for each attribute. We need this when we have an attribute with cardinality > 1...
+            var sortedCollectionFmtList = new SortedList<string, RESTParameterDeclaration.QueryCollectionFormat>();
+            string collectionFmtTagName = context.GetConfigProperty(_CollectionFormatTag);
+            foreach (MEAttribute attrib in parameterClass.Attributes)
+            {
+                string collectionFmtTag = attrib.GetTag(collectionFmtTagName);
+                if (!string.IsNullOrEmpty(collectionFmtTag))
+                    sortedCollectionFmtList.Add(attrib.Name, EnumConversions<RESTParameterDeclaration.QueryCollectionFormat>.StringToEnum(collectionFmtTag));
+                else sortedCollectionFmtList.Add(attrib.Name, RESTParameterDeclaration.QueryCollectionFormat.NA);
+            }
 
+            List<SchemaAttribute> headerProperties = this._schema.ProcessProperties(parameterClass);
             foreach (JSONContentAttribute attrib in headerProperties)
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestHeaderParameters >> Processing '" + attrib.Name + "'...");
@@ -320,7 +336,8 @@ namespace Plugin.Application.CapabilityModel.API
                     this._JSONWriter.WriteRaw("," + attribText);
                     if (attrib.IsListRequired)
                     {
-                        RESTParameterDeclaration.QueryCollectionFormat collectionFormat = sortedParamList[attrib.Name].CollectionFormat;
+
+                        RESTParameterDeclaration.QueryCollectionFormat collectionFormat = sortedCollectionFmtList[attrib.Name];
                         if (collectionFormat != RESTParameterDeclaration.QueryCollectionFormat.Unknown &&
                             collectionFormat != RESTParameterDeclaration.QueryCollectionFormat.NA)
                         {
@@ -341,15 +358,15 @@ namespace Plugin.Application.CapabilityModel.API
         private void WriteResponseHeaderParameters(RESTOperationResultCapability.ResponseCategory category)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Looking for header parameters...");
-            if (this._headerParameterClass == null && !this._currentOperation.UseLinkHeaders) return;         // Nothing to do.
+            ContextSlt context = ContextSlt.GetContextSlt();
+            ModelSlt model = ModelSlt.GetModelSlt();
+            MEClass parameterClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
+                                                     context.GetConfigProperty(_ResponseHdrParamClassName));
+            if (parameterClass == null && !this._currentOperation.UseLinkHeaders) return;     // Nothing to do.
 
             var headerProperties = new List<SchemaAttribute>();
             var sortedParamList = new SortedList<string, RESTParameterDeclaration>();
-            if (this._headerParameterClass != null)
-            {
-                foreach (RESTParameterDeclaration param in this._headerParameterDeclarations) sortedParamList.Add(param.Name, param);
-                headerProperties = this._schema.ProcessProperties(this._headerParameterClass);
-            }
+            if (parameterClass != null) headerProperties = this._schema.ProcessProperties(parameterClass);
 
             if (this._currentOperation.UseLinkHeaders || headerProperties.Count > 0)
             {

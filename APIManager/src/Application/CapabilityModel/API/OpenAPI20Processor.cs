@@ -41,8 +41,6 @@ namespace Plugin.Application.CapabilityModel.API
         private int _capabilityCounter;                 // The total number of capabilities (itf, resource, operation, result) to process.
         private string _defaultResponseClassifier;      // Contains the classifier name of the default response once processed.
         private List<RESTResourceCapability> _identifierList;       // Contains all identifiers detected in the current path. 
-        private MEClass _headerParameterClass;          // Temporary class for storage of Header Parameters for this API.
-        private List<RESTParameterDeclaration> _headerParameterDeclarations;    // The declarations associated with the parameter class.
 
         // Since we have to terminate JSON objects properly, we must know whether we are in the last operation result of a resource.
         // If we start a new resource, we might have to close the previous one. Also, we have to close the last resource but this we can handle at
@@ -87,7 +85,6 @@ namespace Plugin.Application.CapabilityModel.API
             this._accessLevels = null;
             this._defaultResponseClassifier = string.Empty;
             this._identifierList = null;
-            this._headerParameterClass = null;
             this._currentResource = null;
             this._currentOperation = null;
         }
@@ -138,7 +135,6 @@ namespace Plugin.Application.CapabilityModel.API
                             var itf = capability as RESTInterfaceCapability;
                             this._accessLevels = new List<Tuple<string, string>>();
                             this._currentOperation = null;
-                            CreateHeaderParameters(capability.RootService as RESTService);
                             this._identifierList = new List<RESTResourceCapability>();
                             this._outputWriter = new StringWriter();
                             this._JSONWriter = new JsonTextWriter(this._outputWriter);
@@ -264,9 +260,6 @@ namespace Plugin.Application.CapabilityModel.API
                             this._panel.Done();
                             this._JSONWriter.Close();
                             this._outputWriter.Close();
-                            if (this._headerParameterClass != null) capability.RootService.ModelPkg.DeleteClass(this._headerParameterClass);
-                            this._headerParameterClass = null;
-                            this._headerParameterDeclarations = null;
                             ClassCacheSlt.GetClassCacheSlt().Flush();   // Remove all collected resources on exit.
                         }
                         this._panel.IncreaseBar(1);
@@ -285,9 +278,6 @@ namespace Plugin.Application.CapabilityModel.API
                             this._panel.Done();
                             this._JSONWriter.Close();
                             this._outputWriter.Close();
-                            if (this._headerParameterClass != null) capability.RootService.ModelPkg.DeleteClass(this._headerParameterClass);
-                            this._headerParameterClass = null;
-                            this._headerParameterDeclarations = null;
                             ClassCacheSlt.GetClassCacheSlt().Flush();   // Remove all collected resources on exit.
                         }
                         break;
@@ -326,33 +316,6 @@ namespace Plugin.Application.CapabilityModel.API
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildHeader >> Created output:" + Environment.NewLine + api);
                     using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8)) writer.Write(api);
                 }
-            }
-        }
-
-        /// <summary>
-        /// Helper method that creates a temporary class for storage of Header Parameters. Since these can be configured dynamically, we create
-        /// a temporary storage class, that will be removed when interface processing is completed. Using this class assures that we properly
-        /// create and register the classifiers associated with the Header Parameters.
-        /// </summary>
-        /// <param name="service">Root service, used to obtain the Service Model package where we create the temporary class.</param>
-        private void CreateHeaderParameters(RESTService service)
-        {
-            this._headerParameterDeclarations = RESTUtil.GetHeaderParameters();
-            ContextSlt context = ContextSlt.GetContextSlt();
-            this._headerParameterClass = null;
-            if (this._headerParameterDeclarations.Count > 0)
-            {
-                this._headerParameterClass = service.ModelPkg.CreateClass(context.GetConfigProperty(_RESTHeaderParamClassName), 
-                                                                          context.GetConfigProperty(_RESTHeaderParamClassStereotype));
-                if (this._headerParameterClass != null)
-                {
-                    foreach (RESTParameterDeclaration param in this._headerParameterDeclarations)
-                    {
-                        RESTParameterDeclaration.ConvertToAttribute(this._headerParameterClass, param);
-                    }
-                }
-                else Logger.WriteWarning("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.CreateHeaderParameters >> Unable to create Header Parameter class '" + 
-                                         context.GetConfigProperty(_RESTHeaderParamClassName) + "'!");
             }
         }
 

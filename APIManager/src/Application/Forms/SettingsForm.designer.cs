@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SettingsForm));
             this.UseLogfile = new System.Windows.Forms.CheckBox();
             this.LogfileSelector = new System.Windows.Forms.OpenFileDialog();
@@ -89,16 +88,6 @@
             this.label8 = new System.Windows.Forms.Label();
             this.RESTHostName = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
-            this.RESTHeaders = new System.Windows.Forms.GroupBox();
-            this.DeleteParameter = new System.Windows.Forms.Button();
-            this.AddParameter = new System.Windows.Forms.Button();
-            this.ParameterList = new System.Windows.Forms.ListView();
-            this.Parameter = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.ParameterType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.EditParameter = new System.Windows.Forms.Button();
-            this.HeaderParameterMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CodeLists.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -110,8 +99,6 @@
             this.VersionControl.SuspendLayout();
             this.RESTAuthentication.SuspendLayout();
             this.RESTParameters.SuspendLayout();
-            this.RESTHeaders.SuspendLayout();
-            this.HeaderParameterMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // UseLogfile
@@ -161,7 +148,7 @@
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(497, 491);
+            this.Ok.Location = new System.Drawing.Point(497, 454);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
             this.Ok.TabIndex = 12;
@@ -172,7 +159,7 @@
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(578, 491);
+            this.Cancel.Location = new System.Drawing.Point(578, 454);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
             this.Cancel.TabIndex = 11;
@@ -732,104 +719,13 @@
             this.label6.TabIndex = 0;
             this.label6.Text = "Host:";
             // 
-            // RESTHeaders
-            // 
-            this.RESTHeaders.Controls.Add(this.EditParameter);
-            this.RESTHeaders.Controls.Add(this.DeleteParameter);
-            this.RESTHeaders.Controls.Add(this.AddParameter);
-            this.RESTHeaders.Controls.Add(this.ParameterList);
-            this.RESTHeaders.Location = new System.Drawing.Point(427, 291);
-            this.RESTHeaders.Name = "RESTHeaders";
-            this.RESTHeaders.Size = new System.Drawing.Size(226, 194);
-            this.RESTHeaders.TabIndex = 14;
-            this.RESTHeaders.TabStop = false;
-            this.RESTHeaders.Text = "REST Header Parameters";
-            // 
-            // DeleteParameter
-            // 
-            this.DeleteParameter.Image = ((System.Drawing.Image)(resources.GetObject("DeleteParameter.Image")));
-            this.DeleteParameter.Location = new System.Drawing.Point(38, 159);
-            this.DeleteParameter.Name = "DeleteParameter";
-            this.DeleteParameter.Size = new System.Drawing.Size(25, 25);
-            this.DeleteParameter.TabIndex = 2;
-            this.DeleteParameter.UseVisualStyleBackColor = true;
-            this.DeleteParameter.Click += new System.EventHandler(this.DeleteParameter_Click);
-            // 
-            // AddParameter
-            // 
-            this.AddParameter.Image = ((System.Drawing.Image)(resources.GetObject("AddParameter.Image")));
-            this.AddParameter.Location = new System.Drawing.Point(7, 159);
-            this.AddParameter.Name = "AddParameter";
-            this.AddParameter.Size = new System.Drawing.Size(25, 25);
-            this.AddParameter.TabIndex = 1;
-            this.AddParameter.UseVisualStyleBackColor = true;
-            this.AddParameter.Click += new System.EventHandler(this.AddParameter_Click);
-            // 
-            // ParameterList
-            // 
-            this.ParameterList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.Parameter,
-            this.ParameterType});
-            this.ParameterList.FullRowSelect = true;
-            this.ParameterList.GridLines = true;
-            this.ParameterList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-            this.ParameterList.Location = new System.Drawing.Point(7, 23);
-            this.ParameterList.Name = "ParameterList";
-            this.ParameterList.Size = new System.Drawing.Size(213, 130);
-            this.ParameterList.TabIndex = 0;
-            this.ParameterList.UseCompatibleStateImageBehavior = false;
-            this.ParameterList.View = System.Windows.Forms.View.Details;
-            // 
-            // Parameter
-            // 
-            this.Parameter.Text = "Name";
-            this.Parameter.Width = 114;
-            // 
-            // ParameterType
-            // 
-            this.ParameterType.Text = "Type";
-            this.ParameterType.Width = 94;
-            // 
-            // EditParameter
-            // 
-            this.EditParameter.Image = ((System.Drawing.Image)(resources.GetObject("EditParameter.Image")));
-            this.EditParameter.Location = new System.Drawing.Point(69, 159);
-            this.EditParameter.Name = "EditParameter";
-            this.EditParameter.Size = new System.Drawing.Size(25, 25);
-            this.EditParameter.TabIndex = 3;
-            this.EditParameter.UseVisualStyleBackColor = true;
-            this.EditParameter.Click += new System.EventHandler(this.EditParameter_Click);
-            // 
-            // HeaderParameterMenuStrip
-            // 
-            this.HeaderParameterMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.deleteToolStripMenuItem,
-            this.editToolStripMenuItem});
-            this.HeaderParameterMenuStrip.Name = "HeaderParameterMenuStrip";
-            this.HeaderParameterMenuStrip.Size = new System.Drawing.Size(108, 48);
-            // 
-            // deleteToolStripMenuItem
-            // 
-            this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
-            this.deleteToolStripMenuItem.Text = "Delete";
-            this.deleteToolStripMenuItem.Click += new System.EventHandler(this.DeleteParameter_Click);
-            // 
-            // editToolStripMenuItem
-            // 
-            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
-            this.editToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
-            this.editToolStripMenuItem.Text = "Edit";
-            this.editToolStripMenuItem.Click += new System.EventHandler(this.EditParameter_Click);
-            // 
             // SettingsForm
             // 
             this.AcceptButton = this.Ok;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(665, 531);
-            this.Controls.Add(this.RESTHeaders);
+            this.ClientSize = new System.Drawing.Size(665, 496);
             this.Controls.Add(this.RESTParameters);
             this.Controls.Add(this.RESTAuthentication);
             this.Controls.Add(this.VersionControl);
@@ -872,8 +768,6 @@
             this.RESTAuthentication.PerformLayout();
             this.RESTParameters.ResumeLayout(false);
             this.RESTParameters.PerformLayout();
-            this.RESTHeaders.ResumeLayout(false);
-            this.HeaderParameterMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -939,15 +833,5 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.TextBox RESTHostName;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.GroupBox RESTHeaders;
-        private System.Windows.Forms.ListView ParameterList;
-        private System.Windows.Forms.ColumnHeader Parameter;
-        private System.Windows.Forms.Button AddParameter;
-        private System.Windows.Forms.Button DeleteParameter;
-        private System.Windows.Forms.ColumnHeader ParameterType;
-        private System.Windows.Forms.Button EditParameter;
-        private System.Windows.Forms.ContextMenuStrip HeaderParameterMenuStrip;
-        private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
     }
 }
