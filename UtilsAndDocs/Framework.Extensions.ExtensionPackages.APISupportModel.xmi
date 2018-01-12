@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="windows-1252"?>
-<xmi:XMI xmi:version="2.1" xmlns:uml="http://schema.omg.org/spec/UML/2.1" xmlns:xmi="http://schema.omg.org/spec/XMI/2.1" xmlns:thecustomprofile="http://www.sparxsystems.com/profiles/thecustomprofile/1.0" xmlns:Enexis_ECDM="http://www.sparxsystems.com/profiles/Enexis_ECDM/3.0">
+<xmi:XMI xmi:version="2.1" xmlns:uml="http://schema.omg.org/spec/UML/2.1" xmlns:xmi="http://schema.omg.org/spec/XMI/2.1" xmlns:thecustomprofile="http://www.sparxsystems.com/profiles/thecustomprofile/1.0" xmlns:Enexis_ECDM="http://www.sparxsystems.com/profiles/Enexis_ECDM/3.2">
 	<xmi:Documentation exporter="Enterprise Architect" exporterVersion="6.5"/>
 	<uml:Model xmi:type="uml:Model" name="EA_Model" visibility="public">
 		<packagedElement xmi:type="uml:Package" xmi:id="EAPK_9DDA86D1_8AEC_4bf5_BAD1_51AE49FCCC1A" name="APISupportModel" visibility="public">
@@ -25,88 +25,91 @@
 					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000008_C375_4e71_8FB9_2548EEBF62B9" value="1"/>
 				</ownedAttribute>
 			</packagedElement>
-			<packagedElement xmi:type="uml:Association" xmi:id="EAID_14559B3F_A004_4fde_A1D9_56127BD92AB5" visibility="public">
-				<memberEnd xmi:idref="EAID_dst559B3F_A004_4fde_A1D9_56127BD92AB5"/>
-				<memberEnd xmi:idref="EAID_src559B3F_A004_4fde_A1D9_56127BD92AB5"/>
-				<ownedEnd xmi:type="uml:Property" xmi:id="EAID_src559B3F_A004_4fde_A1D9_56127BD92AB5" visibility="public" association="EAID_14559B3F_A004_4fde_A1D9_56127BD92AB5" isStatic="false" isReadOnly="true" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false" aggregation="none">
-					<type xmi:idref="EAID_4AEE60A6_48D5_4005_90E5_9A1D5439DEFD"/>
+			<packagedElement xmi:type="uml:Association" xmi:id="EAID_497C04CD_FD01_4b0a_AC6F_DC90C557C5BE" visibility="public">
+				<memberEnd xmi:idref="EAID_dst7C04CD_FD01_4b0a_AC6F_DC90C557C5BE"/>
+				<memberEnd xmi:idref="EAID_src7C04CD_FD01_4b0a_AC6F_DC90C557C5BE"/>
+				<ownedEnd xmi:type="uml:Property" xmi:id="EAID_src7C04CD_FD01_4b0a_AC6F_DC90C557C5BE" visibility="public" association="EAID_497C04CD_FD01_4b0a_AC6F_DC90C557C5BE" isStatic="false" isReadOnly="true" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false" aggregation="none">
+					<type xmi:idref="EAID_4786E469_E25E_493f_B0B6_F2E57FC7427B"/>
 				</ownedEnd>
 			</packagedElement>
-			<packagedElement xmi:type="uml:Association" xmi:id="EAID_64256DB1_9D85_465d_B584_77F6014AB5BD" visibility="public">
-				<memberEnd xmi:idref="EAID_dst256DB1_9D85_465d_B584_77F6014AB5BD"/>
-				<memberEnd xmi:idref="EAID_src256DB1_9D85_465d_B584_77F6014AB5BD"/>
-				<ownedEnd xmi:type="uml:Property" xmi:id="EAID_src256DB1_9D85_465d_B584_77F6014AB5BD" visibility="public" association="EAID_64256DB1_9D85_465d_B584_77F6014AB5BD" isStatic="false" isReadOnly="true" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false" aggregation="none">
-					<type xmi:idref="EAID_1E1780CC_AECC_4691_BACA_747E0C9C2469"/>
+			<packagedElement xmi:type="uml:Association" xmi:id="EAID_BE14664E_3FEE_41aa_9938_E2C81EE1F68C" visibility="public">
+				<memberEnd xmi:idref="EAID_dst14664E_3FEE_41aa_9938_E2C81EE1F68C"/>
+				<memberEnd xmi:idref="EAID_src14664E_3FEE_41aa_9938_E2C81EE1F68C"/>
+				<ownedEnd xmi:type="uml:Property" xmi:id="EAID_src14664E_3FEE_41aa_9938_E2C81EE1F68C" visibility="public" association="EAID_BE14664E_3FEE_41aa_9938_E2C81EE1F68C" isStatic="false" isReadOnly="true" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false" aggregation="none">
+					<type xmi:idref="EAID_C43E6408_A82D_481e_B45B_5C1BC9FD9555"/>
 				</ownedEnd>
 			</packagedElement>
-			<packagedElement xmi:type="uml:Association" xmi:id="EAID_AD002B1C_2462_4923_9350_D8B51543D7BB" visibility="public">
-				<memberEnd xmi:idref="EAID_dst002B1C_2462_4923_9350_D8B51543D7BB"/>
-				<memberEnd xmi:idref="EAID_src002B1C_2462_4923_9350_D8B51543D7BB"/>
-				<ownedEnd xmi:type="uml:Property" xmi:id="EAID_src002B1C_2462_4923_9350_D8B51543D7BB" visibility="public" association="EAID_AD002B1C_2462_4923_9350_D8B51543D7BB" isStatic="false" isReadOnly="true" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false" aggregation="none">
-					<type xmi:idref="EAID_ABA7A199_FF92_4707_8DEE_8F92966A93E5"/>
+			<packagedElement xmi:type="uml:Association" xmi:id="EAID_D1D6CB27_3F52_446e_AA8C_B8FCF74A5608" visibility="public">
+				<memberEnd xmi:idref="EAID_dstD6CB27_3F52_446e_AA8C_B8FCF74A5608"/>
+				<memberEnd xmi:idref="EAID_srcD6CB27_3F52_446e_AA8C_B8FCF74A5608"/>
+				<ownedEnd xmi:type="uml:Property" xmi:id="EAID_srcD6CB27_3F52_446e_AA8C_B8FCF74A5608" visibility="public" association="EAID_D1D6CB27_3F52_446e_AA8C_B8FCF74A5608" isStatic="false" isReadOnly="true" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false" aggregation="none">
+					<type xmi:idref="EAID_4927FB03_6E55_4ae3_9553_8EB4196C833B"/>
 				</ownedEnd>
 			</packagedElement>
-			<packagedElement xmi:type="uml:Association" xmi:id="EAID_AFAA8615_B1D7_4731_AE6E_6C08D390077D" visibility="public">
-				<memberEnd xmi:idref="EAID_dstAA8615_B1D7_4731_AE6E_6C08D390077D"/>
-				<memberEnd xmi:idref="EAID_srcAA8615_B1D7_4731_AE6E_6C08D390077D"/>
-				<ownedEnd xmi:type="uml:Property" xmi:id="EAID_srcAA8615_B1D7_4731_AE6E_6C08D390077D" visibility="public" association="EAID_AFAA8615_B1D7_4731_AE6E_6C08D390077D" isStatic="false" isReadOnly="true" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false" aggregation="none">
-					<type xmi:idref="EAID_168FA500_B4FF_4cd7_81DF_C4D2DEFED72B"/>
+			<packagedElement xmi:type="uml:Association" xmi:id="EAID_DD2E6EAE_687E_4f50_B142_DA7CAF18B5A8" visibility="public">
+				<memberEnd xmi:idref="EAID_dst2E6EAE_687E_4f50_B142_DA7CAF18B5A8"/>
+				<memberEnd xmi:idref="EAID_src2E6EAE_687E_4f50_B142_DA7CAF18B5A8"/>
+				<ownedEnd xmi:type="uml:Property" xmi:id="EAID_src2E6EAE_687E_4f50_B142_DA7CAF18B5A8" visibility="public" association="EAID_DD2E6EAE_687E_4f50_B142_DA7CAF18B5A8" isStatic="false" isReadOnly="true" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false" aggregation="none">
+					<type xmi:idref="EAID_B12A6FA5_1440_4460_8719_16E79E79CA60"/>
 				</ownedEnd>
 			</packagedElement>
-			<packagedElement xmi:type="uml:Association" xmi:id="EAID_C5A6B56C_668B_4e73_951B_443D7D766EBC" visibility="public">
-				<memberEnd xmi:idref="EAID_dstA6B56C_668B_4e73_951B_443D7D766EBC"/>
-				<memberEnd xmi:idref="EAID_srcA6B56C_668B_4e73_951B_443D7D766EBC"/>
-				<ownedEnd xmi:type="uml:Property" xmi:id="EAID_srcA6B56C_668B_4e73_951B_443D7D766EBC" visibility="public" association="EAID_C5A6B56C_668B_4e73_951B_443D7D766EBC" isStatic="false" isReadOnly="true" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false" aggregation="none">
-					<type xmi:idref="EAID_0A95D197_3BC0_44a5_A865_CEE9D975FB88"/>
-				</ownedEnd>
+			<packagedElement xmi:type="uml:Class" xmi:id="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967" name="RequestHeaderParametersType" visibility="public">
+				<ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0C2F6792_47CF_4846_AE1B_DD73B47DDE29" name="X-Correlation-ID" visibility="public" isStatic="false" isReadOnly="false" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false">
+					<type xmi:idref="EAID_3BD09527_5D03_4cc7_998A_66A03AB38BBE"/>
+					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000009_47CF_4846_AE1B_DD73B47DDE29" value="0"/>
+					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000010_47CF_4846_AE1B_DD73B47DDE29" value="1"/>
+				</ownedAttribute>
+				<ownedAttribute xmi:type="uml:Property" xmi:id="EAID_C3773E78_A434_4a7d_A3DC_741392CF0F94" name="X-Request-ID" visibility="public" isStatic="false" isReadOnly="false" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false">
+					<type xmi:idref="EAID_3BD09527_5D03_4cc7_998A_66A03AB38BBE"/>
+					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000011_A434_4a7d_A3DC_741392CF0F94" value="0"/>
+					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000012_A434_4a7d_A3DC_741392CF0F94" value="1"/>
+				</ownedAttribute>
 			</packagedElement>
 			<packagedElement xmi:type="uml:Class" xmi:id="EAID_A8DEDAB5_8A74_4531_A1A4_C20B097A948A" name="RequestPaginationType" visibility="public">
 				<ownedAttribute xmi:type="uml:Property" xmi:id="EAID_E436EF73_0505_4f8e_B050_162FB55A7D62" name="Max" visibility="public" isStatic="false" isReadOnly="false" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false">
 					<type xmi:idref="EAID_09760537_ECC3_4779_90E2_C59AF9471FF4"/>
-					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000009_0505_4f8e_B050_162FB55A7D62" value="0"/>
-					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000010_0505_4f8e_B050_162FB55A7D62" value="1"/>
+					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000013_0505_4f8e_B050_162FB55A7D62" value="0"/>
+					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000014_0505_4f8e_B050_162FB55A7D62" value="1"/>
 				</ownedAttribute>
 				<ownedAttribute xmi:type="uml:Property" xmi:id="EAID_1F1F4055_162D_406a_A339_C54F65567B5D" name="AfterID" visibility="public" isStatic="false" isReadOnly="false" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false">
 					<type xmi:idref="EAID_3BD09527_5D03_4cc7_998A_66A03AB38BBE"/>
-					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000011_162D_406a_A339_C54F65567B5D" value="0"/>
-					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000012_162D_406a_A339_C54F65567B5D" value="1"/>
+					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000015_162D_406a_A339_C54F65567B5D" value="0"/>
+					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000016_162D_406a_A339_C54F65567B5D" value="1"/>
 				</ownedAttribute>
 				<ownedAttribute xmi:type="uml:Property" xmi:id="EAID_9E8C2F18_7B59_4e64_8209_6E86EE83224D" name="BeforeID" visibility="public" isStatic="false" isReadOnly="false" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false">
 					<type xmi:idref="EAID_3BD09527_5D03_4cc7_998A_66A03AB38BBE"/>
-					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000013_7B59_4e64_8209_6E86EE83224D" value="0"/>
-					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000014_7B59_4e64_8209_6E86EE83224D" value="1"/>
+					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000017_7B59_4e64_8209_6E86EE83224D" value="0"/>
+					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000018_7B59_4e64_8209_6E86EE83224D" value="1"/>
 				</ownedAttribute>
 			</packagedElement>
-			<packagedElement xmi:type="uml:Association" xmi:id="EAID_12454F34_301B_48d8_B965_08A466D87990" visibility="public">
-				<memberEnd xmi:idref="EAID_dst454F34_301B_48d8_B965_08A466D87990"/>
-				<memberEnd xmi:idref="EAID_src454F34_301B_48d8_B965_08A466D87990"/>
-				<ownedEnd xmi:type="uml:Property" xmi:id="EAID_src454F34_301B_48d8_B965_08A466D87990" visibility="public" association="EAID_12454F34_301B_48d8_B965_08A466D87990" isStatic="false" isReadOnly="true" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false" aggregation="none">
-					<type xmi:idref="EAID_A76F70CB_A6F3_4ab6_BD54_EA7D997177BF"/>
-				</ownedEnd>
+			<packagedElement xmi:type="uml:Class" xmi:id="EAID_733274B4_A676_43d8_9379_D3E40F981F77" name="ResponseHeaderParametersType" visibility="public">
+				<ownedAttribute xmi:type="uml:Property" xmi:id="EAID_958B4FF3_A884_49fe_AC96_D1709FBE1B2A" name="X-Correlation-ID" visibility="public" isStatic="false" isReadOnly="false" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false">
+					<type xmi:idref="EAID_3BD09527_5D03_4cc7_998A_66A03AB38BBE"/>
+					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000019_A884_49fe_AC96_D1709FBE1B2A" value="0"/>
+					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000020_A884_49fe_AC96_D1709FBE1B2A" value="1"/>
+				</ownedAttribute>
+				<ownedAttribute xmi:type="uml:Property" xmi:id="EAID_3EE385AD_4580_4ba0_AEA0_5B5D962A879B" name="X-Request-ID" visibility="public" isStatic="false" isReadOnly="false" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false">
+					<type xmi:idref="EAID_3BD09527_5D03_4cc7_998A_66A03AB38BBE"/>
+					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000021_4580_4ba0_AEA0_5B5D962A879B" value="0"/>
+					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000022_4580_4ba0_AEA0_5B5D962A879B" value="1"/>
+				</ownedAttribute>
 			</packagedElement>
 			<packagedElement xmi:type="uml:Class" xmi:id="EAID_C815715E_489C_42d5_A393_76355A0ECBDD" name="ResponsePaginationType" visibility="public">
 				<ownedAttribute xmi:type="uml:Property" xmi:id="EAID_8132BD15_414A_4410_AD2F_51FC23B0EA8F" name="TotalCount" visibility="public" isStatic="false" isReadOnly="false" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false">
 					<type xmi:idref="EAID_09760537_ECC3_4779_90E2_C59AF9471FF4"/>
-					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000015_414A_4410_AD2F_51FC23B0EA8F" value="0"/>
-					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000016_414A_4410_AD2F_51FC23B0EA8F" value="1"/>
+					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000023_414A_4410_AD2F_51FC23B0EA8F" value="0"/>
+					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000024_414A_4410_AD2F_51FC23B0EA8F" value="1"/>
 				</ownedAttribute>
 				<ownedAttribute xmi:type="uml:Property" xmi:id="EAID_ADC412F9_7A27_4423_9813_774B4FCB66AD" name="RemainingCount" visibility="public" isStatic="false" isReadOnly="false" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false">
 					<type xmi:idref="EAID_09760537_ECC3_4779_90E2_C59AF9471FF4"/>
-					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000017_7A27_4423_9813_774B4FCB66AD" value="0"/>
-					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000018_7A27_4423_9813_774B4FCB66AD" value="1"/>
+					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000025_7A27_4423_9813_774B4FCB66AD" value="0"/>
+					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000026_7A27_4423_9813_774B4FCB66AD" value="1"/>
 				</ownedAttribute>
 				<ownedAttribute xmi:type="uml:Property" xmi:id="EAID_CDF69A87_8043_4df5_B5B4_8E874B25182E" name="MoreIndicator" visibility="public" isStatic="false" isReadOnly="false" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false">
 					<type xmi:idref="EAID_2C0B8054_BEAA_4173_B682_ED0B8444BC46"/>
-					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000019_8043_4df5_B5B4_8E874B25182E" value="0"/>
-					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000020_8043_4df5_B5B4_8E874B25182E" value="1"/>
+					<lowerValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000027_8043_4df5_B5B4_8E874B25182E" value="0"/>
+					<upperValue xmi:type="uml:LiteralInteger" xmi:id="EAID_LI000028_8043_4df5_B5B4_8E874B25182E" value="1"/>
 				</ownedAttribute>
-			</packagedElement>
-			<packagedElement xmi:type="uml:Association" xmi:id="EAID_EEF87F0C_0C79_418e_A16B_354A2B07EED6" visibility="public">
-				<memberEnd xmi:idref="EAID_dstF87F0C_0C79_418e_A16B_354A2B07EED6"/>
-				<memberEnd xmi:idref="EAID_srcF87F0C_0C79_418e_A16B_354A2B07EED6"/>
-				<ownedEnd xmi:type="uml:Property" xmi:id="EAID_srcF87F0C_0C79_418e_A16B_354A2B07EED6" visibility="public" association="EAID_EEF87F0C_0C79_418e_A16B_354A2B07EED6" isStatic="false" isReadOnly="false" isDerived="false" isOrdered="false" isUnique="true" isDerivedUnion="false" aggregation="none">
-					<type xmi:idref="EAID_A76F70CB_A6F3_4ab6_BD54_EA7D997177BF"/>
-				</ownedEnd>
 			</packagedElement>
 			<packagedElement xmi:type="uml:Class" xmi:id="EAID_776BD7CA_4B52_4011_9E39_984BAB2E3D70" visibility="public"/>
 			<packagedElement xmi:type="uml:Package" xmi:id="EAPK_309F2A2F_FA17_4003_8563_C273FAF9D999" name="DataTypes" visibility="public">
@@ -132,21 +135,24 @@
 			</packagedElement>
 		</packagedElement>
 		<Enexis_ECDM:MBIE base_Class="EAID_BA0C2CD3_D7DC_409c_BFB9_6B2552B010AD" scope="Interface" ECDMVersion="1.0"/>
-		<Enexis_ECDM:ASMBIE base_Association="EAID_14559B3F_A004_4fde_A1D9_56127BD92AB5" ECDMVersion="1.0"/>
-		<Enexis_ECDM:ASMBIE base_Association="EAID_64256DB1_9D85_465d_B584_77F6014AB5BD" ECDMVersion="1.0"/>
-		<Enexis_ECDM:ASMBIE base_Association="EAID_AD002B1C_2462_4923_9350_D8B51543D7BB" ECDMVersion="1.0"/>
-		<Enexis_ECDM:ASMBIE base_Association="EAID_AFAA8615_B1D7_4731_AE6E_6C08D390077D" ECDMVersion="1.0"/>
-		<Enexis_ECDM:ASMBIE base_Association="EAID_C5A6B56C_668B_4e73_951B_443D7D766EBC" ECDMVersion="1.0"/>
+		<Enexis_ECDM:ASMBIE base_Association="EAID_497C04CD_FD01_4b0a_AC6F_DC90C557C5BE" ECDMVersion="1.0"/>
+		<Enexis_ECDM:ASMBIE base_Association="EAID_BE14664E_3FEE_41aa_9938_E2C81EE1F68C" ECDMVersion="1.0"/>
+		<Enexis_ECDM:ASMBIE base_Association="EAID_D1D6CB27_3F52_446e_AA8C_B8FCF74A5608" ECDMVersion="1.0"/>
+		<Enexis_ECDM:ASMBIE base_Association="EAID_DD2E6EAE_687E_4f50_B142_DA7CAF18B5A8" ECDMVersion="1.0"/>
+		<Enexis_ECDM:MBIE base_Class="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967" ECDMVersion="1.0"/>
+		<Enexis_ECDM:RESTParameter base_Property="EAID_0C2F6792_47CF_4846_AE1B_DD73B47DDE29" collectionFormat="NA" nillable="false" allowEmptyValue="false" parameterScope="Header" ECDMVersion="1.0"/>
+		<Enexis_ECDM:RESTParameter base_Property="EAID_C3773E78_A434_4a7d_A3DC_741392CF0F94" collectionFormat="NA" nillable="false" allowEmptyValue="false" parameterScope="Header" ECDMVersion="1.0"/>
 		<Enexis_ECDM:MBIE base_Class="EAID_A8DEDAB5_8A74_4531_A1A4_C20B097A948A" uniqueID="urn:x-enexis:ecdm:uid:2:202343" dictionaryEntryName="Pagination" ECDMVersion="1.0"/>
-		<Enexis_ECDM:Content base_Property="EAID_E436EF73_0505_4f8e_B050_162FB55A7D62" uniqueID="urn:x-enexis:ecdm:uid:1:583985" dictionaryEntryName="Pagination. Max. Counter" ECDMVersion="1.0"/>
-		<Enexis_ECDM:RESTParameter base_Property="EAID_E436EF73_0505_4f8e_B050_162FB55A7D62" collectionFormat="NA" uniqueID="urn:x-enexis:ecdm:uid:1:583985" dictionaryEntryName="Pagination. Max. Counter" parameterScope="Query" ECDMVersion="1.0"/>
-		<Enexis_ECDM:Content base_Property="EAID_1F1F4055_162D_406a_A339_C54F65567B5D" uniqueID="urn:x-enexis:ecdm:uid:1:583986" dictionaryEntryName="Pagination. After. Identifier" ECDMVersion="1.0"/>
-		<Enexis_ECDM:RESTParameter base_Property="EAID_1F1F4055_162D_406a_A339_C54F65567B5D" collectionFormat="CSV" uniqueID="urn:x-enexis:ecdm:uid:1:583986" dictionaryEntryName="Pagination. After. Identifier" parameterScope="Query" ECDMVersion="1.0"/>
-		<Enexis_ECDM:Content base_Property="EAID_9E8C2F18_7B59_4e64_8209_6E86EE83224D" uniqueID="urn:x-enexis:ecdm:uid:1:583987" dictionaryEntryName="Pagination. Before. Identifier" ECDMVersion="1.0"/>
-		<Enexis_ECDM:RESTParameter base_Property="EAID_9E8C2F18_7B59_4e64_8209_6E86EE83224D" collectionFormat="NA" uniqueID="urn:x-enexis:ecdm:uid:1:583987" dictionaryEntryName="Pagination. Before. Identifier" parameterScope="Query" ECDMVersion="1.0"/>
-		<Enexis_ECDM:ASMBIE base_Association="EAID_12454F34_301B_48d8_B965_08A466D87990" ECDMVersion="1.0"/>
+		<Enexis_ECDM:RESTParameter base_Property="EAID_E436EF73_0505_4f8e_B050_162FB55A7D62" collectionFormat="NA" uniqueID="urn:x-enexis:ecdm:uid:1:583985" allowEmptyValue="false" dictionaryEntryName="Pagination. Max. Counter" parameterScope="Query" ECDMVersion="1.0"/>
+		<Enexis_ECDM:RESTParameter base_Property="EAID_1F1F4055_162D_406a_A339_C54F65567B5D" collectionFormat="NA" uniqueID="urn:x-enexis:ecdm:uid:1:583986" allowEmptyValue="false" dictionaryEntryName="Pagination. After. Identifier" parameterScope="Query" ECDMVersion="1.0"/>
+		<Enexis_ECDM:RESTParameter base_Property="EAID_9E8C2F18_7B59_4e64_8209_6E86EE83224D" collectionFormat="NA" uniqueID="urn:x-enexis:ecdm:uid:1:583987" allowEmptyValue="false" dictionaryEntryName="Pagination. Before. Identifier" parameterScope="Query" ECDMVersion="1.0"/>
+		<Enexis_ECDM:MBIE base_Class="EAID_733274B4_A676_43d8_9379_D3E40F981F77" ECDMVersion="1.0"/>
+		<Enexis_ECDM:RESTParameter base_Property="EAID_958B4FF3_A884_49fe_AC96_D1709FBE1B2A" collectionFormat="NA" nillable="false" allowEmptyValue="false" parameterScope="Header" ECDMVersion="1.0"/>
+		<Enexis_ECDM:RESTParameter base_Property="EAID_3EE385AD_4580_4ba0_AEA0_5B5D962A879B" collectionFormat="NA" nillable="false" allowEmptyValue="false" parameterScope="Header" ECDMVersion="1.0"/>
 		<Enexis_ECDM:MBIE base_Class="EAID_C815715E_489C_42d5_A393_76355A0ECBDD" ECDMVersion="1.0"/>
-		<Enexis_ECDM:ASMBIE base_Association="EAID_EEF87F0C_0C79_418e_A16B_354A2B07EED6" ECDMVersion="1.0"/>
+		<Enexis_ECDM:RESTParameter base_Property="EAID_8132BD15_414A_4410_AD2F_51FC23B0EA8F" collectionFormat="NA" allowEmptyValue="false" parameterScope="Query" ECDMVersion="1.0"/>
+		<Enexis_ECDM:RESTParameter base_Property="EAID_ADC412F9_7A27_4423_9813_774B4FCB66AD" collectionFormat="NA" allowEmptyValue="false" parameterScope="Query" ECDMVersion="1.0"/>
+		<Enexis_ECDM:RESTParameter base_Property="EAID_CDF69A87_8043_4df5_B5B4_8E874B25182E" collectionFormat="NA" allowEmptyValue="false" parameterScope="Query" ECDMVersion="1.0"/>
 		<Enexis_ECDM:LOM base_Package="EAPK_9DDA86D1_8AEC_4bf5_BAD1_51AE49FCCC1A" modelType="ConsumerModel" ECDMVersion="1.0"/>
 		<Enexis_ECDM:BDTEnumeration base_Enumeration="EAID_9DA879FD_70FE_46e5_900C_24E10DE152B9" ECDMVersion="1.0"/>
 		<thecustomprofile:enum base_EnumerationLiteral="EAID_D922CEB1_9857_4735_9C77_DE7C3D06394E"/>
@@ -286,12 +292,109 @@
 					</attribute>
 				</attributes>
 				<links>
-					<Association xmi:id="EAID_14559B3F_A004_4fde_A1D9_56127BD92AB5" start="EAID_4AEE60A6_48D5_4005_90E5_9A1D5439DEFD" end="EAID_BA0C2CD3_D7DC_409c_BFB9_6B2552B010AD"/>
-					<Association xmi:id="EAID_64256DB1_9D85_465d_B584_77F6014AB5BD" start="EAID_1E1780CC_AECC_4691_BACA_747E0C9C2469" end="EAID_BA0C2CD3_D7DC_409c_BFB9_6B2552B010AD"/>
-					<Association xmi:id="EAID_AD002B1C_2462_4923_9350_D8B51543D7BB" start="EAID_ABA7A199_FF92_4707_8DEE_8F92966A93E5" end="EAID_BA0C2CD3_D7DC_409c_BFB9_6B2552B010AD"/>
-					<Association xmi:id="EAID_AFAA8615_B1D7_4731_AE6E_6C08D390077D" start="EAID_168FA500_B4FF_4cd7_81DF_C4D2DEFED72B" end="EAID_BA0C2CD3_D7DC_409c_BFB9_6B2552B010AD"/>
-					<Association xmi:id="EAID_C5A6B56C_668B_4e73_951B_443D7D766EBC" start="EAID_0A95D197_3BC0_44a5_A865_CEE9D975FB88" end="EAID_BA0C2CD3_D7DC_409c_BFB9_6B2552B010AD"/>
+					<Association xmi:id="EAID_497C04CD_FD01_4b0a_AC6F_DC90C557C5BE" start="EAID_4786E469_E25E_493f_B0B6_F2E57FC7427B" end="EAID_BA0C2CD3_D7DC_409c_BFB9_6B2552B010AD"/>
+					<Association xmi:id="EAID_BE14664E_3FEE_41aa_9938_E2C81EE1F68C" start="EAID_C43E6408_A82D_481e_B45B_5C1BC9FD9555" end="EAID_BA0C2CD3_D7DC_409c_BFB9_6B2552B010AD"/>
+					<Association xmi:id="EAID_D1D6CB27_3F52_446e_AA8C_B8FCF74A5608" start="EAID_4927FB03_6E55_4ae3_9553_8EB4196C833B" end="EAID_BA0C2CD3_D7DC_409c_BFB9_6B2552B010AD"/>
+					<Association xmi:id="EAID_DD2E6EAE_687E_4f50_B142_DA7CAF18B5A8" start="EAID_B12A6FA5_1440_4460_8719_16E79E79CA60" end="EAID_BA0C2CD3_D7DC_409c_BFB9_6B2552B010AD"/>
 				</links>
+			</element>
+			<element xmi:idref="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967" xmi:type="uml:Class" name="RequestHeaderParametersType" scope="public">
+				<model package="EAPK_9DDA86D1_8AEC_4bf5_BAD1_51AE49FCCC1A" tpos="0" ea_localid="203725" ea_eleType="element"/>
+				<properties documentation="Attributes of this class are automatically translated into REST Request header parameters." isSpecification="false" sType="Class" nType="0" scope="public" stereotype="MBIE" isRoot="false" isLeaf="false" isAbstract="false" isActive="false"/>
+				<project author="wmeijers" version="1.0" phase="1.0" created="2018-01-11 14:18:08" modified="2018-01-11 14:23:12" complexity="1" status="Proposed"/>
+				<code product_name="Java" gentype="Java"/>
+				<style appearance="BackColor=-1;BorderColor=-1;BorderWidth=1;FontColor=-1;VSwimLanes=1;HSwimLanes=1;BorderStyle=0;"/>
+				<tags>
+					<tag xmi:id="EAID_8FF6777B_DB45_efdb_A747_0F9726B44CE1" name="annotation" modelElement="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967"/>
+					<tag xmi:id="EAID_EACAFD13_0BDD_a60b_B810_C925451298D0" name="author" modelElement="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967"/>
+					<tag xmi:id="EAID_C10AFBA5_7992_1979_8827_0D2F124E4A50" name="businessTermName" value="#NOTES#Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;" modelElement="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967"/>
+					<tag xmi:id="EAID_6DA0E79C_F966_43f9_B502_382FD2D93CB9" name="dateLastChanged" modelElement="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967"/>
+					<tag xmi:id="EAID_465BEE89_B6F6_b4b6_A34F_75036615F7F1" name="definition" value="#NOTES#Description: Semantic meaning of the associated entity.&#xA;" modelElement="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967"/>
+					<tag xmi:id="EAID_18B187E9_6EB6_4b6e_9799_C3DEB47B0919" name="dictionaryEntryName" value="#NOTES#Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;" modelElement="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967"/>
+					<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_AFE8_A0C26AED2C13" name="displayName" value="#NOTES#Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;" modelElement="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967"/>
+					<tag xmi:id="EAID_B58E397F_F5E9_baf5_8566_8F2A9D0E46D9" name="ECDMVersion" value="1.0#NOTES#Default: 1.0&#xA;" modelElement="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967"/>
+					<tag xmi:id="EAID_99733330_1D69_e01d_AA71_C3437BFAA770" name="objectClassQualifierName" modelElement="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967"/>
+					<tag xmi:id="EAID_F3B421C6_705F_1e70_BB98_4B8C1D1F99CF" name="objectClassTermName" modelElement="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967"/>
+					<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_9BF5_81DFF112A0A0" name="reference" value="#NOTES#Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;" modelElement="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967"/>
+					<tag xmi:id="EAID_0859327A_29B3_e529_83DA_8C461F1068F0" name="scope" value="#NOTES#Values: Interface,Operation,Message&#xA;Description: Defines the scope of a profiled version of this component within an integration solution. Per profiled instance, the scope can be set to Service-, Operation- or Message level.&#xA;The scope is defined as the uniqueness of the profiled component within the namespace of an integration solution.&#xA;" modelElement="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967"/>
+					<tag xmi:id="EAID_0AC8C4A4_8991_8a89_9867_D6E4DC4A74D0" name="uniqueID" value="#NOTES#Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;" modelElement="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967"/>
+				</tags>
+				<xrefs value="$XREFPROP=$XID={E35F8287-D828-4e2c-8C4F-45677EADEB4E}$XID;$NAM=Stereotypes$NAM;$TYP=element property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=MBIE;FQName=Enexis ECDM::MBIE;@ENDSTEREO;$DES;$CLT={C3C37642-61AA-490a-9DEA-D8CCEA53A967}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
+				<extendedProperties tagged="0" package_name="APISupportModel"/>
+				<attributes>
+					<attribute xmi:idref="EAID_0C2F6792_47CF_4846_AE1B_DD73B47DDE29" name="X-Correlation-ID" scope="Public">
+						<initial/>
+						<documentation value="Unique identification for a correlated group of messages."/>
+						<model ea_localid="584668" ea_guid="{0C2F6792-47CF-4846-AE1B-DD73B47DDE29}"/>
+						<properties type="IdentifierType" collection="false" duplicates="0" changeability="changeable"/>
+						<coords ordered="0"/>
+						<containment containment="Not Specified" position="0"/>
+						<stereotype stereotype="RESTParameter"/>
+						<bounds lower="0" upper="1"/>
+						<options/>
+						<style/>
+						<styleex value="volatile=0;"/>
+						<tags>
+							<tag xmi:id="EAID_23053B4B_3C37_343c_84DC_DE74401A8010" name="allowEmptyValue" value="false" notes="Values: true,false&#xA;Description: When set to 'true', this indicates that the parameter is allowed to be specified by 'name only' (no value). This is only valid for Query or FormData parameters.&#xA;"/>
+							<tag xmi:id="EAID_8FF6777B_DB45_efdb_A6F8_49E84CB2A9FC" name="annotation"/>
+							<tag xmi:id="EAID_EACAFD13_0BDD_a60b_924B_BDF7FCC8C7DA" name="author"/>
+							<tag xmi:id="EAID_C10AFBA5_7992_1979_9995_0CD0635D222B" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
+							<tag xmi:id="EAID_58012A38_D704_65d7_80C3_963579802889" name="choiceGroup"/>
+							<tag xmi:id="EAID_F8813335_F9C1_26f9_BAC4_8C6643FC498C" name="collectionFormat" value="NA" notes="Values: CSV,SSV,TSV,Multi,NA,Pipes&#xA;"/>
+							<tag xmi:id="EAID_6DA0E79C_F966_43f9_A463_B1F6A37C3F68" name="dateLastChanged"/>
+							<tag xmi:id="EAID_465BEE89_B6F6_b4b6_99B7_997801B9C83D" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
+							<tag xmi:id="EAID_18B187E9_6EB6_4b6e_A44E_C850300ACE72" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
+							<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_9A8D_A19E22179E61" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
+							<tag xmi:id="EAID_B58E397F_F5E9_baf5_B06F_C5F6A4200BD6" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
+							<tag xmi:id="EAID_1AB2BE23_F30B_79f3_B0F5_41A4464E950F" name="nillable" value="false" notes="Values: true,false&#xA;Description: When present and set to 'true', this indicates that implementations can specify the value of the attribute as 'NULL'. This is typically used only in XSD/XML implementations.&#xA;"/>
+							<tag xmi:id="EAID_99733330_8F3C_4a8f_8DA1_86F7A4026684" name="objectClassQualifierName"/>
+							<tag xmi:id="EAID_F3B421C6_B252_e2b2_B220_69663A816936" name="objectClassTermName"/>
+							<tag xmi:id="EAID_80082BDB_5B67_015b_99E0_B3AB932CEBBB" name="parameterScope" value="Header" notes="Values: Form,Header,Path,Query,RequestBody,ResponseBody&#xA;"/>
+							<tag xmi:id="EAID_A96C5028_67D4_7367_9B83_D0BD664FD289" name="propertyQualifierName"/>
+							<tag xmi:id="EAID_8CD143BE_CBEA_e3cb_97E6_EF64C96273E4" name="propertyTermName"/>
+							<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_9451_06D3D13089D4" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
+							<tag xmi:id="EAID_1766C7CC_F0F8_4ef0_914D_953F8D2644C1" name="representationTermName"/>
+							<tag xmi:id="EAID_0AC8C4A4_8991_8a89_AE77_729A5F312639" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
+						</tags>
+						<xrefs value="$XREFPROP=$XID={13F55D41-E4DF-4a6f-8522-EFEDC53263B5}$XID;$NAM=Stereotypes$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=RESTParameter;FQName=Enexis ECDM::RESTParameter;@ENDSTEREO;$DES;$CLT={0C2F6792-47CF-4846-AE1B-DD73B47DDE29}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
+					</attribute>
+					<attribute xmi:idref="EAID_C3773E78_A434_4a7d_A3DC_741392CF0F94" name="X-Request-ID" scope="Public">
+						<initial/>
+						<documentation value="Unique identification for a single message. Note that request- and response messages must each have a unique Request-ID, but they MIGHT share a common Correlation-ID!"/>
+						<model ea_localid="584669" ea_guid="{C3773E78-A434-4a7d-A3DC-741392CF0F94}"/>
+						<properties type="IdentifierType" collection="false" duplicates="0" changeability="changeable"/>
+						<coords ordered="0"/>
+						<containment containment="Not Specified" position="1"/>
+						<stereotype stereotype="RESTParameter"/>
+						<bounds lower="0" upper="1"/>
+						<options/>
+						<style/>
+						<styleex value="volatile=0;"/>
+						<tags>
+							<tag xmi:id="EAID_23053B4B_3C37_343c_BA2E_5E8B88914286" name="allowEmptyValue" value="false" notes="Values: true,false&#xA;Description: When set to 'true', this indicates that the parameter is allowed to be specified by 'name only' (no value). This is only valid for Query or FormData parameters.&#xA;"/>
+							<tag xmi:id="EAID_8FF6777B_DB45_efdb_9720_C40AB5DE7ACD" name="annotation"/>
+							<tag xmi:id="EAID_EACAFD13_0BDD_a60b_BCF6_3D0A2A362D41" name="author"/>
+							<tag xmi:id="EAID_C10AFBA5_7992_1979_ACB3_C09B28754052" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
+							<tag xmi:id="EAID_58012A38_D704_65d7_8E2F_019A813F57A4" name="choiceGroup"/>
+							<tag xmi:id="EAID_F8813335_F9C1_26f9_868B_20BEA61E0A40" name="collectionFormat" value="NA" notes="Values: CSV,SSV,TSV,Multi,NA,Pipes&#xA;"/>
+							<tag xmi:id="EAID_6DA0E79C_F966_43f9_B999_E7993C17A110" name="dateLastChanged"/>
+							<tag xmi:id="EAID_465BEE89_B6F6_b4b6_9D10_2EFB03B56BDA" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
+							<tag xmi:id="EAID_18B187E9_6EB6_4b6e_B3F8_39FC34908250" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
+							<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_8CA9_0D18E6E3D19F" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
+							<tag xmi:id="EAID_B58E397F_F5E9_baf5_AC85_C041A7CE7F38" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
+							<tag xmi:id="EAID_1AB2BE23_F30B_79f3_996D_CF491FBFD17E" name="nillable" value="false" notes="Values: true,false&#xA;Description: When present and set to 'true', this indicates that implementations can specify the value of the attribute as 'NULL'. This is typically used only in XSD/XML implementations.&#xA;"/>
+							<tag xmi:id="EAID_99733330_8F3C_4a8f_B4D1_70D7E0C3DECB" name="objectClassQualifierName"/>
+							<tag xmi:id="EAID_F3B421C6_B252_e2b2_AF9B_2761F7A32EFC" name="objectClassTermName"/>
+							<tag xmi:id="EAID_80082BDB_5B67_015b_9B16_CE3CD7E14877" name="parameterScope" value="Header" notes="Values: Form,Header,Path,Query,RequestBody,ResponseBody&#xA;"/>
+							<tag xmi:id="EAID_A96C5028_67D4_7367_BC7B_E1A8D010D51C" name="propertyQualifierName"/>
+							<tag xmi:id="EAID_8CD143BE_CBEA_e3cb_8E64_7DADA7A388C9" name="propertyTermName"/>
+							<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_9B1A_16A86F762F15" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
+							<tag xmi:id="EAID_1766C7CC_F0F8_4ef0_BDE7_FB758692D1E9" name="representationTermName"/>
+							<tag xmi:id="EAID_0AC8C4A4_8991_8a89_8C8A_548DB6969BD6" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
+						</tags>
+						<xrefs value="$XREFPROP=$XID={9C2D55B3-66F3-4553-8CC8-88E1D2CF0350}$XID;$NAM=Stereotypes$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=RESTParameter;FQName=Enexis ECDM::RESTParameter;@ENDSTEREO;$DES;$CLT={C3773E78-A434-4a7d-A3DC-741392CF0F94}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
+					</attribute>
+				</attributes>
 			</element>
 			<element xmi:idref="EAID_A8DEDAB5_8A74_4531_A1A4_C20B097A948A" xmi:type="uml:Class" name="RequestPaginationType" scope="public">
 				<model package="EAPK_9DDA86D1_8AEC_4bf5_BAD1_51AE49FCCC1A" tpos="0" ea_localid="202343" ea_eleType="element"/>
@@ -330,7 +433,7 @@
 						<style/>
 						<styleex value="volatile=0;"/>
 						<tags>
-							<tag xmi:id="EAID_23053B4B_3C37_343c_A8DB_44D44FA13DCF" name="allowEmptyValue" notes="Values: true,false&#xA;Description: When set to 'true', this indicates that the parameter is allowed to be specified by 'name only' (no value). This is only valid for Query or FormData parameters.&#xA;"/>
+							<tag xmi:id="EAID_23053B4B_3C37_343c_A8DB_44D44FA13DCF" name="allowEmptyValue" value="false" notes="Values: true,false&#xA;Description: When set to 'true', this indicates that the parameter is allowed to be specified by 'name only' (no value). This is only valid for Query or FormData parameters.&#xA;"/>
 							<tag xmi:id="EAID_8FF6777B_DB45_efdb_BDFB_07B20DF3E318" name="annotation"/>
 							<tag xmi:id="EAID_EACAFD13_0BDD_a60b_9203_639D57C99F52" name="author"/>
 							<tag xmi:id="EAID_C10AFBA5_7992_1979_AAA3_C53453D890C4" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
@@ -350,7 +453,7 @@
 							<tag xmi:id="EAID_1766C7CC_F0F8_4ef0_9C9B_81C20AAC90A0" name="representationTermName"/>
 							<tag xmi:id="EAID_0AC8C4A4_8991_8a89_9A78_262B20BA6A67" name="uniqueID" value="urn:x-enexis:ecdm:uid:1:583985" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
 						</tags>
-						<xrefs value="$XREFPROP=$XID={8AFAF64C-068A-41e1-8651-0A80A1A951FC}$XID;$NAM=CustomProperties$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@PROP=@NAME=isID@ENDNAME;@TYPE=Boolean@ENDTYPE;@VALU=0@ENDVALU;@PRMT=@ENDPRMT;@ENDPROP;$DES;$CLT={E436EF73-0505-4f8e-B050-162FB55A7D62}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;$XREFPROP=$XID={1F9B8137-1D49-491d-9EB2-8E9315F51A57}$XID;$NAM=Stereotypes$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=RESTParameter;FQName=Enexis ECDM::RESTParameter;@ENDSTEREO;@STEREO;Name=Content;FQName=Enexis ECDM::Content;@ENDSTEREO;$DES;$CLT={E436EF73-0505-4f8e-B050-162FB55A7D62}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
+						<xrefs value="$XREFPROP=$XID={8AFAF64C-068A-41e1-8651-0A80A1A951FC}$XID;$NAM=CustomProperties$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@PROP=@NAME=isID@ENDNAME;@TYPE=Boolean@ENDTYPE;@VALU=0@ENDVALU;@PRMT=@ENDPRMT;@ENDPROP;$DES;$CLT={E436EF73-0505-4f8e-B050-162FB55A7D62}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;$XREFPROP=$XID={1F9B8137-1D49-491d-9EB2-8E9315F51A57}$XID;$NAM=Stereotypes$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=RESTParameter;FQName=Enexis ECDM::RESTParameter;@ENDSTEREO;$DES;$CLT={E436EF73-0505-4f8e-B050-162FB55A7D62}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
 					</attribute>
 					<attribute xmi:idref="EAID_1F1F4055_162D_406a_A339_C54F65567B5D" name="AfterID" scope="Public">
 						<initial/>
@@ -365,12 +468,12 @@
 						<style/>
 						<styleex value="volatile=0;"/>
 						<tags>
-							<tag xmi:id="EAID_23053B4B_3C37_343c_B907_2F0659299632" name="allowEmptyValue" notes="Values: true,false&#xA;Description: When set to 'true', this indicates that the parameter is allowed to be specified by 'name only' (no value). This is only valid for Query or FormData parameters.&#xA;"/>
+							<tag xmi:id="EAID_23053B4B_3C37_343c_B907_2F0659299632" name="allowEmptyValue" value="false" notes="Values: true,false&#xA;Description: When set to 'true', this indicates that the parameter is allowed to be specified by 'name only' (no value). This is only valid for Query or FormData parameters.&#xA;"/>
 							<tag xmi:id="EAID_8FF6777B_DB45_efdb_939B_08C522AED0AC" name="annotation"/>
 							<tag xmi:id="EAID_EACAFD13_0BDD_a60b_9DEE_406E92157133" name="author"/>
 							<tag xmi:id="EAID_C10AFBA5_7992_1979_A18A_212AC912CB9A" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
 							<tag xmi:id="EAID_58012A38_D704_65d7_BE50_8EC403ACD075" name="choiceGroup"/>
-							<tag xmi:id="EAID_F8813335_F9C1_26f9_BBF9_0BCDD26A8323" name="collectionFormat" value="CSV" notes="Values: CSV,SSV,TSV,Multi,NA,Pipes&#xA;"/>
+							<tag xmi:id="EAID_F8813335_F9C1_26f9_BBF9_0BCDD26A8323" name="collectionFormat" value="NA" notes="Values: CSV,SSV,TSV,Multi,NA,Pipes&#xA;"/>
 							<tag xmi:id="EAID_6DA0E79C_F966_43f9_AC46_E42B0CFAADA8" name="dateLastChanged"/>
 							<tag xmi:id="EAID_465BEE89_B6F6_b4b6_8F85_355BF6592184" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
 							<tag xmi:id="EAID_18B187E9_6EB6_4b6e_92DE_CBB40C28A6E7" name="dictionaryEntryName" value="Pagination. After. Identifier" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
@@ -385,7 +488,7 @@
 							<tag xmi:id="EAID_1766C7CC_F0F8_4ef0_8E3F_B8235F566594" name="representationTermName"/>
 							<tag xmi:id="EAID_0AC8C4A4_8991_8a89_ADC8_952D1266D762" name="uniqueID" value="urn:x-enexis:ecdm:uid:1:583986" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
 						</tags>
-						<xrefs value="$XREFPROP=$XID={7900A8FF-3AC7-4f59-9CB4-A76DB94A6787}$XID;$NAM=CustomProperties$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@PROP=@NAME=isID@ENDNAME;@TYPE=Boolean@ENDTYPE;@VALU=0@ENDVALU;@PRMT=@ENDPRMT;@ENDPROP;$DES;$CLT={1F1F4055-162D-406a-A339-C54F65567B5D}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;$XREFPROP=$XID={6CE4AEEB-BEBD-4661-AA26-FADB89392E81}$XID;$NAM=Stereotypes$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=RESTParameter;FQName=Enexis ECDM::RESTParameter;@ENDSTEREO;@STEREO;Name=Content;FQName=Enexis ECDM::Content;@ENDSTEREO;$DES;$CLT={1F1F4055-162D-406a-A339-C54F65567B5D}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
+						<xrefs value="$XREFPROP=$XID={7900A8FF-3AC7-4f59-9CB4-A76DB94A6787}$XID;$NAM=CustomProperties$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@PROP=@NAME=isID@ENDNAME;@TYPE=Boolean@ENDTYPE;@VALU=0@ENDVALU;@PRMT=@ENDPRMT;@ENDPROP;$DES;$CLT={1F1F4055-162D-406a-A339-C54F65567B5D}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;$XREFPROP=$XID={6CE4AEEB-BEBD-4661-AA26-FADB89392E81}$XID;$NAM=Stereotypes$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=RESTParameter;FQName=Enexis ECDM::RESTParameter;@ENDSTEREO;$DES;$CLT={1F1F4055-162D-406a-A339-C54F65567B5D}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
 					</attribute>
 					<attribute xmi:idref="EAID_9E8C2F18_7B59_4e64_8209_6E86EE83224D" name="BeforeID" scope="Public">
 						<initial/>
@@ -400,7 +503,7 @@
 						<style/>
 						<styleex value="volatile=0;"/>
 						<tags>
-							<tag xmi:id="EAID_23053B4B_3C37_343c_A412_B2A68E0FD3E0" name="allowEmptyValue" notes="Values: true,false&#xA;Description: When set to 'true', this indicates that the parameter is allowed to be specified by 'name only' (no value). This is only valid for Query or FormData parameters.&#xA;"/>
+							<tag xmi:id="EAID_23053B4B_3C37_343c_A412_B2A68E0FD3E0" name="allowEmptyValue" value="false" notes="Values: true,false&#xA;Description: When set to 'true', this indicates that the parameter is allowed to be specified by 'name only' (no value). This is only valid for Query or FormData parameters.&#xA;"/>
 							<tag xmi:id="EAID_8FF6777B_DB45_efdb_86A3_5B52C27D0D58" name="annotation"/>
 							<tag xmi:id="EAID_EACAFD13_0BDD_a60b_9FDD_E8F01C322F2F" name="author"/>
 							<tag xmi:id="EAID_C10AFBA5_7992_1979_BED1_86AB31E1AEE9" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
@@ -420,12 +523,107 @@
 							<tag xmi:id="EAID_1766C7CC_F0F8_4ef0_AE65_87648779BD8B" name="representationTermName"/>
 							<tag xmi:id="EAID_0AC8C4A4_8991_8a89_84D3_CF7455CA475E" name="uniqueID" value="urn:x-enexis:ecdm:uid:1:583987" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
 						</tags>
-						<xrefs value="$XREFPROP=$XID={CE5F6F88-6BA6-4559-BF09-2F2183642DEE}$XID;$NAM=CustomProperties$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@PROP=@NAME=isID@ENDNAME;@TYPE=Boolean@ENDTYPE;@VALU=0@ENDVALU;@PRMT=@ENDPRMT;@ENDPROP;$DES;$CLT={9E8C2F18-7B59-4e64-8209-6E86EE83224D}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;$XREFPROP=$XID={25505D56-D04F-4cdf-8343-B02EC9953C5D}$XID;$NAM=Stereotypes$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=RESTParameter;FQName=Enexis ECDM::RESTParameter;@ENDSTEREO;@STEREO;Name=Content;FQName=Enexis ECDM::Content;@ENDSTEREO;$DES;$CLT={9E8C2F18-7B59-4e64-8209-6E86EE83224D}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
+						<xrefs value="$XREFPROP=$XID={CE5F6F88-6BA6-4559-BF09-2F2183642DEE}$XID;$NAM=CustomProperties$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@PROP=@NAME=isID@ENDNAME;@TYPE=Boolean@ENDTYPE;@VALU=0@ENDVALU;@PRMT=@ENDPRMT;@ENDPROP;$DES;$CLT={9E8C2F18-7B59-4e64-8209-6E86EE83224D}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;$XREFPROP=$XID={25505D56-D04F-4cdf-8343-B02EC9953C5D}$XID;$NAM=Stereotypes$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=RESTParameter;FQName=Enexis ECDM::RESTParameter;@ENDSTEREO;$DES;$CLT={9E8C2F18-7B59-4e64-8209-6E86EE83224D}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
 					</attribute>
 				</attributes>
-				<links>
-					<Association xmi:id="EAID_12454F34_301B_48d8_B965_08A466D87990" start="EAID_A76F70CB_A6F3_4ab6_BD54_EA7D997177BF" end="EAID_A8DEDAB5_8A74_4531_A1A4_C20B097A948A"/>
-				</links>
+			</element>
+			<element xmi:idref="EAID_733274B4_A676_43d8_9379_D3E40F981F77" xmi:type="uml:Class" name="ResponseHeaderParametersType" scope="public">
+				<model package="EAPK_9DDA86D1_8AEC_4bf5_BAD1_51AE49FCCC1A" tpos="0" ea_localid="203727" ea_eleType="element"/>
+				<properties documentation="Attributes of this class are automatically translated into REST Response header parameters." isSpecification="false" sType="Class" nType="0" scope="public" stereotype="MBIE" isRoot="false" isLeaf="false" isAbstract="false" isActive="false"/>
+				<project author="wmeijers" version="1.0" phase="1.0" created="2018-01-11 14:23:53" modified="2018-01-11 14:24:37" complexity="1" status="Proposed"/>
+				<code product_name="Java" gentype="Java"/>
+				<style appearance="BackColor=-1;BorderColor=-1;BorderWidth=1;FontColor=-1;VSwimLanes=1;HSwimLanes=1;BorderStyle=0;"/>
+				<tags>
+					<tag xmi:id="EAID_8FF6777B_DB45_efdb_B6BC_869A254E7A2C" name="annotation" modelElement="EAID_733274B4_A676_43d8_9379_D3E40F981F77"/>
+					<tag xmi:id="EAID_EACAFD13_0BDD_a60b_A8B8_0670047E507F" name="author" modelElement="EAID_733274B4_A676_43d8_9379_D3E40F981F77"/>
+					<tag xmi:id="EAID_C10AFBA5_7992_1979_B161_5C185CA3D239" name="businessTermName" value="#NOTES#Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;" modelElement="EAID_733274B4_A676_43d8_9379_D3E40F981F77"/>
+					<tag xmi:id="EAID_6DA0E79C_F966_43f9_8929_309835E228A9" name="dateLastChanged" modelElement="EAID_733274B4_A676_43d8_9379_D3E40F981F77"/>
+					<tag xmi:id="EAID_465BEE89_B6F6_b4b6_98C5_8A2E85312283" name="definition" value="#NOTES#Description: Semantic meaning of the associated entity.&#xA;" modelElement="EAID_733274B4_A676_43d8_9379_D3E40F981F77"/>
+					<tag xmi:id="EAID_18B187E9_6EB6_4b6e_B074_6D0C1522550D" name="dictionaryEntryName" value="#NOTES#Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;" modelElement="EAID_733274B4_A676_43d8_9379_D3E40F981F77"/>
+					<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_87D6_C67C2088F169" name="displayName" value="#NOTES#Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;" modelElement="EAID_733274B4_A676_43d8_9379_D3E40F981F77"/>
+					<tag xmi:id="EAID_B58E397F_F5E9_baf5_9706_973845F05C0C" name="ECDMVersion" value="1.0#NOTES#Default: 1.0&#xA;" modelElement="EAID_733274B4_A676_43d8_9379_D3E40F981F77"/>
+					<tag xmi:id="EAID_99733330_1D69_e01d_A164_526A4C9A6FA3" name="objectClassQualifierName" modelElement="EAID_733274B4_A676_43d8_9379_D3E40F981F77"/>
+					<tag xmi:id="EAID_F3B421C6_705F_1e70_BC89_C043770F4EFB" name="objectClassTermName" modelElement="EAID_733274B4_A676_43d8_9379_D3E40F981F77"/>
+					<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_9078_5E11E3FD700E" name="reference" value="#NOTES#Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;" modelElement="EAID_733274B4_A676_43d8_9379_D3E40F981F77"/>
+					<tag xmi:id="EAID_0859327A_29B3_e529_8AED_FFD61C7B111C" name="scope" value="#NOTES#Values: Interface,Operation,Message&#xA;Description: Defines the scope of a profiled version of this component within an integration solution. Per profiled instance, the scope can be set to Service-, Operation- or Message level.&#xA;The scope is defined as the uniqueness of the profiled component within the namespace of an integration solution.&#xA;" modelElement="EAID_733274B4_A676_43d8_9379_D3E40F981F77"/>
+					<tag xmi:id="EAID_0AC8C4A4_8991_8a89_BF62_8B983BBD532A" name="uniqueID" value="#NOTES#Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;" modelElement="EAID_733274B4_A676_43d8_9379_D3E40F981F77"/>
+				</tags>
+				<xrefs value="$XREFPROP=$XID={FF65969E-3283-4033-BCAC-DFAC00827550}$XID;$NAM=Stereotypes$NAM;$TYP=element property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=MBIE;FQName=Enexis ECDM::MBIE;@ENDSTEREO;$DES;$CLT={733274B4-A676-43d8-9379-D3E40F981F77}$CLT;$ENDXREF;"/>
+				<extendedProperties tagged="0" package_name="APISupportModel"/>
+				<attributes>
+					<attribute xmi:idref="EAID_958B4FF3_A884_49fe_AC96_D1709FBE1B2A" name="X-Correlation-ID" scope="Public">
+						<initial/>
+						<documentation value="Unique identification for a correlated group of messages."/>
+						<model ea_localid="584670" ea_guid="{958B4FF3-A884-49fe-AC96-D1709FBE1B2A}"/>
+						<properties type="IdentifierType" derived="0" precision="0" collection="false" length="0" duplicates="0" changeability="changeable"/>
+						<coords ordered="0" scale="0"/>
+						<containment containment="Not Specified" position="0"/>
+						<stereotype stereotype="RESTParameter"/>
+						<bounds lower="0" upper="1"/>
+						<options/>
+						<style/>
+						<styleex value="volatile=0;"/>
+						<tags>
+							<tag xmi:id="EAID_23053B4B_3C37_343c_829A_06187F7E5DFF" name="allowEmptyValue" value="false" notes="Values: true,false&#xA;Description: When set to 'true', this indicates that the parameter is allowed to be specified by 'name only' (no value). This is only valid for Query or FormData parameters.&#xA;"/>
+							<tag xmi:id="EAID_8FF6777B_DB45_efdb_BC54_CCC596E2FFE2" name="annotation"/>
+							<tag xmi:id="EAID_EACAFD13_0BDD_a60b_B717_A6979E851102" name="author"/>
+							<tag xmi:id="EAID_C10AFBA5_7992_1979_80F6_08AD0A62B50E" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
+							<tag xmi:id="EAID_58012A38_D704_65d7_A205_DCE97FA78CEC" name="choiceGroup"/>
+							<tag xmi:id="EAID_F8813335_F9C1_26f9_93ED_0A0959AFEDFC" name="collectionFormat" value="NA" notes="Values: CSV,SSV,TSV,Multi,NA,Pipes&#xA;"/>
+							<tag xmi:id="EAID_6DA0E79C_F966_43f9_94DE_136A3B50C418" name="dateLastChanged"/>
+							<tag xmi:id="EAID_465BEE89_B6F6_b4b6_890E_EF6BB9F0A64C" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
+							<tag xmi:id="EAID_18B187E9_6EB6_4b6e_B19D_E3DE8029CB8B" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
+							<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_8314_C986278DB634" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
+							<tag xmi:id="EAID_B58E397F_F5E9_baf5_B4EF_CA5A2ED38587" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
+							<tag xmi:id="EAID_1AB2BE23_F30B_79f3_8378_1303079DDB8B" name="nillable" value="false" notes="Values: true,false&#xA;Description: When present and set to 'true', this indicates that implementations can specify the value of the attribute as 'NULL'. This is typically used only in XSD/XML implementations.&#xA;"/>
+							<tag xmi:id="EAID_99733330_8F3C_4a8f_8DCA_1F7694E72F51" name="objectClassQualifierName"/>
+							<tag xmi:id="EAID_F3B421C6_B252_e2b2_B26E_10752849ED9A" name="objectClassTermName"/>
+							<tag xmi:id="EAID_80082BDB_5B67_015b_83DC_8C3A5DA255D8" name="parameterScope" value="Header" notes="Values: Form,Header,Path,Query,RequestBody,ResponseBody&#xA;"/>
+							<tag xmi:id="EAID_A96C5028_67D4_7367_BA53_C00FEF501F17" name="propertyQualifierName"/>
+							<tag xmi:id="EAID_8CD143BE_CBEA_e3cb_BF2D_1D622085489E" name="propertyTermName"/>
+							<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_B620_0824D7A5BFAA" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
+							<tag xmi:id="EAID_1766C7CC_F0F8_4ef0_A31A_2AE07F0F0154" name="representationTermName"/>
+							<tag xmi:id="EAID_0AC8C4A4_8991_8a89_8B27_B99A8AC0BDC9" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
+						</tags>
+						<xrefs value="$XREFPROP=$XID={B1CB8A87-F8FE-4437-807D-F9C799F5DB1A}$XID;$NAM=Stereotypes$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=RESTParameter;FQName=Enexis ECDM::RESTParameter;@ENDSTEREO;$DES;$CLT={958B4FF3-A884-49fe-AC96-D1709FBE1B2A}$CLT;$ENDXREF;"/>
+					</attribute>
+					<attribute xmi:idref="EAID_3EE385AD_4580_4ba0_AEA0_5B5D962A879B" name="X-Request-ID" scope="Public">
+						<initial/>
+						<documentation value="Unique identification for a single message. Note that request- and response messages must each have a unique Request-ID, but they MIGHT share a common Correlation-ID!"/>
+						<model ea_localid="584671" ea_guid="{3EE385AD-4580-4ba0-AEA0-5B5D962A879B}"/>
+						<properties type="IdentifierType" derived="0" precision="0" collection="false" length="0" duplicates="0" changeability="changeable"/>
+						<coords ordered="0" scale="0"/>
+						<containment containment="Not Specified" position="1"/>
+						<stereotype stereotype="RESTParameter"/>
+						<bounds lower="0" upper="1"/>
+						<options/>
+						<style/>
+						<styleex value="volatile=0;"/>
+						<tags>
+							<tag xmi:id="EAID_23053B4B_3C37_343c_91C0_F4738003C079" name="allowEmptyValue" value="false" notes="Values: true,false&#xA;Description: When set to 'true', this indicates that the parameter is allowed to be specified by 'name only' (no value). This is only valid for Query or FormData parameters.&#xA;"/>
+							<tag xmi:id="EAID_8FF6777B_DB45_efdb_AA93_76BB031CBD8F" name="annotation"/>
+							<tag xmi:id="EAID_EACAFD13_0BDD_a60b_B631_570E17BC4B25" name="author"/>
+							<tag xmi:id="EAID_C10AFBA5_7992_1979_B480_BAF5A35BE224" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
+							<tag xmi:id="EAID_58012A38_D704_65d7_A1C2_B90800C81201" name="choiceGroup"/>
+							<tag xmi:id="EAID_F8813335_F9C1_26f9_A0F9_3E455BBC3FC8" name="collectionFormat" value="NA" notes="Values: CSV,SSV,TSV,Multi,NA,Pipes&#xA;"/>
+							<tag xmi:id="EAID_6DA0E79C_F966_43f9_82DB_C6B186D1000C" name="dateLastChanged"/>
+							<tag xmi:id="EAID_465BEE89_B6F6_b4b6_998B_7EBFDCAB7AE5" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
+							<tag xmi:id="EAID_18B187E9_6EB6_4b6e_BBCC_8AD93779570A" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
+							<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_9A3A_54EA688BEB15" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
+							<tag xmi:id="EAID_B58E397F_F5E9_baf5_B36F_8B0D048E2068" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
+							<tag xmi:id="EAID_1AB2BE23_F30B_79f3_8F9F_DC3C518C6CB5" name="nillable" value="false" notes="Values: true,false&#xA;Description: When present and set to 'true', this indicates that implementations can specify the value of the attribute as 'NULL'. This is typically used only in XSD/XML implementations.&#xA;"/>
+							<tag xmi:id="EAID_99733330_8F3C_4a8f_8E7C_19CC35EFAC68" name="objectClassQualifierName"/>
+							<tag xmi:id="EAID_F3B421C6_B252_e2b2_B2E0_5758C79F29EA" name="objectClassTermName"/>
+							<tag xmi:id="EAID_80082BDB_5B67_015b_86E1_A04604EE24E2" name="parameterScope" value="Header" notes="Values: Form,Header,Path,Query,RequestBody,ResponseBody&#xA;"/>
+							<tag xmi:id="EAID_A96C5028_67D4_7367_9E31_D7BDE5943768" name="propertyQualifierName"/>
+							<tag xmi:id="EAID_8CD143BE_CBEA_e3cb_9A48_B4975B37F4B6" name="propertyTermName"/>
+							<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_8295_29C6CD1BC4F5" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
+							<tag xmi:id="EAID_1766C7CC_F0F8_4ef0_BD72_97CF08BE869D" name="representationTermName"/>
+							<tag xmi:id="EAID_0AC8C4A4_8991_8a89_87BE_F56D7A95281B" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
+						</tags>
+						<xrefs value="$XREFPROP=$XID={A41D9A0F-D97F-4df3-8C83-2EAC9F46AF73}$XID;$NAM=Stereotypes$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=RESTParameter;FQName=Enexis ECDM::RESTParameter;@ENDSTEREO;$DES;$CLT={3EE385AD-4580-4ba0-AEA0-5B5D962A879B}$CLT;$ENDXREF;"/>
+					</attribute>
+				</attributes>
 			</element>
 			<element xmi:idref="EAID_C815715E_489C_42d5_A393_76355A0ECBDD" xmi:type="uml:Class" name="ResponsePaginationType" scope="public">
 				<model package="EAPK_9DDA86D1_8AEC_4bf5_BAD1_51AE49FCCC1A" tpos="0" ea_localid="203572" ea_eleType="element"/>
@@ -458,13 +656,34 @@
 						<properties type="CounterType" collection="false" duplicates="0" changeability="changeable"/>
 						<coords ordered="0"/>
 						<containment containment="Not Specified" position="0"/>
-						<stereotype/>
+						<stereotype stereotype="RESTParameter"/>
 						<bounds lower="0" upper="1"/>
 						<options/>
 						<style/>
 						<styleex value="volatile=0;"/>
-						<tags/>
-						<xrefs/>
+						<tags>
+							<tag xmi:id="EAID_23053B4B_3C37_343c_AC77_873C05F6385E" name="allowEmptyValue" value="false" notes="Values: true,false&#xA;Description: When set to 'true', this indicates that the parameter is allowed to be specified by 'name only' (no value). This is only valid for Query or FormData parameters.&#xA;"/>
+							<tag xmi:id="EAID_8FF6777B_DB45_efdb_B05E_9A4CD28E7223" name="annotation"/>
+							<tag xmi:id="EAID_EACAFD13_0BDD_a60b_B24C_6F47F07C0838" name="author"/>
+							<tag xmi:id="EAID_C10AFBA5_7992_1979_BEAD_8767832F7A17" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
+							<tag xmi:id="EAID_58012A38_D704_65d7_AC42_21FADFD756C4" name="choiceGroup"/>
+							<tag xmi:id="EAID_F8813335_F9C1_26f9_813D_DEBD0FB4FD84" name="collectionFormat" value="NA" notes="Values: CSV,SSV,TSV,Multi,NA,Pipes&#xA;"/>
+							<tag xmi:id="EAID_6DA0E79C_F966_43f9_AFC1_5AC5DAD1FB65" name="dateLastChanged"/>
+							<tag xmi:id="EAID_465BEE89_B6F6_b4b6_AC68_BF9465674DC7" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
+							<tag xmi:id="EAID_18B187E9_6EB6_4b6e_BD50_87782CA2B8BD" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
+							<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_92DC_CC72B2A96D74" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
+							<tag xmi:id="EAID_B58E397F_F5E9_baf5_9F87_4400E28B0856" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
+							<tag xmi:id="EAID_1AB2BE23_F30B_79f3_BE99_FA933FE27747" name="nillable" notes="Values: true,false&#xA;Description: When present and set to 'true', this indicates that implementations can specify the value of the attribute as 'NULL'. This is typically used only in XSD/XML implementations.&#xA;"/>
+							<tag xmi:id="EAID_99733330_8F3C_4a8f_B22D_C82B0B9D910D" name="objectClassQualifierName"/>
+							<tag xmi:id="EAID_F3B421C6_B252_e2b2_BE5B_F03ABD6C3667" name="objectClassTermName"/>
+							<tag xmi:id="EAID_80082BDB_5B67_015b_AEA7_1FDC889B5B3D" name="parameterScope" value="Query" notes="Values: Form,Header,Path,Query,RequestBody,ResponseBody&#xA;"/>
+							<tag xmi:id="EAID_A96C5028_67D4_7367_A15C_D71DDE8BBBE6" name="propertyQualifierName"/>
+							<tag xmi:id="EAID_8CD143BE_CBEA_e3cb_AE56_2021C8CEB2C3" name="propertyTermName"/>
+							<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_BF64_35FB09976D5A" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
+							<tag xmi:id="EAID_1766C7CC_F0F8_4ef0_958F_F1D2121FA39E" name="representationTermName"/>
+							<tag xmi:id="EAID_0AC8C4A4_8991_8a89_B50E_B815F1E933E0" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
+						</tags>
+						<xrefs value="$XREFPROP=$XID={6667F2DC-DFA3-41da-8FC5-A11CD367C205}$XID;$NAM=Stereotypes$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=RESTParameter;FQName=Enexis ECDM::RESTParameter;@ENDSTEREO;$DES;$CLT={8132BD15-414A-4410-AD2F-51FC23B0EA8F}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
 					</attribute>
 					<attribute xmi:idref="EAID_ADC412F9_7A27_4423_9813_774B4FCB66AD" name="RemainingCount" scope="Public">
 						<initial/>
@@ -473,13 +692,34 @@
 						<properties type="CounterType" collection="false" duplicates="0" changeability="changeable"/>
 						<coords ordered="0"/>
 						<containment containment="Not Specified" position="1"/>
-						<stereotype/>
+						<stereotype stereotype="RESTParameter"/>
 						<bounds lower="0" upper="1"/>
 						<options/>
 						<style/>
 						<styleex value="volatile=0;"/>
-						<tags/>
-						<xrefs/>
+						<tags>
+							<tag xmi:id="EAID_23053B4B_3C37_343c_A806_156228B881C8" name="allowEmptyValue" value="false" notes="Values: true,false&#xA;Description: When set to 'true', this indicates that the parameter is allowed to be specified by 'name only' (no value). This is only valid for Query or FormData parameters.&#xA;"/>
+							<tag xmi:id="EAID_8FF6777B_DB45_efdb_9BCB_71BBB0DFBB38" name="annotation"/>
+							<tag xmi:id="EAID_EACAFD13_0BDD_a60b_8C9C_DEF58815D612" name="author"/>
+							<tag xmi:id="EAID_C10AFBA5_7992_1979_8DDC_E76238443D4C" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
+							<tag xmi:id="EAID_58012A38_D704_65d7_B643_69D35D561855" name="choiceGroup"/>
+							<tag xmi:id="EAID_F8813335_F9C1_26f9_A6BC_3FF9335258BC" name="collectionFormat" value="NA" notes="Values: CSV,SSV,TSV,Multi,NA,Pipes&#xA;"/>
+							<tag xmi:id="EAID_6DA0E79C_F966_43f9_9E89_DCB5DFFC8B88" name="dateLastChanged"/>
+							<tag xmi:id="EAID_465BEE89_B6F6_b4b6_9FC6_FEC807EA9327" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
+							<tag xmi:id="EAID_18B187E9_6EB6_4b6e_B878_07E4BD9770D6" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
+							<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_9A69_E1500ECEFBB1" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
+							<tag xmi:id="EAID_B58E397F_F5E9_baf5_9D5A_D9E5EFB3FBDC" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
+							<tag xmi:id="EAID_1AB2BE23_F30B_79f3_91AA_88521C604990" name="nillable" notes="Values: true,false&#xA;Description: When present and set to 'true', this indicates that implementations can specify the value of the attribute as 'NULL'. This is typically used only in XSD/XML implementations.&#xA;"/>
+							<tag xmi:id="EAID_99733330_8F3C_4a8f_AC6C_9698430FDD3C" name="objectClassQualifierName"/>
+							<tag xmi:id="EAID_F3B421C6_B252_e2b2_B1DD_6EC9788E5CE0" name="objectClassTermName"/>
+							<tag xmi:id="EAID_80082BDB_5B67_015b_BF4E_1B68A55DCD3D" name="parameterScope" value="Query" notes="Values: Form,Header,Path,Query,RequestBody,ResponseBody&#xA;"/>
+							<tag xmi:id="EAID_A96C5028_67D4_7367_980B_70743A925797" name="propertyQualifierName"/>
+							<tag xmi:id="EAID_8CD143BE_CBEA_e3cb_A775_1B2ECA2C8C58" name="propertyTermName"/>
+							<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_827B_62094B882D15" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
+							<tag xmi:id="EAID_1766C7CC_F0F8_4ef0_8556_30FBE9D67F83" name="representationTermName"/>
+							<tag xmi:id="EAID_0AC8C4A4_8991_8a89_B279_DD796CDFD9C2" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
+						</tags>
+						<xrefs value="$XREFPROP=$XID={51E93770-61F7-4578-9D3B-B10999F6C002}$XID;$NAM=Stereotypes$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=RESTParameter;FQName=Enexis ECDM::RESTParameter;@ENDSTEREO;$DES;$CLT={ADC412F9-7A27-4423-9813-774B4FCB66AD}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
 					</attribute>
 					<attribute xmi:idref="EAID_CDF69A87_8043_4df5_B5B4_8E874B25182E" name="MoreIndicator" scope="Public">
 						<initial/>
@@ -488,18 +728,36 @@
 						<properties type="IndicatorType" collection="false" duplicates="0" changeability="changeable"/>
 						<coords ordered="0"/>
 						<containment containment="Not Specified" position="2"/>
-						<stereotype/>
+						<stereotype stereotype="RESTParameter"/>
 						<bounds lower="0" upper="1"/>
 						<options/>
 						<style/>
 						<styleex value="volatile=0;"/>
-						<tags/>
-						<xrefs/>
+						<tags>
+							<tag xmi:id="EAID_23053B4B_3C37_343c_A220_A2EF466280C4" name="allowEmptyValue" value="false" notes="Values: true,false&#xA;Description: When set to 'true', this indicates that the parameter is allowed to be specified by 'name only' (no value). This is only valid for Query or FormData parameters.&#xA;"/>
+							<tag xmi:id="EAID_8FF6777B_DB45_efdb_9450_12DA896E30C8" name="annotation"/>
+							<tag xmi:id="EAID_EACAFD13_0BDD_a60b_82B2_3441A98FCE93" name="author"/>
+							<tag xmi:id="EAID_C10AFBA5_7992_1979_B14E_85A5EAAB0F79" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
+							<tag xmi:id="EAID_58012A38_D704_65d7_BB38_95A3E366B2E9" name="choiceGroup"/>
+							<tag xmi:id="EAID_F8813335_F9C1_26f9_9356_F47BA657CE46" name="collectionFormat" value="NA" notes="Values: CSV,SSV,TSV,Multi,NA,Pipes&#xA;"/>
+							<tag xmi:id="EAID_6DA0E79C_F966_43f9_9D4F_FB3F67884507" name="dateLastChanged"/>
+							<tag xmi:id="EAID_465BEE89_B6F6_b4b6_95B1_AEC73ED9BA23" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
+							<tag xmi:id="EAID_18B187E9_6EB6_4b6e_AA15_3EA9C68823F8" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
+							<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_A1A0_891B5D428B24" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
+							<tag xmi:id="EAID_B58E397F_F5E9_baf5_A25D_520EBF0FF884" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
+							<tag xmi:id="EAID_1AB2BE23_F30B_79f3_A3EC_66C10A795D4B" name="nillable" notes="Values: true,false&#xA;Description: When present and set to 'true', this indicates that implementations can specify the value of the attribute as 'NULL'. This is typically used only in XSD/XML implementations.&#xA;"/>
+							<tag xmi:id="EAID_99733330_8F3C_4a8f_892D_EF12B4E7305B" name="objectClassQualifierName"/>
+							<tag xmi:id="EAID_F3B421C6_B252_e2b2_B4D2_CADF6332FDD2" name="objectClassTermName"/>
+							<tag xmi:id="EAID_80082BDB_5B67_015b_B944_E51C6BCAFAEA" name="parameterScope" value="Query" notes="Values: Form,Header,Path,Query,RequestBody,ResponseBody&#xA;"/>
+							<tag xmi:id="EAID_A96C5028_67D4_7367_ADA9_B16C79034D82" name="propertyQualifierName"/>
+							<tag xmi:id="EAID_8CD143BE_CBEA_e3cb_8819_2539D2B37180" name="propertyTermName"/>
+							<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_A041_382CAE5F34EB" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
+							<tag xmi:id="EAID_1766C7CC_F0F8_4ef0_9888_E725819DA896" name="representationTermName"/>
+							<tag xmi:id="EAID_0AC8C4A4_8991_8a89_AA9C_728A62C5703A" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
+						</tags>
+						<xrefs value="$XREFPROP=$XID={B2010E07-8636-4838-BE51-3A0FE337D595}$XID;$NAM=Stereotypes$NAM;$TYP=attribute property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=RESTParameter;FQName=Enexis ECDM::RESTParameter;@ENDSTEREO;$DES;$CLT={CDF69A87-8043-4df5-B5B4-8E874B25182E}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
 					</attribute>
 				</attributes>
-				<links>
-					<Association xmi:id="EAID_EEF87F0C_0C79_418e_A16B_354A2B07EED6" start="EAID_A76F70CB_A6F3_4ab6_BD54_EA7D997177BF" end="EAID_C815715E_489C_42d5_A393_76355A0ECBDD"/>
-				</links>
 			</element>
 			<element xmi:idref="EAID_776BD7CA_4B52_4011_9E39_984BAB2E3D70" xmi:type="uml:Text" scope="public">
 				<model package="EAPK_9DDA86D1_8AEC_4bf5_BAD1_51AE49FCCC1A" tpos="0" ea_localid="202344" ea_eleType="element"/>
@@ -814,9 +1072,9 @@
 			</element>
 		</elements>
 		<connectors>
-			<connector xmi:idref="EAID_14559B3F_A004_4fde_A1D9_56127BD92AB5">
-				<source xmi:idref="EAID_4AEE60A6_48D5_4005_90E5_9A1D5439DEFD">
-					<model ea_localid="203498" type="Class" name="OperationResultDefaultType"/>
+			<connector xmi:idref="EAID_497C04CD_FD01_4b0a_AC6F_DC90C557C5BE">
+				<source xmi:idref="EAID_4786E469_E25E_493f_B0B6_F2E57FC7427B">
+					<model ea_localid="203648" type="Class" name="OperationResultDefaultType"/>
 					<role visibility="Public"/>
 					<type aggregation="composite"/>
 					<constraints/>
@@ -837,7 +1095,7 @@
 					<xrefs/>
 					<tags/>
 				</target>
-				<model ea_localid="246576"/>
+				<model ea_localid="246718"/>
 				<properties ea_type="Association" stereotype="ASMBIE" direction="Source -&gt; Destination"/>
 				<modifiers isRoot="false" isLeaf="false"/>
 				<parameterSubstitutions/>
@@ -846,26 +1104,26 @@
 				<labels rb="1" rt="+operation-result-type"/>
 				<extendedProperties/>
 				<style/>
-				<xrefs value="$XREFPROP=$XID={A8E1B6BE-4C00-400a-81B3-544F1E670DBD}$XID;$NAM=Stereotypes$NAM;$TYP=connector property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=ASMBIE;FQName=Enexis ECDM::ASMBIE;@ENDSTEREO;$DES;$CLT={14559B3F-A004-4fde-A1D9-56127BD92AB5}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
+				<xrefs value="$XREFPROP=$XID={4DE8EF0D-B5D7-423e-87B3-74C3FF9B95B1}$XID;$NAM=Stereotypes$NAM;$TYP=connector property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=ASMBIE;FQName=Enexis ECDM::ASMBIE;@ENDSTEREO;$DES;$CLT={497C04CD-FD01-4b0a-AC6F-DC90C557C5BE}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
 				<tags>
-					<tag xmi:id="EAID_0AC8C4A4_8991_8a89_B7FB_61D44BF55D3C" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
-					<tag xmi:id="EAID_18B187E9_6EB6_4b6e_8CAF_8C95EB33D9F7" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
-					<tag xmi:id="EAID_465BEE89_B6F6_b4b6_BAE6_E4B172F49DD3" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
-					<tag xmi:id="EAID_4C5EF8A2_0821_0b08_9C8A_4327DA689968" name="sequenceKey" notes="Description: The sequence key facilitates the construction of an order in a number of associations from one class to another. This key is typically used when defining the order of elements in a schema, generated from a model. Within a class, all attributes have pre-assigned sequence numbers starting from 100. For associations to 'fit' at a specific position, users must assign the appropriate value to this sequenceKey attribute.&#xA;"/>
-					<tag xmi:id="EAID_58012A38_B1B7_6ab1_A6D2_F3B4214BC94E" name="choiceGroup"/>
-					<tag xmi:id="EAID_6DA0E79C_F966_43f9_9802_0FB0408AED11" name="dateLastChanged"/>
-					<tag xmi:id="EAID_8FF6777B_DB45_efdb_849C_5758D5A1AD0B" name="annotation"/>
-					<tag xmi:id="EAID_92EDA958_38F7_4338_AB6B_5C4B72B56B05" name="_lineStyle"/>
-					<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_A06F_6931A107A87C" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
-					<tag xmi:id="EAID_B58E397F_F5E9_baf5_91FF_88FD04696FCF" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
-					<tag xmi:id="EAID_C10AFBA5_7992_1979_AEC3_F59D72AAE411" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
-					<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_8587_249987D6F0B8" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
-					<tag xmi:id="EAID_EACAFD13_0BDD_a60b_82DC_B74B58DA45EC" name="author"/>
+					<tag xmi:id="EAID_0AC8C4A4_8991_8a89_B9A6_6FD82FE9B5E3" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
+					<tag xmi:id="EAID_18B187E9_6EB6_4b6e_8A88_F5F5C68CF6A5" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
+					<tag xmi:id="EAID_465BEE89_B6F6_b4b6_9011_5D69D9FFDA8A" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
+					<tag xmi:id="EAID_4C5EF8A2_0821_0b08_BABD_4449ECE36BD8" name="sequenceKey" notes="Description: The sequence key facilitates the construction of an order in a number of associations from one class to another. This key is typically used when defining the order of elements in a schema, generated from a model. Within a class, all attributes have pre-assigned sequence numbers starting from 100. For associations to 'fit' at a specific position, users must assign the appropriate value to this sequenceKey attribute.&#xA;"/>
+					<tag xmi:id="EAID_58012A38_B1B7_6ab1_BA43_3CF59993CF85" name="choiceGroup"/>
+					<tag xmi:id="EAID_6DA0E79C_F966_43f9_8B3A_3464AF65D2F4" name="dateLastChanged"/>
+					<tag xmi:id="EAID_8FF6777B_DB45_efdb_8870_A7F0D6103E6C" name="annotation"/>
+					<tag xmi:id="EAID_92EDA958_38F7_4338_B446_E6D98E245DD4" name="_lineStyle"/>
+					<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_B3B8_494AD3A7F395" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
+					<tag xmi:id="EAID_B58E397F_F5E9_baf5_8483_528D6A892D0D" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
+					<tag xmi:id="EAID_C10AFBA5_7992_1979_9148_7B040F74B5CE" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
+					<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_86AC_D86AA68CF285" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
+					<tag xmi:id="EAID_EACAFD13_0BDD_a60b_BFDC_5B5F2CEC260F" name="author"/>
 				</tags>
 			</connector>
-			<connector xmi:idref="EAID_64256DB1_9D85_465d_B584_77F6014AB5BD">
-				<source xmi:idref="EAID_1E1780CC_AECC_4691_BACA_747E0C9C2469">
-					<model ea_localid="203537" type="Class" name="OperationResultDefaultType"/>
+			<connector xmi:idref="EAID_BE14664E_3FEE_41aa_9938_E2C81EE1F68C">
+				<source xmi:idref="EAID_C43E6408_A82D_481e_B45B_5C1BC9FD9555">
+					<model ea_localid="203673" type="Class" name="OperationResultDefaultType"/>
 					<role visibility="Public"/>
 					<type aggregation="composite"/>
 					<constraints/>
@@ -886,7 +1144,7 @@
 					<xrefs/>
 					<tags/>
 				</target>
-				<model ea_localid="246603"/>
+				<model ea_localid="246739"/>
 				<properties ea_type="Association" stereotype="ASMBIE" direction="Source -&gt; Destination"/>
 				<modifiers isRoot="false" isLeaf="false"/>
 				<parameterSubstitutions/>
@@ -895,26 +1153,26 @@
 				<labels rb="1" rt="+operation-result-type"/>
 				<extendedProperties/>
 				<style/>
-				<xrefs value="$XREFPROP=$XID={ED28BEB6-E92E-4287-92DF-8FA7E27DA301}$XID;$NAM=Stereotypes$NAM;$TYP=connector property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=ASMBIE;FQName=Enexis ECDM::ASMBIE;@ENDSTEREO;$DES;$CLT={64256DB1-9D85-465d-B584-77F6014AB5BD}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
+				<xrefs value="$XREFPROP=$XID={72CAE7B2-3F3A-4a5e-9BD4-DBDA1ECD8BF8}$XID;$NAM=Stereotypes$NAM;$TYP=connector property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=ASMBIE;FQName=Enexis ECDM::ASMBIE;@ENDSTEREO;$DES;$CLT={BE14664E-3FEE-41aa-9938-E2C81EE1F68C}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
 				<tags>
-					<tag xmi:id="EAID_0AC8C4A4_8991_8a89_B94E_E220AF9B55FB" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
-					<tag xmi:id="EAID_18B187E9_6EB6_4b6e_AB3B_A34B5DE4D32C" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
-					<tag xmi:id="EAID_465BEE89_B6F6_b4b6_A58E_E0EF5D016D0D" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
-					<tag xmi:id="EAID_4C5EF8A2_0821_0b08_8829_F685C9AC8D62" name="sequenceKey" notes="Description: The sequence key facilitates the construction of an order in a number of associations from one class to another. This key is typically used when defining the order of elements in a schema, generated from a model. Within a class, all attributes have pre-assigned sequence numbers starting from 100. For associations to 'fit' at a specific position, users must assign the appropriate value to this sequenceKey attribute.&#xA;"/>
-					<tag xmi:id="EAID_58012A38_B1B7_6ab1_BCE7_360B3BBC10CF" name="choiceGroup"/>
-					<tag xmi:id="EAID_6DA0E79C_F966_43f9_8098_8868F96C9306" name="dateLastChanged"/>
-					<tag xmi:id="EAID_8FF6777B_DB45_efdb_AD02_B884DE54B184" name="annotation"/>
-					<tag xmi:id="EAID_92EDA958_38F7_4338_AEFE_DE6A36454BB9" name="_lineStyle"/>
-					<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_BCD7_7201A0095E30" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
-					<tag xmi:id="EAID_B58E397F_F5E9_baf5_9E62_22C4E5919B3A" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
-					<tag xmi:id="EAID_C10AFBA5_7992_1979_AAF9_5C2049C9DA9E" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
-					<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_B32B_975082FBECAB" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
-					<tag xmi:id="EAID_EACAFD13_0BDD_a60b_87DA_8AA503AFAFE7" name="author"/>
+					<tag xmi:id="EAID_0AC8C4A4_8991_8a89_B3F7_992DFC6D019C" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
+					<tag xmi:id="EAID_18B187E9_6EB6_4b6e_B3F9_B121BFD87FB2" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
+					<tag xmi:id="EAID_465BEE89_B6F6_b4b6_B194_B9975491A021" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
+					<tag xmi:id="EAID_4C5EF8A2_0821_0b08_A171_7CA15E04F078" name="sequenceKey" notes="Description: The sequence key facilitates the construction of an order in a number of associations from one class to another. This key is typically used when defining the order of elements in a schema, generated from a model. Within a class, all attributes have pre-assigned sequence numbers starting from 100. For associations to 'fit' at a specific position, users must assign the appropriate value to this sequenceKey attribute.&#xA;"/>
+					<tag xmi:id="EAID_58012A38_B1B7_6ab1_8553_9CF41D542C39" name="choiceGroup"/>
+					<tag xmi:id="EAID_6DA0E79C_F966_43f9_96F7_A53A3A22FB06" name="dateLastChanged"/>
+					<tag xmi:id="EAID_8FF6777B_DB45_efdb_AEFA_304E9AEE0CB0" name="annotation"/>
+					<tag xmi:id="EAID_92EDA958_38F7_4338_A302_9E9F235C34B7" name="_lineStyle"/>
+					<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_8BE2_83F38FAD111F" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
+					<tag xmi:id="EAID_B58E397F_F5E9_baf5_8C0D_E199719CD1D6" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
+					<tag xmi:id="EAID_C10AFBA5_7992_1979_871B_3E391254284C" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
+					<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_B47B_3B8656C081C9" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
+					<tag xmi:id="EAID_EACAFD13_0BDD_a60b_80BF_357F260E1857" name="author"/>
 				</tags>
 			</connector>
-			<connector xmi:idref="EAID_AD002B1C_2462_4923_9350_D8B51543D7BB">
-				<source xmi:idref="EAID_ABA7A199_FF92_4707_8DEE_8F92966A93E5">
-					<model ea_localid="203490" type="Class" name="OperationResultDefaultType"/>
+			<connector xmi:idref="EAID_D1D6CB27_3F52_446e_AA8C_B8FCF74A5608">
+				<source xmi:idref="EAID_4927FB03_6E55_4ae3_9553_8EB4196C833B">
+					<model ea_localid="203694" type="Class" name="OperationResultDefaultType"/>
 					<role visibility="Public"/>
 					<type aggregation="composite"/>
 					<constraints/>
@@ -935,7 +1193,7 @@
 					<xrefs/>
 					<tags/>
 				</target>
-				<model ea_localid="246571"/>
+				<model ea_localid="246780"/>
 				<properties ea_type="Association" stereotype="ASMBIE" direction="Source -&gt; Destination"/>
 				<modifiers isRoot="false" isLeaf="false"/>
 				<parameterSubstitutions/>
@@ -944,26 +1202,26 @@
 				<labels rb="1" rt="+operation-result-type"/>
 				<extendedProperties/>
 				<style/>
-				<xrefs value="$XREFPROP=$XID={CD5F9A2F-B02E-4c54-871F-760F926BC4A4}$XID;$NAM=Stereotypes$NAM;$TYP=connector property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=ASMBIE;FQName=Enexis ECDM::ASMBIE;@ENDSTEREO;$DES;$CLT={AD002B1C-2462-4923-9350-D8B51543D7BB}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
+				<xrefs value="$XREFPROP=$XID={7822C9F1-7299-4ead-A9EE-6CB1EE111294}$XID;$NAM=Stereotypes$NAM;$TYP=connector property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=ASMBIE;FQName=Enexis ECDM::ASMBIE;@ENDSTEREO;$DES;$CLT={D1D6CB27-3F52-446e-AA8C-B8FCF74A5608}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
 				<tags>
-					<tag xmi:id="EAID_0AC8C4A4_8991_8a89_9C69_F6CFF0E1112E" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
-					<tag xmi:id="EAID_18B187E9_6EB6_4b6e_A1E4_3114A4266460" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
-					<tag xmi:id="EAID_465BEE89_B6F6_b4b6_938C_C1423F14C529" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
-					<tag xmi:id="EAID_4C5EF8A2_0821_0b08_BA5B_F5DE58586B43" name="sequenceKey" notes="Description: The sequence key facilitates the construction of an order in a number of associations from one class to another. This key is typically used when defining the order of elements in a schema, generated from a model. Within a class, all attributes have pre-assigned sequence numbers starting from 100. For associations to 'fit' at a specific position, users must assign the appropriate value to this sequenceKey attribute.&#xA;"/>
-					<tag xmi:id="EAID_58012A38_B1B7_6ab1_8434_957C9499DCC2" name="choiceGroup"/>
-					<tag xmi:id="EAID_6DA0E79C_F966_43f9_9352_2C0C57C4099A" name="dateLastChanged"/>
-					<tag xmi:id="EAID_8FF6777B_DB45_efdb_8466_DB7DFDE35E5A" name="annotation"/>
-					<tag xmi:id="EAID_92EDA958_38F7_4338_B33D_CD43043A748E" name="_lineStyle"/>
-					<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_9501_8347A8AAA850" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
-					<tag xmi:id="EAID_B58E397F_F5E9_baf5_8A48_9F7EDA2C802C" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
-					<tag xmi:id="EAID_C10AFBA5_7992_1979_9717_D8358B82B8E7" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
-					<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_85EA_C76F73C6C50B" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
-					<tag xmi:id="EAID_EACAFD13_0BDD_a60b_BE13_1FC09E879E34" name="author"/>
+					<tag xmi:id="EAID_0AC8C4A4_8991_8a89_A39F_823F4731BF80" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
+					<tag xmi:id="EAID_18B187E9_6EB6_4b6e_9A40_D274B11BB6FE" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
+					<tag xmi:id="EAID_465BEE89_B6F6_b4b6_A91B_58B7F1E442FE" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
+					<tag xmi:id="EAID_4C5EF8A2_0821_0b08_8B3C_B354870090F1" name="sequenceKey" notes="Description: The sequence key facilitates the construction of an order in a number of associations from one class to another. This key is typically used when defining the order of elements in a schema, generated from a model. Within a class, all attributes have pre-assigned sequence numbers starting from 100. For associations to 'fit' at a specific position, users must assign the appropriate value to this sequenceKey attribute.&#xA;"/>
+					<tag xmi:id="EAID_58012A38_B1B7_6ab1_A9B8_AC17E3B18CC7" name="choiceGroup"/>
+					<tag xmi:id="EAID_6DA0E79C_F966_43f9_8966_DA7765A25858" name="dateLastChanged"/>
+					<tag xmi:id="EAID_8FF6777B_DB45_efdb_A9C4_9E4D5ADDD527" name="annotation"/>
+					<tag xmi:id="EAID_92EDA958_38F7_4338_AE84_1CC3638390A1" name="_lineStyle"/>
+					<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_B51A_0F3BE025517B" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
+					<tag xmi:id="EAID_B58E397F_F5E9_baf5_8535_65A2790CC91C" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
+					<tag xmi:id="EAID_C10AFBA5_7992_1979_8798_B17ECD300760" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
+					<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_98A3_6756D42E2D22" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
+					<tag xmi:id="EAID_EACAFD13_0BDD_a60b_BE7B_B6DE17116760" name="author"/>
 				</tags>
 			</connector>
-			<connector xmi:idref="EAID_AFAA8615_B1D7_4731_AE6E_6C08D390077D">
-				<source xmi:idref="EAID_168FA500_B4FF_4cd7_81DF_C4D2DEFED72B">
-					<model ea_localid="203520" type="Class" name="OperationResultDefaultType"/>
+			<connector xmi:idref="EAID_DD2E6EAE_687E_4f50_B142_DA7CAF18B5A8">
+				<source xmi:idref="EAID_B12A6FA5_1440_4460_8719_16E79E79CA60">
+					<model ea_localid="203647" type="Class" name="OperationResult404Type"/>
 					<role visibility="Public"/>
 					<type aggregation="composite"/>
 					<constraints/>
@@ -984,7 +1242,7 @@
 					<xrefs/>
 					<tags/>
 				</target>
-				<model ea_localid="246592"/>
+				<model ea_localid="246716"/>
 				<properties ea_type="Association" stereotype="ASMBIE" direction="Source -&gt; Destination"/>
 				<modifiers isRoot="false" isLeaf="false"/>
 				<parameterSubstitutions/>
@@ -993,168 +1251,21 @@
 				<labels rb="1" rt="+operation-result-type"/>
 				<extendedProperties/>
 				<style/>
-				<xrefs value="$XREFPROP=$XID={18092251-C0CC-4998-8DED-AA905BA219EA}$XID;$NAM=Stereotypes$NAM;$TYP=connector property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=ASMBIE;FQName=Enexis ECDM::ASMBIE;@ENDSTEREO;$DES;$CLT={AFAA8615-B1D7-4731-AE6E-6C08D390077D}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
+				<xrefs value="$XREFPROP=$XID={8F845066-B4D9-4db4-91B4-032211B3299B}$XID;$NAM=Stereotypes$NAM;$TYP=connector property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=ASMBIE;FQName=Enexis ECDM::ASMBIE;@ENDSTEREO;$DES;$CLT={DD2E6EAE-687E-4f50-B142-DA7CAF18B5A8}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
 				<tags>
-					<tag xmi:id="EAID_0AC8C4A4_8991_8a89_8380_916AC573BE2F" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
-					<tag xmi:id="EAID_18B187E9_6EB6_4b6e_AFBC_86B1E0BBE954" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
-					<tag xmi:id="EAID_465BEE89_B6F6_b4b6_A8AD_9A9BE6F7AEE4" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
-					<tag xmi:id="EAID_4C5EF8A2_0821_0b08_9494_86E963CEB249" name="sequenceKey" notes="Description: The sequence key facilitates the construction of an order in a number of associations from one class to another. This key is typically used when defining the order of elements in a schema, generated from a model. Within a class, all attributes have pre-assigned sequence numbers starting from 100. For associations to 'fit' at a specific position, users must assign the appropriate value to this sequenceKey attribute.&#xA;"/>
-					<tag xmi:id="EAID_58012A38_B1B7_6ab1_B3DC_25AD66D65336" name="choiceGroup"/>
-					<tag xmi:id="EAID_6DA0E79C_F966_43f9_A8B6_58174637A734" name="dateLastChanged"/>
-					<tag xmi:id="EAID_8FF6777B_DB45_efdb_82BD_9DE81372D900" name="annotation"/>
-					<tag xmi:id="EAID_92EDA958_38F7_4338_A7C4_AD8B37970711" name="_lineStyle"/>
-					<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_AA25_CDE6212B32C3" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
-					<tag xmi:id="EAID_B58E397F_F5E9_baf5_A2ED_CC7B2B3C9737" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
-					<tag xmi:id="EAID_C10AFBA5_7992_1979_84F9_E544D03A1960" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
-					<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_AE36_18B537305323" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
-					<tag xmi:id="EAID_EACAFD13_0BDD_a60b_BA4C_FF5EC19D61D6" name="author"/>
-				</tags>
-			</connector>
-			<connector xmi:idref="EAID_C5A6B56C_668B_4e73_951B_443D7D766EBC">
-				<source xmi:idref="EAID_0A95D197_3BC0_44a5_A865_CEE9D975FB88">
-					<model ea_localid="203553" type="Class" name="OperationResultDefaultType"/>
-					<role visibility="Public"/>
-					<type aggregation="composite"/>
-					<constraints/>
-					<modifiers isOrdered="false" isNavigable="false"/>
-					<style value="Navigable=Unspecified;Owned=0;"/>
-					<documentation/>
-					<xrefs/>
-					<tags/>
-				</source>
-				<target xmi:idref="EAID_BA0C2CD3_D7DC_409c_BFB9_6B2552B010AD">
-					<model ea_localid="202514" type="Class" name="OperationResultType"/>
-					<role name="operation-result-type" visibility="Public"/>
-					<type multiplicity="1" aggregation="none"/>
-					<constraints/>
-					<modifiers isOrdered="false" isNavigable="false"/>
-					<style value="Navigable=Navigable;Owned=0;"/>
-					<documentation/>
-					<xrefs/>
-					<tags/>
-				</target>
-				<model ea_localid="246627"/>
-				<properties ea_type="Association" stereotype="ASMBIE" direction="Source -&gt; Destination"/>
-				<modifiers isRoot="false" isLeaf="false"/>
-				<parameterSubstitutions/>
-				<documentation/>
-				<appearance linemode="3" linecolor="-1" linewidth="0" seqno="0" headStyle="0" lineStyle="0"/>
-				<labels rb="1" rt="+operation-result-type"/>
-				<extendedProperties/>
-				<style/>
-				<xrefs value="$XREFPROP=$XID={FCC6716D-B39A-4793-AA7F-2C17D48147C0}$XID;$NAM=Stereotypes$NAM;$TYP=connector property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=ASMBIE;FQName=Enexis ECDM::ASMBIE;@ENDSTEREO;$DES;$CLT={C5A6B56C-668B-4e73-951B-443D7D766EBC}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
-				<tags>
-					<tag xmi:id="EAID_0AC8C4A4_8991_8a89_9904_AF234A79B777" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
-					<tag xmi:id="EAID_18B187E9_6EB6_4b6e_9ABE_1F23B05F88E5" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
-					<tag xmi:id="EAID_465BEE89_B6F6_b4b6_ACEF_AF6315C7ABDB" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
-					<tag xmi:id="EAID_4C5EF8A2_0821_0b08_8478_6568242AFE81" name="sequenceKey" notes="Description: The sequence key facilitates the construction of an order in a number of associations from one class to another. This key is typically used when defining the order of elements in a schema, generated from a model. Within a class, all attributes have pre-assigned sequence numbers starting from 100. For associations to 'fit' at a specific position, users must assign the appropriate value to this sequenceKey attribute.&#xA;"/>
-					<tag xmi:id="EAID_58012A38_B1B7_6ab1_9DE0_67FC2ABE2979" name="choiceGroup"/>
-					<tag xmi:id="EAID_6DA0E79C_F966_43f9_9408_D2FE5951DD9E" name="dateLastChanged"/>
-					<tag xmi:id="EAID_8FF6777B_DB45_efdb_B226_5DA9DAFD8227" name="annotation"/>
-					<tag xmi:id="EAID_92EDA958_38F7_4338_B2EE_AE8DD33BF979" name="_lineStyle"/>
-					<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_ABAA_A9C85EC03B51" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
-					<tag xmi:id="EAID_B58E397F_F5E9_baf5_BC1B_29A15FCE247E" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
-					<tag xmi:id="EAID_C10AFBA5_7992_1979_84A7_F740C6393F0E" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
-					<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_A347_FF280922A7A2" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
-					<tag xmi:id="EAID_EACAFD13_0BDD_a60b_AA52_7D75DCFAB4CF" name="author"/>
-				</tags>
-			</connector>
-			<connector xmi:idref="EAID_12454F34_301B_48d8_B965_08A466D87990">
-				<source xmi:idref="EAID_A76F70CB_A6F3_4ab6_BD54_EA7D997177BF">
-					<model ea_localid="203532" type="Class" name="GetAllBananas"/>
-					<role visibility="Public"/>
-					<type aggregation="composite"/>
-					<constraints/>
-					<modifiers isOrdered="false" isNavigable="false"/>
-					<style value="Navigable=Unspecified;Owned=0;"/>
-					<documentation/>
-					<xrefs/>
-					<tags/>
-				</source>
-				<target xmi:idref="EAID_A8DEDAB5_8A74_4531_A1A4_C20B097A948A">
-					<model ea_localid="202343" type="Class" name="RequestPaginationType"/>
-					<role name="QueryParameters" visibility="Public"/>
-					<type multiplicity="1" aggregation="none"/>
-					<constraints/>
-					<modifiers isOrdered="false" isNavigable="false"/>
-					<style value="Navigable=Navigable;Owned=0;"/>
-					<documentation/>
-					<xrefs/>
-					<tags/>
-				</target>
-				<model ea_localid="246605"/>
-				<properties ea_type="Association" stereotype="ASMBIE" direction="Source -&gt; Destination"/>
-				<modifiers isRoot="false" isLeaf="false"/>
-				<parameterSubstitutions/>
-				<documentation/>
-				<appearance linemode="3" linecolor="-1" linewidth="0" seqno="0" headStyle="0" lineStyle="0"/>
-				<labels rb="1" rt="+QueryParameters"/>
-				<extendedProperties/>
-				<style/>
-				<xrefs value="$XREFPROP=$XID={BAA639CC-E08E-4299-AFC3-64A8D594A0AA}$XID;$NAM=Stereotypes$NAM;$TYP=connector property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=ASMBIE;FQName=Enexis ECDM::ASMBIE;@ENDSTEREO;$DES;$CLT={12454F34-301B-48d8-B965-08A466D87990}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
-				<tags>
-					<tag xmi:id="EAID_0AC8C4A4_8991_8a89_98F2_515B2AB15805" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
-					<tag xmi:id="EAID_18B187E9_6EB6_4b6e_AC68_F497CBB07CC2" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
-					<tag xmi:id="EAID_465BEE89_B6F6_b4b6_B23B_9941BC9CF360" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
-					<tag xmi:id="EAID_4C5EF8A2_0821_0b08_8139_72A4F014EDE2" name="sequenceKey" notes="Description: The sequence key facilitates the construction of an order in a number of associations from one class to another. This key is typically used when defining the order of elements in a schema, generated from a model. Within a class, all attributes have pre-assigned sequence numbers starting from 100. For associations to 'fit' at a specific position, users must assign the appropriate value to this sequenceKey attribute.&#xA;"/>
-					<tag xmi:id="EAID_58012A38_B1B7_6ab1_B076_4E0E5A77D4CC" name="choiceGroup"/>
-					<tag xmi:id="EAID_6DA0E79C_F966_43f9_AF6C_E2F55F9467F6" name="dateLastChanged"/>
-					<tag xmi:id="EAID_8FF6777B_DB45_efdb_8BA0_16CD615A5D18" name="annotation"/>
-					<tag xmi:id="EAID_92EDA958_38F7_4338_8C59_32C25AFF8178" name="_lineStyle"/>
-					<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_97FB_D2B327E20D90" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
-					<tag xmi:id="EAID_B58E397F_F5E9_baf5_8BD7_96D80ECBB2BA" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
-					<tag xmi:id="EAID_C10AFBA5_7992_1979_8AB3_D733F0C5D965" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
-					<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_8012_FF5552F14A20" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
-					<tag xmi:id="EAID_EACAFD13_0BDD_a60b_8300_827C3CD25512" name="author"/>
-				</tags>
-			</connector>
-			<connector xmi:idref="EAID_EEF87F0C_0C79_418e_A16B_354A2B07EED6">
-				<source xmi:idref="EAID_A76F70CB_A6F3_4ab6_BD54_EA7D997177BF">
-					<model ea_localid="203532" type="Class" name="GetAllBananas"/>
-					<role visibility="Public" targetScope="instance"/>
-					<type aggregation="composite" containment="Unspecified"/>
-					<constraints/>
-					<modifiers isOrdered="false" changeable="none" isNavigable="false"/>
-					<style value="Union=0;Derived=0;AllowDuplicates=0;Owned=0;Navigable=Unspecified;"/>
-					<documentation/>
-					<xrefs/>
-					<tags/>
-				</source>
-				<target xmi:idref="EAID_C815715E_489C_42d5_A393_76355A0ECBDD">
-					<model ea_localid="203572" type="Class" name="ResponsePaginationType"/>
-					<role name="QueryParameters" visibility="Public" targetScope="instance"/>
-					<type multiplicity="1" aggregation="none" containment="Unspecified"/>
-					<constraints/>
-					<modifiers isOrdered="false" changeable="none" isNavigable="false"/>
-					<style value="Union=0;Derived=0;AllowDuplicates=0;Owned=0;Navigable=Navigable;"/>
-					<documentation/>
-					<xrefs/>
-					<tags/>
-				</target>
-				<model ea_localid="246658"/>
-				<properties ea_type="Association" stereotype="ASMBIE" direction="Source -&gt; Destination"/>
-				<modifiers isRoot="false" isLeaf="false"/>
-				<parameterSubstitutions/>
-				<documentation/>
-				<appearance linemode="3" linecolor="-1" linewidth="0" seqno="0" headStyle="0" lineStyle="0"/>
-				<labels rb="1" rt="+QueryParameters"/>
-				<extendedProperties virtualInheritance="0"/>
-				<style/>
-				<xrefs value="$XREFPROP=$XID={937732DA-B56C-4066-AF92-E2252BDCB940}$XID;$NAM=Stereotypes$NAM;$TYP=connector property$TYP;$VIS=Public$VIS;$PAR=0$PAR;$DES=@STEREO;Name=ASMBIE;FQName=Enexis ECDM::ASMBIE;@ENDSTEREO;$DES;$CLT={EEF87F0C-0C79-418e-A16B-354A2B07EED6}$CLT;$SUP=&lt;none&gt;$SUP;$ENDXREF;"/>
-				<tags>
-					<tag xmi:id="EAID_0AC8C4A4_8991_8a89_BBB1_723EAA52BED7" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
-					<tag xmi:id="EAID_18B187E9_6EB6_4b6e_828D_387746BF1AAC" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
-					<tag xmi:id="EAID_465BEE89_B6F6_b4b6_9E76_0242DD1BDE37" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
-					<tag xmi:id="EAID_4C5EF8A2_0821_0b08_998A_B8B469EDBC1A" name="sequenceKey" notes="Description: The sequence key facilitates the construction of an order in a number of associations from one class to another. This key is typically used when defining the order of elements in a schema, generated from a model. Within a class, all attributes have pre-assigned sequence numbers starting from 100. For associations to 'fit' at a specific position, users must assign the appropriate value to this sequenceKey attribute.&#xA;"/>
-					<tag xmi:id="EAID_58012A38_B1B7_6ab1_B4B2_2F789DB3612F" name="choiceGroup"/>
-					<tag xmi:id="EAID_6DA0E79C_F966_43f9_B266_636AA55F7E19" name="dateLastChanged"/>
-					<tag xmi:id="EAID_8FF6777B_DB45_efdb_BD9A_D3E2BE572386" name="annotation"/>
-					<tag xmi:id="EAID_92EDA958_38F7_4338_BD67_0F3BA8F053F5" name="_lineStyle"/>
-					<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_A13F_BB0416157FF9" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
-					<tag xmi:id="EAID_B58E397F_F5E9_baf5_941B_00AB47F3D31B" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
-					<tag xmi:id="EAID_C10AFBA5_7992_1979_977A_4F0A6EA6F472" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
-					<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_8641_3F974F68934B" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
-					<tag xmi:id="EAID_EACAFD13_0BDD_a60b_A7AF_953148207297" name="author"/>
+					<tag xmi:id="EAID_0AC8C4A4_8991_8a89_A545_1546184368BF" name="uniqueID" notes="Description: An identifier that references the associated entity in a unique and unambiguous way.&#xA;"/>
+					<tag xmi:id="EAID_18B187E9_6EB6_4b6e_B9A8_494372A2BB5D" name="dictionaryEntryName" notes="Description: The official and formal entity name as registered in a dictionary of terms (glossary).&#xA;"/>
+					<tag xmi:id="EAID_465BEE89_B6F6_b4b6_AA3C_79E8EBDBE8D8" name="definition" notes="Description: Semantic meaning of the associated entity.&#xA;"/>
+					<tag xmi:id="EAID_4C5EF8A2_0821_0b08_B0E3_3AAA793F3883" name="sequenceKey" notes="Description: The sequence key facilitates the construction of an order in a number of associations from one class to another. This key is typically used when defining the order of elements in a schema, generated from a model. Within a class, all attributes have pre-assigned sequence numbers starting from 100. For associations to 'fit' at a specific position, users must assign the appropriate value to this sequenceKey attribute.&#xA;"/>
+					<tag xmi:id="EAID_58012A38_B1B7_6ab1_8679_EB98379DDC01" name="choiceGroup"/>
+					<tag xmi:id="EAID_6DA0E79C_F966_43f9_B122_B3714B25BF5F" name="dateLastChanged"/>
+					<tag xmi:id="EAID_8FF6777B_DB45_efdb_8487_AFEC350875AE" name="annotation"/>
+					<tag xmi:id="EAID_92EDA958_38F7_4338_A0A6_B498C2DDD797" name="_lineStyle"/>
+					<tag xmi:id="EAID_B4F8B86F_CAF9_0fca_BC6A_056D5EDA24B2" name="reference" notes="Description: External reference containing additional information or context. Can be a pointer to an architecture artifact.&#xA;"/>
+					<tag xmi:id="EAID_B58E397F_F5E9_baf5_8F2F_7233283ABB60" name="ECDMVersion" value="1.0" notes="Default: 1.0&#xA;"/>
+					<tag xmi:id="EAID_C10AFBA5_7992_1979_AE8F_088188F496C6" name="businessTermName" notes="Description: One or more synonym terms under which the associated entity is commonly known and used in a business (in case multiple terms are used, these must be separated by commas).&#xA;"/>
+					<tag xmi:id="EAID_D5E1D1F7_1BE4_421b_841E_3176FB07E094" name="displayName" notes="Description: An informal alternative name of the associated entity that can be used as a representation term.&#xA;"/>
+					<tag xmi:id="EAID_EACAFD13_0BDD_a60b_8DF9_AA2274A4B78E" name="author"/>
 				</tags>
 			</connector>
 			<connector xmi:idref="EAID_0ED6A213_58AF_4cf3_9F29_3F4271E35D49">
@@ -1228,7 +1339,9 @@
 			</uml:Profile>
 			<uml:Profile xmi:version="2.1" xmlns:uml="http://schema.omg.org/spec/UML/2.1/" xmlns:xmi="http://schema.omg.org/spec/XMI/2.1" xmi:id="9B84831D-3" nsPrefix="Enexis_ECDM" name="Enexis ECDM" metamodelReference="mmref01">
 				<ownedComment xmi:type="uml:Comment" xmi:id="comment01" annotatedElement="9B84831D-3">
-					<body>20170918: Vs 3.0:	Enhanced Service Profile for use with REST. Version:3.0</body>
+					<body>20170918:  Vs 3.0:	Enhanced Service Profile for use with REST.
+20180109:  Vs 3.1:	Added support for 'nillable' elements.
+20180110:  Vs 3.2:	Added 'alternativeNaming' tag to CommonSchema (SOAP backwards compatibility). Version:3.2</body>
 				</ownedComment>
 				<packageImport xmi:id="mmref01">
 					<importedPackage href="http://schema.omg.org/spec/UML/2.1/"/>
@@ -1361,6 +1474,9 @@
 				</packagedElement>
 				<packagedElement xmi:type="uml:Stereotype" xmi:id="CommonSchema" name="CommonSchema">
 					<generalization xmi:type="uml:Generalization" xmi:id="CommonSchema_ServiceCapability_generalization" general="ServiceCapability"/>
+					<ownedAttribute xmi:type="uml:Property" xmi:id="CommonSchema-useAlternativeNaming" name="useAlternativeNaming">
+						<type href="http://schema.omg.org/spec/UML/2.1/String"/>
+					</ownedAttribute>
 					<ownedAttribute xmi:type="uml:Property" xmi:id="CommonSchema-pathName" name="pathName">
 						<type href="http://schema.omg.org/spec/UML/2.1/String"/>
 					</ownedAttribute>
@@ -1476,6 +1592,9 @@
 						<type href="http://schema.omg.org/spec/UML/2.1/String"/>
 					</ownedAttribute>
 					<ownedAttribute xmi:type="uml:Property" xmi:id="RESTOperation-useHeaderParameters" name="useHeaderParameters">
+						<type href="http://schema.omg.org/spec/UML/2.1/String"/>
+					</ownedAttribute>
+					<ownedAttribute xmi:type="uml:Property" xmi:id="RESTOperation-useLinkHeaders" name="useLinkHeaders">
 						<type href="http://schema.omg.org/spec/UML/2.1/String"/>
 					</ownedAttribute>
 				</packagedElement>
@@ -1717,6 +1836,9 @@
 				</packagedElement>
 				<packagedElement xmi:type="uml:Stereotype" xmi:id="Content" name="Content">
 					<generalization xmi:type="uml:Generalization" xmi:id="Content_ECDMAttrib_generalization" general="ECDMAttrib"/>
+					<ownedAttribute xmi:type="uml:Property" xmi:id="Content-nillable" name="nillable">
+						<type href="http://schema.omg.org/spec/UML/2.1/String"/>
+					</ownedAttribute>
 				</packagedElement>
 				<packagedElement xmi:type="uml:Stereotype" xmi:id="LOMView" name="LOMView">
 					<generalization xmi:type="uml:Generalization" xmi:id="LOMView_ECDMPkg_generalization" general="ECDMPkg"/>
@@ -1763,25 +1885,27 @@
 			<diagram xmi:id="EAID_865D0305_0C85_41d6_A33B_DF229298F6ED">
 				<model package="EAPK_9DDA86D1_8AEC_4bf5_BAD1_51AE49FCCC1A" localID="9200" owner="EAPK_9DDA86D1_8AEC_4bf5_BAD1_51AE49FCCC1A"/>
 				<properties name="APISupportModel" type="Logical"/>
-				<project author="wmeijers" version="1.0" created="2017-11-09 12:16:38" modified="2017-12-20 09:50:58"/>
+				<project author="wmeijers" version="1.0" created="2017-11-09 12:16:38" modified="2018-01-11 14:26:36"/>
 				<style1 value="ShowPrivate=1;ShowProtected=1;ShowPublic=1;HideRelationships=0;Locked=0;Border=0;HighlightForeign=0;PackageContents=0;SequenceNotes=0;ScalePrintImage=0;PPgs.cx=0;PPgs.cy=0;DocSize.cx=1618;DocSize.cy=1138;ShowDetails=0;Orientation=L;Zoom=100;ShowTags=0;OpParams=1;VisibleAttributeDetail=0;ShowOpRetType=1;ShowIcons=1;CollabNums=0;HideProps=0;ShowReqs=0;ShowCons=0;PaperSize=8;HideParents=0;UseAlias=0;HideAtts=0;HideOps=0;HideStereo=0;HideElemStereo=0;ShowTests=0;ShowMaint=0;ConnectorNotation=UML 2.1;ExplicitNavigability=0;ShowShape=1;AdvancedElementProps=1;AdvancedFeatureProps=1;AdvancedConnectorProps=1;m_bElementClassifier=1;ShowNotes=0;SuppressBrackets=0;SuppConnectorLabels=0;PrintPageHeadFoot=0;ShowAsList=0;"/>
-				<style2 value="ExcludeRTF=0;DocAll=0;HideQuals=0;AttPkg=1;ShowTests=0;ShowMaint=0;SuppressFOC=1;MatrixActive=0;SwimlanesActive=1;KanbanActive=0;MatrixLineWidth=1;MatrixLineClr=0;MatrixLocked=0;TConnectorNotation=UML 2.1;TExplicitNavigability=0;AdvancedElementProps=1;AdvancedFeatureProps=1;AdvancedConnectorProps=1;m_bElementClassifier=1;ProfileData=;MDGDgm=;STBLDgm=;ShowNotes=0;VisibleAttributeDetail=0;ShowOpRetType=1;SuppressBrackets=0;SuppConnectorLabels=0;PrintPageHeadFoot=0;ShowAsList=0;SuppressedCompartments=;Theme=:119;SaveTag=FC7F6AD8;"/>
+				<style2 value="ExcludeRTF=0;DocAll=0;HideQuals=0;AttPkg=1;ShowTests=0;ShowMaint=0;SuppressFOC=1;MatrixActive=0;SwimlanesActive=1;KanbanActive=0;MatrixLineWidth=1;MatrixLineClr=0;MatrixLocked=0;TConnectorNotation=UML 2.1;TExplicitNavigability=0;AdvancedElementProps=1;AdvancedFeatureProps=1;AdvancedConnectorProps=1;m_bElementClassifier=1;ProfileData=;MDGDgm=;STBLDgm=;ShowNotes=0;VisibleAttributeDetail=0;ShowOpRetType=1;SuppressBrackets=0;SuppConnectorLabels=0;PrintPageHeadFoot=0;ShowAsList=0;SuppressedCompartments=;Theme=:119;SaveTag=47AFDE25;"/>
 				<swimlanes value="locked=false;orientation=0;width=0;inbar=false;names=false;color=-1;bold=false;fcol=0;tcol=-1;ofCol=-1;ufCol=-1;hl=0;ufh=0;cls=0;SwimlaneFont=lfh:-10,lfw:0,lfi:0,lfu:0,lfs:0,lfface:Calibri,lfe:0,lfo:0,lfchar:1,lfop:0,lfcp:0,lfq:0,lfpf=0,lfWidth=0;"/>
 				<matrixitems value="locked=false;matrixactive=false;swimlanesactive=true;kanbanactive=false;width=1;clrLine=0;"/>
 				<extendedProperties/>
 				<elements>
-					<element geometry="Left=31;Top=223;Right=273;Bottom=308;" subject="EAID_C815715E_489C_42d5_A393_76355A0ECBDD" seqno="1" style="DUID=34728722;HideIcon=0;"/>
-					<element geometry="Left=292;Top=113;Right=416;Bottom=371;" subject="EAID_9DA879FD_70FE_46e5_900C_24E10DE152B9" seqno="2" style="DUID=EF354C4D;NSL=0;BCol=-1;BFol=-1;LCol=-1;LWth=-1;fontsz=0;bold=0;black=0;italic=0;ul=0;charset=0;pitch=0;HideIcon=0;"/>
-					<element geometry="Left=31;Top=316;Right=273;Bottom=418;" subject="EAID_BA0C2CD3_D7DC_409c_BFB9_6B2552B010AD" seqno="3" style="DUID=C22B81E4;NSL=0;BCol=-1;BFol=-1;LCol=-1;LWth=-1;fontsz=0;bold=0;black=0;italic=0;ul=0;charset=0;pitch=0;HideIcon=0;"/>
-					<element geometry="Left=3;Top=2;Right=243;Bottom=77;" subject="EAID_776BD7CA_4B52_4011_9E39_984BAB2E3D70" seqno="4" style="DUID=00BE82A7;"/>
-					<element geometry="Left=31;Top=113;Right=273;Bottom=215;" subject="EAID_A8DEDAB5_8A74_4531_A1A4_C20B097A948A" seqno="5" style="DUID=BD90C251;HideIcon=0;"/>
+					<element geometry="Left=283;Top=222;Right=525;Bottom=324;" subject="EAID_733274B4_A676_43d8_9379_D3E40F981F77" seqno="1" style="DUID=DA1F8005;NSL=0;BCol=-1;BFol=-1;LCol=-1;LWth=-1;fontsz=0;bold=0;black=0;italic=0;ul=0;charset=0;pitch=0;HideIcon=0;"/>
+					<element geometry="Left=283;Top=113;Right=525;Bottom=215;" subject="EAID_C3C37642_61AA_490a_9DEA_D8CCEA53A967" seqno="2" style="DUID=CE056836;HideIcon=0;"/>
+					<element geometry="Left=31;Top=222;Right=273;Bottom=324;" subject="EAID_C815715E_489C_42d5_A393_76355A0ECBDD" seqno="3" style="DUID=34728722;HideIcon=0;"/>
+					<element geometry="Left=283;Top=345;Right=407;Bottom=603;" subject="EAID_9DA879FD_70FE_46e5_900C_24E10DE152B9" seqno="4" style="DUID=EF354C4D;NSL=0;BCol=-1;BFol=-1;LCol=-1;LWth=-1;fontsz=0;bold=0;black=0;italic=0;ul=0;charset=0;pitch=0;HideIcon=0;"/>
+					<element geometry="Left=31;Top=345;Right=273;Bottom=447;" subject="EAID_BA0C2CD3_D7DC_409c_BFB9_6B2552B010AD" seqno="5" style="DUID=C22B81E4;NSL=0;BCol=-1;BFol=-1;LCol=-1;LWth=-1;fontsz=0;bold=0;black=0;italic=0;ul=0;charset=0;pitch=0;HideIcon=0;"/>
+					<element geometry="Left=3;Top=2;Right=243;Bottom=77;" subject="EAID_776BD7CA_4B52_4011_9E39_984BAB2E3D70" seqno="6" style="DUID=00BE82A7;"/>
+					<element geometry="Left=31;Top=113;Right=273;Bottom=215;" subject="EAID_A8DEDAB5_8A74_4531_A1A4_C20B097A948A" seqno="7" style="DUID=BD90C251;HideIcon=0;"/>
 				</elements>
 			</diagram>
 		</diagrams>
 		<EAStub xmi:id="EAID_4EC09CB3_B767_400c_A788_257F398DBD24" name="CodeType" UMLType="DataType"/>
 		<EAStub xmi:id="EAID_43512459_F7F5_4c31_A140_8CFD8DE64A32" name="TextType" UMLType="DataType"/>
-		<EAStub xmi:id="EAID_09760537_ECC3_4779_90E2_C59AF9471FF4" name="CounterType" UMLType="DataType"/>
 		<EAStub xmi:id="EAID_3BD09527_5D03_4cc7_998A_66A03AB38BBE" name="IdentifierType" UMLType="DataType"/>
+		<EAStub xmi:id="EAID_09760537_ECC3_4779_90E2_C59AF9471FF4" name="CounterType" UMLType="DataType"/>
 		<EAStub xmi:id="EAID_2C0B8054_BEAA_4173_B682_ED0B8444BC46" name="IndicatorType" UMLType="DataType"/>
 	</xmi:Extension>
 </xmi:XMI>
