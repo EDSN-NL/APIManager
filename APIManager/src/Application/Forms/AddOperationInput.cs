@@ -67,23 +67,31 @@ namespace Plugin.Application.Forms
             }
             else
             {
+                string checkedStrings = string.Empty;
                 foreach (string operation in operations)
                 {
                     string validatedOperation = operation.Trim();
                     if (!char.IsUpper(validatedOperation[0]))
                     {
-                        errorText = "Operation name '" + operation + "' must be in PascalCase, please try again!";
+                        errorText = "Operation name '" + validatedOperation + "' must be in PascalCase, please try again!";
                         this._operValidation = false;
                         break;
                     }
 
                     // Check if this is a unique name...
-                    if (!this._parent.IsUniqueName(operation))
+                    if (!this._parent.IsUniqueName(validatedOperation))
                     {
-                        errorText = "Operation name '" + operation + "' is not unique, try again!";
+                        errorText = "Operation name '" + validatedOperation + "' is not unique, try again!";
                         this._operValidation = false;
                         break;
                     }
+                    if (checkedStrings.Contains(validatedOperation))
+                    {
+                        errorText = "Operation name '" + validatedOperation + "' is specified multiple times, try again!";
+                        this._operValidation = false;
+                        break;
+                    }
+                    checkedStrings += "," + validatedOperation;
                 }
             }
 
