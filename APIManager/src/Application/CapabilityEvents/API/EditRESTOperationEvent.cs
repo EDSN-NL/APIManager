@@ -64,7 +64,7 @@ namespace Plugin.Application.Events.API
             var operationDecl = new RESTOperationDeclaration(myOperation);
             using (var dialog = new RESTOperationDialog(operationDecl))
             {
-                if (dialog.ShowDialog() == DialogResult.OK)
+                if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
                 {
                     bool result = myOperation.Edit(dialog.Operation, dialog.MinorVersionIndicator);
                     if (result)
@@ -79,14 +79,11 @@ namespace Plugin.Application.Events.API
                         svcContext.MyDiagram.AddAssociationList(this._diagramAssocList);
                         svcContext.MyDiagram.Redraw();
                         svcContext.DeclarationPackage.Refresh();
-
                         MessageBox.Show("Operation has been updated successfully.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
-                    else
-                    {
-                        MessageBox.Show("Failed to update Operation!", "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    else MessageBox.Show("Failed to update Operation!", "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                svcContext.UnlockModel();
             }
         }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Framework.Logging;
 using Framework.View;
+using Framework.Context;
 
 namespace Framework.Model
 {
@@ -153,15 +154,6 @@ namespace Framework.Model
         internal abstract ModelElementType GetRootType(ModelElementType type);
 
         /// <summary>
-        /// Default constructor makes sure that the Model Element Implementation dictionary and diagram lists are created.
-        /// </summary>
-        protected ModelImplementation()
-        {
-            this._dictionary = new SortedList<ModelElementType, SortedList<string, ModelElementImplementation>>();
-            this._diagramList = new SortedList<int, DiagramImplementation>();
-        }
-
-        /// <summary>
         /// This method is called during startup of the plugin and must initialize all model-specific stuff.
         /// The method is called from the ModelSlt during 'bind'.
         /// </summary>
@@ -173,6 +165,16 @@ namespace Framework.Model
                 this._diagramList = new SortedList<int, DiagramImplementation>();
             }
         }
+
+        /// <summary>
+        /// Attempts to lock the model associated with the specified root package. The function checks the current locking status. If already locked
+        /// by another user, an error is displayed. Otherwise, if locking failed (for whatever reason), an error is displayed.
+        /// If the package is already locked by the current user, no action is performed.
+        /// Note that we only check the locking status of the model root. This implies that things might go wrong in case lower-level items are 
+        /// locked by another user!
+        /// </summary>
+        /// <returns>True if locked successfully.</returns>
+        internal abstract bool LockModel(MEPackage modelRoot);
 
         /// <summary>
         /// Forces the repository implementation to refresh the entire model tree. This can be
@@ -267,6 +269,13 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Attempts to unlock the model defined by the specified root package. We only perform any actions in case Automatic Locking is enabled and
+        /// we have not specified persistent locks.
+        /// The function fails silently on errors.
+        /// </summary>
+        internal abstract void UnlockModel(MEPackage modelRoot);
+
+        /// <summary>
         /// Removes a DiagramImplementation that has been registered earlier. Fails silently if the diagram is not registered.
         /// This method must be used with caution since it might corrupt the associations between interface Diagrams and the
         /// associated implementation objects! Register/Deregister is typically managed by the implementation objects themselves.
@@ -344,6 +353,15 @@ namespace Framework.Model
             ModelElementType keyType = GetRootType(type);
             string objectKey = type.ToString() + "." + instanceID.ToString();
             return (this._dictionary.ContainsKey(keyType) && this._dictionary[keyType].ContainsKey(objectKey)) ? this._dictionary[keyType][objectKey] : null;
+        }
+
+        /// <summary>
+        /// Default constructor makes sure that the Model Element Implementation dictionary and diagram lists are created.
+        /// </summary>
+        protected ModelImplementation()
+        {
+            this._dictionary = new SortedList<ModelElementType, SortedList<string, ModelElementImplementation>>();
+            this._diagramList = new SortedList<int, DiagramImplementation>();
         }
     }
 }

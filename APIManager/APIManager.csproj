@@ -113,7 +113,7 @@
     <Compile Include="src\Application\CapabilityEvents\API\CreateRESTServiceDeclarationEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\ProcessRESTInterfaceEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\CodeList\ProcessCodeListSetEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\AddAnnotationEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\UpdateChangeLogEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\DeleteInterfaceEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\AddInterfaceEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\AssociateWithOperationsEvent.cs" />

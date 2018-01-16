@@ -218,6 +218,21 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Attempts to lock the model associated with the specified root package. The function checks the current locking status. If already locked
+        /// by another user, an error is displayed. Otherwise, if locking failed (for whatever reason), an error is displayed.
+        /// If the package is already locked by the current user, no action is performed.
+        /// Note that we only check the locking status of the model root. This implies that things might go wrong in case lower-level items are 
+        /// locked by another user!
+        /// </summary>
+        /// <returns>True if locked successfully.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal bool LockModel(MEPackage modelRoot)
+        {
+            if (this._modelImp != null) return this._modelImp.LockModel(modelRoot);
+            else throw new MissingImplementationException("ModelImplementation");
+        }
+
+        /// <summary>
         /// Forces the repository implementation to refresh the entire model tree. 
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
@@ -236,6 +251,19 @@ namespace Framework.Model
             Logger.WriteInfo("Framework.Model.ModelSlt.shutDown >> Shutting down...");
             if (this._modelImp != null) this._modelImp.ShutDown();
             this._modelImp = null;
+        }
+
+
+        /// <summary>
+        /// Attempts to unlock the model defined by the specified root package. We only perform any actions in case Automatic Locking is enabled and
+        /// we have not specified persistent locks.
+        /// The function fails silently on errors.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal void UnlockModel(MEPackage modelRoot)
+        {
+            if (this._modelImp != null) this._modelImp.UnlockModel(modelRoot);
+            else throw new MissingImplementationException("ModelImplementation");
         }
 
         /// <summary>

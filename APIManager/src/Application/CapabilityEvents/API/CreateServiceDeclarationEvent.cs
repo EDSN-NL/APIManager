@@ -36,16 +36,20 @@ namespace Plugin.Application.Events.API
             Logger.WriteInfo("Plugin.Application.Events.API.CreateServiceDeclarationEvent.HandleEvent >> Processing event...");
             ContextSlt context = ContextSlt.GetContextSlt();
             MEPackage containerPackage = context.CurrentPackage;
-            using (var dialog = new CreateSOAPServiceDeclaration(containerPackage))
+            if (ModelSlt.GetModelSlt().LockModel(containerPackage))
             {
-                if (dialog.ShowDialog() == DialogResult.OK)
+                using (var dialog = new CreateSOAPServiceDeclaration(containerPackage))
                 {
-                    // We only have to invoke this constructor in order to create the entire service structure (we like to keep events simple :-)
-                    var svc = new ApplicationService(containerPackage, dialog.PackageName, dialog.OperationList, 
-                                                     context.GetConfigProperty(_ServiceDeclPkgStereotype));
-                    if (!svc.Valid) MessageBox.Show("Error creating Service declaration, nothing has been created!",
-                                                    "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (dialog.ShowDialog() == DialogResult.OK)
+                    {
+                        // We only have to invoke this constructor in order to create the entire service structure (we like to keep events simple :-)
+                        var svc = new ApplicationService(containerPackage, dialog.PackageName, dialog.OperationList,
+                                                         context.GetConfigProperty(_ServiceDeclPkgStereotype));
+                        if (!svc.Valid) MessageBox.Show("Error creating Service declaration, nothing has been created!",
+                                                        "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
+                ModelSlt.GetModelSlt().UnlockModel(containerPackage);
             }
         }
     }

@@ -44,6 +44,8 @@ namespace Plugin.Application.Forms
             DEUniqueID.Checked                      = context.GetBoolSetting(FrameworkSettings._DEUniqueID);
             SaveMsgDiagrams.Checked                 = context.GetBoolSetting(FrameworkSettings._SaveMessageDiagrams);
             DocGenUseCommon.Checked                 = context.GetBoolSetting(FrameworkSettings._DocGenUseCommon);
+            AutoLocking.Checked                     = context.GetBoolSetting(FrameworkSettings._UseAutomaticLocking);
+            PersistentLocks.Checked                 = context.GetBoolSetting(FrameworkSettings._PersistentModelLocks);
             RAAPIKeys.Text                          = context.GetStringSetting(FrameworkSettings._RESTAuthAPIKeys);
             RESTHostName.Text                       = context.GetStringSetting(FrameworkSettings._RESTHostName);
             RESTSchemes.Text                        = context.GetStringSetting(FrameworkSettings._RESTSchemes);
@@ -102,7 +104,6 @@ namespace Plugin.Application.Forms
             context.FrameworkStartTransaction();
 
             context.SetBoolSetting(FrameworkSettings._UseLogFile, UseLogfile.Checked);
-            context.SetStringSetting(FrameworkSettings._LogFileName, this._logfileName);
             context.SetBoolSetting(FrameworkSettings._CLAddCodeTypesToDiagram, CLAddCodeTypesToDiagram.Checked);
             context.SetBoolSetting(FrameworkSettings._CLAddSourceEnumsToDiagram, CLAddSourceEnumsToDiagram.Checked);
             context.SetBoolSetting(FrameworkSettings._AutoIncrementBuildNumbers, AutoIncrementBuildNr.Checked);
@@ -117,9 +118,12 @@ namespace Plugin.Application.Forms
             context.SetBoolSetting(FrameworkSettings._DENotes, DENotes.Checked);
             context.SetBoolSetting(FrameworkSettings._DEUniqueID, DEUniqueID.Checked);
             context.SetBoolSetting(FrameworkSettings._SaveMessageDiagrams, SaveMsgDiagrams.Checked);
+            context.SetBoolSetting(FrameworkSettings._DocGenUseCommon, DocGenUseCommon.Checked);
+            context.SetBoolSetting(FrameworkSettings._UseAutomaticLocking, AutoLocking.Checked);
+            context.SetBoolSetting(FrameworkSettings._PersistentModelLocks, PersistentLocks.Checked);
             context.SetStringSetting(FrameworkSettings._DiagramSaveType, this._imageType);
             context.SetStringSetting(FrameworkSettings._InterfaceContractType, this._interfaceType);
-            context.SetBoolSetting(FrameworkSettings._DocGenUseCommon, DocGenUseCommon.Checked);
+            context.SetStringSetting(FrameworkSettings._LogFileName, this._logfileName);
             context.SetStringSetting(FrameworkSettings._RESTAuthScheme, (string)RAScheme.SelectedItem);
             context.SetStringSetting(FrameworkSettings._RESTAuthOAuth2Flow, (string)RAFlow.SelectedItem);
             context.SetStringSetting(FrameworkSettings._RESTAuthAPIKeys, RAAPIKeys.Text);

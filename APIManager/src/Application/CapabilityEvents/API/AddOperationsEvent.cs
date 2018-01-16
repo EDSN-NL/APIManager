@@ -74,7 +74,7 @@ namespace Plugin.Application.Events.API
 
             using (var dialog = new AddOperationInput(svcContext.DeclarationPackage))
             {
-                if (dialog.ShowDialog() == DialogResult.OK)
+                if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
                 {
                     // Creating the service will build the entire object hierarchy. Subsequently, we can create Capabilities by class alone,
                     // in which case we will associate the interface class with the existing hierarchy.
@@ -94,11 +94,9 @@ namespace Plugin.Application.Events.API
                         svcContext.DeclarationPackage.Refresh();
                         MessageBox.Show("Operations have been added successfully.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
-                    else
-                    {
-                        MessageBox.Show("Failed to add one or more operations!", "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    else MessageBox.Show("Failed to add one or more operations!", "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                svcContext.UnlockModel();
             }
         }
 

@@ -7,8 +7,15 @@ namespace Framework.Model
     /// <summary>
     /// Representation of an UML 'Package' artifact.
     /// </summary>
-    internal class MEPackage: ModelElement
+    internal class MEPackage : ModelElement
     {
+        // Result of a lock test on the current package:
+        // Unknown = no conclusive result;
+        // Locked = locked by another user;
+        // LockedByMe = locked by current user;
+        // Unlocked = not locked;
+        internal enum LockStatus {Unknown, Locked, LockedByMe, Unlocked }
+
         /// <summary>
         /// Returns a list of all classes in the package that have the 'Business Component' stereotype as well as all classes
         /// that represent one of the known data types.
@@ -244,6 +251,24 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Test whether the package is currently locked. We do this by checking for the presence of a lock for the current user.
+        /// When no user is found, we assume that security is not enabled and the package is thus unlocked.
+        /// When a user is found, we check for a lock for the current package. This can have three different results:
+        /// 1) No entries are found at all, package is unlocked;
+        /// 2) Lock is found for current user;
+        /// 3) Lock is found for another user;
+        /// Note that we ONLY check whether the package is locked and NOT the contents of the package!
+        /// </summary>
+        /// <param name="lockedUser">Will receive the name of the user who has locked the package.</param>
+        /// <returns>Lock status, one of Unlocked, LockedByMe or Locked.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal LockStatus IsLocked(out string lockedUser)
+        {
+            if (this._imp != null) return ((MEIPackage)this._imp).IsLocked(out lockedUser);
+            else throw new MissingImplementationException("MEIPackage");
+        }
+
+        /// <summary>
         /// This method searches the list current package for any names that match the provided 'name'. This can be a package or a class, diagram,
         /// etc. The function supports 'dotted name notation', e.g. qualified names such as 'package.element' can be used.
         /// When any name is detected that matches the given name, the function returns 'false'.
@@ -254,6 +279,17 @@ namespace Framework.Model
         internal bool IsUniqueName(string name)
         {
             if (this._imp != null) return ((MEIPackage)this._imp).IsUniqueName(name);
+            else throw new MissingImplementationException("MEIPackage");
+        }
+
+        /// <summary>
+        /// Attempts to lock the package and all included elements, diagrams and sub-packages.
+        /// </summary>
+        /// <returns>True when lock is successfull, false on errors (includes locked by somebody else).</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal bool Lock()
+        {
+            if (this._imp != null) return ((MEIPackage)this._imp).Lock();
             else throw new MissingImplementationException("MEIPackage");
         }
 
@@ -275,6 +311,16 @@ namespace Framework.Model
         internal void ShowInTree()
         {
             if (this._imp != null) ((MEIPackage)this._imp).ShowInTree();
+            else throw new MissingImplementationException("MEIPackage");
+        }
+
+        /// <summary>
+        /// Attempts to unlock the package and all included elements, diagrams and sub-packages. Errors are silently ignored.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal void Unlock()
+        {
+            if (this._imp != null) ((MEIPackage)this._imp).Unlock();
             else throw new MissingImplementationException("MEIPackage");
         }
     }

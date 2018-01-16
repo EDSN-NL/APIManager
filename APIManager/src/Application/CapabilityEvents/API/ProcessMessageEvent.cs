@@ -65,29 +65,33 @@ namespace Plugin.Application.Events.API
                 return;
             }
 
-            // Creating the ApplicationService will construct the entire Capability hierarchy in memory. We can subsequently create any specialized Capability
-            // object by using the 'MEClass' constructor, which fetches the appropriate implementation object from the registry...
-            var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
-            var myMessage = new MessageCapability(context.CurrentClass);
-
-            ProcessorManagerSlt processorMgr = ProcessorManagerSlt.GetProcessorManagerSlt();
-            CapabilityProcessor processor = null;
-
-            if (processorMgr.GetProcessorCount(_MessageClassToken) > 1)
+            if (svcContext.LockModel())
             {
-                // Ask user which processor to use.
-                using (var picker = new CapabilityProcessorPicker(_MessageClassToken))
+                // Creating the ApplicationService will construct the entire Capability hierarchy in memory. We can subsequently create any specialized Capability
+                // object by using the 'MEClass' constructor, which fetches the appropriate implementation object from the registry...
+                var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
+                var myMessage = new MessageCapability(context.CurrentClass);
+
+                ProcessorManagerSlt processorMgr = ProcessorManagerSlt.GetProcessorManagerSlt();
+                CapabilityProcessor processor = null;
+
+                if (processorMgr.GetProcessorCount(_MessageClassToken) > 1)
                 {
-                    if (picker.ShowDialog() == DialogResult.OK) processor = picker.SelectedProcessor;
+                    // Ask user which processor to use.
+                    using (var picker = new CapabilityProcessorPicker(_MessageClassToken))
+                    {
+                        if (picker.ShowDialog() == DialogResult.OK) processor = picker.SelectedProcessor;
+                    }
                 }
+                else
+                {
+                    if (processorMgr.GetProcessorCount(_MessageClassToken) == 1)
+                        processor = processorMgr.GetProcessorByIndex(_MessageClassToken, 0);
+                    else MessageBox.Show("No processors are currently defined for Messaging, aborting!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                if (processor != null) myMessage.HandleCapabilities(processor);
+                svcContext.UnlockModel();
             }
-            else
-            {
-                if (processorMgr.GetProcessorCount(_MessageClassToken) ==  1)
-                    processor = processorMgr.GetProcessorByIndex(_MessageClassToken, 0);
-                else MessageBox.Show("No processors are currently defined for Messaging, aborting!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            if (processor != null) myMessage.HandleCapabilities(processor);
         }
     }
 }

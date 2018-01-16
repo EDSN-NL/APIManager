@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration ("")]
 [assembly: AssemblyCompany ("Enexis ICT - BaVo Vernieuwing")]
 [assembly: AssemblyProduct ("APIManager")]
-[assembly: AssemblyCopyright ("Copyright ©  2017, Enexis B.V.")]
+[assembly: AssemblyCopyright ("Copyright ©  2018, Enexis B.V.")]
 [assembly: AssemblyTrademark ("Created for Enexis by Nebulon b.v. (info@nebulon.nl)")]
 [assembly: AssemblyCulture ("")]
 // Most of this solution is 'internal reference only'. The only components that MUST be 'COM-Visible' are the 
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion ("1.1.1.6")]
-[assembly: AssemblyFileVersion ("1.1.1.6")]
+[assembly: AssemblyVersion ("1.1.3.14")]
+[assembly: AssemblyFileVersion ("1.1.3.14")]

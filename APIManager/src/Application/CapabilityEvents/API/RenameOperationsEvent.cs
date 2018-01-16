@@ -60,7 +60,7 @@ namespace Plugin.Application.Events.API
             string oldName = svcContext.OperationClass.Name;
             using (var dialog = new RenameOperationInput(oldName, svcContext.DeclarationPackage))
             {
-                if (dialog.ShowDialog() == DialogResult.OK)
+                if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
                 {
                     var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
 
@@ -81,6 +81,7 @@ namespace Plugin.Application.Events.API
                     myService.CreateLogEntry("Renamed operation: '" + oldName + "' to: '" + svcContext.OperationClass.Name + "'.");
                     svcContext.Refresh();
                 }
+                svcContext.UnlockModel();
             }
         }
     }

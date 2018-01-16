@@ -58,11 +58,12 @@ namespace Plugin.Application.Events.API
             {
                 using (var picker = new CapabilityPicker("Select Operation(s) to associate:", allOperations))
                 {
-                    if (picker.ShowDialog() == DialogResult.OK)
+                    if (svcContext.LockModel() && picker.ShowDialog() == DialogResult.OK)
                     {
                         itfCap.AssociateOperations(picker.GetCheckedCapabilities().ConvertAll(Converter), picker.MinorVersionIndicator);
                         svcContext.Refresh();
                     }
+                    svcContext.UnlockModel();
                 }
             }
             else MessageBox.Show("No operations to be associated with selected interface!", "No free operations", MessageBoxButtons.OK, MessageBoxIcon.Information);

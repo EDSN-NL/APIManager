@@ -34,7 +34,7 @@ namespace Plugin.Application.Events.API
             this._panel.ShowPanel("Check Association Consistency", 8);
             bool needUpdate = false;
 
-            if (svcContext.Valid)
+            if (svcContext.Valid && svcContext.LockModel())
             {
                 MEClass root = svcContext.ServiceClass;
                 this._panel.WriteInfo(0, "Checking Service: '" + root.Name + "'...");
@@ -68,6 +68,7 @@ namespace Plugin.Application.Events.API
                 if (needUpdate) svcContext.Refresh();
                 this._panel.Done();
             }
+            svcContext.UnlockModel();
         }
 
         /// <summary>

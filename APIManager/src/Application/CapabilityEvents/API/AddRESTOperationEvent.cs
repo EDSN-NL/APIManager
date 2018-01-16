@@ -94,7 +94,7 @@ namespace Plugin.Application.Events.API
             var newOperationDecl = new RESTOperationDeclaration(myResource, string.Empty, RESTOperationCapability.OperationType.Unknown);
             using (var dialog = new RESTOperationDialog(newOperationDecl))
             {
-                if (dialog.ShowDialog() == DialogResult.OK)
+                if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
                 {
                     bool result = myResource.AddOperation(dialog.Operation, dialog.MinorVersionIndicator);
                     if (result)
@@ -109,14 +109,11 @@ namespace Plugin.Application.Events.API
                         svcContext.MyDiagram.AddAssociationList(this._diagramAssocList);
                         svcContext.MyDiagram.Redraw();
                         svcContext.DeclarationPackage.Refresh();
-
                         MessageBox.Show("Operation has been added successfully.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
-                    else
-                    {
-                        MessageBox.Show("Failed to add Operation!", "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    else MessageBox.Show("Failed to add Operation!", "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                svcContext.UnlockModel();
             }
         }
 

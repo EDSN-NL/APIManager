@@ -126,7 +126,7 @@ namespace Plugin.Application.Events.API
             var newResource = new RESTResourceDeclaration(parent);
             using (var dialog = new RESTResourceDialog(newResource))
             {
-                if (dialog.ShowDialog() == DialogResult.OK)
+                if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
                 {
                     List<RESTResourceDeclaration> resourceList = new List<RESTResourceDeclaration> { dialog.Resource };
                     bool result = resourceContainer.AddResources(resourceList, dialog.MinorVersionIndicator);
@@ -143,14 +143,11 @@ namespace Plugin.Application.Events.API
                         svcContext.MyDiagram.AddAssociationList(this._diagramAssocList);
                         svcContext.MyDiagram.Redraw();
                         svcContext.DeclarationPackage.Refresh();
-
                         MessageBox.Show("Resources have been added successfully.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
-                    else
-                    {
-                        MessageBox.Show("Failed to add one or more Resources!", "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    else MessageBox.Show("Failed to add one or more Resources!", "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                svcContext.UnlockModel();
             }
         }
 

@@ -29,7 +29,8 @@ namespace SparxEA.Model
         private const string _MetaTypeEnumeration           = "MetaTypeEnumeration";
         private const string _MetaTypeUnion                 = "MetaTypeUnion";
 
-        private EA.Package _package;                // EA Package representation.
+        private EA.Package _package;                        // EA Package representation.
+        private bool _isLocked;                             // Keep track of successfull locking.
 
         // Provide access to the EA instance for use by partner entities...
         internal EA.Package PackageInstance           { get { return this._package; } }
@@ -48,6 +49,7 @@ namespace SparxEA.Model
                 this._elementID = packageID;
                 this._globalID = this._package.PackageGUID;
 				this._aliasName = this._package.Alias ?? string.Empty;
+                this._isLocked = false;
 
                 // Register this package in the package tree. If the package has a parent, we attempt to link to it...
                 // In EA an empty package ID is represented by value '0', we use '-1' instead.
@@ -74,6 +76,7 @@ namespace SparxEA.Model
                 this._elementID = this._package.PackageID;
                 this._globalID = packageGUID;
                 this._aliasName = this._package.Alias ?? string.Empty;
+                this._isLocked = false;
 
                 // Register this package in the package tree. If the package has a parent, we attempt to link to it...
                 // In EA an empty package ID is represented by value '0', we use '-1' instead.
@@ -100,6 +103,7 @@ namespace SparxEA.Model
                 this._elementID = this._package.PackageID;
                 this._globalID = this._package.PackageGUID;
 				this._aliasName = this._package.Alias ?? string.Empty;
+                this._isLocked = false;
 
                 // Register this package in the package tree. If the package has a parent, we attempt to link to it...
                 // In EA an empty package ID is represented by value '0', we use '-1' instead.
@@ -644,6 +648,64 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Test whether the package is currently locked. We do this by checking the database for the presence of a lock for the current user.
+        /// When no user is found (or we get an exception), we assume that security is not enabled and the package is thus unlocked.
+        /// When a user is found, we check for a lock for the current package. This can have three different results:
+        /// 1) No entries are found at all, package is unlocked;
+        /// 2) Lock is found for current user;
+        /// 3) Lock is found for another user;
+        /// Note that we ONLY check whether the package itself is locked and NOT the contents of the package, nor any sub-packages!
+        /// </summary>
+        /// <param name="lockedUser">Output parameter that will receive the formatted name of the user who has locked the package.</param>
+        /// <returns>Lock status, one of Unlocked, LockedByMe or Locked.</returns>
+        internal override MEPackage.LockStatus IsLocked(out string lockedUser)
+        {
+            MEPackage.LockStatus status = MEPackage.LockStatus.Unlocked;
+            lockedUser = string.Empty;
+            if (this._isLocked) return MEPackage.LockStatus.LockedByMe;             // This particular package has been locked earlier.
+            try
+            {
+                EA.Repository repository = ((EAModelImplementation)this._model).Repository;
+                if (!repository.IsSecurityEnabled) return MEPackage.LockStatus.Unlocked;    // When security is disabled, treat as always unlocked.
+                string userGUID = repository.GetCurrentLoginUser(true);             // Returns the GUID of the current user (or exception when no security).
+                if (!string.IsNullOrEmpty(userGUID))                                // Just to be sure...
+                {
+                    string lockedUserID = string.Empty;
+                    string query = "SELECT UserID AS UserGUID FROM t_seclocks WHERE EntityID='" + this._package.PackageGUID + "';";
+                    var queryResult = new XmlDocument();                            // Repository query will return an XML Document.
+                    queryResult.LoadXml(repository.SQLQuery(query));                // Execute query and store result in XML Document.
+                    XmlNodeList elements = queryResult.GetElementsByTagName("Row");
+
+                    // We should have only a single result or no results at all (when no lock is found).
+                    if (elements.Count > 0)
+                    {
+                        lockedUserID = elements[0]["UserGUID"].InnerText.Trim();
+                        status = (lockedUserID == userGUID) ? MEPackage.LockStatus.LockedByMe : MEPackage.LockStatus.Locked;
+                        Logger.WriteInfo("SparxEA.Model.EAMEIPackage.IsLocked >> Locked: " + status);
+
+                        // Determine who has locked the package...
+                        query = "SELECT FirstName, Surname FROM t_secuser WHERE UserID='" + lockedUserID + "';";
+                        queryResult.LoadXml(repository.SQLQuery(query));            // Execute query and store result in XML Document.
+                        elements = queryResult.GetElementsByTagName("Row");
+
+                        // We should have only a single result.
+                        if (elements.Count > 0)
+                        {
+                            lockedUser = elements[0]["FirstName"].InnerText.Trim() + " " + elements[0]["Surname"].InnerText.Trim();
+                            Logger.WriteInfo("SparxEA.Model.EAMEIPackage.IsLocked >> Locked by: " + lockedUser);
+                        }
+                    }
+                }
+            }
+            catch (Exception exc)
+            {
+                Logger.WriteInfo("SparxEA.Model.EAMEIPackage.IsLocked >> Exception, assume not locked: " + exc.Message);
+            }
+            Logger.WriteInfo("SparxEA.Model.EAMEIPackage.IsLocked >> Result of check: '" + status + "'.");
+            return status;
+        }
+
+        /// <summary>
         /// This method searches the list current package for any names that match the provided 'name'. This can be a package or a class, diagram,
         /// etc. The function supports 'dotted name notation', e.g. qualified names such as 'package.element' can be used.
         /// When any name is detected that matches the given name, the function returns 'false'.
@@ -658,6 +720,50 @@ namespace SparxEA.Model
             }
             catch { }
             return true;
+        }
+
+        /// <summary>
+        /// First check whether the current package is unlocked. If so, create a recursive lock for the package and all contents (including contained 
+        /// packages).
+        /// </summary>
+        /// <returns>True when lock is successfull, false on errors (includes locked by somebody else).</returns>
+        internal override bool Lock()
+        {
+            try
+            {
+                string lockedUser;
+                MEPackage.LockStatus status = IsLocked(out lockedUser);
+                if (status == MEPackage.LockStatus.Unlocked)
+                {
+                    bool result = this._package.ApplyUserLockRecursive(true, true, true);
+                    if (!result)
+                    {
+                        this._isLocked = false;
+                        Logger.WriteWarning("SparxEA.Model.EAMEIPackage.Lock >> Failed to lock package structure because: '" + this._package.GetLastError() + "'!");
+                    }
+                    else this._isLocked = true;
+                    return result;
+                }
+                else if (status == MEPackage.LockStatus.LockedByMe)
+                {
+                    // Package is already locked by the current user. However, since we did not perform the lock ourselves, the 'isLocked' status is set to 
+                    // false. This assures that a subsequent call to unlock will not remove the lock from the package and thus we do not alter the precondition.
+                    this._isLocked = false;
+                    return true;
+                }
+                else
+                {
+                    // Locked by somebody else. Nothing to do here.
+                    this._isLocked = false;
+                    return false;
+                }
+            }
+            catch (Exception exc)
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIPackage.Lock >> Failed to lock package structure because: '" + exc.Message + "'!");
+            }
+            this._isLocked = false;
+            return false;
         }
 
         /// <summary>
@@ -746,6 +852,29 @@ namespace SparxEA.Model
         internal override void ShowInTree()
         {
             ((EAModelImplementation)this._model).Repository.ShowInProjectView(this._package);
+        }
+
+        /// <summary>
+        /// Attempts to unlock the package and all included elements, diagrams and sub-packages. Errors are silently ignored.
+        /// </summary>
+        internal override void Unlock()
+        {
+            try
+            {
+                if (this._isLocked)
+                {
+                    bool result = this._package.ReleaseUserLockRecursive(true, true, true);
+                    if (!result)
+                    {
+                        Logger.WriteWarning("SparxEA.Model.EAMEIPackage.Unlock >> Failed to unlock package structure because: '" + this._package.GetLastError() + "'!");
+                    }
+                    this._isLocked = false;
+                }
+            }
+            catch (Exception exc)
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIPackage.Unlock >> Failed to unlock package structure because: '" + exc.Message + "'!");
+            }
         }
 
         /// <summary>

@@ -63,6 +63,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
             header = header.Replace("@TIMESTAMP@", DateTime.Now.ToString());
             header = header.Replace("@YEAR@", DateTime.Now.Year.ToString());
             header = header.Replace("@VERSION@", this._currentCapability.VersionString + " Build: " + this._currentService.BuildNumber);
+            header = header.Replace("@ACCESSLEVEL@", "Not Applicable");
 
             string annotation = this._currentCapability.CapabilityClass.Annotation;
             if (!string.IsNullOrEmpty(annotation))

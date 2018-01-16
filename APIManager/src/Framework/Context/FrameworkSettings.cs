@@ -69,6 +69,8 @@ namespace Framework.Context
         internal const string _RESTAuthAPIKeys                = "RESTAuthAPIKeys";
         internal const string _RESTAuthOAuth2Flow             = "RESTAuthOAuth2Flow";
         internal const string _OpenAPI20Header                = "OpenAPI20Header";
+        internal const string _UseAutomaticLocking            = "UseAutomaticLocking";
+        internal const string _PersistentModelLocks           = "PersistentModelLocks";
 
         private SortedList<string, string> _stringSettings;
         private SortedList<string, bool> _boolSettings;
@@ -99,6 +101,8 @@ namespace Framework.Context
             this._boolSettings.Add(_DEUniqueID, Settings.Default.DEUniqueID);
             this._boolSettings.Add(_SaveMessageDiagrams, Settings.Default.SaveMessageDiagrams);
             this._boolSettings.Add(_DocGenUseCommon, Settings.Default.DocGenUseCommon);
+            this._boolSettings.Add(_UseAutomaticLocking, Settings.Default.UseAutomaticLocking);
+            this._boolSettings.Add(_PersistentModelLocks, Settings.Default.PersistentModelLocks);
 
             this._stringSettings.Add(_LogFileName, Settings.Default.LogfileName);
             this._stringSettings.Add(_RootPath, Settings.Default.RootPath);
@@ -369,6 +373,16 @@ namespace Framework.Context
 
                     case _DocGenUseCommon:
                         Settings.Default.DocGenUseCommon = value;
+                        if (!this._inTransaction) Settings.Default.Save();
+                        break;
+
+                    case _UseAutomaticLocking:
+                        Settings.Default.UseAutomaticLocking = value;
+                        if (!this._inTransaction) Settings.Default.Save();
+                        break;
+
+                    case _PersistentModelLocks:
+                        Settings.Default.PersistentModelLocks = value;
                         if (!this._inTransaction) Settings.Default.Save();
                         break;
 

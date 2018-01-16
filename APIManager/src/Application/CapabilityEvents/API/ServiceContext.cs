@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Windows.Forms;
 using Framework.Logging;
 using Framework.Model;
 using Framework.Context;
@@ -385,6 +386,16 @@ namespace Plugin.Application.Events.API
         }
 
         /// <summary>
+        /// Attempts to lock the current message model. If this fails, we can't continue until the user has solved this.
+        /// This function is a very simple pass-through to the actual locking function, which is part of the Model singleton.
+        /// </summary>
+        /// <returns>True if locked successfully.</returns>
+        internal bool LockModel()
+        {
+            return ModelSlt.GetModelSlt().LockModel(this._declarationPackage);
+        }
+
+        /// <summary>
         /// Refreshes packages and diagram after applying updates, assures that user-view is updated accordingly.
         /// </summary>
         internal void Refresh()
@@ -393,6 +404,15 @@ namespace Plugin.Application.Events.API
             this._serviceModelPackage.Refresh();
             this._declarationPackage.Refresh();
             this._diagram.Refresh();
+        }
+
+        /// <summary>
+        /// Unlocks the current message model, ignoring any warnings / errors.
+        /// This function is a very simple pass-through to the actual unlocking function, which is part of the Model singleton.
+        /// </summary>
+        internal void UnlockModel()
+        {
+            ModelSlt.GetModelSlt().UnlockModel(this._declarationPackage);
         }
 
         /// <summary>

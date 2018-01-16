@@ -88,6 +88,9 @@
             this.label8 = new System.Windows.Forms.Label();
             this.RESTHostName = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
+            this.Locking = new System.Windows.Forms.GroupBox();
+            this.PersistentLocks = new System.Windows.Forms.CheckBox();
+            this.AutoLocking = new System.Windows.Forms.CheckBox();
             this.CodeLists.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -99,6 +102,7 @@
             this.VersionControl.SuspendLayout();
             this.RESTAuthentication.SuspendLayout();
             this.RESTParameters.SuspendLayout();
+            this.Locking.SuspendLayout();
             this.SuspendLayout();
             // 
             // UseLogfile
@@ -148,7 +152,7 @@
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(497, 454);
+            this.Ok.Location = new System.Drawing.Point(498, 453);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
             this.Ok.TabIndex = 12;
@@ -159,7 +163,7 @@
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(578, 454);
+            this.Cancel.Location = new System.Drawing.Point(579, 454);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
             this.Cancel.TabIndex = 11;
@@ -258,7 +262,7 @@
             // 
             this.AutoIncrementBuildNr.AutoSize = true;
             this.AutoIncrementBuildNr.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.AutoIncrementBuildNr.Location = new System.Drawing.Point(6, 22);
+            this.AutoIncrementBuildNr.Location = new System.Drawing.Point(6, 21);
             this.AutoIncrementBuildNr.Name = "AutoIncrementBuildNr";
             this.AutoIncrementBuildNr.Size = new System.Drawing.Size(165, 17);
             this.AutoIncrementBuildNr.TabIndex = 4;
@@ -569,9 +573,9 @@
             // DocumentationGeneration
             // 
             this.DocumentationGeneration.Controls.Add(this.DocGenUseCommon);
-            this.DocumentationGeneration.Location = new System.Drawing.Point(427, 145);
+            this.DocumentationGeneration.Location = new System.Drawing.Point(427, 281);
             this.DocumentationGeneration.Name = "DocumentationGeneration";
-            this.DocumentationGeneration.Size = new System.Drawing.Size(227, 72);
+            this.DocumentationGeneration.Size = new System.Drawing.Size(227, 51);
             this.DocumentationGeneration.TabIndex = 6;
             this.DocumentationGeneration.TabStop = false;
             this.DocumentationGeneration.Text = "Documentation Generation";
@@ -589,9 +593,9 @@
             // VersionControl
             // 
             this.VersionControl.Controls.Add(this.AutoIncrementBuildNr);
-            this.VersionControl.Location = new System.Drawing.Point(427, 223);
+            this.VersionControl.Location = new System.Drawing.Point(427, 224);
             this.VersionControl.Name = "VersionControl";
-            this.VersionControl.Size = new System.Drawing.Size(226, 62);
+            this.VersionControl.Size = new System.Drawing.Size(227, 51);
             this.VersionControl.TabIndex = 9;
             this.VersionControl.TabStop = false;
             this.VersionControl.Text = "Version Control";
@@ -615,7 +619,7 @@
             // RAAPIKeyEdit
             // 
             this.RAAPIKeyEdit.Image = ((System.Drawing.Image)(resources.GetObject("RAAPIKeyEdit.Image")));
-            this.RAAPIKeyEdit.Location = new System.Drawing.Point(179, 79);
+            this.RAAPIKeyEdit.Location = new System.Drawing.Point(186, 78);
             this.RAAPIKeyEdit.Name = "RAAPIKeyEdit";
             this.RAAPIKeyEdit.Size = new System.Drawing.Size(25, 25);
             this.RAAPIKeyEdit.TabIndex = 3;
@@ -627,7 +631,7 @@
             this.RAAPIKeys.Location = new System.Drawing.Point(76, 81);
             this.RAAPIKeys.Name = "RAAPIKeys";
             this.RAAPIKeys.ReadOnly = true;
-            this.RAAPIKeys.Size = new System.Drawing.Size(97, 20);
+            this.RAAPIKeys.Size = new System.Drawing.Size(104, 20);
             this.RAAPIKeys.TabIndex = 0;
             // 
             // label5
@@ -719,6 +723,37 @@
             this.label6.TabIndex = 0;
             this.label6.Text = "Host:";
             // 
+            // Locking
+            // 
+            this.Locking.Controls.Add(this.AutoLocking);
+            this.Locking.Controls.Add(this.PersistentLocks);
+            this.Locking.Location = new System.Drawing.Point(426, 146);
+            this.Locking.Name = "Locking";
+            this.Locking.Size = new System.Drawing.Size(227, 72);
+            this.Locking.TabIndex = 14;
+            this.Locking.TabStop = false;
+            this.Locking.Text = "Model Access";
+            // 
+            // PersistentLocks
+            // 
+            this.PersistentLocks.AutoSize = true;
+            this.PersistentLocks.Location = new System.Drawing.Point(6, 40);
+            this.PersistentLocks.Name = "PersistentLocks";
+            this.PersistentLocks.Size = new System.Drawing.Size(131, 17);
+            this.PersistentLocks.TabIndex = 0;
+            this.PersistentLocks.Text = "Persistent model locks";
+            this.PersistentLocks.UseVisualStyleBackColor = true;
+            // 
+            // AutoLocking
+            // 
+            this.AutoLocking.AutoSize = true;
+            this.AutoLocking.Location = new System.Drawing.Point(6, 18);
+            this.AutoLocking.Name = "AutoLocking";
+            this.AutoLocking.Size = new System.Drawing.Size(131, 17);
+            this.AutoLocking.TabIndex = 1;
+            this.AutoLocking.Text = "Use automatic locking";
+            this.AutoLocking.UseVisualStyleBackColor = true;
+            // 
             // SettingsForm
             // 
             this.AcceptButton = this.Ok;
@@ -726,6 +761,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
             this.ClientSize = new System.Drawing.Size(665, 496);
+            this.Controls.Add(this.Locking);
             this.Controls.Add(this.RESTParameters);
             this.Controls.Add(this.RESTAuthentication);
             this.Controls.Add(this.VersionControl);
@@ -768,6 +804,8 @@
             this.RESTAuthentication.PerformLayout();
             this.RESTParameters.ResumeLayout(false);
             this.RESTParameters.PerformLayout();
+            this.Locking.ResumeLayout(false);
+            this.Locking.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -833,5 +871,8 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.TextBox RESTHostName;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.GroupBox Locking;
+        private System.Windows.Forms.CheckBox PersistentLocks;
+        private System.Windows.Forms.CheckBox AutoLocking;
     }
 }

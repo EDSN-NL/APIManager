@@ -60,7 +60,7 @@ namespace Plugin.Application.Events.API
             using (var dialog = new AddInterfaceInput(svcContext.SVCModelPackage, 
                                                       svcContext.SVCModelPackage.GetClasses(context.GetConfigProperty(_OperationClassStereotype))))
             {
-                if (dialog.ShowDialog() == DialogResult.OK)
+                if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
                 {
                     var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
                     var itfCap = new InterfaceCapability(myService, dialog.InterfaceName, null);
@@ -92,6 +92,7 @@ namespace Plugin.Application.Events.API
                     svcContext.MyDiagram.Redraw();
                     svcContext.Refresh();
                 }
+                svcContext.UnlockModel();
             }
         }
     }

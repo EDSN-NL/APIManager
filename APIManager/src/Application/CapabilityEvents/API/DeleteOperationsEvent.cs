@@ -61,7 +61,7 @@ namespace Plugin.Application.Events.API
             // Ask the user whether he/she really wants to delete the operation...
             using (var dialog = new ConfirmOperationChanges("Are you sure you want to delete Operation '" + svcContext.OperationClass.Name + "'?"))
             {
-                if (dialog.ShowDialog() == DialogResult.OK)
+                if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
                 {
                     var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
 
@@ -126,12 +126,10 @@ namespace Plugin.Application.Events.API
                         myService.CreateLogEntry("Deleted operation: '" + svcContext.OperationClass.Name + "' from interface(s): '" + interfaceNames + "'.");
                         svcContext.Refresh();
                     }
-                    else
-                    {
-                        Logger.WriteError("Plugin.Application.Events.API.DeleteOperationsEvent.handleEvent >> Unable to delete operation '" + svcContext.OperationClass.Name + "', aborting!");
-                        return;
-                    }
+                    else Logger.WriteError("Plugin.Application.Events.API.DeleteOperationsEvent.handleEvent >> Unable to delete operation '" + 
+                                           svcContext.OperationClass.Name + "', aborting!");
                 }
+                svcContext.UnlockModel();
             }
         }
 

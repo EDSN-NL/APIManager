@@ -35,6 +35,13 @@
              <StereotypeName>Enexis ECDM::InterfaceContract</StereotypeName>
            </StereotypeList>
          </EventHandler>
+         <EventHandler ID="Interface: Update Change Log">
+           <HandlerFQN>Plugin.Application.Events.API.UpdateChangeLogEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on classes that have the 'InterfaceContract' stereotype. -->
+             <StereotypeName>Enexis ECDM::InterfaceContract</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
          <EventHandler ID="Operation: Add">
            <HandlerFQN>Plugin.Application.Events.API.AddOperationsEvent</HandlerFQN>
            <StereotypeList>
@@ -229,13 +236,6 @@
    <EventGroupList>
      <EventGroup ID="Application Services">
        <EventHandlerList>
-         <EventHandler ID="Interface: Add Annotation">
-           <HandlerFQN>Plugin.Application.Events.API.AddAnnotationEvent</HandlerFQN>
-           <StereotypeList>
-             <!-- This event only works on classes that have the 'InterfaceContract' stereotype. -->
-             <StereotypeName>Enexis ECDM::InterfaceContract</StereotypeName>
-           </StereotypeList>
-         </EventHandler>
          <EventHandler ID="Interface: Add">
            <HandlerFQN>Plugin.Application.Events.API.AddInterfaceEvent</HandlerFQN>
            <StereotypeList>
@@ -261,6 +261,13 @@
            <HandlerFQN>Plugin.Application.Events.API.ProcessSOAPInterfaceEvent</HandlerFQN>
            <StereotypeList>
              <!-- This event only works on Interface classes. -->
+             <StereotypeName>Enexis ECDM::InterfaceContract</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Interface: Update Change Log">
+           <HandlerFQN>Plugin.Application.Events.API.UpdateChangeLogEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on classes that have the 'InterfaceContract' stereotype. -->
              <StereotypeName>Enexis ECDM::InterfaceContract</StereotypeName>
            </StereotypeList>
          </EventHandler>
@@ -412,6 +419,10 @@
          <EventHandler ID="Assign Metadata">
            <HandlerFQN>Plugin.Application.Events.Util.SetMetadataEvent</HandlerFQN>
          </EventHandler>
+         <EventHandler ID="Class Inspector">
+           <!-- Simply shows meta data of currently selected class. Does not required specific preconditions. -->
+           <HandlerFQN>Plugin.Application.Events.Util.ClassInspectorEvent</HandlerFQN>
+         </EventHandler>
          <EventHandler ID="Edit Capability Documentation">
            <HandlerFQN>Plugin.Application.Events.Util.CapabilityDocumentationEvent</HandlerFQN>
            <StereotypeList>
@@ -419,10 +430,6 @@
              <StereotypeName>Enexis ECDM::Service</StereotypeName>
              <StereotypeName>Enexis ECDM::ServiceCapability</StereotypeName>
            </StereotypeList>
-         </EventHandler>
-         <EventHandler ID="Class Inspector">
-           <!-- Simply shows meta data of currently selected class. Does not required specific preconditions. -->
-           <HandlerFQN>Plugin.Application.Events.Util.ClassInspectorEvent</HandlerFQN>
          </EventHandler>
          <EventHandler ID="Repair Attribute Order">
            <HandlerFQN>Plugin.Application.Events.Util.RepairAttributeOrderEvent</HandlerFQN>

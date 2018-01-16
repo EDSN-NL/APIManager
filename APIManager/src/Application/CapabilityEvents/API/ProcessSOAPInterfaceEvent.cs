@@ -68,7 +68,7 @@ namespace Plugin.Application.Events.API
 
             using (var picker = new CapabilityPicker("Select Operation(s) to include in the build:", allOperations, true, false))
             {
-                if (picker.ShowDialog() == DialogResult.OK)
+                if (svcContext.LockModel() && picker.ShowDialog() == DialogResult.OK)
                 {
                     List<Capability> selectedOperations = picker.GetCheckedCapabilities();
                     if (selectedOperations.Count == 0) return;              // Nothing selected, treat as cancel.
@@ -81,6 +81,7 @@ namespace Plugin.Application.Events.API
                 else
                 {
                     Logger.WriteInfo("Plugin.Application.Events.API.ProcessSOAPInterfaceEvent.HandleEvent >> Cancelling operation!");
+                    svcContext.UnlockModel();
                     return;
                 }
             }
@@ -102,6 +103,7 @@ namespace Plugin.Application.Events.API
                 else MessageBox.Show("No processors are currently defined for Interface processing, aborting!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             if (processor != null) myInterface.HandleCapabilities(processor);
+            svcContext.UnlockModel();
         }
 
         /// <summary>

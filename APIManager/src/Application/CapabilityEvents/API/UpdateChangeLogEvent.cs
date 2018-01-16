@@ -10,7 +10,7 @@ using Plugin.Application.Forms;
 
 namespace Plugin.Application.Events.API
 {
-    class AddAnnotationEvent : EventImplementation
+    class UpdateChangeLogEvent : EventImplementation
     {
         // Configuration properties used by this module...
         private const string _ServiceDeclPkgStereotype          = "ServiceDeclPkgStereotype";
@@ -40,7 +40,7 @@ namespace Plugin.Application.Events.API
         }
 
         /// <summary>
-        /// Processes an Add Annotation event at the InterfaceClass level. The method collects a 'change log' message from
+        /// Processes an Update Change Log event at the InterfaceClass level. The method collects a 'change log' message from
         /// the user and assigns this to all selected operations, as well as the Interface and Common Schema.
         /// When requested to do so, the minor version of the operations, Interface and Common Schema is increased.
         /// </summary>
@@ -63,43 +63,47 @@ namespace Plugin.Application.Events.API
                 return;
             }
 
-            // Collect all possible operations on this interface so the user can indicate what operations have been modified...
-            foreach (MEAssociation assoc in svcContext.InterfaceClass.TypedAssociations(MEAssociation.AssociationType.Composition))
+            if (svcContext.LockModel())
             {
-                MEClass cl = assoc.Destination.EndPoint;
-                if (cl.HasStereotype(operationStereotype)) operationList.Add(cl);
-                else if (cl.HasStereotype(commonSchemaStereotype)) commonSchemaClass = cl;
-            }
-
-            using (var dialog = new CollectAnnotation())
-            {
-                dialog.LoadNodes("Operations on '" + svcContext.InterfaceClass.Name + "' to annotate:", operationList);
-                if (dialog.ShowDialog() == DialogResult.OK)
+                // Collect all possible operations on this interface so the user can indicate what operations have been modified...
+                foreach (MEAssociation assoc in svcContext.InterfaceClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
                 {
-                    operationList = dialog.GetCheckedNodes();
-                    foreach (MEClass cl in operationList)
+                    MEClass cl = assoc.Destination.EndPoint;
+                    if (cl.HasStereotype(operationStereotype)) operationList.Add(cl);
+                    else if (cl.HasStereotype(commonSchemaStereotype)) commonSchemaClass = cl;
+                }
+
+                using (var dialog = new CollectAnnotation())
+                {
+                    dialog.LoadNodes("Operations on '" + svcContext.InterfaceClass.Name + "' to annotate:", operationList);
+                    if (dialog.ShowDialog() == DialogResult.OK)
                     {
+                        operationList = dialog.GetCheckedNodes();
+                        foreach (MEClass cl in operationList)
+                        {
+                            if (dialog.MinorVersionIndicator)
+                            {
+                                Logger.WriteInfo("Plugin.Application.Events.API.AddAnnotationEvent.handleEvent >> Updating version for class: '" + cl.Name + "'...");
+                                var newVersion = new Tuple<int, int>(cl.Version.Item1, cl.Version.Item2 + 1);
+                                cl.Version = newVersion;
+                            }
+                            CreateLogEntry(cl, dialog.Annotation);
+                        }
                         if (dialog.MinorVersionIndicator)
                         {
-                            Logger.WriteInfo("Plugin.Application.Events.API.AddAnnotationEvent.handleEvent >> Updating version for class: '" + cl.Name + "'...");
-                            var newVersion = new Tuple<int, int>(cl.Version.Item1, cl.Version.Item2 + 1);
-                            cl.Version = newVersion;
+                            var newVersion = new Tuple<int, int>(svcContext.InterfaceClass.Version.Item1, svcContext.InterfaceClass.Version.Item2 + 1);
+                            svcContext.InterfaceClass.Version = newVersion;
+                            commonSchemaClass.Version = newVersion;
+                            newVersion = new Tuple<int, int>(svcContext.ServiceClass.Version.Item1, svcContext.ServiceClass.Version.Item2 + 1);
+                            svcContext.ServiceClass.Version = newVersion;
                         }
-                        CreateLogEntry(cl, dialog.Annotation);
+                        if (svcContext.InterfaceList.Count > 1) UpdateInterfaces(svcContext, operationList, dialog.Annotation, dialog.MinorVersionIndicator);
+                        CreateLogEntry(svcContext.InterfaceClass, dialog.Annotation);
+                        CreateLogEntry(commonSchemaClass, dialog.Annotation);
+                        CreateLogEntry(svcContext.ServiceClass, dialog.Annotation);
                     }
-                    if (dialog.MinorVersionIndicator)
-                    {
-                        var newVersion = new Tuple<int, int>(svcContext.InterfaceClass.Version.Item1, svcContext.InterfaceClass.Version.Item2 + 1);
-                        svcContext.InterfaceClass.Version = newVersion;
-                        commonSchemaClass.Version = newVersion;
-                        newVersion = new Tuple<int, int>(svcContext.ServiceClass.Version.Item1, svcContext.ServiceClass.Version.Item2 + 1);
-                        svcContext.ServiceClass.Version = newVersion;
-                    }
-                    if (svcContext.InterfaceList.Count > 1) UpdateInterfaces(svcContext, operationList, dialog.Annotation, dialog.MinorVersionIndicator);
-                    CreateLogEntry(svcContext.InterfaceClass, dialog.Annotation);
-                    CreateLogEntry(commonSchemaClass, dialog.Annotation);
-                    CreateLogEntry(svcContext.ServiceClass, dialog.Annotation);
                 }
+                svcContext.UnlockModel();
             }
         }
 

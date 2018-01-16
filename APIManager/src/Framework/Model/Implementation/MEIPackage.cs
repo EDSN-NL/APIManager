@@ -132,6 +132,19 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Test whether the package is currently locked. We do this by checking for the presence of a lock for the current user.
+        /// When no user is found, we assume that security is not enabled and the package is thus unlocked.
+        /// When a user is found, we check for a lock for the current package. This can have three different results:
+        /// 1) No entries are found at all, package is unlocked;
+        /// 2) Lock is found for current user;
+        /// 3) Lock is found for another user;
+        /// Note that we ONLY check whether the package is locked and NOT the contents of the package!
+        /// </summary>
+        /// <param name="lockedUser">Will receive the name of the user who has locked the package.</param>
+        /// <returns>Lock status, one of Unlocked, LockedByMe or Locked.</returns>
+        internal abstract MEPackage.LockStatus IsLocked(out string lockedUser);
+
+        /// <summary>
         /// This method searches the list current package for any names that match the provided 'name'. This can be a package or a class, diagram,
         /// etc. The function supports 'dotted name notation', e.g. qualified names such as 'package.element' can be used.
         /// When any name is detected that matches the given name, the function returns 'false'.
@@ -139,6 +152,12 @@ namespace Framework.Model
         /// <param name="name">Name to be verified.</param>
         /// <returns>True if name is unique, false otherwise.</returns>
         internal abstract bool IsUniqueName(string name);
+
+        /// <summary>
+        /// Attempts to lock the package and all included elements, diagrams and sub-packages.
+        /// </summary>
+        /// <returns>True when lock is successfull, false on errors (includes locked by somebody else).</returns>
+        internal abstract bool Lock();
 
         /// <summary>
         /// Forces the repository implementation to refresh the current package and all children packages. This can be
@@ -150,6 +169,11 @@ namespace Framework.Model
         /// Selects the package in the package tree and show to user.
         /// </summary>
         internal abstract void ShowInTree();
+
+        /// <summary>
+        /// Attempts to unlock the package and all included elements, diagrams and sub-packages. Errors are silently ignored.
+        /// </summary>
+        internal abstract void Unlock();
 
         /// <summary>
         /// Method that explicitly searches the model repository for the parent implementation of the current package.

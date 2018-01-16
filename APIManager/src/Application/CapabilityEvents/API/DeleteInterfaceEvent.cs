@@ -64,7 +64,7 @@ namespace Plugin.Application.Events.API
 
             using (var dialog = new ConfirmOperationChanges("Are you sure you want to delete Interface '" + svcContext.InterfaceClass.Name + "'?"))
             {
-                if (dialog.ShowDialog() == DialogResult.OK)
+                if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
                 {
                     // Creating the service will build the entire object hierarchy. Subsequently, we can create Capabilities by class alone...
                     var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
@@ -75,6 +75,7 @@ namespace Plugin.Application.Events.API
                     }
                     else svcContext.Refresh();
                 }
+                svcContext.UnlockModel();
             }
         }
     }

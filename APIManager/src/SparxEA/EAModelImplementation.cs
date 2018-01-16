@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 using System.Xml;
 using EA;
 using Framework.Logging;
@@ -575,6 +576,49 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Attempts to lock the model associated with the specified root package. The function checks the current locking status. If already locked
+        /// by another user, an error is displayed. Otherwise, if locking failed (for whatever reason), an error is displayed.
+        /// If the package is already locked by the current user, no action is performed.
+        /// Note that we only check the locking status of the model root. This implies that things might go wrong in case lower-level items are 
+        /// locked by another user!
+        /// If security is not enabled on the repository, the function always returns 'true' but does not perform any actual operation!
+        /// </summary>
+        /// <returns>True if locked successfully.</returns>
+        internal override bool LockModel(MEPackage modelRoot)
+        {
+            string userName;
+            bool result = !this._repository.IsSecurityEnabled;
+            if (modelRoot != null && !result)
+            {
+                if (ContextSlt.GetContextSlt().GetBoolSetting(FrameworkSettings._UseAutomaticLocking))
+                {
+                    Logger.WriteInfo("Framework.Model.ModelImplementation.LockModel >> Locking model '" + modelRoot.Name + "'...");
+                    MEPackage.LockStatus status = modelRoot.IsLocked(out userName);
+                    if (status == MEPackage.LockStatus.Unlocked)
+                    {
+                        result = modelRoot.Lock();
+                        if (!result) MessageBox.Show("Unable to lock model, operation will be aborted!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    else if (status == MEPackage.LockStatus.Locked)
+                    {
+                        MessageBox.Show("Model is locked by user '" + userName + "', operation will be aborted!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    else result = true;     // Package is already locked by current user, no need to lock again!
+                }
+                else
+                {
+                    // Automatic locking is disabled but security on the model is enabled. This implies that we must have an explicit lock in
+                    // order to continue. The only valid situation is a lock that is already present for the current user. Check this here...
+                    if (modelRoot.IsLocked(out userName) == MEPackage.LockStatus.LockedByMe) result = true;
+                    else MessageBox.Show("Automatic locking is disabled but a lock is required to continue. Please lock the model and retry!",
+                                         "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            Logger.WriteInfo("Framework.Model.ModelImplementation.LockModel >> Result of lock: " + result);
+            return result;
+        }
+
+        /// <summary>
         /// Forces the repository implementation to refresh the entire model tree. This can be
         /// called after a number of model changes to assure that the model view is consistent with these changes.
         /// </summary>
@@ -591,6 +635,24 @@ namespace SparxEA.Model
         internal override void SetRepositoryType(ModelSlt.RepositoryType type)
         {
             this._repositoryType = type;
+        }
+
+        /// <summary>
+        /// Attempts to unlock the model defined by the specified root package. We only perform any actions in case Automatic Locking is enabled and
+        /// we have not specified persistent locks. If security is not enabled on the repository, the function does not perform any actions.
+        /// The function fails silently on errors.
+        /// </summary>
+        internal override void UnlockModel(MEPackage modelRoot)
+        {
+            if (modelRoot != null && this._repository.IsSecurityEnabled)
+            {
+                if (ContextSlt.GetContextSlt().GetBoolSetting(FrameworkSettings._UseAutomaticLocking) &&
+                    !ContextSlt.GetContextSlt().GetBoolSetting(FrameworkSettings._PersistentModelLocks))
+                {
+                    Logger.WriteInfo("Framework.Model.ModelImplementation.UnlockModel >> Unlocking model '" + modelRoot.Name + "'...");
+                    modelRoot.Unlock();
+                }
+            }
         }
     }
 }
