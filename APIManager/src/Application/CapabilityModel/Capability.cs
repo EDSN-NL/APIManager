@@ -15,7 +15,7 @@ namespace Plugin.Application.CapabilityModel
     /// Capabilities can contain other capabilities, creating a hierarchical tree which can be processed in order,
     /// starting at the service, then to the 'root' capability and subsequently down to all children.
     /// </summary>
-    internal abstract class Capability : IDisposable, IEquatable<Capability>
+    internal abstract class Capability : IDisposable, IEquatable<Capability>, IComparable
     {
         protected CapabilityImp _imp;   // Associated implementation object.
 
@@ -237,6 +237,23 @@ namespace Plugin.Application.CapabilityModel
         {
             if (this._imp != null) this._imp.AddChild(child._imp);
             else throw new MissingImplementationException("CapabilityImp");
+        }
+
+        /// <summary>
+        /// Implementor for the 'IComparable' interface. It compares two capabilities by their NAME only!
+        /// </summary>
+        /// <param name="obj">Object to compare against, must be a Capability.</param>
+        /// <returns>-1 if 'this' precedes 'obj', 0 if 'this' equals to 'obj' or 1 if 'this' follows 'obj'.</returns>
+        public int CompareTo(object obj)
+        {
+            if (obj == null) return 1;
+            var objElement = obj as Capability;
+            if (obj != null)
+            {
+                int order = this.Name.CompareTo(objElement.Name);
+                return order;
+            }
+            else throw new ArgumentException("Received Object is not a Capability type!");
         }
 
         /// <summary>

@@ -36,6 +36,7 @@ namespace Plugin.Application.Forms
 
             CapabilityList.BeginUpdate();
             CapabilityList.Items.Clear();
+            capabilityList.Sort();
             foreach (Capability cap in capabilityList) CapabilityList.Items.Add(cap, initialSelection);
             CapabilityList.EndUpdate();
         }
