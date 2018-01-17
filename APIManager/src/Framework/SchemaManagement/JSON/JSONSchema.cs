@@ -109,15 +109,16 @@ namespace Framework.Util.SchemaManagement.JSON
                     // choice group. If not, first create the new choice object. Finally, add the attribute to the choice.
                     if (contentAttrib.IsChoiceElement)
                     {
-                        if (!choiceList.ContainsKey(contentAttrib.ChoiceGroupID))
+                        var choiceGroup = contentAttrib.ChoiceGroup;
+                        if (!choiceList.ContainsKey(choiceGroup.GroupID))
                         {
-                            Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Creating new Choice with name: " + contentAttrib.ChoiceGroupID);
-                            var newChoice = new JSONChoice(this, contentAttrib.ChoiceGroupID);
-                            choiceList.Add(contentAttrib.ChoiceGroupID, newChoice);
+                            Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Creating new Choice with name: " + choiceGroup.GroupID);
+                            var newChoice = new JSONChoice(this, choiceGroup);
+                            choiceList.Add(choiceGroup.GroupID, newChoice);
                         }
                         Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Adding attribute '" + contentAttrib.Name +
-                                         "' to Choice Group '" + contentAttrib.ChoiceGroupID + "'...");
-                        choiceList[contentAttrib.ChoiceGroupID].AddContentAttribute(contentAttrib);
+                                         "' to Choice Group '" + choiceGroup.GroupID + "'...");
+                        choiceList[choiceGroup.GroupID].AddContentAttribute(contentAttrib);
                     }
                     else
                     {
@@ -149,15 +150,16 @@ namespace Framework.Util.SchemaManagement.JSON
                     // choice object. If not, first create the new choice object. Finally, add the association to the choice.
                     if (associatedClass.IsChoiceElement)
                     {
-                        if (!choiceList.ContainsKey(associatedClass.ChoiceGroupID))
+                        var choiceGroup = associatedClass.ChoiceGroup;
+                        if (!choiceList.ContainsKey(choiceGroup.GroupID))
                         {
-                            Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Creating new Choice with name: " + associatedClass.ChoiceGroupID);
-                            var newChoice = new JSONChoice(this, associatedClass.ChoiceGroupID);
-                            choiceList.Add(associatedClass.ChoiceGroupID, newChoice);
+                            Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Creating new Choice with name: " + choiceGroup.GroupID);
+                            var newChoice = new JSONChoice(this, choiceGroup);
+                            choiceList.Add(choiceGroup.GroupID, newChoice);
                         }
                         Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Adding association '" + associatedClass.ASBIEName +
-                                         "' to Choice Group '" + associatedClass.ChoiceGroupID + "'...");
-                        choiceList[associatedClass.ChoiceGroupID].AddAssociation(associatedClass);
+                                         "' to Choice Group '" + choiceGroup.GroupID + "'...");
+                        choiceList[choiceGroup.GroupID].AddAssociation(associatedClass);
                     }
                     else
                     {
@@ -195,6 +197,7 @@ namespace Framework.Util.SchemaManagement.JSON
             {
                 Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Adding property '" + property.Name + "' to ABIE...");
                 newType.Properties.Add(property.Name, property.JSchema);
+                if (property.IsMandatory && !mandatoryProperties.Contains(property.Name)) mandatoryProperties.Add(property.Name);   // Make sure we did not miss any mandatories!
             }
             foreach (string mandatoryProperty in mandatoryProperties) newType.Required.Add(mandatoryProperty);
             return result;

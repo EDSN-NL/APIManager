@@ -29,10 +29,12 @@ namespace Framework.Util.SchemaManagement.JSON
         /// JSchema = Returns the JSON Schema object that implements the content attribute.
         /// Name = Returns the associated property name.
         /// SequenceKey = Returns the sequence identifier of the content property.
+        /// IsMandatory = Checks whether the attribute must be present.
         /// </summary>
         public JSchema JSchema                      { get { return this._attributeClassifier; } }
         public new string Name                      { get { return base.Name; } }
         public new int SequenceKey                  { get { return base.SequenceKey; } }
+        public new bool IsMandatory                 { get { return base.IsMandatory; } }
 
         /// <summary>
         /// Returns the annotation text of the attribute.
@@ -294,10 +296,12 @@ namespace Framework.Util.SchemaManagement.JSON
         /// JSchema = Returns the JSON Schema object that implements the content attribute.
         /// Name = Returns the associated property name.
         /// SequenceKey = Returns the sequence identifier of the content property.
+        /// IsMandatory = Returns true if this attribute must be present.
         /// </summary>
         public JSchema JSchema          { get { return this._classifier; } }
         public new string Name          { get { return base.Name; } }
         public new int SequenceKey      { get { return base.SequenceKey; } }
+        public new bool IsMandatory     { get { return base.IsMandatory; } }
 
         /// <summary>
         /// Getters for properties of SupplementaryAttribute:

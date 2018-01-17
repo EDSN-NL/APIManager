@@ -24,10 +24,10 @@ namespace Framework.Util.SchemaManagement.XML
         /// <summary>
         /// Default constructor, creates and initializes a new choice schema particle.
         /// </summary>
-        /// <param name="choiceGroupID">The identifier of the associated Choice Group.</param>
-        internal XMLChoice(XMLSchema schema, string choiceGroupID) : base(schema, choiceGroupID)
+        /// <param name="choiceGroup">The choice group descriptor of the associated Choice Group.</param>
+        internal XMLChoice(XMLSchema schema, ChoiceGroup choiceGroup) : base(schema, choiceGroup)
         {
-            Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLChoice >> Creating choice: " + choiceGroupID);
+            Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLChoice >> Creating choice: " + choiceGroup.GroupID);
             this._choiceSequences = new SortedList<string, SortedList<SortableSchemaElement, XmlSchemaElement>>();
             this._mandatoryList = new SortedList<string, bool>();
         }
@@ -52,22 +52,22 @@ namespace Framework.Util.SchemaManagement.XML
                 this.SequenceKey = xmlAssociation.SequenceKey;
             }
 
-            if (!this._choiceSequences.ContainsKey(xmlAssociation.ChoiceGroupSequenceID))
+            if (!this._choiceSequences.ContainsKey(xmlAssociation.ChoiceGroup.SequenceID))
             {
                 // We have not seen this sequence identifier before, create a new entry...
-                Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLChoice.AddAssociation >> New sequence identifier: " + xmlAssociation.ChoiceGroupSequenceID);
+                Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLChoice.AddAssociation >> New sequence identifier: " + xmlAssociation.ChoiceGroup.SequenceID);
                 var newList = new SortedList<SortableSchemaElement, XmlSchemaElement>
                 {
                     { sortKey, schemaElement }
                 };
-                this._choiceSequences.Add(xmlAssociation.ChoiceGroupSequenceID, newList);
-                this._mandatoryList.Add(xmlAssociation.ChoiceGroupSequenceID, xmlAssociation.IsMandatory);
+                this._choiceSequences.Add(xmlAssociation.ChoiceGroup.SequenceID, newList);
+                this._mandatoryList.Add(xmlAssociation.ChoiceGroup.SequenceID, xmlAssociation.IsMandatory);
             }
             else
             {
-                Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLChoice.AddAssociation >> Add new element to existing sequence identifier: " + xmlAssociation.ChoiceGroupSequenceID);
-                this._choiceSequences[xmlAssociation.ChoiceGroupSequenceID].Add(sortKey, schemaElement);
-                if (!this._mandatoryList[xmlAssociation.ChoiceGroupSequenceID] && xmlAssociation.IsMandatory) this._mandatoryList[xmlAssociation.ChoiceGroupSequenceID] = true;
+                Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLChoice.AddAssociation >> Add new element to existing sequence identifier: " + xmlAssociation.ChoiceGroup.SequenceID);
+                this._choiceSequences[xmlAssociation.ChoiceGroup.SequenceID].Add(sortKey, schemaElement);
+                if (!this._mandatoryList[xmlAssociation.ChoiceGroup.SequenceID] && xmlAssociation.IsMandatory) this._mandatoryList[xmlAssociation.ChoiceGroup.SequenceID] = true;
             }
         }
 
@@ -93,22 +93,22 @@ namespace Framework.Util.SchemaManagement.XML
                 this.SequenceKey = xmlAttribute.SequenceKey;
             }
 
-            if (!this._choiceSequences.ContainsKey(xmlAttribute.ChoiceGroupSequenceID))
+            if (!this._choiceSequences.ContainsKey(xmlAttribute.ChoiceGroup.SequenceID))
             {
                 // We have not seen this sequence identifier before, create a new entry...
-                Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLChoice.AddContentAttribute >> New sequence identifier: " + attribute.ChoiceGroupSequenceID);
+                Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLChoice.AddContentAttribute >> New sequence identifier: " + attribute.ChoiceGroup.SequenceID);
                 var newList = new SortedList<SortableSchemaElement, XmlSchemaElement>
                 {
                     { sortKey, schemaElement }
                 };
-                this._choiceSequences.Add(xmlAttribute.ChoiceGroupSequenceID, newList);
-                this._mandatoryList.Add(xmlAttribute.ChoiceGroupSequenceID, attribute.IsMandatory);
+                this._choiceSequences.Add(xmlAttribute.ChoiceGroup.SequenceID, newList);
+                this._mandatoryList.Add(xmlAttribute.ChoiceGroup.SequenceID, attribute.IsMandatory);
             }
             else
             {
-                Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLChoice.AddContentAttribute >> Add new element to existing sequence identifier: " + xmlAttribute.ChoiceGroupSequenceID);
-                this._choiceSequences[xmlAttribute.ChoiceGroupSequenceID].Add(sortKey, schemaElement);
-                if (!this._mandatoryList[xmlAttribute.ChoiceGroupSequenceID] && xmlAttribute.IsMandatory) this._mandatoryList[xmlAttribute.ChoiceGroupSequenceID] = true;
+                Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLChoice.AddContentAttribute >> Add new element to existing sequence identifier: " + xmlAttribute.ChoiceGroup.SequenceID);
+                this._choiceSequences[xmlAttribute.ChoiceGroup.SequenceID].Add(sortKey, schemaElement);
+                if (!this._mandatoryList[xmlAttribute.ChoiceGroup.SequenceID] && xmlAttribute.IsMandatory) this._mandatoryList[xmlAttribute.ChoiceGroup.SequenceID] = true;
             }
         }
 
@@ -168,18 +168,27 @@ namespace Framework.Util.SchemaManagement.XML
             // And the other way around: if you have a mandatory choice with optional elements, you might have difficulty creating a valid XML.
             // Our implementation checks each of the sequence groups within the choice and sets the Choice cardinality to mandatory ONLY in case EACH
             // sequence contains at least one mandatory element.
-            bool mandatoryChoice = true;
-            foreach (KeyValuePair<string, bool> mandatoryFlag in this._mandatoryList)
+            // If the user has explicitly specified the cardinality, life is a whole lot easier since we just have to use that one.
+            if (Cardinality == null || Cardinality.Item1 == -1)
             {
-                if (mandatoryFlag.Value == false)
+                bool mandatoryChoice = true;
+                foreach (KeyValuePair<string, bool> mandatoryFlag in this._mandatoryList)
                 {
-                    mandatoryChoice = false;
-                    break;
+                    if (mandatoryFlag.Value == false)
+                    {
+                        mandatoryChoice = false;
+                        break;
+                    }
                 }
+                choice.MinOccurs = (mandatoryChoice) ? 1 : 0;
+                choice.MaxOccurs = 1;
             }
-
-            choice.MinOccurs = (mandatoryChoice) ? 1 : 0;
-            choice.MaxOccurs = 1;
+            else
+            {
+                choice.MinOccurs = Cardinality.Item1;
+                if (Cardinality.Item2 == 0) choice.MaxOccursString = "unbounded";
+                else choice.MaxOccurs = Cardinality.Item2;
+            }
             return choice;
         }
     }

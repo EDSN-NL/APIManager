@@ -156,13 +156,11 @@ namespace Framework.Util.SchemaManagement
 
         /// <summary>
         /// Getters for properties of Content Attribute:
-        /// ChoiceGroupID = Returns the Choice Group identifier of this attribute (if any).
-        /// ChoiceGroupSequenceID = Returns the Choice Group sequence identifier of this attribute (if any). This represents the order within the choice group.
+        /// ChoiceGroup = Returns the ChoiceGroup object associated with this attribute (NULL if undefined).
         /// IsChoiceElement = Returns 'true' is this attribute is part of a Choice group.
         /// IsNillable = Returns 'true' if the attribute supports a NULL value.
         /// </summary>
-        internal string ChoiceGroupID           { get { return (this._choiceGroup != null) ? this._choiceGroup.GroupID : string.Empty; } }
-        internal string ChoiceGroupSequenceID   { get { return (this._choiceGroup != null) ? this._choiceGroup.SequenceID : string.Empty; } }
+        internal ChoiceGroup ChoiceGroup        { get { return this._choiceGroup; } }
         internal bool IsChoiceElement           { get { return this._choiceGroup != null; } }
         internal bool IsNillable                { get { return this._nillable; } }
 

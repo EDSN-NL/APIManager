@@ -12,5 +12,6 @@ namespace Framework.Util.SchemaManagement.JSON
         string Name { get; }
         JSchema JSchema { get; }
         int SequenceKey { get; }
+        bool IsMandatory { get; }
     }
 }

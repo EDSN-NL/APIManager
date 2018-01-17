@@ -20,26 +20,27 @@ namespace Framework.Util.SchemaManagement.JSON
         /// Schema = Returns the JSON Schema object that implements the interface.
         /// Name = Returns the associated property name (role name of the association).
         /// SequenceKey = Returns the sequence identifier of the association.
+        /// IsMandatory = Returns true if the choice must be treated as a mandatory property of the owning schema. Note that this property
+        /// is ONLY valid AFTER a call to FinalizeChoice!
         /// </summary>
         public JSchema JSchema          { get { return this.FinalizeChoice(); } }
         public new string Name          { get { return base.Name; } }
         public new int SequenceKey      { get { return base.SequenceKey; } }
+        public bool IsMandatory         { get { return this._isMandatory; } }
 
         /// <summary>
         /// Getters for Choice properties:
         /// IsValid = A Choice object is valid if there are at least two entries in the sequence list (choice of 1 obviously ia not a choice).
-        /// IsMandatory = Returns true if the choice must be treated as a mandatory property of the owning schema.
         /// </summary>
         internal bool IsValid               { get { return this._choices.Count > 1; } }
-        internal bool IsMandatory           { get { return this._isMandatory; } }
 
         /// <summary>
         /// Default constructor, creates and initializes a new choice schema particle.
         /// </summary>
-        /// <param name="choiceGroupID">The identifier of the associated Choice Group.</param>
-        internal JSONChoice(JSONSchema schema, string choiceGroupID) : base(schema, choiceGroupID)
+        /// <param name="choiceGroup">The choice group descriptor of the associated Choice Group.</param>
+        internal JSONChoice(JSONSchema schema, ChoiceGroup choiceGroup) : base(schema, choiceGroup)
         {
-            Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONChoice >> Creating choice: " + choiceGroupID);
+            Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONChoice >> Creating choice: " + choiceGroup.GroupID);
             this._choices = new SortedList<string, SortedList<SortableSchemaElement, IJSONProperty>>();
             this._mandatoryList = new SortedList<string, bool>();
             this._isMandatory = false;
@@ -65,24 +66,24 @@ namespace Framework.Util.SchemaManagement.JSON
                 base.SequenceKey = jsonAssociation.SequenceKey;
             }
 
-            if (!this._choices.ContainsKey(jsonAssociation.ChoiceGroupSequenceID))
+            if (!this._choices.ContainsKey(jsonAssociation.ChoiceGroup.SequenceID))
             {
                 // We have not seen this sequence identifier before, create a new entry...
-                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONChoice.AddAssociation >> New sequence identifier: " + jsonAssociation.ChoiceGroupSequenceID);
+                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONChoice.AddAssociation >> New sequence identifier: " + jsonAssociation.ChoiceGroup.SequenceID);
                 var newList = new SortedList<SortableSchemaElement, IJSONProperty>
                 {
                     { sortKey, jsonAssociation }
                 };
-                this._choices.Add(jsonAssociation.ChoiceGroupSequenceID, newList);
-                this._mandatoryList.Add(jsonAssociation.ChoiceGroupSequenceID, jsonAssociation.IsMandatory);
+                this._choices.Add(jsonAssociation.ChoiceGroup.SequenceID, newList);
+                this._mandatoryList.Add(jsonAssociation.ChoiceGroup.SequenceID, jsonAssociation.IsMandatory);
             }
             else
             {
                 Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONChoice.AddAssociation >> Add new element to existing sequence identifier: " + 
-                                 jsonAssociation.ChoiceGroupSequenceID);
-                this._choices[jsonAssociation.ChoiceGroupSequenceID].Add(sortKey, jsonAssociation);
-                if (!this._mandatoryList[jsonAssociation.ChoiceGroupSequenceID] && jsonAssociation.IsMandatory)
-                    this._mandatoryList[jsonAssociation.ChoiceGroupSequenceID] = true;
+                                 jsonAssociation.ChoiceGroup.SequenceID);
+                this._choices[jsonAssociation.ChoiceGroup.SequenceID].Add(sortKey, jsonAssociation);
+                if (!this._mandatoryList[jsonAssociation.ChoiceGroup.SequenceID] && jsonAssociation.IsMandatory)
+                    this._mandatoryList[jsonAssociation.ChoiceGroup.SequenceID] = true;
             }
         }
 
@@ -105,22 +106,22 @@ namespace Framework.Util.SchemaManagement.JSON
                 base.SequenceKey = jsonAttribute.SequenceKey;
             }
 
-            if (!this._choices.ContainsKey(jsonAttribute.ChoiceGroupSequenceID))
+            if (!this._choices.ContainsKey(jsonAttribute.ChoiceGroup.SequenceID))
             {
                 // We have not seen this sequence identifier before, create a new entry...
-                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONChoice.AddContentAttribute >> New sequence identifier: " + attribute.ChoiceGroupSequenceID);
+                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONChoice.AddContentAttribute >> New sequence identifier: " + attribute.ChoiceGroup.SequenceID);
                 var newList = new SortedList<SortableSchemaElement, IJSONProperty>
                 {
                     { sortKey, jsonAttribute }
                 };
-                this._choices.Add(jsonAttribute.ChoiceGroupSequenceID, newList);
-                this._mandatoryList.Add(jsonAttribute.ChoiceGroupSequenceID, attribute.IsMandatory);
+                this._choices.Add(jsonAttribute.ChoiceGroup.SequenceID, newList);
+                this._mandatoryList.Add(jsonAttribute.ChoiceGroup.SequenceID, attribute.IsMandatory);
             }
             else
             {
-                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONChoice.AddContentAttribute >> Add new element to existing sequence identifier: " + attribute.ChoiceGroupSequenceID);
-                this._choices[jsonAttribute.ChoiceGroupSequenceID].Add(sortKey, jsonAttribute);
-                if (!this._mandatoryList[jsonAttribute.ChoiceGroupSequenceID] && jsonAttribute.IsMandatory) this._mandatoryList[jsonAttribute.ChoiceGroupSequenceID] = true;
+                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONChoice.AddContentAttribute >> Add new element to existing sequence identifier: " + attribute.ChoiceGroup.SequenceID);
+                this._choices[jsonAttribute.ChoiceGroup.SequenceID].Add(sortKey, jsonAttribute);
+                if (!this._mandatoryList[jsonAttribute.ChoiceGroup.SequenceID] && jsonAttribute.IsMandatory) this._mandatoryList[jsonAttribute.ChoiceGroup.SequenceID] = true;
             }
         }
 
@@ -178,15 +179,22 @@ namespace Framework.Util.SchemaManagement.JSON
             // And the other way around: if you have a mandatory choice with optional elements, you might have difficulty creating a valid message.
             // Our implementation checks each of the sequence groups within the choice and sets the Choice cardinality to mandatory ONLY in case EACH
             // sequence contains at least one mandatory element.
-            this._isMandatory = true;
-            foreach (KeyValuePair<string, bool> mandatoryFlag in this._mandatoryList)
+            // If the user has explicitly specified the cardinality, life is a whole lot easier since we just have to use that one.
+            // For JSON, we can not explicitly specify a cardinality other then 0 or 1. We thus only look at the lower boundary and ignore
+            // the upper boundary of the cardinality. This is a limitation of JSON schema (which does not really support choices at all).
+            if (Cardinality == null || Cardinality.Item1 == -1)
             {
-                if (mandatoryFlag.Value == false)
+                this._isMandatory = true;
+                foreach (KeyValuePair<string, bool> mandatoryFlag in this._mandatoryList)
                 {
-                    this._isMandatory = false;
-                    break;
+                    if (mandatoryFlag.Value == false)
+                    {
+                        this._isMandatory = false;
+                        break;
+                    }
                 }
             }
+            else this._isMandatory = (Cardinality.Item1 > 0);
             return choice;
         }
     }

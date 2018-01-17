@@ -138,7 +138,8 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             {
                                 try
                                 {
-                                    // We found a choice key. This should consist of a tuple: <groupID>:<sequenceID>....
+                                    // We found a choice key. This should consist of a tuple: <groupID>:<sequenceID>.
+                                    // The groupID can optionally contain a cardinality for the choice: <groupID>[low..high]
                                     // On errors, we pretend that the choice does not exist.
                                     Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAssociations >> Detected choice key: " + choiceKey);
                                     string groupID = choiceKey.Substring(0, choiceKey.IndexOf(':'));
@@ -324,7 +325,8 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                         {
                             try
                             {
-                                // We found a choice key. This should consist of a tuple: <groupID>:<sequenceID>....
+                                // We found a choice key. This should consist of a tuple: <groupID>:<sequenceID>.
+                                // GroupID might have an optional cardinality (<groupID>[n..m]).
                                 // On errors, we pretend that the choice does not exist.
                                 Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Detected choice key: " + choiceKey);
                                 string groupID = choiceKey.Substring(0, choiceKey.IndexOf(':'));

@@ -27,10 +27,12 @@ namespace Framework.Util.SchemaManagement.JSON
         /// Schema = Returns the JSON Schema object that implements the interface.
         /// Name = Returns the associated property name (role name of the association).
         /// SequenceKey = Returns the sequence identifier of the association.
+        /// IsMandatory = Checks whether the association must be present.
         /// </summary>
         public JSchema JSchema          { get { return this._associationClassifier; } }
         public string Name              { get { return base.RoleName; } }
         public new int SequenceKey      { get { return base.SequenceKey; } }
+        public new bool IsMandatory     { get { return base.IsMandatory; } }
 
         /// <summary>
         /// Creates a new Association object (ASBIE instance) within the given schema. Other arguments are the name of the target ABIE as well as the 

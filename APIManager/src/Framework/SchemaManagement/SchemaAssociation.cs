@@ -23,9 +23,7 @@ namespace Framework.Util.SchemaManagement
 
         /// <summary>
         /// Getters for Association properties:
-        /// ChoiceGroup = Returns the Choice Group of this association (if any).
-        /// ChoiceGroupID = Returns the Choice Group identifier of this association (if any).
-        /// ChoiceGroupSequenceID = Returns the Choice Group sequence identifier of this association (if any). This represents the order within the choice group.
+        /// ChoiceGroup = Returns the Choice Group of this association (if any, NULL if undefined).
         /// IsChoiceElement = Returns 'true' is this association is part of a Choice group.
         /// IsOptional = Returns true if the association is optional (minOccurs == 0). This is the reverse operator of IsMandatory.
         /// IsMandatory = Returns true if the association must exist (minOccurs > 0). This is the reverse operator of IsOptional.
@@ -38,8 +36,6 @@ namespace Framework.Util.SchemaManagement
             get { return this._choiceGroup; }
             set { this._choiceGroup = value; }
         }
-        internal string ChoiceGroupID               { get { return (this._choiceGroup != null) ? this._choiceGroup.GroupID : string.Empty; } }
-        internal string ChoiceGroupSequenceID       { get { return (this._choiceGroup != null) ? this._choiceGroup.SequenceID : string.Empty; } }
         internal bool IsChoiceElement               { get { return this._choiceGroup != null; } }
         internal int SequenceKey                    { get { return this._sequenceKey; } }
         internal string RoleName                    { get { return this._roleName; } }
