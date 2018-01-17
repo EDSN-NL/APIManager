@@ -89,8 +89,8 @@
             this.RESTHostName = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
             this.Locking = new System.Windows.Forms.GroupBox();
-            this.PersistentLocks = new System.Windows.Forms.CheckBox();
             this.AutoLocking = new System.Windows.Forms.CheckBox();
+            this.PersistentLocks = new System.Windows.Forms.CheckBox();
             this.CodeLists.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -309,9 +309,9 @@
             this.SMUseMsgHeaders.AutoSize = true;
             this.SMUseMsgHeaders.Location = new System.Drawing.Point(6, 91);
             this.SMUseMsgHeaders.Name = "SMUseMsgHeaders";
-            this.SMUseMsgHeaders.Size = new System.Drawing.Size(134, 17);
+            this.SMUseMsgHeaders.Size = new System.Drawing.Size(159, 17);
             this.SMUseMsgHeaders.TabIndex = 3;
-            this.SMUseMsgHeaders.Text = "Use Message Headers";
+            this.SMUseMsgHeaders.Text = "Generate Message Headers";
             this.SMUseMsgHeaders.UseVisualStyleBackColor = true;
             // 
             // SMCreateCmnSchema
@@ -319,9 +319,9 @@
             this.SMCreateCmnSchema.AutoSize = true;
             this.SMCreateCmnSchema.Location = new System.Drawing.Point(6, 68);
             this.SMCreateCmnSchema.Name = "SMCreateCmnSchema";
-            this.SMCreateCmnSchema.Size = new System.Drawing.Size(131, 17);
+            this.SMCreateCmnSchema.Size = new System.Drawing.Size(180, 17);
             this.SMCreateCmnSchema.TabIndex = 2;
-            this.SMCreateCmnSchema.Text = "Use Common Schema";
+            this.SMCreateCmnSchema.Text = "Use/Generate Common Schema";
             this.SMCreateCmnSchema.UseVisualStyleBackColor = true;
             // 
             // SMAddMessageAssemblyToDiagram
@@ -734,16 +734,6 @@
             this.Locking.TabStop = false;
             this.Locking.Text = "Model Access";
             // 
-            // PersistentLocks
-            // 
-            this.PersistentLocks.AutoSize = true;
-            this.PersistentLocks.Location = new System.Drawing.Point(6, 40);
-            this.PersistentLocks.Name = "PersistentLocks";
-            this.PersistentLocks.Size = new System.Drawing.Size(131, 17);
-            this.PersistentLocks.TabIndex = 0;
-            this.PersistentLocks.Text = "Persistent model locks";
-            this.PersistentLocks.UseVisualStyleBackColor = true;
-            // 
             // AutoLocking
             // 
             this.AutoLocking.AutoSize = true;
@@ -753,6 +743,16 @@
             this.AutoLocking.TabIndex = 1;
             this.AutoLocking.Text = "Use automatic locking";
             this.AutoLocking.UseVisualStyleBackColor = true;
+            // 
+            // PersistentLocks
+            // 
+            this.PersistentLocks.AutoSize = true;
+            this.PersistentLocks.Location = new System.Drawing.Point(6, 40);
+            this.PersistentLocks.Name = "PersistentLocks";
+            this.PersistentLocks.Size = new System.Drawing.Size(100, 17);
+            this.PersistentLocks.TabIndex = 0;
+            this.PersistentLocks.Text = "Persistent locks";
+            this.PersistentLocks.UseVisualStyleBackColor = true;
             // 
             // SettingsForm
             // 

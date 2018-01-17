@@ -160,6 +160,7 @@ namespace Plugin.Application.CapabilityModel.API
             ContextSlt context = ContextSlt.GetContextSlt();
             bool result = true;
             bool useCommonDocContext = context.GetBoolSetting(FrameworkSettings._DocGenUseCommon);
+            bool useCommonSchema = context.GetBoolSetting(FrameworkSettings._SMCreateCommonSchema);
             this._currentCapability = capability;
             this._currentService = capability.RootService as ApplicationService;
 
@@ -179,13 +180,13 @@ namespace Plugin.Application.CapabilityModel.API
                     case ProcessingStage.PreProcess:
                         if (capability is InterfaceCapability)
                         {
-                            // The bar-size is based on 6 steps per child. This is a wild guess but we don't want to spent hours figuring out the exact scale.
+                            // The bar-size is based on 9 steps per child plus some overhead. This is a wild guess but we don't want to spent 
+                            // hours figuring out the exact scale.
                             this._panel = ProgressPanelSlt.GetProgressPanelSlt();
-                            this._panel.ShowPanel("Processing Message: " + capability.Name, capability.SelectedChildrenCount * 6);
+                            this._panel.ShowPanel("Processing Message: " + capability.Name, capability.SelectedChildrenCount * 9 + 6);
                             this._panel.WriteInfo(this._panelIndex, "Pre-processing Interface: '" + this._currentCapability.Name + "'...");
                             ClassCacheSlt.GetClassCacheSlt().Flush();   // Assures that we start with an empty cache.
                             DocManagerSlt.GetDocManagerSlt().Flush();   // Assures that 'old' documentation nodes are removed.
-                            this._panel.IncreaseBar(1);
 
                             // Initialize our resources...
                             this._accessLevels = new List<Tuple<string, string>>();
@@ -205,7 +206,7 @@ namespace Plugin.Application.CapabilityModel.API
                                 }
                             }
                         }
-                        else if (capability is CommonSchemaCapability)
+                        else if (capability is CommonSchemaCapability && useCommonSchema)
                         {
                             this._commonSchemaCapability = capability as CommonSchemaCapability;
                             string commonSchemaName = this._currentService.Name + "." + Conversions.ToPascalCase(capability.AssignedRole);
@@ -256,18 +257,18 @@ namespace Plugin.Application.CapabilityModel.API
                             DocManagerSlt.GetDocManagerSlt().Save(this._currentService.AbsolutePath, itf.BaseFileName, itf.Name,
                                                                   MEChangeLog.GetDocumentationAsText(itf.CapabilityClass));
                         }
-                        else if (capability is CommonSchemaCapability)
+                        else if (capability is CommonSchemaCapability && useCommonSchema)
                         {
-                            // If we have a Common Schema, we must save it here...
+                            // If we have a Common Schema, we must save it here, but only if we actually used it...
                             if (result = SaveProcessedCapability()) this._panel.WriteInfo(this._panelIndex, "Interface generation has been completed successfully.");
                             else                                    this._panel.WriteError(this._panelIndex, "Unable to save Common Schema file!");
                         }
                         this._panel.IncreaseBar(1);
 
-                        if (capability is CommonSchemaCapability || (this._commonSchema == null && capability is OperationCapability))
+                        if (capability is CommonSchemaCapability || (this._commonSchema == null && capability is InterfaceCapability))
                         {
-                            // End-state is either post-processing of the Common Schema OR, when we don't have a Common Schema, post-processing
-                            // of Operation (of which we MUST have only one in this case, otherwise, we would have a Common Schema)...
+                            // End-state is post-processing of the Common Schema. In the unlikely case that we don't have a Common Schema,
+                            // we will use the Interface instead. Operation Capabilities don't have post-processing.
                             if (result == true)
                             {
                                 this._panel.WriteInfo(this._panelIndex, "Output written to: '" + this._currentService.AbsolutePath + "'.");
