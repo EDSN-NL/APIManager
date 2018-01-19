@@ -36,6 +36,7 @@ namespace Plugin.Application.CapabilityModel.API
         private List<string> _consumedMIMETypes;                // List of non-standard MIME types consumed by the operation.
         private RESTResourceCapability _requestBodyDocument;    // If the operation has a request body, this is the associated Document Resource.
         private RESTResourceCapability _responseBodyDocument;   // If the operation has a response body, this is the associated Document Resource.
+        private bool _hasMultipleResponses;                     // True if the default Ok response has multiple response documents.
         private bool _useHeaderParameters;                      // Set to 'true' when operation muse use configured Header Parameters.
         private bool _useLinkHeaders;                           // Set to 'true' when the response must contain a definition for Link Headers.
 
@@ -50,6 +51,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// ParentResource = The resource that 'owns' this operation.
         /// RequestBodyDocument = If the operation has a request body, this returns the associated Document Resource.
         /// ResponseBodyDocument = If the operation has a default Ok response body, this gets/sets the associated Document Resource.
+        /// HasMultipleResponses = True if the default OK response has multiple response body elements.
         /// </summary>
         internal RESTOperationCapability.OperationType HTTPType { get { return this._archetype; } }
         internal string HTTPTypeName                            { get { return this._archetype.ToString("G").ToLower(); } }
@@ -64,6 +66,7 @@ namespace Plugin.Application.CapabilityModel.API
             get { return this._responseBodyDocument; }
             set { this._responseBodyDocument = value; }
         }
+        internal bool HasMultipleResponses                      { get { return this._hasMultipleResponses; } }
 
         /// <summary>
         /// Returns the list of Operation Result capabilities for this Operation.
@@ -277,6 +280,7 @@ namespace Plugin.Application.CapabilityModel.API
                 // Construct all associated operation results...
                 string operationResultStereotype = context.GetConfigProperty(_RESTOperationResultStereotype);
                 string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
+                string defaultSuccess = ContextSlt.GetContextSlt().GetConfigProperty(_DefaultSuccessCode);
                 var myInterface = new RESTOperationCapability(this);
                 foreach (TreeNode<MEClass> node in hierarchy.Children)
                 {
@@ -290,6 +294,7 @@ namespace Plugin.Application.CapabilityModel.API
                             this._capabilityClass = null;
                             return;
                         }
+                        if (resultCap.ResultCode == defaultSuccess) this._hasMultipleResponses = resultCap.HasMultipleResponses;
                     }
                     else if (node.Data.HasStereotype(resourceStereotype))
                     {
@@ -454,17 +459,26 @@ namespace Plugin.Application.CapabilityModel.API
 
                 // Create Response Object classes for each operation result declaration...
                 string defaultSuccess = context.GetConfigProperty(_DefaultSuccessCode);
+                this._responseBodyDocument = operation.ResponseDocument;
                 foreach (RESTOperationResultDeclaration result in operation.OperationResults)
                 {
                     // We need to perform a little trick in case of response body definitions: the associated Document Resource has been assigned
                     // to the Operation and not to the Operation Result. However, it must be passed to the appropriate result in order to properly
                     // establish the association. So, we must check whether we have 'caught' the default OK response and if so, patch the Result
                     // Declaration object so it holds the class reference...
-                    if (this._responseBodyDocument != operation.ResponseDocument && result.ResultCode == defaultSuccess)
+                    if (result.ResultCode == defaultSuccess)
                     {
-                        result.HasMultipleResponses = operation.ResponseBodyCardinalityIndicator;
-                        result.ResponseDocumentClass = operation.ResponseDocument != null? operation.ResponseDocument.CapabilityClass: null;
-                        result.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
+                        MEClass newResponseClass = operation.ResponseDocument != null ? operation.ResponseDocument.CapabilityClass : null;
+                        if (result.ResponseDocumentClass != newResponseClass)
+                        {
+                            result.ResponseDocumentClass = newResponseClass;
+                            result.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
+                        }
+                        if (result.HasMultipleResponses != operation.ResponseBodyCardinalityIndicator)
+                        {
+                            result.HasMultipleResponses = operation.ResponseBodyCardinalityIndicator;
+                            result.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
+                        }
                     }
                     UpdateOperationResult(result);
                     this._responseBodyDocument = operation.ResponseDocument;

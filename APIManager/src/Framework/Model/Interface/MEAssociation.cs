@@ -289,6 +289,19 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Set the cardinality of the specified endpoint. If item2 is 0, this is translated to "*". And if Item2 < Item1, the functions silently
+        /// fails!
+        /// </summary>
+        /// <param name="card">Cardinality to set.</param>
+        /// <param name="endpoint">The endpoint to be evaluated.</param>
+        /// <exception cref="MissingImplementationException">No implementation object exists.</exception>
+        internal void SetCardinality(Tuple<int, int> card, MEAssociation.AssociationEnd endpoint)
+        {
+            if (this._imp != null) ((MEIAssociation)this._imp).SetCardinality(card, endpoint);
+            else throw new MissingImplementationException("MEIAssociation");
+        }
+
+        /// <summary>
         /// Either update the name of the association, or the role of the specified endpoint.
         /// </summary>
         /// <param name="newName">Alias name to be assigned to Connector or Endpoint.</param>

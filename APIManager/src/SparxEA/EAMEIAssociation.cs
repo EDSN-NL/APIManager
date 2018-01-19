@@ -458,6 +458,42 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Set the cardinality of the specified endpoint. If item2 is 0, this is translated to "*". And if Item2 < Item1, the functions silently
+        /// fails!
+        /// </summary>
+        /// <param name="card">Cardinality to set.</param>
+        /// <param name="endpoint">The endpoint to be evaluated.</param>
+        internal override void SetCardinality(Tuple<int,int> card, MEAssociation.AssociationEnd endpoint)
+        {
+            if (card.Item1 < 0  || card.Item2 < 0 || (card.Item2 != 0 && card.Item2 < card.Item1))
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIAssociation.GetCardinality >> Cardinality format error '" + card.Item1 + ".." + card.Item2 + "' detected!");
+                return;
+            }
+
+            string newCard = card.Item1.ToString();
+            if (card.Item1 != card.Item2) newCard += ".." + (card.Item2 == 0 ? "*" : card.Item2.ToString());
+
+            if (endpoint == MEAssociation.AssociationEnd.Source)
+            {
+                this._connector.ClientEnd.Cardinality = newCard;
+                this._connector.ClientEnd.Update();
+            }
+            else if (endpoint == MEAssociation.AssociationEnd.Destination)
+            {
+                this._connector.SupplierEnd.Cardinality = newCard;
+                this._connector.SupplierEnd.Update();
+            }
+            else
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIAssociation.GetCardinality >> Unable to change cardinality of association as a whole, select an endpoint instead!");
+                return;
+            }
+            this._connector.Direction = "Source -> Destination";
+            this._connector.Update();
+        }
+
+        /// <summary>
         /// Either update the name of the association, or the role of the specified endpoint.
         /// </summary>
         /// <param name="newName">Name to be assigned to Connector or Endpoint.</param>

@@ -372,6 +372,7 @@ namespace Plugin.Application.CapabilityModel.API
             // Load information regarding request- and response bodies...
             this._requestDocument = operation.RequestBodyDocument;
             this._responseDocument = operation.ResponseBodyDocument;
+            this._hasMultipleResponseParameters = operation.HasMultipleResponses;
             ContextSlt context = ContextSlt.GetContextSlt();
             string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
             string paginationClassName = context.GetConfigProperty(_RequestPaginationClassName);
@@ -383,11 +384,6 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         Tuple<int, int> card = association.GetCardinality(MEAssociation.AssociationEnd.Destination);
                         this._hasMultipleRequestParameters = (card.Item2 == 0 || card.Item2 > 1);
-                    }
-                    if (this._responseDocument != null && association.Destination.EndPoint.Name == this._responseDocument.Name)
-                    {
-                        Tuple<int, int> card = association.GetCardinality(MEAssociation.AssociationEnd.Destination);
-                        this._hasMultipleResponseParameters = (card.Item2 == 0 || card.Item2 > 1);
                     }
                 }
                 // With regard to pagination, we only look for the request class (it should have both a request- and a response)...

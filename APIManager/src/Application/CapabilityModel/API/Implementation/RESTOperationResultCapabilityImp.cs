@@ -281,27 +281,44 @@ namespace Plugin.Application.CapabilityModel.API
         /// document (if one is present) and creates a new association with the provided Document Resource class.
         /// If the provided document is NULL, the existing association is removed.
         /// The cardinality of the new association is defined by 'hasMultipleResponses'.
+        /// We can also have a situation where the document itself has not been changed, but the cardinality has!
         /// </summary>
         /// <param name="newDocument">Optional new Document Resource to be used as response.</param>
         /// <param name="hasMultipleResponses">When true, the cardinality of the new association will be '1..n' instead of '1'.</param>
         private void UpdateResponseDocument(RESTOperationResultDeclaration result)
         {
-            if (result.ResponseDocumentClass != this._responseBodyClass && this._responseBodyClass != null)
+            // Locate the association...
+            MEAssociation resourceAssoc = null;
+            if (this._responseBodyClass != null)
             {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp.UpdateResponseDocument >> Removing existing association with '" + this._responseBodyClass.Name + "'...");
                 foreach (MEAssociation association in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
                 {
                     if (association.Destination.EndPoint == this._responseBodyClass)
                     {
-                        this._capabilityClass.DeleteAssociation(association);
-                        this._responseBodyClass = null;
-                        this._multipleResponses = false;
+                        resourceAssoc = association;
                         break;
                     }
                 }
             }
 
-            if (result.ResponseDocumentClass != null)
+            // If document changed, remove the existing association...
+            bool responseDocChanged = result.ResponseDocumentClass != this._responseBodyClass;
+            if (responseDocChanged && this._responseBodyClass != null && resourceAssoc != null)
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp.UpdateResponseDocument >> Removing existing association with '" + this._responseBodyClass.Name + "'...");
+                this._capabilityClass.DeleteAssociation(resourceAssoc);
+                this._responseBodyClass = null;
+                this._multipleResponses = false;
+            }
+
+            if (this._multipleResponses != result.HasMultipleResponses && resourceAssoc != null)
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp.UpdateResponseDocument >> Cardinality has changed, update...");
+                this._multipleResponses = result.HasMultipleResponses;
+                resourceAssoc.SetCardinality(new Tuple<int, int>(1, this._multipleResponses ? 0 : 1), MEAssociation.AssociationEnd.Destination);
+            }
+
+            if (responseDocChanged && result.ResponseDocumentClass != null)
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp.UpdateResponseDocument >> Associating with new response type '" + result.ResponseDocumentClass.Name + "'...");
                 string roleName = RESTUtil.GetAssignedRoleName(result.ResponseDocumentClass.Name);
