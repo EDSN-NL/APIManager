@@ -48,6 +48,7 @@ namespace Plugin.Application.CapabilityModel
         // Other configuration properties used by this service...
         private const string _BusinessFunctionIDTag             = "BusinessFunctionIDTag";
         private const string _ServiceOperationalStatusTag       = "ServiceOperationalStatusTag";
+        private const string _DefaultOperationalStatus          = "DefaultOperationalStatus";
         private const string _PathNameTag                       = "PathNameTag";
 
         protected List<Capability> _serviceCapabilities;        // A list of all capabilities configured for this service.
@@ -87,6 +88,13 @@ namespace Plugin.Application.CapabilityModel
         {
             get { return this._serviceClass.BuildNumber; }
             set { this._serviceClass.BuildNumber = value; }
+        }
+        internal bool IsDefaultOperationalStatus
+        {
+            get
+            {
+                return string.Compare(this._operationalStatus, ContextSlt.GetContextSlt().GetConfigProperty(_DefaultOperationalStatus), true) == 0;
+            }
         }
 
         /// <summary>
