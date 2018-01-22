@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Windows.Forms;
 using Framework.Logging;
 using Framework.Util;
-using Framework.Model;
 using Framework.Context;
 using Plugin.Application.CapabilityModel.API;
 
@@ -16,6 +14,7 @@ namespace Plugin.Application.Forms
 
         private RESTResourceDeclaration _resource;      // The resource declaration descriptor that we're creating / editing.
         private bool _isEdit;                           // True means we're editing a path expression, false when creating a new one.
+        private bool _initializing;                     // Set to 'true' during construction to suppress unwanted events.
 
         // Preconditions for enabling the OK button...
         private bool _hasType;
@@ -39,6 +38,7 @@ namespace Plugin.Application.Forms
         {
             Logger.WriteInfo("Plugin.Application.Forms.RESTResourceDialog >> Initializing with resource: '" + resource.Name + "'...");
             InitializeComponent();
+            this._initializing = true;
 
             this._isEdit = resource.Status != RESTResourceDeclaration.DeclarationStatus.Invalid;
             this.Text = this._isEdit ? "Edit Resource" : "Create new Resource";
@@ -88,6 +88,7 @@ namespace Plugin.Application.Forms
             AddOperationToolTip.SetToolTip(AddOperation, "Add a new REST operation to this Path Expression.");
             DeleteOperationToolTip.SetToolTip(DeleteOperation, "Delete the REST operation and all associated resources from Path Expression.");
             EditOperationToolTip.SetToolTip(EditOperation, "Open the REST operation 'Edit' dialog for editing of parameters.");
+            this._initializing = false;
         }
 
         /// <summary>
@@ -248,6 +249,7 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void ResourceNameFld_Leave(object sender, EventArgs e)
         {
+            if (this._initializing) return;     // No actions during initialization.
             ValidateName();
         }
 
@@ -361,6 +363,7 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void DocDescription_Leave(object sender, EventArgs e)
         {
+            if (this._initializing) return;     // No actions during initialization.
             this._resource.Description = DocDescription.Text;
         }
 
@@ -372,6 +375,7 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void ExternalDocDescription_Leave(object sender, EventArgs e)
         {
+            if (this._initializing) return;     // No actions during initialization.
             this._resource.ExternalDocDescription = ExternalDocDescription.Text;
         }
 
@@ -383,6 +387,7 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void ExternalDocURL_Leave(object sender, EventArgs e)
         {
+            if (this._initializing) return;     // No actions during initialization.
             this._resource.ExternalDocURL = ExternalDocURL.Text;
         }
 

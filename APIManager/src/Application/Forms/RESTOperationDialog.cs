@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Windows.Forms;
 using Framework.Util;
 using Framework.Logging;
 using Framework.Context;
-using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 
 namespace Plugin.Application.Forms
@@ -12,19 +10,20 @@ namespace Plugin.Application.Forms
     internal partial class RESTOperationDialog : Form
     {
         // Configuration properties used by this module:
-        private const string _DefaultSuccessCode    = "DefaultSuccessCode";
-        private const string _DefaultResponseCode   = "DefaultResponseCode";
+        private const string _DefaultSuccessCode        = "DefaultSuccessCode";
+        private const string _DefaultResponseCode       = "DefaultResponseCode";
 
         private RESTOperationDeclaration _operation;    // The operation we're constructing or editing.
         private bool _hasName;                          // Set to true if we have a valid name.
         private bool _hasType;                          // Set to true if we have a valid type.
         private bool _createMode;                       // 'True' in case of editing operation, false on create.
         private bool _dirty;                            // 'True' when stuff has changed.
+        private bool _initializing;                     // Set to 'true' during construction to suppress unwanted events.
 
         /// <summary>
         /// Returns 'true' when Operation Minor Version must be updated.
         /// </summary>
-        internal bool MinorVersionIndicator         { get { return NewMinorVersion.Checked; }}
+        internal bool MinorVersionIndicator             { get { return NewMinorVersion.Checked; } }
         
         /// <summary>
         /// Returns the Operation Declaration created/edited by the dialog.
@@ -51,6 +50,7 @@ namespace Plugin.Application.Forms
         internal RESTOperationDialog(RESTOperationDeclaration operation)
         {
             InitializeComponent();
+            this._initializing = true;
             NewMinorVersion.Checked = false;
             this._operation = operation;
             this._createMode = (operation.Name == string.Empty);
@@ -62,18 +62,43 @@ namespace Plugin.Application.Forms
             Description.Text = operation.Description;
 
             // Show the associated default request- and response documents (if present)...
-            if (operation.RequestDocument != null) RequestTypeName.Text = operation.RequestDocument.Name;
+            if (operation.RequestDocument != null)  RequestTypeName.Text  = operation.RequestDocument.Name;
             if (operation.ResponseDocument != null) ResponseTypeName.Text = operation.ResponseDocument.Name;
 
             // Set indicators according to current settings...
-            HasPagination.Checked = this._operation.PaginationIndicator;
-            RequestMultiple.Checked = this._operation.RequestBodyCardinalityIndicator;
-            ResponseMultiple.Checked = this._operation.ResponseBodyCardinalityIndicator;
-            OverrideSecurity.Checked = this._operation.PublicAccessIndicator;
-            UseHeaderParameters.Checked = this._operation.UseHeaderParametersIndicator;
-            UseLinkHeaders.Checked = this._operation.UseLinkHeaderIndicator;
+            HasPagination.Checked       = operation.PaginationIndicator;
+            RequestMultiple.Checked     = operation.RequestBodyCardinalityIndicator;
+            ResponseMultiple.Checked    = operation.ResponseBodyCardinalityIndicator;
+            OverrideSecurity.Checked    = operation.PublicAccessIndicator;
+            UseHeaderParameters.Checked = operation.UseHeaderParametersIndicator;
+            UseLinkHeaders.Checked      = operation.UseLinkHeaderIndicator;
+
+            // Initialize the MIME-type fields...
+            string MIMETypes = string.Empty;
+            bool firstOne = true;
+            if (operation.ProducedMIMETypes.Count > 0)
+            {
+                foreach (string producedMIMEType in operation.ProducedMIMETypes)
+                {
+                    MIMETypes += firstOne ? producedMIMEType : ", " + producedMIMEType;
+                    firstOne = false;
+                }
+                ProducesMIME.Text = MIMETypes;
+            }
+            if (operation.ConsumedMIMETypes.Count > 0)
+            {
+                MIMETypes = string.Empty;
+                firstOne = true;
+                foreach (string consumedMIMEType in operation.ConsumedMIMETypes)
+                {
+                    MIMETypes += firstOne ? consumedMIMEType : ", " + consumedMIMEType;
+                    firstOne = false;
+                }
+                ConsumesMIME.Text = MIMETypes;
+            }
 
             // Initialize the drop-down box with a human-friendly label of our OperationType enumeration...
+            // Note that changing the selected index WILL trigger an event.
             foreach (RESTOperationCapability.OperationType type in Enum.GetValues(typeof(RESTOperationCapability.OperationType)))
             {
                 OperationTypeFld.Items.Add(RESTOperationCapability.OperationTypeToLabel(type));
@@ -119,6 +144,7 @@ namespace Plugin.Application.Forms
             this._hasName = !string.IsNullOrEmpty(operation.Name);
             this._hasType = operation.Archetype != RESTOperationCapability.OperationType.Unknown;
             CheckOk();
+            this._initializing = false;
         }
 
         /// <summary>
@@ -137,6 +163,7 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void OperationTypeFld_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (this._initializing) return;   // Ignore event during initialization.
             int index = OperationTypeFld.SelectedIndex;
             RESTOperationCapability.OperationType oldType = this._operation.Archetype;
             this._operation.Archetype = RESTOperationCapability.LabelToOperationType(OperationTypeFld.Items[index].ToString());
@@ -191,6 +218,7 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void OperationNameFld_Leave(object sender, EventArgs e)
         {
+            if (this._initializing) return;   // Ignore event during initialization.
             this._hasName = false;
             if (OperationNameFld.Text != string.Empty)
             {
@@ -348,6 +376,7 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void Indicator_CheckedChanged(object sender, EventArgs e)
         {
+            if (this._initializing) return;   // Ignore event during initialization.
             this._operation.PaginationIndicator = HasPagination.Checked;
             this._operation.PublicAccessIndicator = OverrideSecurity.Checked;
             this._operation.RequestBodyCardinalityIndicator = RequestMultiple.Checked;
@@ -382,6 +411,7 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void ConsumesMIME_TextChanged(object sender, EventArgs e)
         {
+            if (this._initializing) return;   // Ignore event during initialization.
             this._operation.ClearConsumedMIMETypes();
             string[] MIMEList = ConsumesMIME.Text.Split(',');
             foreach (string MIMEEntry in MIMEList) this._operation.AddConsumedMIMEType(MIMEEntry.Trim());
@@ -397,6 +427,7 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void ProducesMIME_TextChanged(object sender, EventArgs e)
         {
+            if (this._initializing) return;   // Ignore event during initialization.
             this._operation.ClearProducedMIMETypes();
             string[] MIMEList = ProducesMIME.Text.Split(',');
             foreach (string MIMEEntry in MIMEList) this._operation.AddProducedMIMEType(MIMEEntry.Trim());
@@ -410,6 +441,7 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void SummaryText_Leave(object sender, EventArgs e)
         {
+            if (this._initializing) return;   // Ignore event during initialization.
             this._operation.Summary = SummaryText.Text;
             this._dirty = true;
         }
@@ -421,6 +453,7 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void Description_Leave(object sender, EventArgs e)
         {
+            if (this._initializing) return;   // Ignore event during initialization.
             this._operation.Description = Description.Text;
             this._dirty = true;
         }
