@@ -126,6 +126,12 @@ namespace Framework.Util.SchemaManagement.JSON
                     if (classifier.IsReferenceType)
                     {
                         // Complex classifier, we need to extend this instead of copy the contents...
+                        //@@@@@@@@@ ISSUE: Some fromeworks don't like the 'AllOf' construction!
+                        // We use this so we can extend the existing type definition with our own Title, Description and other Facets.
+                        // There are two solutions:
+                        // 1) Use a simple REF (like all other external references). But in this case, NO facets other then the REF may exist.
+                        // 2) Use in-line extension (copy all components from the original). This will grow the schema significantly.
+                        // Or... use (1) for the simple cases when no facets have been defined and use (2) when we must extend the type.
                         Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Constructed classifier, creating extension...");
                         attribClassifier.AllOf.Add(classifier.ReferenceClassifier);
                         simpleAttributeClassifier.AllOf.Add(classifier.ReferenceClassifier);
