@@ -72,7 +72,7 @@
       <Value Profile="(Default)">AuthorizationCode</Value>
     </Setting>
     <Setting Name="RESTHostName" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">api.enexis.nl</Value>
     </Setting>
     <Setting Name="RESTSchemes" Type="System.String" Scope="User">
       <Value Profile="(Default)">https</Value>
@@ -82,6 +82,9 @@
     </Setting>
     <Setting Name="UseAutomaticLocking" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="SupplementaryPrefix" Type="System.String" Scope="User">
+      <Value Profile="(Default)">_</Value>
     </Setting>
   </Settings>
 </SettingsFile>

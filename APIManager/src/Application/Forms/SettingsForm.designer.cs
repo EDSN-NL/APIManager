@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SettingsForm));
             this.UseLogfile = new System.Windows.Forms.CheckBox();
             this.LogfileSelector = new System.Windows.Forms.OpenFileDialog();
@@ -91,6 +92,10 @@
             this.Locking = new System.Windows.Forms.GroupBox();
             this.AutoLocking = new System.Windows.Forms.CheckBox();
             this.PersistentLocks = new System.Windows.Forms.CheckBox();
+            this.JSONSpecifics = new System.Windows.Forms.GroupBox();
+            this.SupplementaryPrefixCode = new System.Windows.Forms.TextBox();
+            this.SupplementaryPrefixLabel = new System.Windows.Forms.Label();
+            this.AttributePrefixToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.CodeLists.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -103,6 +108,7 @@
             this.RESTAuthentication.SuspendLayout();
             this.RESTParameters.SuspendLayout();
             this.Locking.SuspendLayout();
+            this.JSONSpecifics.SuspendLayout();
             this.SuspendLayout();
             // 
             // UseLogfile
@@ -754,6 +760,33 @@
             this.PersistentLocks.Text = "Persistent locks";
             this.PersistentLocks.UseVisualStyleBackColor = true;
             // 
+            // JSONSpecifics
+            // 
+            this.JSONSpecifics.Controls.Add(this.SupplementaryPrefixCode);
+            this.JSONSpecifics.Controls.Add(this.SupplementaryPrefixLabel);
+            this.JSONSpecifics.Location = new System.Drawing.Point(427, 338);
+            this.JSONSpecifics.Name = "JSONSpecifics";
+            this.JSONSpecifics.Size = new System.Drawing.Size(226, 106);
+            this.JSONSpecifics.TabIndex = 15;
+            this.JSONSpecifics.TabStop = false;
+            this.JSONSpecifics.Text = "JSON Settings";
+            // 
+            // SupplementaryPrefixCode
+            // 
+            this.SupplementaryPrefixCode.Location = new System.Drawing.Point(111, 16);
+            this.SupplementaryPrefixCode.Name = "SupplementaryPrefixCode";
+            this.SupplementaryPrefixCode.Size = new System.Drawing.Size(35, 20);
+            this.SupplementaryPrefixCode.TabIndex = 1;
+            // 
+            // SupplementaryPrefixLabel
+            // 
+            this.SupplementaryPrefixLabel.AutoSize = true;
+            this.SupplementaryPrefixLabel.Location = new System.Drawing.Point(2, 19);
+            this.SupplementaryPrefixLabel.Name = "SupplementaryPrefixLabel";
+            this.SupplementaryPrefixLabel.Size = new System.Drawing.Size(109, 13);
+            this.SupplementaryPrefixLabel.TabIndex = 0;
+            this.SupplementaryPrefixLabel.Text = "Supplementary Prefix:";
+            // 
             // SettingsForm
             // 
             this.AcceptButton = this.Ok;
@@ -761,6 +794,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
             this.ClientSize = new System.Drawing.Size(665, 496);
+            this.Controls.Add(this.JSONSpecifics);
             this.Controls.Add(this.Locking);
             this.Controls.Add(this.RESTParameters);
             this.Controls.Add(this.RESTAuthentication);
@@ -806,6 +840,8 @@
             this.RESTParameters.PerformLayout();
             this.Locking.ResumeLayout(false);
             this.Locking.PerformLayout();
+            this.JSONSpecifics.ResumeLayout(false);
+            this.JSONSpecifics.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -874,5 +910,9 @@
         private System.Windows.Forms.GroupBox Locking;
         private System.Windows.Forms.CheckBox PersistentLocks;
         private System.Windows.Forms.CheckBox AutoLocking;
+        private System.Windows.Forms.GroupBox JSONSpecifics;
+        private System.Windows.Forms.TextBox SupplementaryPrefixCode;
+        private System.Windows.Forms.Label SupplementaryPrefixLabel;
+        private System.Windows.Forms.ToolTip AttributePrefixToolTip;
     }
 }

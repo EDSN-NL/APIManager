@@ -49,6 +49,7 @@ namespace Plugin.Application.Forms
             RAAPIKeys.Text                          = context.GetStringSetting(FrameworkSettings._RESTAuthAPIKeys);
             RESTHostName.Text                       = context.GetStringSetting(FrameworkSettings._RESTHostName);
             RESTSchemes.Text                        = context.GetStringSetting(FrameworkSettings._RESTSchemes);
+            SupplementaryPrefixCode.Text                = context.GetStringSetting(FrameworkSettings._SupplementaryPrefixCode);
 
             RAScheme.Items.AddRange(new object[]
             {
@@ -90,6 +91,9 @@ namespace Plugin.Application.Forms
 
             LogfileName.Text    = this._logfileName;
             RootPathName.Text   = this._rootPath;
+
+            // Load Tool-Tips...
+            AttributePrefixToolTip.SetToolTip(SupplementaryPrefixCode, "Defines the prefix that is added to a Supplementary Attribute when used as a JSON property.");
         }
 
         /// <summary>
@@ -129,6 +133,7 @@ namespace Plugin.Application.Forms
             context.SetStringSetting(FrameworkSettings._RESTAuthAPIKeys, RAAPIKeys.Text);
             context.SetStringSetting(FrameworkSettings._RESTHostName, RESTHostName.Text);
             context.SetStringSetting(FrameworkSettings._RESTSchemes, RESTSchemes.Text);
+            context.SetStringSetting(FrameworkSettings._SupplementaryPrefixCode, SupplementaryPrefixCode.Text);
 
             // Check root path, should not end with separator (should not happen since user can not type the path, just to be save...)
             if (this._rootPath.EndsWith("/") || this._rootPath.EndsWith("\\"))

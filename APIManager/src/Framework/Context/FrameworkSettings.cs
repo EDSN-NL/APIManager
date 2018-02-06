@@ -46,6 +46,7 @@ namespace Framework.Context
         internal const string _InterfaceContractType          = "InterfaceContractType";
         internal const string _SaveMessageDiagrams            = "SaveMessageDiagrams";
         internal const string _DocGenUseCommon                = "DocGenUseCommon";
+        internal const string _SupplementaryPrefixCode        = "SupplementaryPrefixCode";
 
         // These are the names of all currently defined resources:
         internal const string _CodeListHeader                 = "CodeListHeader";
@@ -113,6 +114,7 @@ namespace Framework.Context
             this._stringSettings.Add(_RESTAuthOAuth2Flow, Settings.Default.RESTAuthOAuth2Flow);
             this._stringSettings.Add(_RESTHostName, Settings.Default.RESTHostName);
             this._stringSettings.Add(_RESTSchemes, Settings.Default.RESTSchemes);
+            this._stringSettings.Add(_SupplementaryPrefixCode, Settings.Default.SupplementaryPrefix);
         }
 
         /// <summary>
@@ -273,6 +275,11 @@ namespace Framework.Context
 
                     case _RESTSchemes:
                         Settings.Default.RESTSchemes = value;
+                        if (!this._inTransaction) Settings.Default.Save();
+                        break;
+
+                    case _SupplementaryPrefixCode:
+                        Settings.Default.SupplementaryPrefix = value;
                         if (!this._inTransaction) Settings.Default.Save();
                         break;
 

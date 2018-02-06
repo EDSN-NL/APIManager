@@ -301,7 +301,7 @@ namespace APIManager.SparxEA.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("api.enexis.nl")]
         public string RESTHostName {
             get {
                 return ((string)(this["RESTHostName"]));
@@ -344,6 +344,18 @@ namespace APIManager.SparxEA.Properties {
             }
             set {
                 this["UseAutomaticLocking"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("_")]
+        public string SupplementaryPrefix {
+            get {
+                return ((string)(this["SupplementaryPrefix"]));
+            }
+            set {
+                this["SupplementaryPrefix"] = value;
             }
         }
     }

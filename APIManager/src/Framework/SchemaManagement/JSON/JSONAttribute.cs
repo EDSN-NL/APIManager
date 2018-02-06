@@ -4,6 +4,7 @@ using Newtonsoft.Json.Schema;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Framework.Logging;
+using Framework.Context;
 
 namespace Framework.Util.SchemaManagement.JSON
 {
@@ -323,7 +324,7 @@ namespace Framework.Util.SchemaManagement.JSON
         /// The attribute classifier must be CCTS PRIM datatype name. UNION is NOT supported for attributes and will lead to an invalid object.
         /// </summary>
         /// <param name="schema">The schema in which the attribute is defined.</param>
-        /// <param name="name">Name of the attribute, will be passed as '@name' to indicate that this is a supplementary attribute.</param>
+        /// <param name="name">Name of the attribute, will be prefixed with configurable prefix code to indicate that this is a supplementary attribute.</param>
         /// <param name="classifier">Type of the attribute, MUST be a PRIM type, CAN be an enumeration!</param>
         /// <param name="isOptional">TRUE if this is an optional attribute, FALSE if mandatory</param>
         /// <param name="annotation">Optional comment for the attribute (empty list in case of no comment).</param>
@@ -335,7 +336,7 @@ namespace Framework.Util.SchemaManagement.JSON
                                             bool isOptional,
                                             List<MEDocumentation> annotation,
                                             string defaultValue, string fixedValue): 
-            base(schema, "@" + name, classifier, isOptional, annotation, defaultValue, fixedValue)
+            base(schema, ContextSlt.GetContextSlt().GetStringSetting(FrameworkSettings._SupplementaryPrefixCode) + name, classifier, isOptional, annotation, defaultValue, fixedValue)
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSupplementaryAttribute >> Creating attribute '" + name + "' of type '" + classifier + "'.");
             this.IsValid = true;
