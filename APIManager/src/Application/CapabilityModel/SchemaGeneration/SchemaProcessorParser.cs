@@ -443,7 +443,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.processClass >> Sequence base = " + seqBase + " stepping down by: " + step);
 
                 // We do not have to test commonSchema against null since this has already been taken care of when we determined the schema scope.
-                string qualifiedClassName = GetQualifiedClassName((currentClass.AliasName != string.Empty) ? currentClass.AliasName : currentClass.Name, schemaScope);
+                string qualifiedClassName = GetQualifiedClassName(currentClass, schemaScope);
                 string unqualifiedName = qualifiedClassName.Substring(qualifiedClassName.IndexOf(':') + 1);
 
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.processClass >> Class: " + 

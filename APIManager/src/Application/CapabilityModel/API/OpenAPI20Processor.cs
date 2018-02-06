@@ -9,7 +9,6 @@ using Framework.Util.SchemaManagement.JSON;
 using Framework.Logging;
 using Framework.Util;
 using Framework.Context;
-using Framework.Model;
 using Plugin.Application.CapabilityModel.SchemaGeneration;
 
 namespace Plugin.Application.CapabilityModel.API

@@ -114,6 +114,10 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Entry point for Operation Result processing. The method parses the provided Operation Result capability and generates the associated Response Object.
         /// It writes the result code and description and, if specified, generates the response schema.
+        /// Note: we do NOT change the 'CurrentCapability' in this._schema to the result capability. This implies that, as far as schema processing is concerned,
+        /// the processing context is still the current Operation. Big advantage is that all operation-specific data types (present in the Operation.Request/Response packages),
+        /// are now automatically prefixed with the Operation Name. This does NOT apply to the root-class, the one connected to the Document Resource.
+        /// It is the responsibility of the API designer to assure that no name clashes exist (e.g. by assigning Alias names if required).
         /// </summary>
         /// <param name="operationResult">The Operation Result capability to process.</param>
         /// <returns>True when successfully completed, false on errors.</returns>
@@ -122,7 +126,6 @@ namespace Plugin.Application.CapabilityModel.API
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Building result '" + operationResult.Name + "'...");
             ContextSlt context = ContextSlt.GetContextSlt();
             bool result = true;
-            this._schema.CurrentCapability = operationResult;
             this._JSONWriter.WritePropertyName(operationResult.ResultCode); this._JSONWriter.WriteStartObject();
             {
                 // Since multi-line documentation does not really work with JSON, we replace line breaks by spaces...
@@ -352,7 +355,7 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This method iterates over all attributes of the (temporary) Header Parameters class. For each attribute, a Request Header 
+        /// This method iterates over all attributes of the (temporary) Header Parameters class. For each attribute, a Response Header 
         /// Parameter Object is created in the OpenAPI definition. If the class is not defined (or has no attributes), no actions are performed.
         /// </summary>
         private void WriteResponseHeaderParameters(RESTOperationResultCapability.ResponseCategory category)

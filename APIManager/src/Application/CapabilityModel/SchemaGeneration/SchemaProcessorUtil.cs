@@ -391,26 +391,31 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         /// 2) The character ":"
         /// 4) The original class name (or alias name if this has been passed instead).
         /// </summary>
-        /// <param name="className">The name of the class that is currently being processed.</param>
+        /// <param name="thisClass">The class for which we have to create the qualified name.</param>
         /// <param name="scope">Scope tag from the class that is currently being processed.</param>
         /// <returns>Qualified Class Name.</returns>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        private string GetQualifiedClassName(string className, ClassifierContext.ScopeCode scope)
+        private string GetQualifiedClassName(MEClass thisClass, ClassifierContext.ScopeCode scope)
         {
             scope = (scope == ClassifierContext.ScopeCode.Remote) ? ClassifierContext.ScopeCode.Interface : scope;  // We treat Remote equal to Interface!
             string classNs = (scope == ClassifierContext.ScopeCode.Interface) ? this._commonSchema.NSToken : this._schema.NSToken;
-
+            string qualifiedName = thisClass.AliasName != string.Empty ? thisClass.AliasName : thisClass.Name;
             string role = this._currentCapability.AssignedRole;
-            if (scope == ClassifierContext.ScopeCode.Message && !(className.StartsWith(role) || className.EndsWith(role)))
-            {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.GetQualifiedClassName >> Message scope, use role '" + 
-                                 this._currentCapability.AssignedRole + "' as prefix...");
-                classNs += ":" + this._currentCapability.AssignedRole + className;
-            }
-            else classNs += ":" + className;
 
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.GetQualifiedClassName >> Returning: " + classNs);
-            return classNs;
+            // In case of Message Scope, which is the most restrictive scope, we prefix the class name with the name of the role in which the
+            // class is used. Also, if the role name is different from the package name in which the class resides, we also add the package
+            // name. All in all, the resulting name might be: <role><package><className> (or <role><className> if package name == role name).
+            // If the role is already part of the original class name, we will not add it again. So, worst-case the class name is not changed
+            // at all (if package name == role name and role name is already part of class name).
+            if (scope == ClassifierContext.ScopeCode.Message)
+            {
+                if (string.Compare(role, thisClass.OwningPackage.Name, true) != 0) qualifiedName = thisClass.OwningPackage.Name + qualifiedName;
+                if (!(qualifiedName.StartsWith(role) || qualifiedName.EndsWith(role))) qualifiedName = role + qualifiedName;
+            }
+
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.GetQualifiedClassName >> Returning: " + 
+                             classNs + ":" + qualifiedName);
+            return classNs + ":" + qualifiedName;
         }
     }
 }
