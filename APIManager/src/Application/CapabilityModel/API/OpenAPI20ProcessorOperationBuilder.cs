@@ -29,6 +29,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _APISupportModelPathName       = "APISupportModelPathName";
         private const string _CollectionFormatTag           = "CollectionFormatTag";
         private const string _ResponsePkgName               = "ResponsePkgName";
+        private const string _ResponseMessageSuffix         = "ResponseMessageSuffix";
 
         // Separator between summary text and description text
         private const string _Summary = "summary: ";
@@ -242,6 +243,7 @@ namespace Plugin.Application.CapabilityModel.API
             ContextSlt context = ContextSlt.GetContextSlt();
             string paginationClassName = context.GetConfigProperty(_ResponsePaginationClassName);
             string paginationClassStereotype = context.GetConfigProperty(_PaginationClassStereotype);
+            string responseSuffix = context.GetConfigProperty(_ResponseMessageSuffix);
             MEClass responseClass = null;
             MEClass templateClass = null;
             try
@@ -259,7 +261,8 @@ namespace Plugin.Application.CapabilityModel.API
 
                 // Next, we check whether an earlier pagination class already exists. If so, check whether we're lagging in version...
                 // When we have an older version, or pagination is not needed anymore, delete the existing class...
-                string myPaginationClassName = this._currentOperation.Name + paginationClassName;
+                // The newly created class receives a name that is a combination of operation + standard suffix...
+                string myPaginationClassName = this._currentOperation.Name + responseSuffix;
                 MEPackage paramPackage = this._currentOperation.OwningPackage.FindPackage(context.GetConfigProperty(_ResponsePkgName));
                 responseClass = paramPackage.FindClass(myPaginationClassName, paginationClassStereotype);
                 if (responseClass != null && (templateClass == null || 
