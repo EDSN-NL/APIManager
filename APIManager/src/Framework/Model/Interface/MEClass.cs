@@ -202,6 +202,18 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Creates a new attribute in the current class using an existing MEAttribute object.
+        /// </summary>
+        /// <param name="attrib">The attribute object to be used as basis.</param>
+        /// <exception cref="ArgumentException">Illegal or missing attribute.</exception>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal void CreateAttribute(MEAttribute attrib)
+        {
+            if (this._imp != null) ((MEIClass)this._imp).CreateAttribute(attrib);
+            else throw new MissingImplementationException("MEIClass");
+        }
+
+        /// <summary>
         /// Creates a new attribute in the current class.
         /// </summary>
         /// <param name="name">Name of the attribute.</param>

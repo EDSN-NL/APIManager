@@ -20,6 +20,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _ProducesMIMEListTag           = "ProducesMIMEListTag";
         private const string _RequestPaginationClassName    = "RequestPaginationClassName";
         private const string _ResponsePaginationClassName   = "ResponsePaginationClassName";
+        private const string _PaginationClassStereotype     = "PaginationClassStereotype";
         private const string _OperationResultClassName      = "OperationResultClassName";
         private const string _RequestHdrParamClassName      = "RequestHdrParamClassName";
         private const string _ResponseHdrParamClassName     = "ResponseHdrParamClassName";
@@ -27,6 +28,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _BusinessComponentStereotype   = "BusinessComponentStereotype";
         private const string _APISupportModelPathName       = "APISupportModelPathName";
         private const string _CollectionFormatTag           = "CollectionFormatTag";
+        private const string _ResponsePkgName               = "ResponsePkgName";
 
         // Separator between summary text and description text
         private const string _Summary = "summary: ";
@@ -225,34 +227,70 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Helper function that searches the current Operation for an association with a Response Pagination class and, when found, returns 
-        /// a JSON-schema formatted string with all attribute definitions.
+        /// Helper function that searches the current Operation for an association with a Response Pagination class and, when found, creates
+        /// a copy of this class in the current Response package of the Operation Package. We do this since we must create a 'composite response', 
+        /// consisting of the pagination parameters, combined with an association with the actual response object. This combination is then
+        /// referenced from the Response Parameter in the Swagger definition. The reason for this construction is that not all frameworks
+        /// support definition of constructed response parameters ("response object").
+        /// When a pagination response class has been created earlier, we compare versions with the template class and if we have an older version,
+        /// we delete the existing class and create a new one.
+        /// In all cases, we delete any associations between the response parameter class and payload. This will be re-established lateron.
         /// </summary>
-        /// <returns>List of attributes as a JSON formatted string. Empty string if association not found or no attributes are defined.</returns>
-        private string GetResponsePaginationSchema()
+        /// <returns>The pagination response class if one is needed or NULL when pagination is not defined.</returns>
+        private MEClass GetResponsePaginationClass()
         {
-            string paginationClassName = ContextSlt.GetContextSlt().GetConfigProperty(_ResponsePaginationClassName);
-            string responseSchema = string.Empty;
-            foreach (MEAssociation assoc in this._currentOperation.CapabilityClass.AssociationList)
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string paginationClassName = context.GetConfigProperty(_ResponsePaginationClassName);
+            string paginationClassStereotype = context.GetConfigProperty(_PaginationClassStereotype);
+            MEClass responseClass = null;
+            MEClass templateClass = null;
+            try
             {
-                if (assoc.Destination.EndPoint.Name == paginationClassName)
+                // First of all, check whether pagination is defined for the current operation...
+                foreach (MEAssociation assoc in this._currentOperation.CapabilityClass.AssociationList)
                 {
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.GetResponsePaginationSchema >> Found Pagination class, processing...");
-                    List<SchemaAttribute> paginationProperties = this._schema.ProcessProperties(assoc.Destination.EndPoint);
-                    bool firstOne = true;
-                    foreach (JSONContentAttribute attrib in paginationProperties)
+                    if (assoc.Destination.EndPoint.Name == paginationClassName)
                     {
-                        if (!firstOne) responseSchema += ", ";
-                        else firstOne = false;
-                        responseSchema += "\"" + RESTUtil.GetAssignedRoleName(attrib.Name) + "\": ";
-                        string attribText = attrib.GetClassifierAsJSONSchemaText();
-                        responseSchema += "{" + attribText + "}";
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.GetResponsePaginationClass >> Found Pagination class, processing...");
+                        templateClass = assoc.Destination.EndPoint;
+                        break;
                     }
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.GetResponsePaginationSchema >> Properties: '" + responseSchema + "'...");
-                    break;
+                }
+
+                // Next, we check whether an earlier pagination class already exists. If so, check whether we're lagging in version...
+                // When we have an older version, or pagination is not needed anymore, delete the existing class...
+                string myPaginationClassName = this._currentOperation.Name + paginationClassName;
+                MEPackage paramPackage = this._currentOperation.OwningPackage.FindPackage(context.GetConfigProperty(_ResponsePkgName));
+                responseClass = paramPackage.FindClass(myPaginationClassName, paginationClassStereotype);
+                if (responseClass != null && (templateClass == null || 
+                    responseClass.Version.Item1 < templateClass.Version.Item1 || responseClass.Version.Item2 < templateClass.Version.Item2))
+                {
+                    paramPackage.DeleteClass(responseClass);
+                    responseClass = null;
+                }
+
+                if (responseClass != null)
+                {
+                    // If we did not delete the class, we WILL delete the association with the 'old' payload. This way, we can simply
+                    // create a (new) association without spending time checking what has changed.
+                    foreach (MEAssociation association in responseClass.AssociationList) responseClass.DeleteAssociation(association);
+                }
+
+                // Finally, IF we must support pagination, (and we have deleted the original class), we create a new class and copy all properties...
+                if (templateClass != null && responseClass == null)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.GetResponsePaginationClass >> Creating copy of pagination class...");
+                    responseClass = paramPackage.CreateClass(myPaginationClassName, paginationClassStereotype);
+                    foreach (MEAttribute attrib in templateClass.Attributes) responseClass.CreateAttribute(attrib);
+                    responseClass.Version = templateClass.Version;
                 }
             }
-            return responseSchema;
+            catch (Exception exc)
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.GetResponsePaginationClass >> Caught an exception: '" + exc.Message + "'!");
+                responseClass = null;
+            }
+            return responseClass;
         }
 
         /// <summary>
@@ -567,7 +605,7 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Writes a request body parameter using the specified message Profile root. Each operation may have at most ONE body parameter and each
+        /// Writes a response body parameter using the specified message Profile root. Each operation may have at most ONE body parameter and each
         /// must refer to an, operation specific, unique message model. The root of this model is specified by a Document Resource class that in turn
         /// contains an association with the Business Component that acts as the actual message root.The method always creates a reference to this
         /// Business Component class. If the association role has a cardinality > 1, we create an array of references.
@@ -584,42 +622,56 @@ namespace Plugin.Application.CapabilityModel.API
             string qualifiedClassName = string.Empty;
             string businessComponentStereotype = context.GetConfigProperty(_BusinessComponentStereotype);
 
-            // Locate the associated business component. We can't check by name since it might have used an Alias name...
+            // First of all, we check whether we must use response pagination parameters. If so, we create a class structure in the Response package
+            // of the current operation and use this to store both the pagination parameters and the actual response object. We then simply refer
+            // to this class in the OpenAPI definition response parameter. Reason: not all frameworks support a 'response object' in the response
+            // parameter...
+            MEClass paginationClass = GetResponsePaginationClass();
+
+            // Next, Locate the associated business component. We can't check by name since it might have used an Alias name...
+            MEClass payload = null;
             foreach (MEAssociation association in documentResourceClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
             {
                 if (association.Destination.EndPoint.HasStereotype(businessComponentStereotype))
                 {
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Found Business Component, processing...");
-                    qualifiedClassName = this._schema.ProcessClass(association.Destination.EndPoint, documentResourceClass.Name);
+                    payload = association.Destination.EndPoint;
                     break;
                 }
             }
 
-            // Search our operation for an association with the Response Pagination class. If found, we have to change our response from a simple
-            // (array of-) reference(s), to an object including the pagination properties, followed by the actual (array of-) response(s)...
-            string paginationPropertiesSchema = GetResponsePaginationSchema();
+            // Next, check whether we must use pagination at all. If not, we can create a simple reference....
+            if (paginationClass != null)
+            {
+                // Pagination is required. The call to GetResponsePaginationClass has either cleaned-up the existing pagination class, or has
+                // created a new one. We must establish an association with the payload...
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Pagination, created class and association...");
+                string assocCard = cardinality.Item1.ToString();
+                if (cardinality.Item2 == 0) assocCard += "..*";
+                else if (cardinality.Item2 != cardinality.Item1) assocCard += ".." + cardinality.Item2.ToString();
+                var source = new EndpointDescriptor(paginationClass, "1", paginationClass.Name, null, false);
+                var target = new EndpointDescriptor(payload, assocCard, RESTUtil.GetAssignedRoleName(payload.Name), null, true);
+                paginationClass.CreateAssociation(source, target, MEAssociation.AssociationType.MessageAssociation);
+                qualifiedClassName = this._schema.ProcessClass(paginationClass, paginationClass.Name);
+                cardinality = new Tuple<int, int>(1, 1);    // Response is mandatory object and actual cardinality with payload has been solved otherwise.
+            }
+            else
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> No pagination, simple reference...");
+                qualifiedClassName = this._schema.ProcessClass(payload, documentResourceClass.Name);
+            }
 
             if (qualifiedClassName != string.Empty)
             {
                 // Since we 'might' use alias names in classes, the returned name 'might' be different from the offered name. To make sure we're referring
                 // to the correct name, we take the returned FQN and remove the token part. Remainder is the 'formal' type name.
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteBodyParameter >> Gotten FQN '" + qualifiedClassName + "'.");
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Gotten FQN '" + qualifiedClassName + "'.");
                 string className = qualifiedClassName.Substring(qualifiedClassName.IndexOf(':') + 1);
                 this._JSONWriter.WritePropertyName("schema"); this._JSONWriter.WriteStartObject();
                 {
-                    if (paginationPropertiesSchema != string.Empty)
-                    {
-                        this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("object");
-                        this._JSONWriter.WritePropertyName("properties"); this._JSONWriter.WriteStartObject();
-                        {
-                            this._JSONWriter.WriteRaw(paginationPropertiesSchema + ", \"data\": {");
-                            WriteResponseBodyReference(className, cardinality);
-                            this._JSONWriter.WriteRaw("}");
-                        }
-                        this._JSONWriter.WriteEndObject();
-                    }
-                    else WriteResponseBodyReference(className, cardinality);
-                } this._JSONWriter.WriteEndObject();
+                    WriteResponseBodyReference(className, cardinality);
+                }
+                this._JSONWriter.WriteEndObject();
                 result = true;
             }
             return result;

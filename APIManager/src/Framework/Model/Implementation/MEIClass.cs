@@ -35,6 +35,13 @@ namespace Framework.Model
         internal abstract MEAssociation CreateAssociation(EndpointDescriptor source, EndpointDescriptor destination, MEAssociation.AssociationType type, string assocName);
 
         /// <summary>
+        /// Creates a new attribute in the current class using an existing MEAttribute object.
+        /// </summary>
+        /// <param name="attrib">The attribute object to be used as basis.</param>
+        /// <exception cref="ArgumentException">Illegal or missing attribute.</exception>
+        internal abstract void CreateAttribute(MEAttribute attrib);
+
+        /// <summary>
         /// Creates a new attribute in the current class.
         /// </summary>
         /// <param name="name">Name of the attribute.</param>

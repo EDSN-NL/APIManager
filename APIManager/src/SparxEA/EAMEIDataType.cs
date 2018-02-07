@@ -175,6 +175,25 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Creates a new attribute in the current class using an existing MEAttribute object.
+        /// </summary>
+        /// <param name="attrib">The attribute object to be used as basis.</param>
+        /// <exception cref="ArgumentException">Illegal or missing attribute.</exception>
+        internal override void CreateAttribute(MEAttribute attrib)
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            // For data types, the attribute MUST be typed as either Supplementary or Facet!
+            if (attrib.Type == ModelElementType.Supplementary || attrib.Type == ModelElementType.Facet)
+            {
+                this._classPart.CreateAttribute(attrib);
+            }
+            else
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIDataType.createAttribute >> Attempt to create illegal attribute type: '" + attrib.Type + "' in data type: '" + this._name + "'!");
+            }
+        }
+
+        /// <summary>
         /// Creates a new attribute in the current class.
         /// </summary>
         /// <param name="name">Name of the attribute.</param>

@@ -107,6 +107,16 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Creates a new attribute in the current class using an existing MEAttribute object.
+        /// </summary>
+        /// <param name="attrib">The attribute object to be used as basis.</param>
+        /// <exception cref="ArgumentException">Illegal or missing attribute.</exception>
+        internal override void CreateAttribute(MEAttribute attrib)
+        {
+            this._classPart.CreateAttribute(attrib);
+        }
+
+        /// <summary>
         /// Creates a new attribute in the current object.
         /// </summary>
         /// <param name="name">Name of the attribute.</param>

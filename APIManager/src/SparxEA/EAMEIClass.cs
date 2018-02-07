@@ -253,6 +253,44 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Creates a new attribute in the current class using an existing MEAttribute object.
+        /// </summary>
+        /// <param name="attrib">The attribute object to be used as basis.</param>
+        /// <exception cref="ArgumentException">Illegal or missing attribute.</exception>
+        internal override void CreateAttribute(MEAttribute attrib)
+        {
+            if (attrib == null)
+            {
+                string message = "SparxEA.Model.EAMEIClass.createAttribute >> Attempt to create a 'null' attribute '" + this._name + "'!";
+                Logger.WriteError(message);
+                throw new ArgumentException(message);
+            }
+
+            bool isConstant = !string.IsNullOrEmpty(attrib.FixedValue);
+            AttributeType attributeType;
+            switch (attrib.Type)
+            {
+                case ModelElementType.Facet:
+                    attributeType = AttributeType.Facet;
+                    break;
+
+                case ModelElementType.Supplementary:
+                    attributeType = AttributeType.Supplementary;
+                    break;
+
+                case ModelElementType.Attribute:
+                    attributeType = AttributeType.Attribute;
+                    break;
+
+                default:
+                    attributeType = AttributeType.Unknown;
+                    break;
+            }
+            string value = !string.IsNullOrEmpty(attrib.DefaultValue)? attrib.DefaultValue: attrib.FixedValue;
+            CreateAttribute(attrib.Name, attrib.Classifier, attributeType, value, attrib.Cardinality, isConstant);
+        }
+
+        /// <summary>
         /// Creates a new attribute in the current class.
         /// <param name="name">Name of the attribute.</param>
         /// <param name="classifier">Attribute classifier (type of the attribute).</param>

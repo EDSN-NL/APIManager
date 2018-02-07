@@ -49,7 +49,7 @@ namespace Plugin.Application.Forms
             RAAPIKeys.Text                          = context.GetStringSetting(FrameworkSettings._RESTAuthAPIKeys);
             RESTHostName.Text                       = context.GetStringSetting(FrameworkSettings._RESTHostName);
             RESTSchemes.Text                        = context.GetStringSetting(FrameworkSettings._RESTSchemes);
-            SupplementaryPrefixCode.Text                = context.GetStringSetting(FrameworkSettings._SupplementaryPrefixCode);
+            SupplementaryPrefixCode.Text            = context.GetStringSetting(FrameworkSettings._SupplementaryPrefixCode);
 
             RAScheme.Items.AddRange(new object[]
             {
