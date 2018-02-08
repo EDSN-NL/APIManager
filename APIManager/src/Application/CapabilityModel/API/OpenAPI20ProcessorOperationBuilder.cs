@@ -652,8 +652,9 @@ namespace Plugin.Application.CapabilityModel.API
                 string assocCard = cardinality.Item1.ToString();
                 if (cardinality.Item2 == 0) assocCard += "..*";
                 else if (cardinality.Item2 != cardinality.Item1) assocCard += ".." + cardinality.Item2.ToString();
+                string roleName = !string.IsNullOrEmpty(payload.AliasName) ? payload.AliasName : payload.Name;
                 var source = new EndpointDescriptor(paginationClass, "1", paginationClass.Name, null, false);
-                var target = new EndpointDescriptor(payload, assocCard, RESTUtil.GetAssignedRoleName(payload.Name), null, true);
+                var target = new EndpointDescriptor(payload, assocCard, RESTUtil.GetAssignedRoleName(roleName), null, true);
                 paginationClass.CreateAssociation(source, target, MEAssociation.AssociationType.MessageAssociation);
                 qualifiedClassName = this._schema.ProcessClass(paginationClass, paginationClass.Name);
                 cardinality = new Tuple<int, int>(1, 1);    // Response is mandatory object and actual cardinality with payload has been solved otherwise.

@@ -386,8 +386,8 @@ namespace Plugin.Application.CapabilityModel.API
         internal override string GetBaseFileName()
         {
             Tuple<int, int> version = this.CapabilityClass.Version;
-            string postfix = Conversions.ToPascalCase(RootService.IsDefaultOperationalStatus ? string.Empty : RootService.OperationalStatus);
-            return this.Name + "_v" + version.Item1 + "p" + version.Item2 + "_" + postfix;
+            string postfix = Conversions.ToPascalCase(RootService.IsDefaultOperationalStatus ? string.Empty : "_" + RootService.OperationalStatus);
+            return this.Name + "_v" + version.Item1 + "p" + version.Item2 + postfix;
         }
 
         /// <summary>
