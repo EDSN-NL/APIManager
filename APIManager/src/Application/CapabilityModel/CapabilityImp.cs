@@ -268,12 +268,18 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
-        /// Must be implemented by specialized Capabilities to return a base-file name (name without extension) for the Capability. 
-        /// The extension is left out since this typically depends on the chosen serialization mechanism. The filename returned by 
-        /// this method only provides a generic name to be used for further, serialization dependent, processing..
+        /// Default implementation that returns the file name (without extension) for this Capability. The extension is left out since this 
+        /// typically depends on the chosen serialization mechanism. The filename returned by this method only provides a generic name to 
+        /// be used for further, serialization dependent, processing.
+        /// If the OperationalStatus of the service is not equal to the default, we also include the OperationalStatus in the filename.
+        /// Capabilities that need to create a specialized file name can override the method.
         /// </summary>
-        /// <returns>Capability specific base file name.</returns>
-        internal abstract string GetBaseFileName();
+        internal virtual string GetBaseFileName()
+        {
+            Tuple<int, int> version = this.CapabilityClass.Version;
+            string postfix = Conversions.ToPascalCase(RootService.IsDefaultOperationalStatus ? string.Empty : "_" + RootService.OperationalStatus);
+            return this.Name + "_v" + version.Item1 + "p" + version.Item2 + postfix;
+        }
 
         /// <summary>
         /// Derived classes must implement this method, which returns a textual representation of the type of capability (for reporting purposes).
