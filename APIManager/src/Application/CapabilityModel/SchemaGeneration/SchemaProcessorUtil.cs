@@ -28,6 +28,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         private const string _ExternalSchemaMaxOccAttribute         = "ExternalSchemaMaxOccAttribute";
         private const string _SupplementaryAttStereotype            = "SupplementaryAttStereotype";
         private const string _FacetAttStereotype                    = "FacetAttStereotype";
+        private const string _ServiceModelPkgName                   = "ServiceModelPkgName";
 
         /// <summary>
         /// This method is invoked whenever we want to save the processed Capability to an output file. The method assures that the schema is sorted
@@ -409,7 +410,11 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
             // at all (if package name == role name and role name is already part of class name).
             if (scope == ClassifierContext.ScopeCode.Message)
             {
-                if (string.Compare(role, thisClass.OwningPackage.Name, true) != 0) qualifiedName = thisClass.OwningPackage.Name + qualifiedName;
+                // The package name is added ONLY if this is an operation name (as is used in case of REST Operations). For SOAP, the
+                // package name is equal to the Service Model package name and we do NOT add it since it has no added value!
+                if (thisClass.OwningPackage.Name != ContextSlt.GetContextSlt().GetConfigProperty(_ServiceModelPkgName) && 
+                    string.Compare(role, thisClass.OwningPackage.Name, true) != 0)
+                    qualifiedName = thisClass.OwningPackage.Name + qualifiedName;
                 if (!(qualifiedName.StartsWith(role) || qualifiedName.EndsWith(role))) qualifiedName = role + qualifiedName;
             }
 
