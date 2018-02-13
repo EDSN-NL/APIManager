@@ -57,6 +57,11 @@ namespace Plugin.Application.Events.API
                 Logger.WriteError("Plugin.Application.Events.API.DeleteOperationsEvent.handleEvent >> Illegal context! Aborting.");
                 return;
             }
+            else if (svcContext.Type != ServiceContext.ServiceType.SOAP)
+            {
+                Logger.WriteWarning("Plugin.Application.Events.API.DeleteOperationsEvent.HandleEvent >> Operation only suitable for SOAP Services!");
+                return;
+            }
 
             // Ask the user whether he/she really wants to delete the operation...
             using (var dialog = new ConfirmOperationChanges("Are you sure you want to delete Operation '" + svcContext.OperationClass.Name + "'?"))

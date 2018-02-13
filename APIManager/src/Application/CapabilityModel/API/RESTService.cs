@@ -14,8 +14,9 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _ResourceClassStereotype               = "ResourceClassStereotype";
         private const string _InterfaceContractClassStereotype      = "InterfaceContractClassStereotype";
         private const string _CommonSchemaClassStereotype           = "CommonSchemaClassStereotype";
-        internal const string _DataModelPkgName                     = "DataModelPkgName";
-        internal const string _DataModelPkgStereotype               = "DataModelPkgStereotype";
+        private const string _DataModelPkgName                      = "DataModelPkgName";
+        private const string _DataModelPkgStereotype                = "DataModelPkgStereotype";
+        private const string _ServiceArchetypeREST                  = "ServiceArchetypeREST";
 
         private List<RESTResourceCapability> _tagList;              // The list of REST Resources that are also used as Tags in the interface.
         private List<RESTResourceCapability> _documentList;         // The list of REST Document resources for this API.
@@ -70,6 +71,9 @@ namespace Plugin.Application.CapabilityModel.API
                     Logger.WriteWarning("Plugin.Application.CapabilityModel.APIProcessor.RESTService >> Interface creation failed, roll-back!");
                     return;
                 }
+
+                // We set the service archetype to 'REST'. 
+                this._serviceClass.SetTag(context.GetConfigProperty(_ServiceArchetypeTag), context.GetConfigProperty(_ServiceArchetypeREST));
 
                 string newNames = string.Empty;
                 bool isFirst = true;

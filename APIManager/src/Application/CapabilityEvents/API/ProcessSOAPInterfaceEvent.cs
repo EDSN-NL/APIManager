@@ -59,6 +59,11 @@ namespace Plugin.Application.Events.API
                 Logger.WriteError("Plugin.Application.Events.API.ProcessSOAPInterfaceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
                 return;
             }
+            else if (svcContext.Type != ServiceContext.ServiceType.SOAP)
+            {
+                Logger.WriteWarning("Plugin.Application.Events.API.ProcessSOAPInterfaceEvent.HandleEvent >> Operation only suitable for SOAP Services!");
+                return;
+            }
 
             // Creating the SOAPService will construct the entire Capability hierarchy in memory. We can subsequently create any specialized Capability
             // object by using the 'MEClass' constructor, which fetches the appropriate implementation object from the registry...

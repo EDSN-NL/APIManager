@@ -18,8 +18,8 @@ namespace Plugin.Application.Events.API
     /// </summary>
     internal class ServiceContext
     {
-        // Currently, we support two 'families' of services, REST and SOAP...
-        internal enum ServiceType { REST, SOAP, Unknown }
+        // Currently, we support three 'families' of services, REST, SOAP and Message...
+        internal enum ServiceType { Unknown, REST, SOAP, Message }
 
         // Configuration properties used by this module...
         private const string _RootPkgName                       = "RootPkgName";
@@ -40,6 +40,7 @@ namespace Plugin.Application.Events.API
         private const string _RESTOperationResultStereotype     = "RESTOperationResultStereotype";
         private const string _DataModelPkgName                  = "DataModelPkgName";
         private const string _DataModelPkgStereotype            = "DataModelPkgStereotype";
+        private const string _ServiceArchetypeTag               = "ServiceArchetypeTag";
 
         private MEClass         _serviceClass;                  // Identifies the service.
         private MEClass         _interfaceClass;                // Contains interface class currently selected by user (if applicable).
@@ -142,7 +143,7 @@ namespace Plugin.Application.Events.API
                 if (currentDiagram.Name == context.GetConfigProperty(_ServiceModelDiagramName))
                 {
                     // If we're on a service model diagram, we can extract the service model package and take its parent to get to the declaration
-                    // package. Next, we check whether the declaration package contains a 'DataModel' package, which should only be there in case
+                    // package. Next, we check whether the declaration package contains a 'DataModel' package, which should typically be there in case
                     // of REST services...
                     this._serviceModelPackage = currentDiagram.OwningPackage;
                     this._type = (this._serviceModelPackage.Parent.FindPackage(dataModelPkgName, dataModelPkgStereotype) != null) ? ServiceType.REST : ServiceType.SOAP;
@@ -222,8 +223,31 @@ namespace Plugin.Application.Events.API
                 throw new IllegalContextException("No valid packages in context");
             }
 
+            // If we have not been able to determine the type of service before, we perform another attempt here now we should have collected
+            // most (if not all) of our context. We check whether the Declaration package contains a DataModel package.
+            // If so, this is a REST service, otherwise, we assume it is a SOAP service...
+            // Note that this is only a preliminary assignment since we hopefully get the correct type from our Service class!
+            if (this._serviceModelPackage != null && this._type == ServiceType.Unknown)
+            {
+                this._type = (this._declarationPackage.FindPackage(dataModelPkgName, dataModelPkgStereotype) != null) ? ServiceType.REST : ServiceType.SOAP;
+            }
+
+            // Now we should be able to find our Service package and class and deduct the type from there. If the service class does not have
+            // an archetype, we use the preliminary value to assign one and send a warning to the user that it has to be verified...
             string serviceName = this._declarationPackage.Name.Substring(0, this._declarationPackage.Name.IndexOf("_V"));
             this._serviceClass = this._serviceModelPackage.FindClass(serviceName, serviceClassStereotype);
+            if (this._serviceClass != null)
+            {
+                string svcArchetypeTag = context.GetConfigProperty(_ServiceArchetypeTag);
+                string svcArchetype = this._serviceClass.GetTag(svcArchetypeTag);
+                if (svcArchetype != string.Empty) this._type = EnumConversions<ServiceType>.StringToEnum(svcArchetype);
+                else if (this._type != ServiceType.Unknown)
+                {
+                    this._serviceClass.SetTag(svcArchetypeTag, EnumConversions<ServiceType>.EnumToString(this._type));
+                    Logger.WriteWarning("Plugin.Application.Events.API.ServiceContext >> Found Service class without archetype; setting archetype to '" + 
+                                        this._type + "', please verify correctness!");
+                }
+            }
 
             // If we were not able to reliably detect Interface- or Operation classes before, we perform one more attempt
             // by looking at the context of the current class, which must be reliable by now...
@@ -254,14 +278,6 @@ namespace Plugin.Application.Events.API
             // Resources are ALWAYS defined in the package of the owning Resource Collection. This implies that the parent of ANY Resource class
             // is ALWAYS a Resource Collection package. Therefor, we don't have to check the archetype of the Resource Class...
             if (this._resourceCollectionPackage == null && this._resourceClass != null) this._resourceCollectionPackage = this._resourceClass.OwningPackage;
-
-            // If we have not been able to determine the type of service before, we perform another attempt here now we should have collected
-            // most (if not all) of our context. We check whether the Declaration package contains a DataModel package.
-            // If so, this is a REST service, otherwise, we assume it is a SOAP service...
-            if (this._serviceModelPackage != null && this._type == ServiceType.Unknown)
-            {
-                this._type = (this._declarationPackage.FindPackage(dataModelPkgName, dataModelPkgStereotype) != null) ? ServiceType.REST : ServiceType.SOAP;
-            }
 
             if (this._diagram == null)
             {

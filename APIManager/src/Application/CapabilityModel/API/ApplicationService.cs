@@ -14,6 +14,10 @@ namespace Plugin.Application.CapabilityModel.API
         protected List<MEClass> _diagramClassList;
         protected List<MEAssociation> _diagramAssocList;
 
+        // Configuration parameters used by this module...
+        protected const string _ServiceArchetypeTag       = "ServiceArchetypeTag";
+        protected const string _ServiceArchetypeSOAP      = "ServiceArchetypeSOAP";
+
         /// <summary>
         /// 'Create new instance' constructor, creates a new API service declaration underneath the specified container package. 
         /// The name of the service is specified as 'qualifiedServiceName' (which must contain the major version as an extension, 
@@ -46,6 +50,9 @@ namespace Plugin.Application.CapabilityModel.API
                 containerPackage.DeletePackage(this._serviceDeclPackage);
                 return;
             }
+
+            // We set the service archetype to 'SOAP'. 
+            this._serviceClass.SetTag(context.GetConfigProperty(_ServiceArchetypeTag), context.GetConfigProperty(_ServiceArchetypeSOAP));
 
             string newNames = string.Empty;
             bool isFirst = true;

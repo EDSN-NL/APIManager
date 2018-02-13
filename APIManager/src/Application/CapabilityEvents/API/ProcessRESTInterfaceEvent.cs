@@ -57,6 +57,11 @@ namespace Plugin.Application.Events.API
                 Logger.WriteError("Plugin.Application.Events.API.ProcessRESTInterfaceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
                 return;
             }
+            else if (svcContext.Type != ServiceContext.ServiceType.REST)
+            {
+                Logger.WriteWarning("Plugin.Application.Events.API.ProcessRESTInterfaceEvent.HandleEvent >> Operation only suitable for REST Services!");
+                return;
+            }
 
             // Creating the RESTService will construct the entire Capability hierarchy in memory. We can subsequently create any specialized Capability
             // object by using the 'MEClass' constructor, which fetches the appropriate implementation object from the registry...

@@ -56,6 +56,11 @@ namespace Plugin.Application.Events.API
                 Logger.WriteError("Plugin.Application.Events.API.AddInterfaceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
                 return;
             }
+            else if (svcContext.Type != ServiceContext.ServiceType.SOAP)
+            {
+                Logger.WriteWarning("Plugin.Application.Events.API.AddInterfaceEvent.HandleEvent >> Operation only suitable for SOAP Services!");
+                return;
+            }
 
             using (var dialog = new AddInterfaceInput(svcContext.SVCModelPackage, 
                                                       svcContext.SVCModelPackage.GetClasses(context.GetConfigProperty(_OperationClassStereotype))))
