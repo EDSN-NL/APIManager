@@ -98,9 +98,9 @@ namespace Framework.Util
         }
 
         /// <summary>
-        /// Creates a unique ID for the given element. The ID is constructed as a URI based on the type of the element and the database ID.
-        /// Since database ID's are only unique within the type-based element tables, we use a type-specific prefix in order to guarantee
-        /// uniqueness of the entire URI.
+        /// Creates a unique ID for the given element. 
+        /// The ID is constructed as an URI consisting of a fixed prefix, followed by the element GUID.
+        /// This assures that the ID is indeed unique, even across repositories.
         /// </summary>
         /// <param name="element">Element that must be processed.</param>
         /// <returns>Generated URI string.</returns>
@@ -108,34 +108,10 @@ namespace Framework.Util
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             string URI = context.GetConfigProperty(_NamespacePrefix) + ":" + context.GetConfigProperty(_UniqueIDPrefix) + ":";
-            string typeID = string.Empty;
-            Logger.WriteInfo("Framework.Util.MetadataCreator.makeID >> Creating unique ID for element: '" + element.Type + ":" + element.Name + "'...");
-
-            switch (element.Type)
-            {
-                case ModelElementType.Association:
-                    URI += "0:";
-                    break;
-
-                case ModelElementType.Attribute:
-                    URI += "1:";
-                    break;
-
-                case ModelElementType.Class:
-                    URI += "2:";
-                    break;
-
-                case ModelElementType.Package:
-                    URI += "3:";
-                    break;
-
-                default:
-                    // Typically, these are different 'flavors' of data types.
-                    URI += "4:";
-                    break;
-            }
-            URI += element.ElementID;
-            Logger.WriteInfo("Framework.Util.MetadataCreator.makeID >> Created: '" + URI + "'.");
+            string GUID = element.GlobalID.ToLower();
+            if (GUID[0] == '{') GUID = GUID.Substring(1, GUID.Length - 2);
+            URI += GUID;
+            Logger.WriteInfo("Framework.Util.MetadataCreator.makeID >> Created unique ID: '" + URI + "'.");
             return URI;
         }
 

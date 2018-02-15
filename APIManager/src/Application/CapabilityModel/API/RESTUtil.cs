@@ -37,14 +37,17 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         // A series of upper-case characters are considered an abbreviation and will be treated as a single word.
                         // And if the previous char was lowercase, we must insert a '-' inbetween...
-                        if (char.IsLower(resourceName[i-1])) assignedRole += "-";
+                        if (!char.IsUpper(resourceName[i-1])) assignedRole += "-";
                         while (i < resourceName.Length && char.IsUpper(resourceName[i]))
                         {
                             // An upper-case abbreviation can be followed by a PascalCase word, in that case, we stop copying
                             // when the next letter is lowercase and treat the last uppercase letter as the start of the next word.
+                            // Exception: when the next character is not a letter, this should count as the start of the next word,
+                            // e.g. "EAN18" should become "ean-18" and NOT "ea-n18"...
                             if (i < resourceName.Length - 1 && char.IsLower(resourceName[i + 1])) assignedRole += "-";
                             assignedRole += char.ToLower(resourceName[i++]);
                         }
+                        if (i < resourceName.Length && !char.IsLetter(resourceName[i])) assignedRole += "-";
                         if (i < resourceName.Length && char.IsLower(resourceName[i])) assignedRole += resourceName[i];
                     }
                     else
