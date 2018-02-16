@@ -129,14 +129,14 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Returns true if the resource is marked as a tag.
+        /// Returns the list of tag names assigned to this resource. An empty list is returned in case none are defined.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal bool IsTag
+        internal List<string> TagNames
         {
             get
             {
-                if (this._imp != null) return ((RESTResourceCapabilityImp)this._imp).IsTag;
+                if (this._imp != null) return ((RESTResourceCapabilityImp)this._imp).TagNames;
                 else throw new MissingImplementationException("RESTResourceCapabilityImp");
             }
         }

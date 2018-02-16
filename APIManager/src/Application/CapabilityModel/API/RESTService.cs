@@ -18,7 +18,8 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _DataModelPkgStereotype                = "DataModelPkgStereotype";
         private const string _ServiceArchetypeREST                  = "ServiceArchetypeREST";
 
-        private List<RESTResourceCapability> _tagList;              // The list of REST Resources that are also used as Tags in the interface.
+        private List<RESTResourceCapability> _tagList;              // The list of REST Resources that have tags defined for them.
+        private List<RESTResourceCapability> _rootLevelTagList;     // The list of Root-level REST Resources that have tags defined for them.
         private List<RESTResourceCapability> _documentList;         // The list of REST Document resources for this API.
 
         /// <summary>
@@ -27,9 +28,18 @@ namespace Plugin.Application.CapabilityModel.API
         internal List<RESTResourceCapability> DocumentList { get { return this._documentList; } }
 
         /// <summary>
-        /// Returns the list of Resources that are marked as 'tags'.
+        /// Returns the list of Resources that have one or more assigned tag names. This list ALWAYS contains all root-level resources first,
+        /// followed by 'other' resources.
         /// </summary>
-        internal List<RESTResourceCapability> TagList { get { return this._tagList; } }
+        internal List<RESTResourceCapability> TagList
+        {
+            get
+            {
+                List<RESTResourceCapability> allTagResources = new List<RESTResourceCapability>(this._rootLevelTagList);
+                allTagResources.AddRange(this._tagList);
+                return allTagResources;
+            }
+        }
 
         /// <summary>
         /// 'Create new instance' constructor, creates a new API service declaration below the specified container package. 
@@ -54,6 +64,7 @@ namespace Plugin.Application.CapabilityModel.API
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
             this._tagList = new List<RESTResourceCapability>();
+            this._rootLevelTagList = new List<RESTResourceCapability>();
             this._documentList = new List<RESTResourceCapability>();
 
             try
@@ -132,6 +143,7 @@ namespace Plugin.Application.CapabilityModel.API
             try
             {
                 this._tagList = new List<RESTResourceCapability>();
+                this._rootLevelTagList = new List<RESTResourceCapability>();
                 this._documentList = new List<RESTResourceCapability>();
                 foreach (TreeNode<MEClass> node in hierarchy.Children) AddCapability(new RESTInterfaceCapability(this, node));
             }
@@ -155,11 +167,13 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Registers the provided resource as an element of the tag list. This implies that metadata of the resource will be used to construct
         /// tag entries in an OpenAPI interface specification. We register the resource only if there is not yet a similarly named resource in the list.
+        /// The list actually consists of two separate lists: one for root-level resources holding tags and one for all other resources.
         /// </summary>
         /// <param name="resource">The resource to be registered.</param>
         internal void RegisterTag(RESTResourceCapability resource)
         {
-            if (!this._tagList.Contains(resource)) this._tagList.Add(resource);
+            if (resource.IsRootLevel && !this._rootLevelTagList.Contains(resource)) this._rootLevelTagList.Add(resource);
+            else if (!this._tagList.Contains(resource)) this._tagList.Add(resource);
         }
 
         /// <summary>

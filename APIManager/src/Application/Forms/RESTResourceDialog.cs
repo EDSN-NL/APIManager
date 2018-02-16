@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 using Framework.Logging;
 using Framework.Util;
@@ -48,6 +49,15 @@ namespace Plugin.Application.Forms
             ParameterName.Text = resource.Parameter.Name;
             ParameterClassifier.Text = resource.Parameter.Classifier != null? resource.Parameter.Classifier.Name: string.Empty;
 
+            string tagList = string.Empty;
+            bool firstOne = true;
+            foreach (string tagName in resource.TagNames)
+            {
+                tagList += firstOne ? tagName : ", " + tagName;
+                firstOne = false;
+            }
+            TagNames.Text = tagList;
+
             // Load the Operations in case of Edit...
             if (this._isEdit && resource.Operations != null)
             {
@@ -63,7 +73,6 @@ namespace Plugin.Application.Forms
             }
 
             // Initialize the documentation boxes...
-            IsTag.Checked = resource.IsTag;
             DocDescription.Text = resource.Description;
             ExternalDocDescription.Text = resource.ExternalDocDescription;
             ExternalDocURL.Text = resource.ExternalDocURL;
@@ -182,11 +191,6 @@ namespace Plugin.Application.Forms
                     ResourceNameFld.Clear();
                     this._resource.ClearParameter();
                     this._resource.ClearDocumentClass();
-                    if (!this._isEdit)
-                    {
-                        this._resource.IsTag = true;
-                        IsTag.Checked = true;
-                    }
                     break;
 
                 case RESTResourceCapability.ResourceArchetype.Document:
@@ -199,8 +203,8 @@ namespace Plugin.Application.Forms
                     ResourceNameFld.ReadOnly = true;
                     ResourceNameFld.Clear();
                     this._resource.ClearParameter();
-                    this._resource.IsTag = false;
-                    IsTag.Checked = false;
+                    this._resource.TagNames = new List<string>();
+                    TagNames.Text = string.Empty;
                     break;
 
                 case RESTResourceCapability.ResourceArchetype.Unknown:
@@ -214,8 +218,8 @@ namespace Plugin.Application.Forms
                     ResourceNameFld.Clear();
                     this._resource.ClearParameter();
                     this._resource.ClearDocumentClass();
-                    this._resource.IsTag = false;
-                    IsTag.Checked = false;
+                    this._resource.TagNames = new List<string>();
+                    TagNames.Text = string.Empty;
                     break;
 
                 case RESTResourceCapability.ResourceArchetype.Identifier:
@@ -228,11 +232,6 @@ namespace Plugin.Application.Forms
                     ResourceNameFld.Clear();
                     ResourceNameFld.Text = this._resource.Name;
                     this._resource.ClearDocumentClass();
-                    if (!this._isEdit)
-                    {
-                        this._resource.IsTag = true;
-                        IsTag.Checked = true;
-                    }
                     break;
             }
             this._hasType = this._resource.Archetype != RESTResourceCapability.ResourceArchetype.Unknown;
@@ -392,17 +391,6 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
-        /// This event is raised when the user changes the state of the 'isTag' checkbox.
-        /// The new state is copied to the resource declaration object.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void IsTag_CheckedChanged(object sender, EventArgs e)
-        {
-            this._resource.IsTag = IsTag.Checked;
-        }
-
-        /// <summary>
         /// This event is raised when the user clicks the 'Link Document' button in order to associate the parent resource
         /// with an existing Document resource. Clicking the button will present a list of existing Document resource for
         /// the user to choose from. The actual task of showing the dialog and validation the result is delegated to the
@@ -420,6 +408,22 @@ namespace Plugin.Application.Forms
                 this._resource.Name = ResourceNameFld.Text;
                 this._hasName = this._hasType = true;
                 CheckOk();
+            }
+        }
+
+        /// <summary>
+        /// This event is raised when the user made changes to the list of tag names. The event removes the contents of the current
+        /// tag list in the declaration object and replaces it with the contents of the new list.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void TagNames_Leave(object sender, EventArgs e)
+        {
+            this._resource.TagNames = new List<string>();
+            if (!string.IsNullOrEmpty(TagNames.Text))
+            {
+                string[] tagArray = TagNames.Text.Split(',');
+                foreach (string tagName in tagArray) this._resource.TagNames.Add(tagName.Trim());
             }
         }
     }

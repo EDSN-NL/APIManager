@@ -27,6 +27,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _ParameterScopeTag             = "ParameterScopeTag";
         private const string _CollectionFormatTag           = "CollectionFormatTag";
         private const string _BusinessComponentStereotype   = "BusinessComponentStereotype";
+        private const string _TagNamesTag                   = "TagNamesTag";
 
         private Capability _parent;                                     // The capability that acts as parent for the resource. Either an Interface or a Resource.
         private MEClass _existingResource;                              // Contains associated class in case of existing resource.
@@ -41,7 +42,7 @@ namespace Plugin.Application.CapabilityModel.API
         private string _description;                                    // Description text entered by user.
         private string _externalDocDescription;                         // External documentation description entered by user.
         private string _externalDocURL;                                 // URL to be used for external documentation.
-        private bool _isTag;                                            // Set to 'true' if this resource must be entered in Tag list.
+        private List<string> _tagNames;                                 // List of tags assigned to this resource.
 
         /// <summary>
         /// Get or set the archetype of this resource.
@@ -87,12 +88,12 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Get or set the 'use as tag' indicator.
+        /// Get or set the list of tag names assigned to this resource.
         /// </summary>
-        internal bool IsTag
+        internal List<string> TagNames
         {
-            get { return this._isTag; }
-            set { this._isTag = value; }
+            get { return this._tagNames; }
+            set { this._tagNames = value; }
         }
 
         /// <summary>
@@ -167,7 +168,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._externalDocDescription = string.Empty;
             this._externalDocURL = string.Empty;
             this._documentClass = null;
-            this._isTag = false;
+            this._tagNames = new List<string>();
         }
 
         /// <summary>
@@ -190,7 +191,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._externalDocDescription = string.Empty;
             this._externalDocURL = string.Empty;
             this._documentClass = null;
-            this._isTag = false;
+            this._tagNames = new List<string>();
         }
 
         /// <summary>
@@ -215,7 +216,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._externalDocDescription = string.Empty;
             this._externalDocURL = string.Empty;
             this._documentClass = null;
-            this._isTag = false;
+            this._tagNames = new List<string>();
         }
 
         /// <summary>
@@ -228,8 +229,7 @@ namespace Plugin.Application.CapabilityModel.API
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceDeclaration >> Creating declaration for existing class '" + resourceClass.Name + "'...");
 
-            ContextSlt context = ContextSlt.GetContextSlt();
-            string resourceType = resourceClass.GetTag(context.GetConfigProperty(_ArchetypeTag));
+            ContextSlt context = ContextSlt.GetContextSlt();;
             string repositoryRootName = context.GetConfigProperty(_RootPkgName);
             string containerStereotype = context.GetConfigProperty(_ServiceContainerPkgStereotype);
             string RESTParameterStereotype = context.GetConfigProperty(_RESTParameterStereotype);
@@ -253,9 +253,18 @@ namespace Plugin.Application.CapabilityModel.API
             this._operationList = new SortedList<string, RESTOperationDeclaration>();
             this._children = new SortedList<string, RESTResourceDeclaration>();
 
+            // Fetch the optional list of tag names from the resource...
+            string tagList = resourceClass.GetTag(context.GetConfigProperty(_TagNamesTag));
+            this._tagNames = new List<string>();
+            if (!string.IsNullOrEmpty(tagList))
+            {
+                string[] tagArray = tagList.Split(',');
+                foreach (string tagName in tagArray) this._tagNames.Add(tagName.Trim());
+            }
+
             // Check whether we have a parameter (in case of Identifier Resource)...
             // If the class has multiple RESTParameter attributes, we simply take the first one we encounter (and issue a warning 'cause this is illegal)...
-            foreach(MEAttribute attrib in resourceClass.Attributes)
+            foreach (MEAttribute attrib in resourceClass.Attributes)
             {
                 if (attrib.HasStereotype(RESTParameterStereotype))
                 {

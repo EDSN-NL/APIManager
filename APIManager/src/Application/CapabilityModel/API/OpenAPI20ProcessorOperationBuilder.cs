@@ -48,11 +48,11 @@ namespace Plugin.Application.CapabilityModel.API
             this._schema.CurrentCapability = operation;
             this._JSONWriter.WritePropertyName(operation.HTTPTypeName);
             this._JSONWriter.WriteStartObject();                            // We start the operation object here, but we can't finish it since the responses have to go in!
-            if (this._currentResource.IsTag)
+            if (this._currentResource.TagNames.Count > 0)
             {
                 this._JSONWriter.WritePropertyName("tags");
                 this._JSONWriter.WriteStartArray();
-                this._JSONWriter.WriteValue(RESTUtil.GetAssignedRoleName(this._currentResource.Name));
+                foreach (string tagName in this._currentResource.TagNames) this._JSONWriter.WriteValue(tagName);
                 this._JSONWriter.WriteEndArray();
             }
 

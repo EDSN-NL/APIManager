@@ -79,8 +79,8 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Builds the 'tags' section in the OpenAPI definition file using all resources that have registered themselves as tag. 
-        /// For each tag-resource, a 'tag' entry is constructed, documenting that resource. If there are no top-level resources 
+        /// Builds the 'tags' section in the OpenAPI definition file using all resources that have registered themselves as having tags. 
+        /// For each tag-resource, a 'tag' entry is constructed, documenting that resource. we ONLY formally If there are no top-level resources 
         /// (unlikely), the operation does not perform any operations.
         /// </summary>
         /// <param name="wr">JSON Output Stream.</param>
@@ -89,6 +89,7 @@ namespace Plugin.Application.CapabilityModel.API
         {
             RESTService svc = itf.RootService as RESTService;
             bool tagsInitialized = false;
+            List<string> processedTags = new List<string>();
             if (svc != null)
             {
                 foreach (RESTResourceCapability resource in svc.TagList)
@@ -100,13 +101,20 @@ namespace Plugin.Application.CapabilityModel.API
                         wr.WriteStartArray();
                         tagsInitialized = true;
                     }
-                    wr.WriteStartObject();
+                    foreach (string tagName in resource.TagNames)
                     {
-                        wr.WritePropertyName("name"); wr.WriteValue(RESTUtil.GetAssignedRoleName(resource.Name));
-                        wr.WritePropertyName("description"); wr.WriteValue(MEChangeLog.GetDocumentationAsText(resource.CapabilityClass));
-                        WriteDocumentation(wr, resource.CapabilityClass);
+                        if (!processedTags.Contains(tagName))
+                        {
+                            wr.WriteStartObject();
+                            {
+                                wr.WritePropertyName("name"); wr.WriteValue(tagName);
+                                wr.WritePropertyName("description"); wr.WriteValue(MEChangeLog.GetDocumentationAsText(resource.CapabilityClass));
+                                WriteDocumentation(wr, resource.CapabilityClass);
+                                processedTags.Add(tagName);
+                            }
+                            wr.WriteEndObject();
+                        }
                     }
-                    wr.WriteEndObject();
                 }
                 if (tagsInitialized) wr.WriteEndArray();
             }

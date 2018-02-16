@@ -57,7 +57,6 @@
             this.ResourceNameFld = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.DocumentationBox = new System.Windows.Forms.GroupBox();
-            this.IsTag = new System.Windows.Forms.CheckBox();
             this.ExternalDocURL = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
@@ -68,6 +67,8 @@
             this.DefineIdentifierToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.CreateDocument = new System.Windows.Forms.Button();
             this.LinkDocument = new System.Windows.Forms.Button();
+            this.label8 = new System.Windows.Forms.Label();
+            this.TagNames = new System.Windows.Forms.TextBox();
             this.OperationsBox.SuspendLayout();
             this.PropertiesBox.SuspendLayout();
             this.OperationMenuStrip.SuspendLayout();
@@ -77,7 +78,7 @@
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(370, 314);
+            this.Ok.Location = new System.Drawing.Point(370, 341);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
             this.Ok.TabIndex = 10;
@@ -87,7 +88,7 @@
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(451, 314);
+            this.Cancel.Location = new System.Drawing.Point(451, 341);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
             this.Cancel.TabIndex = 9;
@@ -278,7 +279,7 @@
             // NewMinorVersion
             // 
             this.NewMinorVersion.AutoSize = true;
-            this.NewMinorVersion.Location = new System.Drawing.Point(12, 322);
+            this.NewMinorVersion.Location = new System.Drawing.Point(5, 341);
             this.NewMinorVersion.Name = "NewMinorVersion";
             this.NewMinorVersion.Size = new System.Drawing.Size(138, 17);
             this.NewMinorVersion.TabIndex = 8;
@@ -304,7 +305,8 @@
             // 
             // DocumentationBox
             // 
-            this.DocumentationBox.Controls.Add(this.IsTag);
+            this.DocumentationBox.Controls.Add(this.TagNames);
+            this.DocumentationBox.Controls.Add(this.label8);
             this.DocumentationBox.Controls.Add(this.ExternalDocURL);
             this.DocumentationBox.Controls.Add(this.label7);
             this.DocumentationBox.Controls.Add(this.label6);
@@ -314,21 +316,10 @@
             this.DocumentationBox.Controls.Add(this.label4);
             this.DocumentationBox.Location = new System.Drawing.Point(5, 203);
             this.DocumentationBox.Name = "DocumentationBox";
-            this.DocumentationBox.Size = new System.Drawing.Size(521, 100);
+            this.DocumentationBox.Size = new System.Drawing.Size(521, 132);
             this.DocumentationBox.TabIndex = 7;
             this.DocumentationBox.TabStop = false;
             this.DocumentationBox.Text = "Documentation";
-            // 
-            // IsTag
-            // 
-            this.IsTag.AutoSize = true;
-            this.IsTag.Location = new System.Drawing.Point(7, 76);
-            this.IsTag.Name = "IsTag";
-            this.IsTag.Size = new System.Drawing.Size(56, 17);
-            this.IsTag.TabIndex = 4;
-            this.IsTag.Text = "Is Tag";
-            this.IsTag.UseVisualStyleBackColor = true;
-            this.IsTag.CheckedChanged += new System.EventHandler(this.IsTag_CheckedChanged);
             // 
             // ExternalDocURL
             // 
@@ -416,13 +407,30 @@
             this.LinkDocument.UseVisualStyleBackColor = true;
             this.LinkDocument.Click += new System.EventHandler(this.LinkDocument_Click);
             // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(29, 103);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(40, 13);
+            this.label8.TabIndex = 0;
+            this.label8.Text = "Tag(s):";
+            // 
+            // TagNames
+            // 
+            this.TagNames.Location = new System.Drawing.Point(75, 100);
+            this.TagNames.Name = "TagNames";
+            this.TagNames.Size = new System.Drawing.Size(427, 20);
+            this.TagNames.TabIndex = 4;
+            this.TagNames.Leave += new System.EventHandler(this.TagNames_Leave);
+            // 
             // RESTResourceDialog
             // 
             this.AcceptButton = this.Ok;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(534, 357);
+            this.ClientSize = new System.Drawing.Size(534, 379);
             this.Controls.Add(this.LinkDocument);
             this.Controls.Add(this.CreateDocument);
             this.Controls.Add(this.DocumentationBox);
@@ -484,7 +492,6 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TextBox DocDescription;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.CheckBox IsTag;
         private System.Windows.Forms.TextBox ExternalDocURL;
         private System.Windows.Forms.Button SelectClassifier;
         private System.Windows.Forms.TextBox ParameterClassifier;
@@ -492,5 +499,7 @@
         private System.Windows.Forms.ToolTip DefineIdentifierToolTip;
         private System.Windows.Forms.Button CreateDocument;
         private System.Windows.Forms.Button LinkDocument;
+        private System.Windows.Forms.TextBox TagNames;
+        private System.Windows.Forms.Label label8;
     }
 }

@@ -31,7 +31,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _IdentifierResourceRoleName            = "IdentifierResourceRoleName";
         private const string _ArchetypeTag                          = "ArchetypeTag";
         private const string _IsRootLevelTag                        = "IsRootLevelTag";
-        private const string _IsTag                                 = "IsTag";
+        private const string _TagNamesTag                           = "TagNamesTag";
 
         // Names of attributes to be used for external documentation descriptor. These MUST be a case-insensitive match of the
         // associated OpenAPI property names!
@@ -45,7 +45,7 @@ namespace Plugin.Application.CapabilityModel.API
         private RESTResourceCapability.ResourceArchetype _archetype;    // Specifies the archtetype of the resource.
         private bool _isCollection;                                 // Indicates whether the resource represents a resource collection.
         private bool _isRootLevel;                                  // Indicates whether the resource is a root-level resourcr ("sub-API").
-        private bool _isTag;                                        // Indicates whether the resource is marked as a tag.
+        private List<string> _tagNames;                             // List of tag names associated with this resource.
         private RESTParameterDeclaration _parameter;                // In case of Identifier resources, this contains the parameter.
         private MEClass _componentClass;                            // In case of Document resources, this is the associated Business Component.
 
@@ -59,7 +59,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// ArcheType = Returns the archetype of the resource.
         /// IsCollection = Returns true if this is a collection-type resource.
         /// IsRootLevel = Returns true if the resource represents a sub-API.
-        /// IsTag = Returns true of the resource is marked as a tag.
+        /// TagNames = Returns list of tag names associated with this resource.
         /// Parameter = Returns the parameter in case of an Identifier resource.
         /// DocumentResources = Returns the list of Document Resources associated with this resource.
         /// BusinessComponent = Returns the associated Business Component in case of Document resource.
@@ -68,7 +68,7 @@ namespace Plugin.Application.CapabilityModel.API
         internal RESTResourceCapability.ResourceArchetype Archetype { get { return this._archetype; } }
         internal bool IsCollection                                  { get { return this._isCollection; } }
         internal bool IsRootLevel                                   { get { return this._isRootLevel; } }
-        internal bool IsTag                                         { get { return this._isTag; } }
+        internal List<string> TagNames                              { get { return this._tagNames; } }
         internal RESTParameterDeclaration Parameter                 { get { return this._parameter; } }
         internal MEClass BusinessComponent                          { get { return this._componentClass; } }
 
@@ -543,10 +543,22 @@ namespace Plugin.Application.CapabilityModel.API
                     this._assignedRole = context.GetConfigProperty(_IdentifierResourceRoleName);
                 else this._assignedRole = RESTUtil.GetAssignedRoleName(resource.Name);
                 this._capabilityClass.SetTag(context.GetConfigProperty(_ArchetypeTag), this._archetype.ToString());
-                this._capabilityClass.SetTag(context.GetConfigProperty(_IsTag), resource.IsTag.ToString());
                 if (!string.IsNullOrEmpty(resource.Description)) MEChangeLog.SetRTFDocumentation(this._capabilityClass, resource.Description);
                 this._capabilityClass.SetTag(context.GetConfigProperty(_IsRootLevelTag), this._isRootLevel.ToString());
-                this._isTag = resource.IsTag;
+
+                if (resource.TagNames.Count > 0)
+                {
+                    string tagList = string.Empty;
+                    bool isFirst = true;
+                    foreach (string tagName in resource.TagNames)
+                    {
+                        tagList = isFirst ? tagName : "," + tagName;
+                        isFirst = false;
+                    }
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_TagNamesTag), tagList);
+                }
+                else this._capabilityClass.SetTag(context.GetConfigProperty(_TagNamesTag), string.Empty);
+                this._tagNames = resource.TagNames;
 
                 // Establish link with our Parent...
                 var parentEndpoint = new EndpointDescriptor(parent.CapabilityClass, "1", parent.Name, null, false);
@@ -656,7 +668,6 @@ namespace Plugin.Application.CapabilityModel.API
                 ContextSlt context = ContextSlt.GetContextSlt();
                 this._myParent = parent;
                 this._capabilityClass = hierarchy.Data;
-                this._isTag = false;
                 this._parameter = null;
                 this._componentClass = null;
                 string archetypeTagName = context.GetConfigProperty(_ArchetypeTag);
@@ -672,14 +683,18 @@ namespace Plugin.Application.CapabilityModel.API
                 this._resourcePackage = this._isCollection? this.RootService.ModelPkg.FindPackage(this._capabilityClass.Name, context.GetConfigProperty(_ResourceCollectionPkgStereotype)):
                                                             parent.CapabilityClass.OwningPackage;
                 this._assignedRole = parent.FindChildClassRole(this._capabilityClass.Name, context.GetConfigProperty(_ResourceClassStereotype));
-                if (string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_IsTag)), "true", true) == 0)
-                {
-                    ((RESTService)RootService).RegisterTag(resourceCapItf);
-                    this._isTag = true;
-                }
-                this._isRootLevel = (string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_IsRootLevelTag)), "true", true) == 0);
 
+                this._isRootLevel = (string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_IsRootLevelTag)), "true", true) == 0);
                 if (this._archetype == RESTResourceCapability.ResourceArchetype.Document) ((RESTService)this._rootService).RegisterDocument(resourceCapItf);
+
+                string tagList = this._capabilityClass.GetTag(context.GetConfigProperty(_TagNamesTag));
+                this._tagNames = new List<string>();
+                if (!string.IsNullOrEmpty(tagList))
+                {
+                    string[] tagArray = tagList.Split(',');
+                    foreach (string tagName in tagArray) this._tagNames.Add(tagName.Trim());
+                    ((RESTService)RootService).RegisterTag(resourceCapItf);
+                }
 
                 // Check whether we have a parameter (in case of Identifier Resource)...
                 // If the class has multiple RESTParameter attributes, we simply take the first one we encounter (and issue a warning 'cause this is illegal)...

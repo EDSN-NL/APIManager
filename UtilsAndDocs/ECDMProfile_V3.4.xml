@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="windows-1252"?>
 <UMLProfile profiletype="uml2">
-	<Documentation id="9B84831D-3" name="Enexis ECDM" version="3.3" notes="20170918:  Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109:  Vs 3.1:	Added support for 'nillable' elements.&#xA;20180110:  Vs 3.2:	Added 'alternativeNaming' tag to CommonSchema (SOAP backwards compatibility).&#xA;20180213: Vs 3.3:	Defines Service Archtetype and added _metatype to Service."/>
+	<Documentation id="9B84831D-3" name="Enexis ECDM" version="3.4" notes="20170918:  Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109:  Vs 3.1:	Added support for 'nillable' elements.&#xA;20180110:  Vs 3.2:	Added 'alternativeNaming' tag to CommonSchema (SOAP backwards compatibility).&#xA;20180213: Vs 3.3:	Defines Service Archtetype and added _metatype to Service.&#xA;20180216: Vs 3.4:	Resource: removed 'isTag', added 'tagNames'."/>
 	<Content>
 		<Stereotypes>
 			<Stereotype name="ASMBIE" notes="Association Message Business Information Entity." cx="0" cy="0" bgcolor="11009769" fontcolor="3947580" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAssoc" baseStereotypes="ECDMAssoc"/>
@@ -262,8 +262,8 @@
 			<Stereotype name="RESTResource" metatype="Resource" notes="The ECDM REST model builds an URL using the generic pattern &amp;lt;resource&amp;gt;/&amp;lt;path-expression&amp;gt;/&amp;lt;resource&amp;gt;/&amp;lt;path-expression&amp;gt;/&amp;lt;resource&amp;gt;...&#xA;The role of each resource object within this URL is specified by the 'archetype' tag. The value of the tag is used to impose some validation and construction rules:&#xA;1) Document or Controller resources are allowed only at the end of the URL.&#xA;2) Collection or Store resources MUST always be followed by a Path Expression, i.e. they are NOT allowed at the end of the URL.&#xA;3) Path Expressions can ONLY be owned by a Collection or a Store." cx="0" cy="0" bgcolor="11009769" fontcolor="-1" bordercolor="-1" borderwidth="1" hideicon="0" generalizes="ServiceCapability" baseStereotypes="ServiceCapability">
 				<TaggedValues>
 					<Tag name="archetype" type="enumeration" description="" unit="" values="Collection,Controller,Document,Identifier,Store" default=""/>
-					<Tag name="isTag" type="boolean" description="Set to TRUE if the resource must be inserted in the Interface 'tags' section." unit="" values="true,false" default="false"/>
 					<Tag name="isRootLevel" type="boolean" description="Set to TRUE of this is a root-level resource (otherwise known as 'sub-API').&#xA;Root-level resources are the first resources below the API major version in the URL." unit="" values="true,false" default="false"/>
+					<Tag name="tagNames" type="string" description="Comma separated list of all tag names assigned to this resource." unit="" values="" default=""/>
 				</TaggedValues>
 			</Stereotype>
 			<Stereotype name="SBDH" notes="&lt;i&gt;Service Business Document Header&lt;/i&gt;, used to identify the standardised request- and response headers." cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMComponent" baseStereotypes="ECDMComponent"/>
