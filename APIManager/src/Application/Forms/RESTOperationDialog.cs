@@ -173,7 +173,7 @@ namespace Plugin.Application.Forms
             {
                 case RESTOperationCapability.OperationType.Delete:
                 case RESTOperationCapability.OperationType.Head:
-                    FilterGroup.Enabled = false;
+                    FilterGroup.Enabled = true;
                     RequestParamBox.Enabled = true;
                     ResponseParamBox.Enabled = false;
                     HasPagination.Enabled = false;
@@ -190,7 +190,7 @@ namespace Plugin.Application.Forms
                 case RESTOperationCapability.OperationType.Patch:
                 case RESTOperationCapability.OperationType.Post:
                 case RESTOperationCapability.OperationType.Put:
-                    FilterGroup.Enabled = false;
+                    FilterGroup.Enabled = true;
                     RequestParamBox.Enabled = true;
                     ResponseParamBox.Enabled = true;
                     HasPagination.Enabled = false;
