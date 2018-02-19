@@ -508,10 +508,12 @@ namespace Plugin.Application.CapabilityModel.API
         /// This method assigns a (new) class to the Document Class property. It presents a class selector to the user, which facilitates
         /// browsing of the component tree and selecting the appropriate Business Document. When we have a valid parent Capability, the
         /// method verifies whether the component selected by the user is indeed part of our API.
+        /// If the associated model class has a name that ends with 'Type', we remove this for the name of the resource class.
         /// </summary>
         /// <returns>Name of selected component or empty string in case of errors/cancel.</returns>
         internal string SetDocumentClass()
         {
+            const string _Type = "Type";
             ContextSlt context = ContextSlt.GetContextSlt();
             string selectedName = string.Empty;
             MEClass selectedClass = context.SelectClass(new List<string> { context.GetConfigProperty(_BusinessComponentStereotype) });
@@ -526,10 +528,8 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         selectedName = !string.IsNullOrEmpty(selectedClass.AliasName) ? selectedClass.AliasName : selectedClass.Name;
                         this._documentClass = selectedClass;
-                        this._name = selectedName;
                     }
                     else MessageBox.Show("Selected component is not part of current API, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
                 }
                 else
                 {
@@ -537,6 +537,11 @@ namespace Plugin.Application.CapabilityModel.API
                     // We also have to check whether the selected class has an Alias name defined. If so, we use that name instead of the class name.
                     selectedName = !string.IsNullOrEmpty(selectedClass.AliasName) ? selectedClass.AliasName : selectedClass.Name;
                     this._documentClass = selectedClass;
+                }
+                if (selectedName != string.Empty)
+                {
+                    // Finally, we check whether the name ends with 'Type', if so, we remove this for the name of the resource class...
+                    if (selectedName.EndsWith(_Type)) selectedName = selectedName.Substring(0, selectedName.Length - _Type.Length);
                     this._name = selectedName;
                 }
             }
