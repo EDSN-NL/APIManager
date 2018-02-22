@@ -19,6 +19,7 @@ namespace Plugin.Application.Forms
         private bool _createMode;                       // 'True' in case of editing operation, false on create.
         private bool _dirty;                            // 'True' when stuff has changed.
         private bool _initializing;                     // Set to 'true' during construction to suppress unwanted events.
+        private RESTResourceDeclaration _parent;        // Parent resource of this operation.
 
         /// <summary>
         /// Returns 'true' when Operation Minor Version must be updated.
@@ -47,7 +48,7 @@ namespace Plugin.Application.Forms
         /// as a tuple of resource name and archetype.
         /// </summary>
         /// <param name="parent">The capability that will act as the parent for the new resource(s).</param>
-        internal RESTOperationDialog(RESTOperationDeclaration operation)
+        internal RESTOperationDialog(RESTOperationDeclaration operation, RESTResourceDeclaration parent)
         {
             InitializeComponent();
             this._initializing = true;
@@ -57,6 +58,8 @@ namespace Plugin.Application.Forms
             this.Text = this._createMode ? "Create new Operation": "Edit existing Operation";
             this.OperationNameFld.Text = operation.Name;
             this._dirty = false;
+            this._parent = parent;
+            var unknownOperation = new HTTPOperation();
 
             SummaryText.Text = operation.Summary;
             Description.Text = operation.Description;
@@ -97,22 +100,21 @@ namespace Plugin.Application.Forms
                 ConsumesMIME.Text = MIMETypes;
             }
 
-            // Initialize the drop-down box with a human-friendly label of our OperationType enumeration...
+            // Since the 'AvailableOperationsList' does not contain our own operation, we will add this separately.
+            // But only if it represents a valid operation.
+            if (operation.OperationType != unknownOperation) OperationTypeFld.Items.Add(operation.OperationType);
+
+            // Initialize the drop-down box with our list of available operations.
             // Note that changing the selected index WILL trigger an event.
-            foreach (RESTOperationCapability.OperationType type in Enum.GetValues(typeof(RESTOperationCapability.OperationType)))
+            foreach (HTTPOperation operationType in parent.AvailableOperationsList)
             {
-                OperationTypeFld.Items.Add(RESTOperationCapability.OperationTypeToLabel(type));
+                OperationTypeFld.Items.Add(operationType);
             }
 
-            if (!string.IsNullOrEmpty(operation.Name))
-            {
-                OperationTypeFld.SelectedIndex = (int)operation.Archetype;
-            }
-            else
-            {
-                OperationTypeFld.SelectedIndex = 0;
-                this._operation.Archetype = RESTOperationCapability.LabelToOperationType(OperationTypeFld.Items[0].ToString());
-            }
+            if (operation.OperationType == unknownOperation && parent.AvailableOperationsList.Count > 0)
+                this._operation.OperationType = parent.AvailableOperationsList[0];
+
+            OperationTypeFld.SelectedIndex = 0;
 
             // Load the list of Filter Parameters...
             foreach (RESTParameterDeclaration queryParam in operation.Parameters)
@@ -142,7 +144,7 @@ namespace Plugin.Application.Forms
 
             // Check whether we may enable the OK button...
             this._hasName = !string.IsNullOrEmpty(operation.Name);
-            this._hasType = operation.Archetype != RESTOperationCapability.OperationType.Unknown;
+            this._hasType = operation.OperationType != unknownOperation;
             CheckOk();
             this._initializing = false;
         }
@@ -165,14 +167,15 @@ namespace Plugin.Application.Forms
         {
             if (this._initializing) return;   // Ignore event during initialization.
             int index = OperationTypeFld.SelectedIndex;
-            RESTOperationCapability.OperationType oldType = this._operation.Archetype;
-            this._operation.Archetype = RESTOperationCapability.LabelToOperationType(OperationTypeFld.Items[index].ToString());
+            HTTPOperation oldType = this._operation.OperationType;
+            HTTPOperation unknownType = new HTTPOperation();
+            this._operation.OperationType = OperationTypeFld.Items[index] as HTTPOperation;
 
             // Depending on the selected operation type, some parameters / settings should be enabled and/or disabled...
-            switch (this._operation.Archetype)
+            switch (this._operation.OperationType.TypeEnum)
             {
-                case RESTOperationCapability.OperationType.Delete:
-                case RESTOperationCapability.OperationType.Head:
+                case HTTPOperation.Type.Delete:
+                case HTTPOperation.Type.Head:
                     FilterGroup.Enabled = true;
                     RequestParamBox.Enabled = true;
                     ResponseParamBox.Enabled = false;
@@ -180,16 +183,16 @@ namespace Plugin.Application.Forms
                     HasPagination.Checked = false;
                     break;
 
-                case RESTOperationCapability.OperationType.Get:
+                case HTTPOperation.Type.Get:
                     FilterGroup.Enabled = true;
                     RequestParamBox.Enabled = true;
                     ResponseParamBox.Enabled = true;
                     HasPagination.Enabled = true;
                     break;
 
-                case RESTOperationCapability.OperationType.Patch:
-                case RESTOperationCapability.OperationType.Post:
-                case RESTOperationCapability.OperationType.Put:
+                case HTTPOperation.Type.Patch:
+                case HTTPOperation.Type.Post:
+                case HTTPOperation.Type.Put:
                     FilterGroup.Enabled = true;
                     RequestParamBox.Enabled = true;
                     ResponseParamBox.Enabled = true;
@@ -205,7 +208,7 @@ namespace Plugin.Application.Forms
                     HasPagination.Checked = false;
                     break;
             }
-            this._hasType = this._operation.Archetype != RESTOperationCapability.OperationType.Unknown;
+            this._hasType = this._operation.OperationType != unknownType;
             if (this._hasType) this._dirty = true;
             CheckOk();
         }

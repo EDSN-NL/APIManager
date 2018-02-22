@@ -46,7 +46,7 @@ namespace Plugin.Application.CapabilityModel.API
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperation >> Building operation '" + operation.Name + "'...");
             bool result = true;
             this._schema.CurrentCapability = operation;
-            this._JSONWriter.WritePropertyName(operation.HTTPTypeName);
+            this._JSONWriter.WritePropertyName(operation.HTTPOperationType.ToString());
             this._JSONWriter.WriteStartObject();                            // We start the operation object here, but we can't finish it since the responses have to go in!
             if (this._currentResource.TagNames.Count > 0)
             {

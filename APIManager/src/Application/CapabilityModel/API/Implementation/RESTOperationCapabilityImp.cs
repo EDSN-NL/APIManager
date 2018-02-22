@@ -31,19 +31,20 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _RESTUseLinkHeaderTag              = "RESTUseLinkHeaderTag";
 
         private RESTResourceCapability _parent;                 // Parent resource capability that owns this operation.
-        private RESTOperationCapability.OperationType _archetype;   // The HTTP operation type associated with the operation.
+        private HTTPOperation _operationType;                   // The HTTP operation type associated with the operation.
         private List<string> _producedMIMETypes;                // List of non-standard MIME types produced by the operation.
         private List<string> _consumedMIMETypes;                // List of non-standard MIME types consumed by the operation.
         private RESTResourceCapability _requestBodyDocument;    // If the operation has a request body, this is the associated Document Resource.
         private RESTResourceCapability _responseBodyDocument;   // If the operation has a response body, this is the associated Document Resource.
         private bool _hasMultipleResponses;                     // True if the default Ok response has multiple response documents.
+        private bool _hasMultipleRequests;                      // True if the request body has multiple elements.
         private bool _useHeaderParameters;                      // Set to 'true' when operation muse use configured Header Parameters.
         private bool _useLinkHeaders;                           // Set to 'true' when the response must contain a definition for Link Headers.
+        private bool _hasPagination;                            // Set to 'true' when the operation uses pagination.
 
         /// <summary>
         /// Getters for class properties:
-        /// HTTPType = Returns the HTTP operation type that is associated with this REST operation (as an enumeration).
-        /// HTTPTypeName = Returns the name of the HTTP operation as a lowercase string.
+        /// HTTPOperationType = Returns the HTTP operation type that is associated with this REST operation (as an enumeration).
         /// UseHeaderParameters = Returns true if the operation muse use configured Header Parameters.
         /// UseLinkHeaders = Returns true if the operation Ok response must contain a definition for Link Headers.
         /// ConsumedMIMEList = Returns list of non-standard MIME types consumed by the operation.
@@ -52,9 +53,9 @@ namespace Plugin.Application.CapabilityModel.API
         /// RequestBodyDocument = If the operation has a request body, this returns the associated Document Resource.
         /// ResponseBodyDocument = If the operation has a default Ok response body, this gets/sets the associated Document Resource.
         /// HasMultipleResponses = True if the default OK response has multiple response body elements.
+        /// HasPagination = True of the operation has pagination support.
         /// </summary>
-        internal RESTOperationCapability.OperationType HTTPType { get { return this._archetype; } }
-        internal string HTTPTypeName                            { get { return this._archetype.ToString("G").ToLower(); } }
+        internal HTTPOperation HTTPOperationType                { get { return this._operationType; } }
         internal bool UseHeaderParameters                       { get { return this._useHeaderParameters; } }
         internal bool UseLinkHeaders                            { get { return this._useLinkHeaders; } }
         internal List<string> ConsumedMIMEList                  { get { return this._consumedMIMETypes; } }
@@ -66,7 +67,9 @@ namespace Plugin.Application.CapabilityModel.API
             get { return this._responseBodyDocument; }
             set { this._responseBodyDocument = value; }
         }
+        internal bool HasMultipleRequests                       { get { return this._hasMultipleRequests; } }
         internal bool HasMultipleResponses                      { get { return this._hasMultipleResponses; } }
+        internal bool HasPagination                             { get { return this._hasPagination; } }
 
         /// <summary>
         /// Returns the list of Operation Result capabilities for this Operation.
@@ -101,18 +104,19 @@ namespace Plugin.Application.CapabilityModel.API
                 ContextSlt context = ContextSlt.GetContextSlt();
                 ModelSlt model = ModelSlt.GetModelSlt();
                 this._parent = parentResource;
-                this._archetype = operation.Archetype;
+                this._operationType = operation.OperationType;
                 var myInterface = new RESTOperationCapability(this);
                 this._consumedMIMETypes = operation.ConsumedMIMETypes;
                 this._producedMIMETypes = operation.ProducedMIMETypes;
                 this._requestBodyDocument = operation.RequestDocument;
                 this._responseBodyDocument = operation.ResponseDocument;
                 this._useHeaderParameters = operation.UseHeaderParametersIndicator;
+                this._hasPagination = operation.PaginationIndicator;
 
                 this._capabilityClass = OperationPackage.CreateClass(operation.Name, context.GetConfigProperty(_RESTOperationClassStereotype));
                 if (this._capabilityClass != null)
                 {
-                    this._capabilityClass.SetTag(context.GetConfigProperty(_ArchetypeTag), operation.Archetype.ToString(), true);
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_ArchetypeTag), operation.OperationType.TypeName, true);
                     this._capabilityClass.SetTag(context.GetConfigProperty(_RESTUseHeaderParametersTag), operation.UseHeaderParametersIndicator.ToString(), true);
                     this._capabilityClass.SetTag(context.GetConfigProperty(_RESTUseLinkHeaderTag), operation.UseLinkHeaderIndicator.ToString(), true);
                     this._capabilityClass.Version = new Tuple<int, int>(parentResource.RootService.MajorVersion, 0);
@@ -257,7 +261,7 @@ namespace Plugin.Application.CapabilityModel.API
                 this._assignedRole = parentResource.FindChildClassRole(this._capabilityClass.Name, context.GetConfigProperty(_RESTOperationClassStereotype));
                 string operationArchetype = this._capabilityClass.GetTag(context.GetConfigProperty(_ArchetypeTag));
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (existing) >> Operation is of archetype: '" + operationArchetype + "'...");
-                this._archetype = EnumConversions<RESTOperationCapability.OperationType>.StringToEnum(operationArchetype);
+                this._operationType = new HTTPOperation(EnumConversions<HTTPOperation.Type>.StringToEnum(operationArchetype));
                 this._useHeaderParameters = string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_RESTUseHeaderParametersTag)), "true", true) == 0;
                 this._useLinkHeaders = string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_RESTUseLinkHeaderTag)), "true", true) == 0;
 
@@ -311,6 +315,26 @@ namespace Plugin.Application.CapabilityModel.API
                         return;
                     }
                 }
+
+                this._hasPagination = false;
+                string paginationClassName = context.GetConfigProperty(_RequestPaginationClassName);
+                foreach (MEAssociation association in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                {
+                    if (association.Destination.EndPoint.HasStereotype(resourceStereotype))
+                    {
+                        if (this._requestBodyDocument != null && association.Destination.EndPoint.Name == this._requestBodyDocument.Name)
+                        {
+                            Tuple<int, int> card = association.GetCardinality(MEAssociation.AssociationEnd.Destination);
+                            this._hasMultipleRequests = (card.Item2 == 0 || card.Item2 > 1);
+                        }
+                    }
+                    else if (association.Destination.EndPoint.Name == paginationClassName)
+                    {
+                        // With regard to pagination, we only look for the request class (it should have both a request- and a response)...
+                        this._hasPagination = true;
+                        break;
+                    }
+                }
             }
             catch (Exception exc)
             {
@@ -348,12 +372,12 @@ namespace Plugin.Application.CapabilityModel.API
                 ModelSlt model = ModelSlt.GetModelSlt();
 
                 // Check whether our type has changed...
-                if (this._archetype != operation.Archetype)
+                if (this._operationType != operation.OperationType)
                 {
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.EditOperation >> Changed archetype from '" + 
-                                     this._archetype + "' to '" + operation.Archetype + "'!");
-                    this._archetype = operation.Archetype;
-                    this._capabilityClass.SetTag(context.GetConfigProperty(_ArchetypeTag), operation.Archetype.ToString());
+                                     this._operationType + "' to '" + operation.OperationType + "'!");
+                    this._operationType = operation.OperationType;
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_ArchetypeTag), operation.OperationType.TypeName);
                 }
                 
                 // Check whether our name has changed...

@@ -15,19 +15,6 @@ namespace Plugin.Application.CapabilityModel.API
     /// </summary>
     internal class RESTOperationCapability: OperationCapability
     {
-        // These are the REST Operation types supported by the framework. They correspond with the respective HTTP Method:
-        internal enum OperationType { Unknown, Post, Delete, Head, Get, Put, Options, Patch }
-
-        private static readonly string[,] _OperationTable =
-                { {"Delete", "Delete Resource: 'Delete'"},
-                  {"Head",   "Determine Resource existence: 'Head'"},
-                  {"Post",   "Operation on Resource: 'Post'"},
-                  {"Get",    "Read/Find Resource: 'Get'" },
-                  {"Put",    "Replace existing Resource: 'Put'" },
-                  {"Options","Retrieve Operations on Resource: 'Options'"},
-                  {"Patch",  "Update (partial) Resource: 'Patch'"},
-                  {"Unknown","Unknown Operation"} };
-
         /// <summary>
         /// Returns the list of operation-specific MIME types produced by this operation. This will be an empty list if the 
         /// operation only produces the standard MIME types.
@@ -38,6 +25,19 @@ namespace Plugin.Application.CapabilityModel.API
             get
             {
                 if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).ConsumedMIMEList;
+                else throw new MissingImplementationException("RESTOperationCapabilityImp");
+            }
+        }
+
+        /// <summary>
+        /// Returns true when the request body is an array of elements.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
+        internal bool HasMultipleRequests
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).HasMultipleRequests;
                 else throw new MissingImplementationException("RESTOperationCapabilityImp");
             }
         }
@@ -56,27 +56,27 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Returns the HTTP operation type that is associated with this REST operation (as an enumeration).
+        /// Returns true when the operation has pagination support enabled.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal OperationType HTTPType
+        internal bool HasPagination
         {
             get
             {
-                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).HTTPType;
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).HasPagination;
                 else throw new MissingImplementationException("RESTOperationCapabilityImp");
             }
         }
 
         /// <summary>
-        /// Returns the name of the associated HTTP operation as a lowercase string.
+        /// Returns the HTTP operation type that is associated with this REST operation (as an enumeration).
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal string HTTPTypeName
+        internal HTTPOperation HTTPOperationType
         {
             get
             {
-                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).HTTPTypeName;
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).HTTPOperationType;
                 else throw new MissingImplementationException("RESTOperationCapabilityImp");
             }
         }
@@ -233,44 +233,6 @@ namespace Plugin.Application.CapabilityModel.API
         {
             if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).Edit(operation, minorVersionUpdate);
             else throw new MissingImplementationException("RESTOperationCapabilityImp");
-        }
-
-        /// <summary>
-        /// Helper function that translates a specified human-friendly OperationType label to the corresponding enumeration.
-        /// </summary>
-        /// <param name="label">Human-friendly OperationType label.</param>
-        /// <returns>Corresponsing OperationType enumeration.</returns>
-        internal static OperationType LabelToOperationType(string label)
-        {
-            OperationType type = OperationType.Unknown;
-            for (int i = 0; i < _OperationTable.GetLength(0); i++)
-            {
-                if (String.Compare(label, _OperationTable[i, 1], StringComparison.OrdinalIgnoreCase) == 0)
-                {
-                    type = EnumConversions<OperationType>.StringToEnum(_OperationTable[i, 0]);
-                    break;
-                }
-            }
-            return type;
-        }
-
-        /// <summary>
-        /// Helper function that translates a specified OperationType to a human-friendly label name.
-        /// </summary>
-        /// <param name="type">OperationType to translate</param>
-        /// <returns>Human-friendly label.</returns>
-        internal static string OperationTypeToLabel(OperationType type)
-        {
-            string label = _OperationTable[7, 1];    // By default, we return the UNKNOWN label!
-            for (int i = 0; i < _OperationTable.GetLength(0); i++)
-            {
-                if (String.Compare(type.ToString(), _OperationTable[i, 0], StringComparison.OrdinalIgnoreCase) == 0)
-                {
-                    label = _OperationTable[i, 1];
-                    break;
-                }
-            }
-            return label;
         }
     }
 }

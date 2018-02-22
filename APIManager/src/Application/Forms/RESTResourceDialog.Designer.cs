@@ -57,6 +57,8 @@
             this.ResourceNameFld = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.DocumentationBox = new System.Windows.Forms.GroupBox();
+            this.TagNames = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
             this.ExternalDocURL = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
@@ -67,8 +69,6 @@
             this.DefineIdentifierToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.CreateDocument = new System.Windows.Forms.Button();
             this.LinkDocument = new System.Windows.Forms.Button();
-            this.label8 = new System.Windows.Forms.Label();
-            this.TagNames = new System.Windows.Forms.TextBox();
             this.OperationsBox.SuspendLayout();
             this.PropertiesBox.SuspendLayout();
             this.OperationMenuStrip.SuspendLayout();
@@ -78,7 +78,7 @@
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(370, 341);
+            this.Ok.Location = new System.Drawing.Point(370, 316);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
             this.Ok.TabIndex = 10;
@@ -88,7 +88,7 @@
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(451, 341);
+            this.Cancel.Location = new System.Drawing.Point(451, 316);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
             this.Cancel.TabIndex = 9;
@@ -112,7 +112,7 @@
             this.OperationsBox.Controls.Add(this.AddOperation);
             this.OperationsBox.Location = new System.Drawing.Point(260, 8);
             this.OperationsBox.Name = "OperationsBox";
-            this.OperationsBox.Size = new System.Drawing.Size(266, 189);
+            this.OperationsBox.Size = new System.Drawing.Size(266, 164);
             this.OperationsBox.TabIndex = 5;
             this.OperationsBox.TabStop = false;
             this.OperationsBox.Text = "Associated Operations";
@@ -128,7 +128,7 @@
             this.OperationsList.Location = new System.Drawing.Point(7, 19);
             this.OperationsList.MultiSelect = false;
             this.OperationsList.Name = "OperationsList";
-            this.OperationsList.Size = new System.Drawing.Size(250, 133);
+            this.OperationsList.Size = new System.Drawing.Size(250, 104);
             this.OperationsList.TabIndex = 0;
             this.OperationsList.UseCompatibleStateImageBehavior = false;
             this.OperationsList.View = System.Windows.Forms.View.Details;
@@ -146,7 +146,7 @@
             // EditOperation
             // 
             this.EditOperation.Image = ((System.Drawing.Image)(resources.GetObject("EditOperation.Image")));
-            this.EditOperation.Location = new System.Drawing.Point(69, 158);
+            this.EditOperation.Location = new System.Drawing.Point(68, 129);
             this.EditOperation.Name = "EditOperation";
             this.EditOperation.Size = new System.Drawing.Size(25, 25);
             this.EditOperation.TabIndex = 3;
@@ -156,7 +156,7 @@
             // DeleteOperation
             // 
             this.DeleteOperation.Image = ((System.Drawing.Image)(resources.GetObject("DeleteOperation.Image")));
-            this.DeleteOperation.Location = new System.Drawing.Point(38, 158);
+            this.DeleteOperation.Location = new System.Drawing.Point(37, 129);
             this.DeleteOperation.Name = "DeleteOperation";
             this.DeleteOperation.Size = new System.Drawing.Size(25, 25);
             this.DeleteOperation.TabIndex = 2;
@@ -166,7 +166,7 @@
             // AddOperation
             // 
             this.AddOperation.Image = ((System.Drawing.Image)(resources.GetObject("AddOperation.Image")));
-            this.AddOperation.Location = new System.Drawing.Point(7, 158);
+            this.AddOperation.Location = new System.Drawing.Point(6, 129);
             this.AddOperation.Name = "AddOperation";
             this.AddOperation.Size = new System.Drawing.Size(25, 25);
             this.AddOperation.TabIndex = 1;
@@ -197,7 +197,7 @@
             this.PropertiesBox.Controls.Add(this.label2);
             this.PropertiesBox.Location = new System.Drawing.Point(5, 81);
             this.PropertiesBox.Name = "PropertiesBox";
-            this.PropertiesBox.Size = new System.Drawing.Size(249, 116);
+            this.PropertiesBox.Size = new System.Drawing.Size(249, 91);
             this.PropertiesBox.TabIndex = 6;
             this.PropertiesBox.TabStop = false;
             this.PropertiesBox.Text = "Identifier Properties";
@@ -205,7 +205,7 @@
             // SelectClassifier
             // 
             this.SelectClassifier.Image = ((System.Drawing.Image)(resources.GetObject("SelectClassifier.Image")));
-            this.SelectClassifier.Location = new System.Drawing.Point(208, 85);
+            this.SelectClassifier.Location = new System.Drawing.Point(208, 25);
             this.SelectClassifier.Name = "SelectClassifier";
             this.SelectClassifier.Size = new System.Drawing.Size(25, 25);
             this.SelectClassifier.TabIndex = 1;
@@ -234,7 +234,7 @@
             this.ParameterName.Location = new System.Drawing.Point(61, 28);
             this.ParameterName.Name = "ParameterName";
             this.ParameterName.ReadOnly = true;
-            this.ParameterName.Size = new System.Drawing.Size(172, 20);
+            this.ParameterName.Size = new System.Drawing.Size(141, 20);
             this.ParameterName.TabIndex = 0;
             // 
             // label2
@@ -279,7 +279,7 @@
             // NewMinorVersion
             // 
             this.NewMinorVersion.AutoSize = true;
-            this.NewMinorVersion.Location = new System.Drawing.Point(5, 341);
+            this.NewMinorVersion.Location = new System.Drawing.Point(5, 324);
             this.NewMinorVersion.Name = "NewMinorVersion";
             this.NewMinorVersion.Size = new System.Drawing.Size(138, 17);
             this.NewMinorVersion.TabIndex = 8;
@@ -314,12 +314,29 @@
             this.DocumentationBox.Controls.Add(this.label5);
             this.DocumentationBox.Controls.Add(this.DocDescription);
             this.DocumentationBox.Controls.Add(this.label4);
-            this.DocumentationBox.Location = new System.Drawing.Point(5, 203);
+            this.DocumentationBox.Location = new System.Drawing.Point(5, 178);
             this.DocumentationBox.Name = "DocumentationBox";
             this.DocumentationBox.Size = new System.Drawing.Size(521, 132);
             this.DocumentationBox.TabIndex = 7;
             this.DocumentationBox.TabStop = false;
             this.DocumentationBox.Text = "Documentation";
+            // 
+            // TagNames
+            // 
+            this.TagNames.Location = new System.Drawing.Point(75, 100);
+            this.TagNames.Name = "TagNames";
+            this.TagNames.Size = new System.Drawing.Size(427, 20);
+            this.TagNames.TabIndex = 4;
+            this.TagNames.Leave += new System.EventHandler(this.TagNames_Leave);
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(29, 103);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(40, 13);
+            this.label8.TabIndex = 0;
+            this.label8.Text = "Tag(s):";
             // 
             // ExternalDocURL
             // 
@@ -407,30 +424,13 @@
             this.LinkDocument.UseVisualStyleBackColor = true;
             this.LinkDocument.Click += new System.EventHandler(this.LinkDocument_Click);
             // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(29, 103);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(40, 13);
-            this.label8.TabIndex = 0;
-            this.label8.Text = "Tag(s):";
-            // 
-            // TagNames
-            // 
-            this.TagNames.Location = new System.Drawing.Point(75, 100);
-            this.TagNames.Name = "TagNames";
-            this.TagNames.Size = new System.Drawing.Size(427, 20);
-            this.TagNames.TabIndex = 4;
-            this.TagNames.Leave += new System.EventHandler(this.TagNames_Leave);
-            // 
             // RESTResourceDialog
             // 
             this.AcceptButton = this.Ok;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(534, 379);
+            this.ClientSize = new System.Drawing.Size(534, 357);
             this.Controls.Add(this.LinkDocument);
             this.Controls.Add(this.CreateDocument);
             this.Controls.Add(this.DocumentationBox);

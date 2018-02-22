@@ -217,5 +217,32 @@ namespace Plugin.Application.Forms
         {
             this._parameter.Description = ParamDescription.Text;
         }
+
+        /// <summary>
+        /// This event is raised when the user clicked the 'Ok' button. We validate some of the provided parameters and on errors, prevent the
+        /// form from closing (after displaying a suitable error message).
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void Ok_Click(object sender, EventArgs e)
+        {
+            bool mayClose = true;
+            if (!(Parameter.Classifier is MEDataType) && !(Parameter.Classifier is MEEnumeratedType))
+            {
+                MessageBox.Show("Parameter must be Data Type or Enumeration, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                mayClose = false;
+            }
+            if (Parameter.Cardinality.Item2 == 0 || Parameter.Cardinality.Item2 > 1)
+            {
+                if (Parameter.CollectionFormat == RESTParameterDeclaration.QueryCollectionFormat.NA ||
+                    Parameter.CollectionFormat == RESTParameterDeclaration.QueryCollectionFormat.Unknown)
+                {
+                    MessageBox.Show("Collection Format must be one of Multi, CSV, SSV, TSV or Pipes, please try again!",
+                                    "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    mayClose = false;
+                }
+            }
+            this.DialogResult = mayClose ? DialogResult.OK : DialogResult.None;
+        }
     }
 }

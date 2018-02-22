@@ -66,7 +66,7 @@ namespace Plugin.Application.Forms
                     if (operation.Status != RESTOperationDeclaration.DeclarationStatus.Invalid)
                     {
                         ListViewItem newItem = new ListViewItem(operation.Name);
-                        newItem.SubItems.Add(operation.Archetype.ToString());
+                        newItem.SubItems.Add(operation.OperationType.ToString());
                         OperationsList.Items.Add(newItem);
                     }
                 }
@@ -78,11 +78,18 @@ namespace Plugin.Application.Forms
             ExternalDocURL.Text = resource.ExternalDocURL;
 
             // Initialize the drop-down box with the possible values of our Resource archetype enumeration...
+            // Setting the ResourceTypeBox.SelectedIndex enforces a 'SelectedIndexChanged' event, which will perform all dialog
+            // housekeeping that is resource-type specific.
+            // If we're in create-mode, we enforce a default type of 'Collection' in our drop-down and make sure that the resource
+            // is still at 'Unknown'.
+            int typeIndex = (int)resource.Archetype;
+            if (!this._isEdit)
+            {
+                this._resource.Archetype = RESTResourceCapability.ResourceArchetype.Unknown;
+                typeIndex = (int)RESTResourceCapability.ResourceArchetype.Collection;
+            }
             ResourceTypeBox.Items.AddRange(EnumConversions<RESTResourceCapability.ResourceArchetype>.GetNamesArray());
-            
-            // Statement below enforces a 'SelectedIndexChanges' event, which will update _currentType and set dialog items access 
-            // according to the resource type...
-            ResourceTypeBox.SelectedIndex = this._isEdit ? (int)resource.Archetype : 0;
+            ResourceTypeBox.SelectedIndex = typeIndex;
 
             // Assign context menus to the appropriate controls...
             OperationsList.ContextMenuStrip = OperationMenuStrip;
@@ -113,7 +120,7 @@ namespace Plugin.Application.Forms
             if (operation != null && operation.Status != RESTOperationDeclaration.DeclarationStatus.Invalid)
             {
                 ListViewItem newItem = new ListViewItem(operation.Name);
-                newItem.SubItems.Add(operation.Archetype.ToString());
+                newItem.SubItems.Add(operation.OperationType.ToString());
                 OperationsList.Items.Add(newItem);
             }
         }
@@ -160,7 +167,7 @@ namespace Plugin.Application.Forms
                 if (operation != null)
                 {
                     myItem.SubItems[0].Text = operation.Name;
-                    myItem.SubItems[1].Text = operation.Archetype.ToString();
+                    myItem.SubItems[1].Text = operation.OperationType.ToString();
                 }
             }
         }
@@ -175,6 +182,14 @@ namespace Plugin.Application.Forms
             int index = ResourceTypeBox.SelectedIndex;
             RESTResourceCapability.ResourceArchetype oldType = this._resource.Archetype;
             this._resource.Archetype = EnumConversions<RESTResourceCapability.ResourceArchetype>.StringToEnum(ResourceTypeBox.Items[ResourceTypeBox.SelectedIndex].ToString());
+            if (this._isEdit && oldType == this._resource.Archetype) return;    // Edit and no change, do nothing!
+
+            // If we change the resource type, we remove all existing operations that do not match the new type.
+            // Note that iterating the items list in reverse allows us to remove items from the list while iterating over it...
+            for (int i=OperationsList.Items.Count-1; i >=0; i--)
+            {
+                if (!this._resource.HasOperation(OperationsList.Items[i].Text)) OperationsList.Items.RemoveAt(i);
+            }
 
             // Enable/Disable all controls according to the (new) type...
             switch (this._resource.Archetype)
@@ -198,7 +213,6 @@ namespace Plugin.Application.Forms
                     LinkDocument.Enabled = true;
                     PropertiesBox.Enabled = false;
                     OperationsBox.Enabled = false;
-                    OperationsList.Items.Clear();
                     ResourceNameFld.Enabled = false;
                     ResourceNameFld.ReadOnly = true;
                     ResourceNameFld.Clear();
@@ -212,7 +226,6 @@ namespace Plugin.Application.Forms
                     LinkDocument.Enabled = false;
                     PropertiesBox.Enabled = false;
                     OperationsBox.Enabled = false;
-                    OperationsList.Items.Clear();
                     ResourceNameFld.Enabled = false;
                     ResourceNameFld.ReadOnly = false;
                     ResourceNameFld.Clear();
@@ -235,7 +248,6 @@ namespace Plugin.Application.Forms
                     break;
             }
             this._hasType = this._resource.Archetype != RESTResourceCapability.ResourceArchetype.Unknown;
-            this._hasName = (ResourceNameFld.Text != string.Empty);
             ValidateName();
             CheckOk();
         }
@@ -261,7 +273,7 @@ namespace Plugin.Application.Forms
             string errorText = string.Empty;
             bool isOk = true;
             this._hasName = false;
-            if (!string.IsNullOrEmpty(ResourceNameFld.Text))
+            if (!string.IsNullOrEmpty(ResourceNameFld.Text) && ResourceNameFld.Text != "{}")
             {
                 if (!char.IsUpper(ResourceNameFld.Text[0]) && ResourceNameFld.Text[0] != '[')
                 {

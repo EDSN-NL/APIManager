@@ -59,10 +59,10 @@ namespace Plugin.Application.Events.API
             // By instantiating the service, we should construct the entire capability hierarchy, which facilitates constructing
             // of 'lower level' capabilities using their Class objects...
             var myService = new RESTService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
-            RESTOperationCapability myOperation = new RESTOperationCapability(operationClass);
+            var myOperation = new RESTOperationCapability(operationClass);
+            var myResource = new RESTResourceCapability(myOperation.Parent.CapabilityClass);
 
-            var operationDecl = new RESTOperationDeclaration(myOperation);
-            using (var dialog = new RESTOperationDialog(operationDecl))
+            using (var dialog = new RESTOperationDialog(new RESTOperationDeclaration(myOperation), new RESTResourceDeclaration(myResource)))
             {
                 if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
                 {

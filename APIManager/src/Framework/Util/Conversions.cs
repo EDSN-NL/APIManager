@@ -62,8 +62,7 @@ namespace Framework.Util
         /// <returns>List of enumerated-type values as list of strings.</returns>
         internal static List<string> GetNamesList()
         {
-            List<string> enumNames = new List<string>(Enum.GetNames(typeof(TEnum)));
-            return enumNames;
+            return new List<string>(Enum.GetNames(typeof(TEnum)));
         }
 
         /// <summary>

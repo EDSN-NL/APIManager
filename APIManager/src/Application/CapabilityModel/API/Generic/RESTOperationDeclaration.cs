@@ -19,12 +19,19 @@ namespace Plugin.Application.CapabilityModel.API
         internal const bool _ResponseIndicator              = true;
 
         // Configuration properties used by this module:
+        private const string _ArchetypeTag                  = "ArchetypeTag";
         private const string _APISupportModelPathName       = "APISupportModelPathName";
         private const string _OperationResultClassName      = "OperationResultClassName";
         private const string _RESTParameterStereotype       = "RESTParameterStereotype";
         private const string _ResourceClassStereotype       = "ResourceClassStereotype";
         private const string _RequestPaginationClassName    = "RequestPaginationClassName";
-        //private const string _RESTUseHeaderParametersTag    = "RESTUseHeaderParametersTag";
+        private const string _ConsumesMIMEListTag           = "ConsumesMIMEListTag";
+        private const string _ProducesMIMEListTag           = "ProducesMIMEListTag";
+        private const string _RESTUseHeaderParametersTag    = "RESTUseHeaderParametersTag";
+        private const string _RESTUseLinkHeaderTag          = "RESTUseLinkHeaderTag";
+        private const string _ServiceContainerPkgStereotype = "ServiceContainerPkgStereotype";
+        private const string _RootPkgName                   = "RootPkgName";
+        private const string _RESTOperationResultStereotype = "RESTOperationResultStereotype";
 
         private const string _Summary = "summary: ";        // Separator between summary text and description text.
 
@@ -32,7 +39,7 @@ namespace Plugin.Application.CapabilityModel.API
         internal enum DeclarationStatus { Invalid, Created, Stable, Edited, Deleted }
 
         private string _name;                                       // Operation name.
-        private RESTOperationCapability.OperationType _archetype;   // Associated HTTP type.
+        private HTTPOperation _operationType;                       // Associated HTTP operation type.
         private RESTResourceCapability _parent;                     // Represents the 'owner' of the operation.
         private MEClass _existingOperation;                         // Contains class in case operation has been constructed from existing class.
         private DeclarationStatus _status;                          // Status of this declaration record.
@@ -53,16 +60,16 @@ namespace Plugin.Application.CapabilityModel.API
         private SortedList<string, RESTParameterDeclaration> _queryParams;          // List of user-defined query parameters for this operation.
 
         /// <summary>
-        /// Get or set the archetype of this operation, i.e. the associated HTTP operation.
+        /// Get or set the associated HTTP operation for this operation declaration.
         /// </summary>
-        internal RESTOperationCapability.OperationType Archetype
+        internal HTTPOperation OperationType
         {
-            get { return this._archetype; }
+            get { return this._operationType; }
             set
             {
-                if (this._archetype != value)
+                if (this._operationType != value)
                 {
-                    this._archetype = value;
+                    this._operationType = value;
                     if (this._initialStatus == DeclarationStatus.Invalid && this._name != string.Empty) this._status = DeclarationStatus.Created;
                     else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 }
@@ -94,7 +101,7 @@ namespace Plugin.Application.CapabilityModel.API
                 if (this._name != value)
                 {
                     this._name = value;
-                    if (this._initialStatus == DeclarationStatus.Invalid && this._archetype != RESTOperationCapability.OperationType.Unknown) this._status = DeclarationStatus.Created;
+                    if (this._initialStatus == DeclarationStatus.Invalid && this._operationType.TypeEnum != HTTPOperation.Type.Unknown) this._status = DeclarationStatus.Created;
                     else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 }
             }
@@ -276,12 +283,12 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="name">The name of the operation (unique within the API).</param>
         /// <param name="archetype">The archetype of the operation (the associated HTTP operation).</param>
-        internal RESTOperationDeclaration(RESTResourceCapability parent, string name, RESTOperationCapability.OperationType archetype)
+        internal RESTOperationDeclaration(RESTResourceCapability parent, string name, HTTPOperation operationType)
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationDeclaration >> Creating new declaration with name '" + name + "' and type '" + archetype + "'...");
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationDeclaration >> Creating new declaration with name '" + name + "' and type '" + operationType + "'...");
             this._name = name;
             this._parent = parent;
-            this._archetype = archetype;
+            this._operationType = operationType;
             this._existingOperation = null;
             this._status = DeclarationStatus.Invalid;
             this._initialStatus = this.Status;
@@ -312,21 +319,19 @@ namespace Plugin.Application.CapabilityModel.API
             this._name = operation.Name;
             this._parent = new RESTResourceCapability(operation.Parent as RESTResourceCapabilityImp);
             this._existingOperation = operation.CapabilityClass;
-            this._archetype = operation.HTTPType;
+            this._operationType = operation.HTTPOperationType;
             this._status = DeclarationStatus.Stable;
             this._initialStatus = DeclarationStatus.Stable;
-            this._requestDocument = null;
-            this._responseDocument = null;
-            this._hasMultipleRequestParameters = false;
-            this._hasMultipleResponseParameters = false;
-            this._hasPagination = false;
-            this._publicAccess = false;
+            this._hasPagination = operation.HasPagination;
+            this._publicAccess = false;                                     // Not yet implemented!
             this._producedMIMEList = operation.ProducedMIMEList;
             this._consumedMIMEList = operation.ConsumedMIMEList;
             this._queryParams = new SortedList<string, RESTParameterDeclaration>();
             this._resultList = new SortedList<string, RESTOperationResultDeclaration>();
             this._useHeaderParameters = operation.UseHeaderParameters;
             this._useLinkHeaders = operation.UseLinkHeaders;
+            this._summaryText = string.Empty;
+            this._description = string.Empty;
 
             // Extract documentation from the class. This can be a multi-line object in which the first line might be the 'summary' description...
             List<string> documentation = MEChangeLog.GetDocumentationAsTextLines(operation.CapabilityClass);
@@ -373,22 +378,10 @@ namespace Plugin.Application.CapabilityModel.API
             this._requestDocument = operation.RequestBodyDocument;
             this._responseDocument = operation.ResponseBodyDocument;
             this._hasMultipleResponseParameters = operation.HasMultipleResponses;
+            this._hasMultipleRequestParameters = operation.HasMultipleRequests;
             ContextSlt context = ContextSlt.GetContextSlt();
             string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
             string paginationClassName = context.GetConfigProperty(_RequestPaginationClassName);
-            foreach (MEAssociation association in operation.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
-            {
-                if (association.Destination.EndPoint.HasStereotype(resourceStereotype))
-                {
-                    if (this._requestDocument != null && association.Destination.EndPoint.Name == this._requestDocument.Name)
-                    {
-                        Tuple<int, int> card = association.GetCardinality(MEAssociation.AssociationEnd.Destination);
-                        this._hasMultipleRequestParameters = (card.Item2 == 0 || card.Item2 > 1);
-                    }
-                }
-                // With regard to pagination, we only look for the request class (it should have both a request- and a response)...
-                else if (association.Destination.EndPoint.Name == paginationClassName) this._hasPagination = true;
-            }
         }
 
         /// <summary>
@@ -443,6 +436,7 @@ namespace Plugin.Application.CapabilityModel.API
                         newResult = null;
                     }
                 }
+                else newResult = null;
             }
             return newResult;
         }
@@ -481,6 +475,7 @@ namespace Plugin.Application.CapabilityModel.API
                     if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                     this._queryParams.Add(newParam.Name, newParam);
                 }
+                else newParam = null;
             }
             return newParam;
         }
@@ -552,6 +547,7 @@ namespace Plugin.Application.CapabilityModel.API
                             editParam = null;
                         }
                     }
+                    else editParam = null;
                 }
             }
             return editParam;
@@ -633,6 +629,7 @@ namespace Plugin.Application.CapabilityModel.API
                             result = null;
                         }
                     }
+                    else result = null;
                 }
             }
             return result;
@@ -691,6 +688,7 @@ namespace Plugin.Application.CapabilityModel.API
                                 if (document != null) documentName = document.Name;
                             }
                         }
+                        else documentName = string.Empty;
                     }
                 }
             }
