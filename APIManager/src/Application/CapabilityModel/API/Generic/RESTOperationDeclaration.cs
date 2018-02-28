@@ -12,7 +12,7 @@ namespace Plugin.Application.CapabilityModel.API
     /// <summary>
     /// A simple helper class that bundles the components that make up a REST parameter (attributes of a Path Expression or operation).
     /// </summary>
-    internal sealed class RESTOperationDeclaration
+    internal sealed class RESTOperationDeclaration: IEquatable<RESTOperationDeclaration>
     {
         // We use a boolean indicator to choose between request and response...
         internal const bool _RequestIndicator               = false;
@@ -276,6 +276,70 @@ namespace Plugin.Application.CapabilityModel.API
                     else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 }
             }
+        }
+
+        /// <summary>
+        /// Compares the Operation Declaration against another object. If the other object is also an Operation Declaration, the 
+        /// function returns true if both Declarations are of the same operation type and have the same name. In all other cases,
+        /// the function returns false.
+        /// </summary>
+        /// <param name="obj">The thing to compare against.</param>
+        /// <returns>True if same object, false otherwise.</returns>
+        public override bool Equals(object obj)
+        {
+            if (obj == null) return false;
+            var objElement = obj as RESTOperationDeclaration;
+            return (objElement != null) && Equals(objElement);
+        }
+
+        /// <summary>
+        /// Compares the Operation Declaration against another Operation Declaration. The function returns true if both 
+        /// Declarations are of the same operation type and have the same name. In all other cases, the function returns false.
+        /// </summary>
+        /// <param name="other">The Operation Declaration to compare against.</param>
+        /// <returns>True if same object, false otherwise.</returns>
+        public bool Equals(RESTOperationDeclaration other)
+        {
+            return other != null && other._operationType == this._operationType && other._name == this._name;
+        }
+
+        /// <summary>
+        /// Returns a hashcode that is associated with the Operation Declaration. The hash code
+        /// is derived from the Operation name and operation type.
+        /// </summary>
+        /// <returns>Hashcode according to Operation Declaration.</returns>
+        public override int GetHashCode()
+        {
+            return this._name.GetHashCode() ^ this._operationType.GetHashCode();
+        }
+
+        /// <summary>
+        /// Override of compare operator. Two Operation Declaration objects are equal if they are of the same HTTP Operator type,
+        /// the same name or if they are both NULL.
+        /// </summary>
+        /// <param name="elementa">First Operation Declaration to compare.</param>
+        /// <param name="elementb">Second Operation Declaration to compare.</param>
+        /// <returns>True if the Operation Declarations are equal.</returns>
+        public static bool operator ==(RESTOperationDeclaration elementa, RESTOperationDeclaration elementb)
+        {
+            // Tricky to implement correctly. These first statements make sure that we check whether we are actually
+            // dealing with identical objects and/or whether one or both are NULL.
+            if (ReferenceEquals(elementa, elementb)) return true;
+            if (ReferenceEquals(elementa, null)) return false;
+            if (ReferenceEquals(elementb, null)) return false;
+            return elementa.Equals(elementb);
+        }
+
+        /// <summary>
+        /// Override of compare operator. Two Operation Declaration objects are different if they have different HTTP Operator types,
+        /// different names or one of them is NULL..
+        /// </summary>
+        /// <param name="elementa">First Operation Declaration to compare.</param>
+        /// <param name="elementb">Second Operation Declaration to compare.</param>
+        /// <returns>True if the Operation Declarations are different.</returns>
+        public static bool operator !=(RESTOperationDeclaration elementa, RESTOperationDeclaration elementb)
+        {
+            return !(elementa == elementb);
         }
 
         /// <summary>

@@ -260,13 +260,7 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
 
-                if (newMinorVersion)
-                {
-                    var newVersion = new Tuple<int, int>(RootService.Version.Item1, RootService.Version.Item2 + 1);
-                    RootService.UpdateVersion(newVersion);
-                    newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-                    this._capabilityClass.Version = newVersion;
-                }
+                if (newMinorVersion) UpdateMinorVersion();
                 string logMessage = "Added Resource Collection(s): '" + newNames + "'";
                 RootService.CreateLogEntry(logMessage + " to Interface '" + Name + "'.");
                 CreateLogEntry(logMessage + ".");
@@ -297,13 +291,7 @@ namespace Plugin.Application.CapabilityModel.API
                 }
             }
 
-            if (newMinorVersion)
-            {
-                var newVersion = new Tuple<int, int>(RootService.Version.Item1, RootService.Version.Item2 + 1);
-                RootService.UpdateVersion(newVersion);
-                newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-                this._capabilityClass.Version = newVersion;
-            }
+            if (newMinorVersion) UpdateMinorVersion();
             string logMessage = "Deleted Resource: '" + resourceClass.Name + "'";
             RootService.CreateLogEntry(logMessage + " from Interface '" + Name + "'.");
             CreateLogEntry(logMessage + ".");
@@ -354,11 +342,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
 
             // If we have to increment the minor version of the interface, do so BEFORE creating the log message...
-            if (newMinorVersion)
-            {
-                var newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-                this._capabilityClass.Version = newVersion;
-            }
+            if (newMinorVersion) UpdateMinorVersion();
             string logMessage = "Renamed resource: '" + oldName + "' to: '" + resourceClass.Name + "'.";
             RootService.CreateLogEntry(logMessage + " in Interface '" + Name + "'.");
             CreateLogEntry(logMessage + ".");

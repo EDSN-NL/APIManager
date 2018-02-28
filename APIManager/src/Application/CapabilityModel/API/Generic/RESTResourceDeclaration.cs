@@ -12,7 +12,7 @@ namespace Plugin.Application.CapabilityModel.API
     /// <summary>
     /// A simple helper class that bundles the components that make up a REST parameter (attributes of a Path Expression or operation).
     /// </summary>
-    internal sealed class RESTResourceDeclaration
+    internal sealed class RESTResourceDeclaration : IEquatable<RESTResourceDeclaration>
     {
         // The status is used to track operations on the declaration.
         internal enum DeclarationStatus { Created, Deleted, Edited, Invalid, Stable }
@@ -22,6 +22,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _ResourceClassStereotype                   = "ResourceClassStereotype";
         private const string _BusinessComponentStereotype               = "BusinessComponentStereotype";
         private const string _GenericMessageClassStereotype             = "GenericMessageClassStereotype";
+        private const string _DocumentationTypeClassName                = "DocumentationTypeClassName";
 
         private Capability _parent;                                     // The capability that acts as parent for the resource. Either an Interface or a Resource.
         private MEClass _existingResource;                              // Contains associated class in case of existing resource.
@@ -151,6 +152,70 @@ namespace Plugin.Application.CapabilityModel.API
         internal bool Valid { get { return this._status == DeclarationStatus.Invalid; } }
 
         /// <summary>
+        /// Compares the Resource Declaration against another object. If the other object is also a Resource Declaration, the 
+        /// function returns true if both Declarations are of the same archetype and have the same name. In all other cases, the
+        /// function returns false.
+        /// </summary>
+        /// <param name="obj">The thing to compare against.</param>
+        /// <returns>True if same object, false otherwise.</returns>
+        public override bool Equals(object obj)
+        {
+            if (obj == null) return false;
+            var objElement = obj as RESTResourceDeclaration;
+            return (objElement != null) && Equals(objElement);
+        }
+
+        /// <summary>
+        /// Compares the Resource Declaration against another Resource Declaration. The function returns true if both 
+        /// Declarations are of the same archetype and have the same name. In all other cases, the function returns false.
+        /// </summary>
+        /// <param name="other">The Resource Declaration to compare against.</param>
+        /// <returns>True if same object, false otherwise.</returns>
+        public bool Equals(RESTResourceDeclaration other)
+        {
+            return other != null && other._archetype == this._archetype && other._name == this._name;
+        }
+
+        /// <summary>
+        /// Returns a hashcode that is associated with the Resource Declaration. The hash code
+        /// is derived from the resource name and archetype.
+        /// </summary>
+        /// <returns>Hashcode according to Resource Declaration.</returns>
+        public override int GetHashCode()
+        {
+            return this._name.GetHashCode() ^ this._archetype.GetHashCode();
+        }
+
+        /// <summary>
+        /// Override of compare operator. Two Resource Declaration objects are equal if they are of the same archetype,
+        /// have the same name or if they are both NULL.
+        /// </summary>
+        /// <param name="elementa">First Resource Declaration to compare.</param>
+        /// <param name="elementb">Second Resource Declaration to compare.</param>
+        /// <returns>True if the Resource Declarations are equal.</returns>
+        public static bool operator ==(RESTResourceDeclaration elementa, RESTResourceDeclaration elementb)
+        {
+            // Tricky to implement correctly. These first statements make sure that we check whether we are actually
+            // dealing with identical objects and/or whether one or both are NULL.
+            if (ReferenceEquals(elementa, elementb)) return true;
+            if (ReferenceEquals(elementa, null)) return false;
+            if (ReferenceEquals(elementb, null)) return false;
+            return elementa.Equals(elementb);
+        }
+
+        /// <summary>
+        /// Override of compare operator. Two Resource Declaration objects are different if they have different archetypes,
+        /// different names or one of them is NULL..
+        /// </summary>
+        /// <param name="elementa">First Resource Declaration to compare.</param>
+        /// <param name="elementb">Second Resource Declaration to compare.</param>
+        /// <returns>True if the Resource Declarations are different.</returns>
+        public static bool operator !=(RESTResourceDeclaration elementa, RESTResourceDeclaration elementb)
+        {
+            return !(elementa == elementb);
+        }
+
+        /// <summary>
         /// Default constructor creates an empty, illegal, operation declaration that has no parent capability. 
         /// This is typically used for new API declaration where we have no structure yet.
         /// We create an empty resource collection (name = 'empty-resource-name', type = Collection).
@@ -238,29 +303,41 @@ namespace Plugin.Application.CapabilityModel.API
             this._status = this._initialStatus = DeclarationStatus.Stable;
 
             // Unfortunately, my parent can be either an Interface or another Resource.
-            if (resource.Parent is RESTResourceCapabilityImp)
-            {
-                this._parent = new RESTResourceCapability((RESTResourceCapabilityImp)resource.Parent);
-            }
-            else if (resource.Parent is RESTInterfaceCapabilityImp)
-            {
-                this._parent = new RESTInterfaceCapability((RESTInterfaceCapabilityImp)resource.Parent);
-            }
+            this._parent = null;
+            if (resource.Parent is RESTResourceCapabilityImp) this._parent = new RESTResourceCapability((RESTResourceCapabilityImp)resource.Parent);
+            else if (resource.Parent is RESTInterfaceCapabilityImp) this._parent = new RESTInterfaceCapability((RESTInterfaceCapabilityImp)resource.Parent);
 
-            this._parameter = resource.Parameter;
+            this._parameter = resource.Parameter != null ? new RESTParameterDeclaration(resource.Parameter) : null; // Make sure to create a deep copy in order to avoid conflicts on edit.
             this._operationList = new SortedList<string, RESTOperationDeclaration>();
             this._availableOperationsList = HTTPOperation.GetOperationList(EnumConversions<RESTResourceCapability.ResourceArchetype>.EnumToString(resource.Archetype));
             this._children = new SortedList<string, RESTResourceDeclaration>();
-            this._description = string.Empty;
+            this._description = MEChangeLog.GetDocumentationAsText(resource.CapabilityClass);
+            this._documentClass = resource.BusinessComponent;
+            this._tagNames = resource.TagNames;
+
+            // Check whether we have external documentation...
             this._externalDocDescription = string.Empty;
             this._externalDocURL = string.Empty;
-            this._documentClass = null;
-            this._tagNames = new List<string>();
+            string docClassName = ContextSlt.GetContextSlt().GetConfigProperty(_DocumentationTypeClassName);
+            foreach (MEAssociation assoc in resource.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+            {
+                if (assoc.Destination.EndPoint.Name == docClassName)
+                {
+                    foreach (MEAttribute attrib in assoc.Destination.EndPoint.Attributes)
+                    {
+                        if (attrib.Name == RESTResourceCapabilityImp._DescriptionAttribute) this._externalDocDescription = attrib.FixedValue;
+                        else if (attrib.Name == RESTResourceCapabilityImp._URLAttribute) this._externalDocURL = attrib.FixedValue;
+                    }
+                    break;
+                }
+            }
 
+            // Retrieve the Operations and update the 'available operations' list as we go...
             foreach (Capability child in resource.Children)
             {
                 if (child is RESTOperationCapability)
                 {
+                    this._operationList.Add(child.Name, new RESTOperationDeclaration(child as RESTOperationCapability));
                     HTTPOperation.RemoveFromOperationList(ref this._availableOperationsList, ((RESTOperationCapability)child).HTTPOperationType);
                 }
             }
@@ -712,6 +789,10 @@ namespace Plugin.Application.CapabilityModel.API
                 {
                     // Finally, we check whether the name ends with 'Type', if so, we remove this for the name of the resource class...
                     if (selectedName.EndsWith(_Type)) selectedName = selectedName.Substring(0, selectedName.Length - _Type.Length);
+                    if (this._name != selectedName)
+                        MessageBox.Show("Document resource '" + this._name + "' receives new name '" + 
+                                        selectedName + "', please update operation roles accordingly!", 
+                                        "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     this._name = selectedName;
                 }
             }

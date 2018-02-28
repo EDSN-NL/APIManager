@@ -251,6 +251,19 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Returns true if the package holds one or more Classes. If optional parameter 'hierarchy' is set to 'true', we check the 
+        /// entire package hierarchy, otherwise, we check only the current package.
+        /// </summary>
+        /// <param name="hierarchy">Optional, default is false. True when entire hierarchy must be checked, starting at current package.</param>
+        /// <returns>True when package(hierarchy) contains one or more classes.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal bool HasContents(bool hierarchy = false)
+        {
+            if (this._imp != null) return ((MEIPackage)this._imp).HasContents(hierarchy);
+            else throw new MissingImplementationException("MEIPackage");
+        }
+
+        /// <summary>
         /// Test whether the package is currently locked. We do this by checking for the presence of a lock for the current user.
         /// When no user is found, we assume that security is not enabled and the package is thus unlocked.
         /// When a user is found, we check for a lock for the current package. This can have three different results:

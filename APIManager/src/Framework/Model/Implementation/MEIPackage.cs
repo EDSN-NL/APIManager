@@ -132,6 +132,14 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Returns true if the package holds one or more Classes. If 'hierarchy' is set to 'true', we check the entire package
+        /// hierarchy, otherwise, we check only the current package.
+        /// </summary>
+        /// <param name="hierarchy">True when entire hierarchy must be checked, starting at current package.</param>
+        /// <returns>True when package(hierarchy) contains one or more classes.</returns>
+        internal abstract bool HasContents(bool hierarchy);
+
+        /// <summary>
         /// Test whether the package is currently locked. We do this by checking for the presence of a lock for the current user.
         /// When no user is found, we assume that security is not enabled and the package is thus unlocked.
         /// When a user is found, we check for a lock for the current package. This can have three different results:

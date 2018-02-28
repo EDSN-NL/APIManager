@@ -118,20 +118,6 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Searches the list of registered Document resource for a resource with the given name. If found, the capability is returned.
-        /// </summary>
-        /// <param name="name">Name to be found.</param>
-        /// <returns>Document resource with given name or NULL if not found.</returns>
-        internal RESTResourceCapability FindDocumentResource(string name)
-        {
-            foreach (RESTResourceCapability cap in this._documentList)
-            {
-                if (cap.Name == name) return cap;
-            }
-            return null;
-        }
-
-        /// <summary>
         /// Constructor used to create a service hierarchy based on an existing structure. The structure must have been collected
         /// earlier (e.g. by instantiating a 'ServiceContext' object) and contains all classes from the Service downwards (Service ->
         /// Interfaces -> CommonSchema + ResourceCollection -> Paths/Operations/ResourceCollections).
@@ -152,6 +138,37 @@ namespace Plugin.Application.CapabilityModel.API
                 Logger.WriteError("Plugin.Application.CapabilityModel.APIProcessor.RESTService (existing) >> Error creating capability structure because: " + exc.Message);
                 this._serviceClass = null;   // Assures that instance is declared invalid.
             }
+        }
+
+        /// <summary>
+        /// Searches the list of registered Document resource for a resource with the given name. If found, associated
+        /// capability is removed from the list. If not found, the method fails silently.
+        /// </summary>
+        /// <param name="name">Name of resource to be removed.</param>
+        internal void DeleteDocumentResource(string name)
+        {
+            for (int i=0; i<this._documentList.Count; i++)
+            {
+                if (this._documentList[i].Name == name)
+                {
+                    this._documentList.RemoveAt(i);
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Searches the list of registered Document resource for a resource with the given name. If found, the capability is returned.
+        /// </summary>
+        /// <param name="name">Name to be found.</param>
+        /// <returns>Document resource with given name or NULL if not found.</returns>
+        internal RESTResourceCapability FindDocumentResource(string name)
+        {
+            foreach (RESTResourceCapability cap in this._documentList)
+            {
+                if (cap.Name == name) return cap;
+            }
+            return null;
         }
 
         /// <summary>

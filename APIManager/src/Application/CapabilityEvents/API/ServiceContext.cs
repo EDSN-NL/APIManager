@@ -37,10 +37,10 @@ namespace Plugin.Application.Events.API
         private const string _ResourceCollectionPkgStereotype   = "ResourceCollectionPkgStereotype";
         private const string _ResourceClassStereotype           = "ResourceClassStereotype";
         private const string _RESTOperationClassStereotype      = "RESTOperationClassStereotype";
-        private const string _RESTOperationResultStereotype     = "RESTOperationResultStereotype";
         private const string _DataModelPkgName                  = "DataModelPkgName";
         private const string _DataModelPkgStereotype            = "DataModelPkgStereotype";
         private const string _ServiceArchetypeTag               = "ServiceArchetypeTag";
+        private const string _ServiceCapabilityClassBaseStereotype = "ServiceCapabilityClassBaseStereotype";
 
         private MEClass         _serviceClass;                  // Identifies the service.
         private MEClass         _interfaceClass;                // Contains interface class currently selected by user (if applicable).
@@ -497,77 +497,19 @@ namespace Plugin.Application.Events.API
         {
             ModelSlt model = ModelSlt.GetModelSlt();
             ContextSlt context = ContextSlt.GetContextSlt();
+            string assocStereotype = context.GetConfigProperty(_MessageAssociationStereotype);
+            string capabilityBaseStereotype = context.GetConfigProperty(_ServiceCapabilityClassBaseStereotype);
 
-            string resourceClassStereotype          = context.GetConfigProperty(_ResourceClassStereotype);
-            string assocStereotype                  = context.GetConfigProperty(_MessageAssociationStereotype);
-            string operationClassRESTStereotype     = context.GetConfigProperty(_RESTOperationClassStereotype);
-            string operationResultRESTStereotype    = context.GetConfigProperty(_RESTOperationResultStereotype);
-
-            Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext.ParseResourceTree >> Parsing resource '" + resourceClass.Name + "'...");
+            Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext.ParseResourceTree >> Parsing resource '" + resourceClass.Name + "' with parent '" + resourceNode.Data.Name + "'...");
 
             TreeNode<MEClass> node = resourceNode.AddChild(resourceClass);
             List<MEClass> children = model.GetAssociatedClasses(resourceClass, assocStereotype);
             foreach (MEClass child in children)
             {
-                if (child.HasStereotype(resourceClassStereotype))
+                if (child.HasStereotype(capabilityBaseStereotype))
                 {
-                    Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext.ParseResourceTree >> Parsing subordinate resource '" + child.Name + "'...");
-                    TreeNode<MEClass> childNode = node.AddChild(child);
-                    foreach (MEClass childClass in model.GetAssociatedClasses(child, assocStereotype))
-                    {
-                        if (childClass.HasStereotype(operationClassRESTStereotype))
-                        {
-                            ParseRESTOperation(childClass, ref childNode);
-                        }
-                        else ParseResourceTree(childClass, ref childNode);
-                    }
-                }
-                else if (child.HasStereotype(operationClassRESTStereotype))
-                {
-                    ParseRESTOperation(child, ref node);
-                }
-                // We could have other associated classes that are not directly part of the capability model. Just ignore these!
-                else Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext.ParseChildResources >> Unknown child class '" + child.Name + "' ignored!");
-            }
-        }
-
-        /// <summary>
-        /// Parse a REST Operation class, retrieving all Operation Result classes that are associated with the operation. Since an operation can
-        /// also be associated with a Document Resource (in case of body parameters), we have to check for these also...
-        /// </summary>
-        /// <param name="operationClass">The operation class to be processed.</param>
-        /// <param name="resourceNode">Parent resource node for registration.</param>
-        private void ParseRESTOperation(MEClass operationClass, ref TreeNode<MEClass> resourceNode)
-        {
-            Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext.ParseRESTOperation >> Parsing Operation '" + operationClass.Name + "'...");
-            ContextSlt context = ContextSlt.GetContextSlt();
-            string assocStereotype = context.GetConfigProperty(_MessageAssociationStereotype);
-            string resourceClassStereotype = context.GetConfigProperty(_ResourceClassStereotype);
-            string operationResultRESTStereotype = context.GetConfigProperty(_RESTOperationResultStereotype);
-            ModelSlt model = ModelSlt.GetModelSlt();
-            TreeNode<MEClass> childNode = resourceNode.AddChild(operationClass);
-            foreach (MEClass childClass in model.GetAssociatedClasses(operationClass, assocStereotype))
-            {
-                if (childClass.HasStereotype(operationResultRESTStereotype))
-                {
-                    Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext.ParseRESTOperation >> Found Operation Result '" + childClass.Name + "'...");
-                    TreeNode<MEClass> resultNode = childNode.AddChild(childClass);
-
-                    // Operation Result classes might be associated with Document Resources in case of body parameters. Check for these here...
-                    foreach (MEClass possibleResourceClass in model.GetAssociatedClasses(childClass, assocStereotype))
-                    {
-                        if (possibleResourceClass.HasStereotype(resourceClassStereotype))
-                        {
-                            Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext.ParseRESTOperation >> Found Operation Result Document Resource '" +
-                                             possibleResourceClass.Name + "'...");
-                            resultNode.AddChild(possibleResourceClass);
-                        }
-                    }
-                }
-                else if (childClass.HasStereotype(resourceClassStereotype))
-                {
-                    Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext.ParseRESTOperation >> Found Operation Document Resource '" + childClass.Name + "'...");
-                    childNode.AddChild(childClass);
+                    Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext.ParseResourceTree >> Going to parse sub-tree for resource '" + child.Name + "'...");
+                    ParseResourceTree(child, ref node);
                 }
             }
         }

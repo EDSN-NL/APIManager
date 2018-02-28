@@ -46,8 +46,11 @@ namespace Plugin.Application.Forms
             this._resource = resource;
 
             ResourceNameFld.Text = resource.Name;
-            ParameterName.Text = resource.Parameter.Name;
-            ParameterClassifier.Text = resource.Parameter.Classifier != null? resource.Parameter.Classifier.Name: string.Empty;
+            if (resource.Parameter != null)
+            {
+                ParameterName.Text = resource.Parameter.Name;
+                ParameterClassifier.Text = resource.Parameter.Classifier != null ? resource.Parameter.Classifier.Name : string.Empty;
+            }
 
             string tagList = string.Empty;
             bool firstOne = true;
@@ -82,13 +85,34 @@ namespace Plugin.Application.Forms
             // housekeeping that is resource-type specific.
             // If we're in create-mode, we enforce a default type of 'Collection' in our drop-down and make sure that the resource
             // is still at 'Unknown'.
-            int typeIndex = (int)resource.Archetype;
-            if (!this._isEdit)
+            // In Edit mode, we don't allow most transitions. If we have an Identifier, Document or Controller, we can't change the
+            // archetype at all. If we have a Collection or Store, we can change one into the other.
+            // In other words: you can't change a collection into a Document (or vice-versa), but you CAN change a Collection into
+            // a Store...
+            int typeIndex = 0;
+            if (this._isEdit)
+            {
+                if (resource.Archetype == RESTResourceCapability.ResourceArchetype.Document || 
+                    resource.Archetype == RESTResourceCapability.ResourceArchetype.Identifier ||
+                    resource.Archetype == RESTResourceCapability.ResourceArchetype.Controller)
+                {
+                    ResourceTypeBox.Items.Add(EnumConversions<RESTResourceCapability.ResourceArchetype>.EnumToString(resource.Archetype));
+                    ResourceTypeBox.Enabled = false;
+                    typeIndex = 0;
+                }
+                else
+                {
+                    ResourceTypeBox.Items.Add("Collection");
+                    ResourceTypeBox.Items.Add("Store");
+                    typeIndex = (resource.Archetype == RESTResourceCapability.ResourceArchetype.Collection) ? 0 : 1;
+                }
+            }
+            else
             {
                 this._resource.Archetype = RESTResourceCapability.ResourceArchetype.Unknown;
                 typeIndex = (int)RESTResourceCapability.ResourceArchetype.Collection;
+                ResourceTypeBox.Items.AddRange(EnumConversions<RESTResourceCapability.ResourceArchetype>.GetNamesArray());
             }
-            ResourceTypeBox.Items.AddRange(EnumConversions<RESTResourceCapability.ResourceArchetype>.GetNamesArray());
             ResourceTypeBox.SelectedIndex = typeIndex;
 
             // Assign context menus to the appropriate controls...
@@ -99,6 +123,10 @@ namespace Plugin.Application.Forms
             NewMinorVersion.Checked = false;
             this._hasType = (this._resource.Archetype != RESTResourceCapability.ResourceArchetype.Unknown);
             this._hasName = (resource.Name != string.Empty);
+
+            // Since the 'SelectedIndexChanged' event is only partly processed in case of 'edit', we enforce the selection of controls
+            // explicitly from the constructor to be sure that all control are properly initialized in both 'edit' and 'create' modes.
+            if (this._isEdit) SetAvailableControls();
 
             // Initialise our tool tips...
             AddOperationToolTip.SetToolTip(AddOperation, "Add a new REST operation to this Path Expression.");
@@ -122,6 +150,7 @@ namespace Plugin.Application.Forms
                 ListViewItem newItem = new ListViewItem(operation.Name);
                 newItem.SubItems.Add(operation.OperationType.ToString());
                 OperationsList.Items.Add(newItem);
+                this._resource.Status = this._isEdit ? RESTResourceDeclaration.DeclarationStatus.Edited : RESTResourceDeclaration.DeclarationStatus.Created;
             }
         }
 
@@ -139,6 +168,7 @@ namespace Plugin.Application.Forms
                 ListViewItem key = OperationsList.SelectedItems[0];
                 this._resource.DeleteOperation(key.Text);
                 OperationsList.Items.Remove(key);
+                this._resource.Status = this._isEdit ? RESTResourceDeclaration.DeclarationStatus.Edited : RESTResourceDeclaration.DeclarationStatus.Created;
             }
         }
 
@@ -168,6 +198,7 @@ namespace Plugin.Application.Forms
                 {
                     myItem.SubItems[0].Text = operation.Name;
                     myItem.SubItems[1].Text = operation.OperationType.ToString();
+                    this._resource.Status = this._isEdit ? RESTResourceDeclaration.DeclarationStatus.Edited : RESTResourceDeclaration.DeclarationStatus.Created;
                 }
             }
         }
@@ -191,63 +222,10 @@ namespace Plugin.Application.Forms
                 if (!this._resource.HasOperation(OperationsList.Items[i].Text)) OperationsList.Items.RemoveAt(i);
             }
 
-            // Enable/Disable all controls according to the (new) type...
-            switch (this._resource.Archetype)
-            {
-                case RESTResourceCapability.ResourceArchetype.Collection:
-                case RESTResourceCapability.ResourceArchetype.Store:
-                case RESTResourceCapability.ResourceArchetype.Controller:
-                    CreateDocument.Enabled = false;
-                    LinkDocument.Enabled = false;
-                    PropertiesBox.Enabled = false;
-                    OperationsBox.Enabled = true;
-                    ResourceNameFld.Enabled = true;
-                    ResourceNameFld.ReadOnly = false;
-                    ResourceNameFld.Clear();
-                    this._resource.ClearParameter();
-                    this._resource.ClearDocumentClass();
-                    break;
+            SetAvailableControls();
 
-                case RESTResourceCapability.ResourceArchetype.Document:
-                    CreateDocument.Enabled = true;
-                    LinkDocument.Enabled = true;
-                    PropertiesBox.Enabled = false;
-                    OperationsBox.Enabled = false;
-                    ResourceNameFld.Enabled = false;
-                    ResourceNameFld.ReadOnly = true;
-                    ResourceNameFld.Clear();
-                    this._resource.ClearParameter();
-                    this._resource.TagNames = new List<string>();
-                    TagNames.Text = string.Empty;
-                    break;
-
-                case RESTResourceCapability.ResourceArchetype.Unknown:
-                    CreateDocument.Enabled = false;
-                    LinkDocument.Enabled = false;
-                    PropertiesBox.Enabled = false;
-                    OperationsBox.Enabled = false;
-                    ResourceNameFld.Enabled = false;
-                    ResourceNameFld.ReadOnly = false;
-                    ResourceNameFld.Clear();
-                    this._resource.ClearParameter();
-                    this._resource.ClearDocumentClass();
-                    this._resource.TagNames = new List<string>();
-                    TagNames.Text = string.Empty;
-                    break;
-
-                case RESTResourceCapability.ResourceArchetype.Identifier:
-                    CreateDocument.Enabled = false;
-                    LinkDocument.Enabled = false;
-                    PropertiesBox.Enabled = true;
-                    OperationsBox.Enabled = true;
-                    ResourceNameFld.Enabled = false;
-                    ResourceNameFld.ReadOnly = true;
-                    ResourceNameFld.Clear();
-                    ResourceNameFld.Text = this._resource.Name;
-                    this._resource.ClearDocumentClass();
-                    break;
-            }
             this._hasType = this._resource.Archetype != RESTResourceCapability.ResourceArchetype.Unknown;
+            this._resource.Status = this._isEdit ? RESTResourceDeclaration.DeclarationStatus.Edited : RESTResourceDeclaration.DeclarationStatus.Created;
             ValidateName();
             CheckOk();
         }
@@ -313,6 +291,7 @@ namespace Plugin.Application.Forms
                 if (isOk)
                 {
                     this._resource.Name = ResourceNameFld.Text;
+                    this._resource.Status = this._isEdit ? RESTResourceDeclaration.DeclarationStatus.Edited : RESTResourceDeclaration.DeclarationStatus.Created;
                     this._hasName = true;
                 }
                 else MessageBox.Show(errorText, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -344,6 +323,7 @@ namespace Plugin.Application.Forms
             if (ResourceNameFld.Text != string.Empty)
             {
                 this._resource.Name = ResourceNameFld.Text;
+                this._resource.Status = this._isEdit ? RESTResourceDeclaration.DeclarationStatus.Edited : RESTResourceDeclaration.DeclarationStatus.Created;
                 this._hasName = this._hasType = true;
                 CheckOk();
             }
@@ -351,7 +331,7 @@ namespace Plugin.Application.Forms
 
         /// <summary>
         /// This event is raised when the user clicks the 'Define Identifier' button. This will bring up the Parameter dialog, which
-        /// facilitates definition of a parameter to be used as Identifier for the Resourcer.
+        /// facilitates definition of a parameter to be used as Identifier for the Resource.
         /// </summary>
         /// <param name="sender">Ignored.</param>
         /// <param name="e">Ignored.</param>
@@ -362,7 +342,9 @@ namespace Plugin.Application.Forms
             {
                 ParameterName.Text = parameter.Name;
                 ParameterClassifier.Text = parameter.Classifier.Name;
-                ValidateName();
+                ResourceNameFld.Text = this._resource.Name;
+                this._hasName = this._hasType = true;
+                CheckOk();
             }
         }
 
@@ -376,6 +358,7 @@ namespace Plugin.Application.Forms
         {
             if (this._initializing) return;     // No actions during initialization.
             this._resource.Description = DocDescription.Text;
+            this._resource.Status = this._isEdit ? RESTResourceDeclaration.DeclarationStatus.Edited : RESTResourceDeclaration.DeclarationStatus.Created;
         }
 
         /// <summary>
@@ -388,6 +371,7 @@ namespace Plugin.Application.Forms
         {
             if (this._initializing) return;     // No actions during initialization.
             this._resource.ExternalDocDescription = ExternalDocDescription.Text;
+            this._resource.Status = this._isEdit ? RESTResourceDeclaration.DeclarationStatus.Edited : RESTResourceDeclaration.DeclarationStatus.Created;
         }
 
         /// <summary>
@@ -400,6 +384,7 @@ namespace Plugin.Application.Forms
         {
             if (this._initializing) return;     // No actions during initialization.
             this._resource.ExternalDocURL = ExternalDocURL.Text;
+            this._resource.Status = this._isEdit ? RESTResourceDeclaration.DeclarationStatus.Edited : RESTResourceDeclaration.DeclarationStatus.Created;
         }
 
         /// <summary>
@@ -418,8 +403,84 @@ namespace Plugin.Application.Forms
             if (ResourceNameFld.Text != string.Empty)
             {
                 this._resource.Name = ResourceNameFld.Text;
+                this._resource.Status = this._isEdit ? RESTResourceDeclaration.DeclarationStatus.Edited : RESTResourceDeclaration.DeclarationStatus.Created;
                 this._hasName = this._hasType = true;
                 CheckOk();
+            }
+        }
+
+        /// <summary>
+        /// Helper function that enables or disables controls based on the current archetype.
+        /// </summary>
+        private void SetAvailableControls()
+        {
+            // Enable/Disable all controls according to the Resource type...
+            switch (this._resource.Archetype)
+            {
+                case RESTResourceCapability.ResourceArchetype.Collection:
+                case RESTResourceCapability.ResourceArchetype.Store:
+                case RESTResourceCapability.ResourceArchetype.Controller:
+                    CreateDocument.Enabled = false;
+                    LinkDocument.Enabled = false;
+                    PropertiesBox.Enabled = false;
+                    OperationsBox.Enabled = true;
+                    ResourceNameFld.Enabled = true;
+                    ResourceNameFld.ReadOnly = false;
+                    if (!this._isEdit)
+                    {
+                        ResourceNameFld.Clear();
+                        this._resource.ClearParameter();
+                        this._resource.ClearDocumentClass();
+                    }
+                    break;
+
+                case RESTResourceCapability.ResourceArchetype.Document:
+                    CreateDocument.Enabled = true;
+                    LinkDocument.Enabled = true;
+                    PropertiesBox.Enabled = false;
+                    OperationsBox.Enabled = false;
+                    ResourceNameFld.Enabled = false;
+                    ResourceNameFld.ReadOnly = true;
+                    if (!this._isEdit)
+                    {
+                        ResourceNameFld.Clear();
+                        this._resource.ClearParameter();
+                        this._resource.TagNames = new List<string>();
+                        TagNames.Text = string.Empty;
+                    }
+                    break;
+
+                case RESTResourceCapability.ResourceArchetype.Unknown:
+                    CreateDocument.Enabled = false;
+                    LinkDocument.Enabled = false;
+                    PropertiesBox.Enabled = false;
+                    OperationsBox.Enabled = false;
+                    ResourceNameFld.Enabled = false;
+                    ResourceNameFld.ReadOnly = false;
+                    if (!this._isEdit)
+                    {
+                        ResourceNameFld.Clear();
+                        this._resource.ClearParameter();
+                        this._resource.ClearDocumentClass();
+                        this._resource.TagNames = new List<string>();
+                        TagNames.Text = string.Empty;
+                    }
+                    break;
+
+                case RESTResourceCapability.ResourceArchetype.Identifier:
+                    CreateDocument.Enabled = false;
+                    LinkDocument.Enabled = false;
+                    PropertiesBox.Enabled = true;
+                    OperationsBox.Enabled = true;
+                    ResourceNameFld.Enabled = false;
+                    ResourceNameFld.ReadOnly = true;
+                    if (!this._isEdit)
+                    {
+                        ResourceNameFld.Clear();
+                        this._resource.ClearDocumentClass();
+                    }
+                    ResourceNameFld.Text = this._resource.Name;
+                    break;
             }
         }
 
@@ -436,6 +497,7 @@ namespace Plugin.Application.Forms
             {
                 string[] tagArray = TagNames.Text.Split(',');
                 foreach (string tagName in tagArray) this._resource.TagNames.Add(tagName.Trim());
+                this._resource.Status = this._isEdit ? RESTResourceDeclaration.DeclarationStatus.Edited : RESTResourceDeclaration.DeclarationStatus.Created;
             }
         }
     }

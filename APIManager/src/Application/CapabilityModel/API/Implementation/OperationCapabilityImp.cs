@@ -190,11 +190,7 @@ namespace Plugin.Application.CapabilityModel.API
                 var operationEndpoint = new EndpointDescriptor(this._capabilityClass, "1", roleName, null, true);
                 ModelSlt.GetModelSlt().CreateAssociation(interfaceEndpoint, operationEndpoint, MEAssociation.AssociationType.MessageAssociation);
 
-                if (newMinorVersion)
-                {
-                    var newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-                    this._capabilityClass.Version = newVersion;
-                }
+                if (newMinorVersion) UpdateMinorVersion();
                 CreateLogEntry("Associated Operation with Interface: '" + thisInterface.Name + "'.");
             }
         }

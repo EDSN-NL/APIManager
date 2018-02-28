@@ -18,6 +18,13 @@ namespace Plugin.Application.CapabilityModel.API
     /// Empty Resource Collections ONLY exist at root-level and there can be at most ONE per API!
     internal class RESTResourceCapabilityImp: CapabilityImp
     {
+        // Names of attributes to be used for external documentation descriptor. These MUST be a case-insensitive match of the
+        // associated OpenAPI property names!
+        internal const string _DescriptionClassifier                = "TextType";       // Classifier for Terms of Service.
+        internal const string _URLClassifier                        = "IdentifierType"; // Classifier for names.
+        internal const string _DescriptionAttribute                 = "Description";    // Attribute name for License.Name
+        internal const string _URLAttribute                         = "URL";            // Attribute name for License.URL
+
         // Configuration properties used by this module:
         private const string _BusinessComponentStereotype           = "BusinessComponentStereotype";
         private const string _ResourceCollectionPkgStereotype       = "ResourceCollectionPkgStereotype";
@@ -25,6 +32,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _RESTOperationClassStereotype          = "RESTOperationClassStereotype";
         private const string _RESTOperationResultStereotype         = "RESTOperationResultStereotype";
         private const string _RESTParameterStereotype               = "RESTParameterStereotype";
+        private const string _RESTOperationPkgStereotype            = "RESTOperationPkgStereotype";
         private const string _DocumentationTypeClassName            = "DocumentationTypeClassName";
         private const string _CoreDataTypesPathName                 = "CoreDataTypesPathName";
         private const string _MessageAssemblyClassStereotype        = "MessageAssemblyClassStereotype";
@@ -32,13 +40,6 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _ArchetypeTag                          = "ArchetypeTag";
         private const string _IsRootLevelTag                        = "IsRootLevelTag";
         private const string _TagNamesTag                           = "TagNamesTag";
-
-        // Names of attributes to be used for external documentation descriptor. These MUST be a case-insensitive match of the
-        // associated OpenAPI property names!
-        private const string _DescriptionClassifier                 = "TextType";           // Classifier for Terms of Service.
-        private const string _URLClassifier                         = "IdentifierType";     // Classifier for names.
-        private const string _DescriptionAttribute                  = "Description";        // Attribute name for License.Name
-        private const string _URLAttribute                          = "URL";                // Attribute name for License.URL
 
         private MEPackage _resourcePackage;                         // The package in which the resource lives.
         private Capability _myParent;                               // Either RESTInterface or other Resource.
@@ -117,6 +118,7 @@ namespace Plugin.Application.CapabilityModel.API
                 this._isCollection = (this._archetype == RESTResourceCapability.ResourceArchetype.Collection ||
                                       this._archetype == RESTResourceCapability.ResourceArchetype.Store);
                 this._isRootLevel = false;
+                this._componentClass = null;
 
                 ConstructCapability(parentResource, resource); // Performs most of the work.
             }
@@ -200,13 +202,7 @@ namespace Plugin.Application.CapabilityModel.API
                     result = false;
                 }
 
-                if (newMinorVersion)
-                {
-                    var newVersion = new Tuple<int, int>(RootService.Version.Item1, RootService.Version.Item2 + 1);
-                    RootService.UpdateVersion(newVersion);
-                    newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-                    this._capabilityClass.Version = newVersion;
-                }
+                if (newMinorVersion) UpdateMinorVersion();
                 string logMessage = "Added Operation: '" + operationCapability.Name + "'";
                 RootService.CreateLogEntry(logMessage + " to parent Resource '" + Name + "'.");
                 CreateLogEntry(logMessage + ".");
@@ -284,13 +280,7 @@ namespace Plugin.Application.CapabilityModel.API
 
                 if (result)
                 {
-                    if (newMinorVersion)
-                    {
-                        var newVersion = new Tuple<int, int>(RootService.Version.Item1, RootService.Version.Item2 + 1);
-                        RootService.UpdateVersion(newVersion);
-                        newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-                        this._capabilityClass.Version = newVersion;
-                    }
+                    if (newMinorVersion) UpdateMinorVersion();
                     string logMessage = "Added child Resource(s): '" + newNames + "'";
                     RootService.CreateLogEntry(logMessage + " to parent Resource '" + Name + "'.");
                     CreateLogEntry(logMessage + ".");
@@ -318,6 +308,37 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Deletes the operation specified by the Operation Declaration from the Resource. The function silently fails if the operation
+        /// could not be found.
+        /// </summary>
+        /// <param name="operation">Operation to be deleted.</param>
+        /// <param name="newMinorVersion">True when a new minor version must be created.</param>
+        internal void DeleteOperation(MEClass operationClass, bool newMinorVersion)
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.DeleteOperation >> Going to delete operation '" + 
+                             operationClass.Name + "' from interface '" + Name + "'...");
+            bool foundIt = false;
+            foreach (Capability cap in GetChildren())
+            {
+                if (cap is RESTOperationCapability && cap.CapabilityClass == operationClass)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.DeleteResource >> Found the resource!");
+                    DeleteChild(cap.Implementation, true);
+                    foundIt = true;
+                    break;
+                }
+            }
+
+            if (foundIt)
+            {
+                if (newMinorVersion) UpdateMinorVersion();
+                string logMessage = "Deleted Operation: '" + operationClass.Name + "'";
+                RootService.CreateLogEntry(logMessage + " from parent Resource '" + Name + "'.");
+                CreateLogEntry(logMessage + ".");
+            }
+        }
+
+        /// <summary>
         /// Deletes the resource identified by the specified resource-class object. This will delete the entire resource hierarchy.
         /// </summary>
         /// <param name="resourceClass">Identifies the resource to be deleted.</param>
@@ -325,9 +346,10 @@ namespace Plugin.Application.CapabilityModel.API
         internal void DeleteResource(MEClass resourceClass, bool newMinorVersion)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.DeleteResource >> Going to delete resource '" + resourceClass.Name + "' from interface '" + Name + "'...");
+            bool foundIt = false;
             foreach (Capability cap in GetChildren())
             {
-                if (cap.CapabilityClass == resourceClass)
+                if (cap is RESTResourceCapability && cap.CapabilityClass == resourceClass)
                 {
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.DeleteResource >> Found the resource!");
                     DeleteChild(cap.Implementation, true);
@@ -335,16 +357,155 @@ namespace Plugin.Application.CapabilityModel.API
                 }
             }
 
-            if (newMinorVersion)
+            if (foundIt)
             {
-                var newVersion = new Tuple<int, int>(RootService.Version.Item1, RootService.Version.Item2 + 1);
-                RootService.UpdateVersion(newVersion);
-                newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-                this._capabilityClass.Version = newVersion;
+                if (newMinorVersion) UpdateMinorVersion();
+                string logMessage = "Deleted child Resource: '" + resourceClass.Name + "'";
+                RootService.CreateLogEntry(logMessage + " from parent Resource '" + Name + "'.");
+                CreateLogEntry(logMessage + ".");
             }
-            string logMessage = "Deleted child Resource: '" + resourceClass.Name + "'";
-            RootService.CreateLogEntry(logMessage + " from parent Resource '" + Name + "'.");
-            CreateLogEntry(logMessage + ".");
+        }
+
+        /// <summary>
+        /// This method is invoked when the user has made one or more changes to a Resource Capability. The method receives an
+        /// REsource Declaration object that contains the (updated) information for the Resource. The method updates metadata and
+        /// associations where appropriate.
+        /// </summary>
+        /// <param name="resource">Updated Resource properties.</param>
+        /// <param name="newMinorVersion">Set to true to force update of API minor version.</param>
+        /// <returns>True on successfull completion, false on errors.</returns>
+        internal bool Edit(RESTResourceDeclaration resource, bool newMinorVersion)
+        {
+            if (resource.Status == RESTResourceDeclaration.DeclarationStatus.Edited)
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.Edit >> Editing '" + resource.Name + "'...");
+                ContextSlt context = ContextSlt.GetContextSlt();
+                ModelSlt model = ModelSlt.GetModelSlt();
+
+                // Check whether our type has changed...
+                // Since the dialog does not allow structural type changes (e.g. from Collection to Document), we only have to update the type
+                // itself, no other changes are allowed.
+                if (this._archetype != resource.Archetype)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.Edit >> Changed archetype from '" +
+                                     this._archetype + "' to '" + resource.Archetype + "'!");
+                    this._archetype = resource.Archetype;
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_ArchetypeTag), 
+                                                 EnumConversions<RESTResourceCapability.ResourceArchetype>.EnumToString(resource.Archetype));
+                }
+
+                // Check whether our name has changed...
+                if (this.Name != resource.Name)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTREsourceCapabilityImp.Edit >> Changed name from '" +
+                                     this.Name + "' to '" + resource.Name + "'!");
+                    if (this._archetype == RESTResourceCapability.ResourceArchetype.Collection ||
+                        this._archetype == RESTResourceCapability.ResourceArchetype.Store)
+                    {
+                        // These resources have their own package, which now requires a name update as well...
+                        if (this._capabilityClass.OwningPackage.Parent.FindPackage(resource.Name, context.GetConfigProperty(_ResourceCollectionPkgStereotype)) == null)
+                        {
+                            this._capabilityClass.OwningPackage.Name = resource.Name;
+                        }
+                        else
+                        {
+                            Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.Edit >> Resource rename from '" +
+                                               this.Name + "' to '" + resource.Name + "' failed: name already in use!");
+                            return false;
+                        }
+                    }
+                    else if (this._archetype == RESTResourceCapability.ResourceArchetype.Document)
+                    {
+                        ((RESTService)this._rootService).DeleteDocumentResource(this.Name);
+                    }
+
+                    // Update class- and role names (but change role only if we're not an Identifier)...
+                    if (this._archetype != RESTResourceCapability.ResourceArchetype.Identifier)
+                    {
+                        foreach (MEAssociation assoc in Parent.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                        {
+                            if (assoc.Destination.EndPoint == this.CapabilityClass)
+                            {
+                                assoc.SetName(RESTUtil.GetAssignedRoleName(resource.Name), MEAssociation.AssociationEnd.Destination);
+                                break;
+                            }
+                        }
+                        this._assignedRole = resource.Name;
+                    }
+                    this._capabilityClass.Name = resource.Name;
+                    if (this._archetype == RESTResourceCapability.ResourceArchetype.Document)
+                        ((RESTService)this._rootService).RegisterDocument(new RESTResourceCapability(this));
+                }
+
+                // (Re-)Load documentation...
+                if (!string.IsNullOrEmpty(resource.Description)) MEChangeLog.SetRTFDocumentation(this._capabilityClass, resource.Description);
+                string extDocClassName = context.GetConfigProperty(_DocumentationTypeClassName);
+                MEAssociation extDocAssoc = null;
+                foreach (MEAssociation assoc in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                {
+                    if (assoc.Destination.EndPoint.Name == extDocClassName)
+                    {
+                        extDocAssoc = assoc;
+                        break;
+                    }
+                }
+
+                // If we have (new) external documentation, we use a brute-force mechanism for updates: simply delete the class if it
+                // already exists and re-create from scratch. This is probably more efficient then spending a lot of time figuring out
+                // what we already have and what we have to update.
+                // If we dont't have external documentation but we have found a class, the class is deleted.
+                if (!string.IsNullOrEmpty(resource.ExternalDocDescription ) || !string.IsNullOrEmpty(resource.ExternalDocURL))
+                {
+                    if (extDocAssoc != null) this._myParent.OwningPackage.DeleteClass(extDocAssoc.Destination.EndPoint);
+                    CreateExternalDocumentation(this._myParent, resource);
+                    
+                }
+                else if (extDocAssoc != null) this._myParent.OwningPackage.DeleteClass(extDocAssoc.Destination.EndPoint);
+
+                // Update the Tag names (if any)...
+                AssignTagNames(resource);
+
+                // If I'm a Document check whether we must update the Document Class association...
+                // And if I'm an Identifier, check whether we must update the Identifier properties...
+                if (this._archetype == RESTResourceCapability.ResourceArchetype.Document) AssignDocumentClass(resource);
+                else if (this._archetype == RESTResourceCapability.ResourceArchetype.Identifier) AssignIdentifier(resource);
+
+                // Next, we're going to check whether operations have changed. We can either add new operations, remove existing
+                // ones or edit operation properties. 
+                // When looking for associated operation objects, we check against the MEClass objects to make sure we have the
+                // correct operation (names might have changed during edit). Since we are editing operations, the MEClass object
+                // MUST be present (with the exception of Add Operation of course)...
+                foreach (RESTOperationDeclaration operation in resource.Operations)
+                {
+                    if (operation.Status == RESTOperationDeclaration.DeclarationStatus.Deleted)
+                    {
+                        foreach (Capability child in GetChildren())
+                        {
+                            if (child is RESTOperationCapability && child.CapabilityClass == operation.OperationClass)
+                            {
+                                DeleteOperation(child.CapabilityClass, false);
+                                break;
+                            }
+                        }
+                    }
+                    else if (operation.Status == RESTOperationDeclaration.DeclarationStatus.Edited)
+                    {
+                        foreach (Capability child in GetChildren())
+                        {
+                            if (child is RESTOperationCapability && child.CapabilityClass == operation.OperationClass)
+                            {
+                                ((RESTOperationCapability)child).Edit(operation, false);
+                                break;
+                            }
+                        }
+                    }
+                    else if (operation.Status == RESTOperationDeclaration.DeclarationStatus.Created) AddOperation(operation, false);
+                }
+
+                if (newMinorVersion) UpdateMinorVersion();
+                CreateLogEntry("Operation has been edited.");
+            }
+            return true;
         }
 
         /// <summary>
@@ -416,9 +577,11 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="oldName">Original name of the Resource.</param>
         /// <param name="newName">New name for the Resource, in PascalCase.</param>
         /// <param name="newMinorVersion">Set to 'true' when minor version must be updated, 'false' to keep existing version.</param>
-        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
         internal void RenameResource(MEClass resourceClass, string oldName, string newName, bool newMinorVersion)
         {
+            /**************************************
+             * OBVIOUSLY, THIS CODE IS NOT YET CORRECT!!!
+             * ***********************************/
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.renameResource >> Going to rename resource '" + resourceClass.Name + "' to: '" + newName + "'...");
             if (string.IsNullOrEmpty(oldName) || string.IsNullOrEmpty(newName) || oldName == newName) return;     // Nothing to rename!
 
@@ -454,11 +617,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
 
             // If we have to increment the minor version, do so BEFORE creating the log message...
-            if (newMinorVersion)
-            {
-                var newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-                this._capabilityClass.Version = newVersion;
-            }
+            if (newMinorVersion) UpdateMinorVersion();
             string logMessage = "Renamed child Resource: '" + oldName + "' to: '" + resourceClass.Name + "'";
             RootService.CreateLogEntry(logMessage + " in parent Resource '" + Name + "'.");
             CreateLogEntry(logMessage + ".");
@@ -509,6 +668,98 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        // If we're a Document Resource, create the association with the Business Document and register this class as a document.
+        // We use the resource name as basis for the role name. This assures that we get the proper role in case the Business Document
+        // uses an Alias name (that would already have been incorporated in the resource name at moment of assignment in the user dialog).
+        // If an association already exists, this is removed and replaced by a new association.
+        /// </summary>
+        /// <param name="properties">Resource properties.</param>
+        private void AssignDocumentClass(RESTResourceDeclaration properties)
+        {
+            ModelSlt model = ModelSlt.GetModelSlt();
+
+            if (this._componentClass != null && properties.DocumentClass != null)
+            {
+                if (this._componentClass == properties.DocumentClass) return; // Business Component classes match, no action required.
+                
+                // No match, locate the Business Component association and remove it...
+                foreach (MEAssociation assoc in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                {
+                    if (assoc.Destination.EndPoint == this._componentClass)
+                    {
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AssignDocumentClass >> New association, deleting existing one...");
+                        this._capabilityClass.DeleteAssociation(assoc);
+                        this._componentClass = null;
+                        break;
+                    }
+                }
+            }
+
+            if (properties.DocumentClass != null)
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AssignDocumentClass >> Associate with Business Component '" + 
+                                 properties.DocumentClass.Name + "'...");
+                string role = properties.Name.EndsWith("Type") ? properties.Name.Substring(0, properties.Name.IndexOf("Type")) : properties.Name;
+                var componentEndpoint = new EndpointDescriptor(properties.DocumentClass, "1", role, null, true);
+                var resourceEndpoint = new EndpointDescriptor(this._capabilityClass, "1", this._assignedRole, null, true);
+                model.CreateAssociation(resourceEndpoint, componentEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                this._componentClass = properties.DocumentClass;
+            }
+        }
+
+        /// <summary>
+        /// Helper method that updates the Identifier attribute in case of an Identifier resource.
+        /// </summary>
+        /// <param name="properties">Resource properties.</param>
+        private void AssignIdentifier(RESTResourceDeclaration properties)
+        {
+            RESTParameterDeclaration param = properties.Parameter;
+            bool validParam = (param != null && param.Status != RESTParameterDeclaration.DeclarationStatus.Deleted &&
+                                                param.Status != RESTParameterDeclaration.DeclarationStatus.Invalid);
+            bool changedParam = (param != null && (this._parameter.Name != param.Name || this._parameter.Classifier != param.Classifier));
+            if (!validParam)
+            {
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AssignIdentifier >> Identifier Resource '" + Name + "' has no valid Identifier!");
+            }
+            if (this._parameter != null && (!validParam || changedParam))
+            {
+                // Parameter has changed or disappeared, remove existing attribute!
+                // Note that the capability becomes invalid if there is no valid parameter association!
+                MEAttribute oldAttrib = this._capabilityClass.FindAttribute(this._parameter.Name);
+                if (oldAttrib != null) this._capabilityClass.DeleteAttribute(oldAttrib);
+                this._parameter = null;
+            }
+            if (validParam && changedParam)
+            {
+                RESTParameterDeclaration.ConvertToAttribute(this._capabilityClass, param);
+                this._parameter = param;
+                this._capabilityClass.Name = param.Name;
+            }
+        }
+
+        /// <summary>
+        /// Helper method that either creates or updates the set of tags assigned to this resource.
+        /// </summary>
+        /// <param name="properties">Resource properties.</param>
+        private void AssignTagNames(RESTResourceDeclaration properties)
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            if (properties.TagNames.Count > 0)
+            {
+                string tagList = string.Empty;
+                bool isFirst = true;
+                foreach (string tagName in properties.TagNames)
+                {
+                    tagList += isFirst ? tagName : "," + tagName;
+                    isFirst = false;
+                }
+                this._capabilityClass.SetTag(context.GetConfigProperty(_TagNamesTag), tagList);
+            }
+            else this._capabilityClass.SetTag(context.GetConfigProperty(_TagNamesTag), string.Empty);
+            this._tagNames = properties.TagNames;
+        }
+
+        /// <summary>
         /// Helper method that constructs a new Resource class from a Resource Declaration object.
         /// It creates the class (optionally in its own package), initialises class attributes and tags and creates a diagram for the class
         /// (if the resource is of the correct type). Next, it continues to create associated operations and child resources.
@@ -546,19 +797,8 @@ namespace Plugin.Application.CapabilityModel.API
                 if (!string.IsNullOrEmpty(resource.Description)) MEChangeLog.SetRTFDocumentation(this._capabilityClass, resource.Description);
                 this._capabilityClass.SetTag(context.GetConfigProperty(_IsRootLevelTag), this._isRootLevel.ToString());
 
-                if (resource.TagNames.Count > 0)
-                {
-                    string tagList = string.Empty;
-                    bool isFirst = true;
-                    foreach (string tagName in resource.TagNames)
-                    {
-                        tagList = isFirst ? tagName : "," + tagName;
-                        isFirst = false;
-                    }
-                    this._capabilityClass.SetTag(context.GetConfigProperty(_TagNamesTag), tagList);
-                }
-                else this._capabilityClass.SetTag(context.GetConfigProperty(_TagNamesTag), string.Empty);
-                this._tagNames = resource.TagNames;
+                // Assign tags (if any)...
+                AssignTagNames(resource);
 
                 // Establish link with our Parent...
                 var parentEndpoint = new EndpointDescriptor(parent.CapabilityClass, "1", parent.Name, null, false);
@@ -567,28 +807,7 @@ namespace Plugin.Application.CapabilityModel.API
                 InitialiseParent(parent);
 
                 // Create the ExternalDocument class if we have defined entries for it...
-                if (!string.IsNullOrEmpty(resource.ExternalDocDescription) || !string.IsNullOrEmpty(resource.ExternalDocURL))
-                {
-                    string coreDataTypesPath = context.GetConfigProperty(_CoreDataTypesPathName);
-                    MEDataType descriptionType = model.FindDataType(coreDataTypesPath, _DescriptionClassifier);
-                    MEDataType identifierType = model.FindDataType(coreDataTypesPath, _URLClassifier);
-                    var mandatory = new Tuple<int, int>(1, 1);
-                    MEClass docClass = parent.OwningPackage.CreateClass(context.GetConfigProperty(_DocumentationTypeClassName),
-                                                                        context.GetConfigProperty(_BusinessComponentStereotype));
-                    if (docClass != null)
-                    {
-                        if (!string.IsNullOrEmpty(resource.ExternalDocDescription))
-                            docClass.CreateAttribute(_DescriptionAttribute, descriptionType, AttributeType.Attribute, resource.ExternalDocDescription, mandatory, true);
-                        if (!string.IsNullOrEmpty(resource.ExternalDocURL))
-                            docClass.CreateAttribute(_URLAttribute, identifierType, AttributeType.Attribute, resource.ExternalDocURL, mandatory, true);
-
-                        string role = docClass.Name.EndsWith("Type") ? docClass.Name.Substring(0, docClass.Name.IndexOf("Type")) : docClass.Name;
-                        var docEndpoint = new EndpointDescriptor(docClass, "1", role, null, true);
-                        model.CreateAssociation(resourceEndpoint, docEndpoint, MEAssociation.AssociationType.MessageAssociation);
-                    }
-                    else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTInterfaceCapabilityImp (create) >> Unable to find Contact Class '" +
-                                           context.GetConfigProperty(_DocumentationTypeClassName) + "/" + context.GetConfigProperty(_BusinessComponentStereotype));
-                }
+                CreateExternalDocumentation(parent, resource);
 
                 // Create the operations that are associated with this Resource...
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.ConstructCapability >> Creating operations...");
@@ -602,17 +821,8 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
 
-                // If we're a Document Resource, create the association with the Business Document and register this class as a document.
-                // We use the resource name as basis for the role name. This assures that we get the proper role in case the Business Document
-                // uses an Alias name (that would already have been incorporated in the resource name at moment of assignment in the user dialog)...
-                if (resource.DocumentClass != null)
-                {
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.ConstructCapability >> Associate with Business Component '" + resource.DocumentClass.Name + "'...");
-                    string role = resource.Name.EndsWith("Type") ? resource.Name.Substring(0, resource.Name.IndexOf("Type")) : resource.Name;
-                    var componentEndpoint = new EndpointDescriptor(resource.DocumentClass, "1", role, null, true);
-                    model.CreateAssociation(resourceEndpoint, componentEndpoint, MEAssociation.AssociationType.MessageAssociation);
-                    this._componentClass = resource.DocumentClass;
-                }
+                // Check whether we must associate with a Business Document class...
+                AssignDocumentClass(resource);
 
                 // And create the child resources that are associated with this Resource...
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.ConstructCapability >> Creating child resources...");
@@ -654,6 +864,41 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Helper method that creates the external documentation class for this resource and creates an association with it.
+        /// </summary>
+        /// <param name="parent">My resource parent.</param>
+        /// <param name="resource">Resource declaration properties.</param>
+        private void CreateExternalDocumentation(Capability parent, RESTResourceDeclaration resource)
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            ModelSlt model = ModelSlt.GetModelSlt();
+
+            if (!string.IsNullOrEmpty(resource.ExternalDocDescription) || !string.IsNullOrEmpty(resource.ExternalDocURL))
+            {
+                string coreDataTypesPath = context.GetConfigProperty(_CoreDataTypesPathName);
+                MEDataType descriptionType = model.FindDataType(coreDataTypesPath, _DescriptionClassifier);
+                MEDataType identifierType = model.FindDataType(coreDataTypesPath, _URLClassifier);
+                var mandatory = new Tuple<int, int>(1, 1);
+                MEClass docClass = parent.OwningPackage.CreateClass(context.GetConfigProperty(_DocumentationTypeClassName),
+                                                                    context.GetConfigProperty(_BusinessComponentStereotype));
+                if (docClass != null)
+                {
+                    if (!string.IsNullOrEmpty(resource.ExternalDocDescription))
+                        docClass.CreateAttribute(_DescriptionAttribute, descriptionType, AttributeType.Attribute, resource.ExternalDocDescription, mandatory, true);
+                    if (!string.IsNullOrEmpty(resource.ExternalDocURL))
+                        docClass.CreateAttribute(_URLAttribute, identifierType, AttributeType.Attribute, resource.ExternalDocURL, mandatory, true);
+
+                    string role = docClass.Name.EndsWith("Type") ? docClass.Name.Substring(0, docClass.Name.IndexOf("Type")) : docClass.Name;
+                    var docEndpoint = new EndpointDescriptor(docClass, "1", role, null, true);
+                    var resourceEndpoint = new EndpointDescriptor(this._capabilityClass, "1", this._assignedRole, null, true);
+                    model.CreateAssociation(resourceEndpoint, docEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                }
+                else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.CreateExternalDocumentation >> Unable to find Contact Class '" +
+                                       context.GetConfigProperty(_DocumentationTypeClassName) + "/" + context.GetConfigProperty(_BusinessComponentStereotype));
+            }
+        }
+
+        /// <summary>
         /// Initializes an existing Resource capability. 
         /// </summary>
         /// <param name="parent">Parent can be either an Interface or a PathExpression.</param>
@@ -668,8 +913,6 @@ namespace Plugin.Application.CapabilityModel.API
                 ContextSlt context = ContextSlt.GetContextSlt();
                 this._myParent = parent;
                 this._capabilityClass = hierarchy.Data;
-                this._parameter = null;
-                this._componentClass = null;
                 string archetypeTagName = context.GetConfigProperty(_ArchetypeTag);
                 string RESTParamStereotype = context.GetConfigProperty(_RESTParameterStereotype);
                 string resourceClassStereotype = context.GetConfigProperty(_ResourceClassStereotype);
@@ -683,10 +926,9 @@ namespace Plugin.Application.CapabilityModel.API
                 this._resourcePackage = this._isCollection? this.RootService.ModelPkg.FindPackage(this._capabilityClass.Name, context.GetConfigProperty(_ResourceCollectionPkgStereotype)):
                                                             parent.CapabilityClass.OwningPackage;
                 this._assignedRole = parent.FindChildClassRole(this._capabilityClass.Name, context.GetConfigProperty(_ResourceClassStereotype));
-
                 this._isRootLevel = (string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_IsRootLevelTag)), "true", true) == 0);
-                if (this._archetype == RESTResourceCapability.ResourceArchetype.Document) ((RESTService)this._rootService).RegisterDocument(resourceCapItf);
 
+                // Retrieve the list of tag names (if any)...
                 string tagList = this._capabilityClass.GetTag(context.GetConfigProperty(_TagNamesTag));
                 this._tagNames = new List<string>();
                 if (!string.IsNullOrEmpty(tagList))
@@ -698,6 +940,7 @@ namespace Plugin.Application.CapabilityModel.API
 
                 // Check whether we have a parameter (in case of Identifier Resource)...
                 // If the class has multiple RESTParameter attributes, we simply take the first one we encounter (and issue a warning 'cause this is illegal)...
+                this._parameter = null;
                 foreach (MEAttribute attrib in this._capabilityClass.Attributes)
                 {
                     if (attrib.HasStereotype(RESTParamStereotype))
@@ -770,21 +1013,32 @@ namespace Plugin.Application.CapabilityModel.API
                             childResources.Add(resource);   // Deferring registration of parent until all child capabilities have been processed.
                         }
                     }
-                    else if (node.Data.HasStereotype(businessComponentStereotype))
-                    {
-                        // Document resources must have an association with a Business Component. If not Document resource, ignore!
-                        if (this._archetype == RESTResourceCapability.ResourceArchetype.Document) this._componentClass = node.Data;
-                    }
                     else
                     {
-                        Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Unknown child type '" + 
-                                          node.GetType() + "' with name '" + node.Data.Name + "'!");
-                        this._capabilityClass = null;
-                        return;
+                        Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Unknown child type '" + 
+                                            node.GetType() + "' with name '" + node.Data.Name + "'!");
+                        //this._capabilityClass = null;
+                        //return;
                     }
                 }
+
                 // Now that all children are known and all operations have been registered, register our child resources...
                 foreach (RESTResourceCapability child in childResources) child.InitialiseParent(resourceCapItf);
+
+                // If we're a document resource, locate the associated Business Component (if any)...
+                this._componentClass = null;
+                if (this._archetype == RESTResourceCapability.ResourceArchetype.Document)
+                {
+                    foreach (MEAssociation assoc in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                    {
+                        if (assoc.Destination.EndPoint.HasStereotype(businessComponentStereotype))
+                        {
+                            this._componentClass = assoc.Destination.EndPoint;
+                            break;
+                        }
+                    }
+                    ((RESTService)this._rootService).RegisterDocument(resourceCapItf);
+                }
             }
             catch (Exception exc)
             {

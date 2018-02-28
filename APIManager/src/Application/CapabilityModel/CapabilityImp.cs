@@ -18,9 +18,9 @@ namespace Plugin.Application.CapabilityModel
     internal abstract class CapabilityImp : IEquatable<CapabilityImp>
     {
         // Configuration properties related to Capability in general...
-        internal static string ServiceCapabilityClassBaseStereotype   = "ServiceCapabilityClassBaseStereotype";
-        private const string _FileNameTag                           = "FileNameTag";
-        private const string _PathNameTag                           = "PathNameTag";
+        internal static string ServiceCapabilityClassBaseStereotype = "ServiceCapabilityClassBaseStereotype";
+        private const string _FileNameTag = "FileNameTag";
+        private const string _PathNameTag = "PathNameTag";
 
         protected Service _rootService;                             // All capabilities 'belong' to a service instance.
         protected MEClass _capabilityClass;                         // Capabilities are always associated with a model element.
@@ -53,7 +53,7 @@ namespace Plugin.Application.CapabilityModel
         /// <summary>
         /// Returns the parent Capability of this Capability (if defined). Null indicates no parent.
         /// </summary>
-        internal CapabilityImp Parent { get { return (this._capabilityTree.Parent != null)? this._capabilityTree.Parent.Data: null; } }
+        internal CapabilityImp Parent { get { return (this._capabilityTree.Parent != null) ? this._capabilityTree.Parent.Data : null; } }
 
         /// <summary>
         /// Returns the associated capability class.
@@ -64,7 +64,7 @@ namespace Plugin.Application.CapabilityModel
         /// Returns the unique identifies of the Capability, which is defined as the identifier of the associated capability class.
         /// If the class is not (yet) assigned, the function returns -1, which indicates an illegal identifier.
         /// </summary>
-        internal int CapabilityID { get { return (this._capabilityClass != null)? this._capabilityClass.ElementID: -1; } }
+        internal int CapabilityID { get { return (this._capabilityClass != null) ? this._capabilityClass.ElementID : -1; } }
 
         /// <summary>
         /// Returns the number of child Capabilities that are registered for this Capability.
@@ -211,7 +211,7 @@ namespace Plugin.Application.CapabilityModel
         {
             if (obj == null) return false;
             var objElement = obj as CapabilityImp;
-			return objElement != null && Equals(objElement);
+            return objElement != null && Equals(objElement);
         }
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace Plugin.Application.CapabilityModel
         /// <returns>TRUE is same object, false otherwise.</returns>
         public bool Equals(CapabilityImp other)
         {
-			return (other != null) && (this._capabilityClass == other._capabilityClass);
+            return (other != null) && (this._capabilityClass == other._capabilityClass);
         }
 
         /// <summary>
@@ -532,7 +532,7 @@ namespace Plugin.Application.CapabilityModel
         /// implementation of capability-specific rename operations.
         /// </summary>
         /// <param name="newName">New name to be assigned to the associated capability class.</param>
-        internal virtual void Rename (string newName)
+        internal virtual void Rename(string newName)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.CapabilityImp.rename >> Renaming '" + this._capabilityClass.Name + "' to: " + newName + "'...");
             this._capabilityClass.Name = newName;
@@ -626,6 +626,17 @@ namespace Plugin.Application.CapabilityModel
             this._assignedRole = string.Empty;
             this._rootService = parentService;
             this._capabilityClass = null;           // As long as this is not set, the object is in invalid state!
+        }
+
+        /// <summary>
+        /// Helper function that increments the minor version of the Capability (including the associated Service).
+        /// </summary>
+        protected void UpdateMinorVersion()
+        {
+            var newVersion = new Tuple<int, int>(RootService.Version.Item1, RootService.Version.Item2 + 1);
+            RootService.UpdateVersion(newVersion);
+            newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
+            this._capabilityClass.Version = newVersion;
         }
     }
 }

@@ -27,7 +27,7 @@ namespace Plugin.Application.CapabilityModel.API
     /// <summary>
     /// A simple helper class that bundles the components that make up a REST parameter (attributes of a Path Expression or operation).
     /// </summary>
-    internal sealed class RESTParameterDeclaration
+    internal sealed class RESTParameterDeclaration: IEquatable<RESTParameterDeclaration>
     {
         // Configuration properties used by this module...
         private const string _RESTParameterStereotype       = "RESTParameterStereotype";
@@ -180,6 +180,70 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Compares the Parameter Declaration against another object. If the other object is also a Parameter Declaration, the 
+        /// function returns true if both Declarations have the same name and same classifier. In all other cases, the
+        /// function returns false.
+        /// </summary>
+        /// <param name="obj">The thing to compare against.</param>
+        /// <returns>True if same object, false otherwise.</returns>
+        public override bool Equals(object obj)
+        {
+            if (obj == null) return false;
+            var objElement = obj as RESTParameterDeclaration;
+            return (objElement != null) && Equals(objElement);
+        }
+
+        /// <summary>
+        /// Compares the Parameter Declaration against another Parameter Declaration. The function returns true if both 
+        /// Declarations have the same name and same classifier. In all other cases, the function returns false.
+        /// </summary>
+        /// <param name="other">The Parameter Declaration to compare against.</param>
+        /// <returns>True if same object, false otherwise.</returns>
+        public bool Equals(RESTParameterDeclaration other)
+        {
+            return other != null && other._name == this._name && other._classifier == this._classifier;
+        }
+
+        /// <summary>
+        /// Returns a hashcode that is associated with the Parameter Declaration. The hash code
+        /// is derived from the parameter name and classifier.
+        /// </summary>
+        /// <returns>Hashcode according to Parameter Declaration.</returns>
+        public override int GetHashCode()
+        {
+            return this._name.GetHashCode() ^ this._classifier.GetHashCode();
+        }
+
+        /// <summary>
+        /// Override of compare operator. Two Parameter Declaration objects are equal if they have the same name and classifier
+        /// or if they are both NULL.
+        /// </summary>
+        /// <param name="elementa">First Parameter Declaration to compare.</param>
+        /// <param name="elementb">Second Parameter Declaration to compare.</param>
+        /// <returns>True if the Parameter Declarations are equal.</returns>
+        public static bool operator ==(RESTParameterDeclaration elementa, RESTParameterDeclaration elementb)
+        {
+            // Tricky to implement correctly. These first statements make sure that we check whether we are actually
+            // dealing with identical objects and/or whether one or both are NULL.
+            if (ReferenceEquals(elementa, elementb)) return true;
+            if (ReferenceEquals(elementa, null)) return false;
+            if (ReferenceEquals(elementb, null)) return false;
+            return elementa.Equals(elementb);
+        }
+
+        /// <summary>
+        /// Override of compare operator. Two Parameter Declaration objects are different if they have different names or classifiers,
+        /// or if one of them is NULL.
+        /// </summary>
+        /// <param name="elementa">First Parameter Declaration to compare.</param>
+        /// <param name="elementb">Second Parameter Declaration to compare.</param>
+        /// <returns>True if the Parameter Declarations are different.</returns>
+        public static bool operator !=(RESTParameterDeclaration elementa, RESTParameterDeclaration elementb)
+        {
+            return !(elementa == elementb);
+        }
+
+        /// <summary>
         /// The assigned data type for the parameter. Please note that, unlike most ECDM classifiers, REST parameters DO accept a 
         /// constructed type as classifier. This is required for body-type parameters where the parameter type represents a complete message instead
         /// of a primitive. For ALL other parameter types, the Cardinality must represent an MEDataType!
@@ -283,13 +347,31 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// A static helper function that transforms the Parameter declaration to an attribute of the specified class. Depending on the status
-        /// of the parameter, an attribute is created, removed or replaced in the parent class.
+        /// Copy constructor, creates a new Parameter Declaration instance by performing a deep-copy of the provided instance.
         /// </summary>
-        /// <param name="parent">Class in which we're going to create the attribute.</param>
-        /// <param name="param">The parameter declaration to transform.</param>
-        /// <returns>Created attribute or NULL in case of errors.</returns>
-        internal static MEAttribute ConvertToAttribute(MEClass parent, RESTParameterDeclaration param)
+        /// <param name="fromThis">Parameter Declaration to 'clone'.</param>
+        internal RESTParameterDeclaration(RESTParameterDeclaration fromThis)
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTParameterDeclaration (copy) >> Creating new declaration from existing declaration '" + fromThis.Name + "'...");
+            this._name = fromThis._name;
+            this._classifier = fromThis._classifier;
+            this._description = fromThis._description;
+            this._defaultValue = fromThis._defaultValue;
+            this._cardinality = new Tuple<int, int>(fromThis._cardinality.Item1, fromThis._cardinality.Item2);
+            this._collectionFormat = fromThis._collectionFormat;
+            this._scope = fromThis._scope;
+            this._allowEmptyValue = fromThis._allowEmptyValue;
+            this._status = fromThis._status;
+    }
+
+    /// <summary>
+    /// A static helper function that transforms the Parameter declaration to an attribute of the specified class. Depending on the status
+    /// of the parameter, an attribute is created, removed or replaced in the parent class.
+    /// </summary>
+    /// <param name="parent">Class in which we're going to create the attribute.</param>
+    /// <param name="param">The parameter declaration to transform.</param>
+    /// <returns>Created attribute or NULL in case of errors.</returns>
+    internal static MEAttribute ConvertToAttribute(MEClass parent, RESTParameterDeclaration param)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             MEAttribute newAttrib = null;

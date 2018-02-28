@@ -344,14 +344,35 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Overrides the default Capability.delete in order to assure that the operation is deleted as well as the operation package.
+        /// Overrides the default Capability.delete in order to assure that the entire Operation structure is deleted properly.
+        /// If the Operation has a request and/or response package that contains classes, the method issues a warning to the user since there
+        /// might be Document Resources that are supposed to have an association with this data.
         /// On return, all operation resources, including the package tree, are deleted and the Capability is INVALID.
         /// </summary>
         internal override void Delete()
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.Delete >> Deleting the operation and all associated resources...");
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string requestPkgName = context.GetConfigProperty(_RequestPkgName);
+            string responsePkgName = context.GetConfigProperty(_ResponsePkgName);
+            string requestPkgStereotype = context.GetConfigProperty(_RequestPkgStereotype);
+            string responsePkgStereotype = context.GetConfigProperty(_ResponsePkgStereotype);
 
-            this._parent.RemoveChild(new OperationCapability(this));                // Detaches the operation from the parent.
+            if (this.OperationPackage != null)
+            {
+                // Check if we have request- or response data, we issue a warning if so.
+                bool hasData = false;
+                MEPackage package = this.OperationPackage.FindPackage(requestPkgName, requestPkgStereotype);
+                hasData = package != null && package.HasContents();
+                if (!hasData)
+                {
+                    package = this.OperationPackage.FindPackage(responsePkgName, responsePkgStereotype);
+                    hasData = package != null && package.HasContents();
+                }
+                if (hasData) Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.Delete >> Deleted Operation '" +
+                                                 this.Name + "' contains message data, please verify integrity!");
+            }
+            this._parent.RemoveChild(new RESTOperationCapability(this));            // Detaches the operation from the parent.
             base.Delete();                                                          // Deletes the class structure and package.
         }
 
@@ -367,14 +388,14 @@ namespace Plugin.Application.CapabilityModel.API
         {
             if (operation.Status == RESTOperationDeclaration.DeclarationStatus.Edited)
             {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.EditOperation >> Editing '" + operation.Name + "'...");
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.Edit >> Editing '" + operation.Name + "'...");
                 ContextSlt context = ContextSlt.GetContextSlt();
                 ModelSlt model = ModelSlt.GetModelSlt();
 
                 // Check whether our type has changed...
                 if (this._operationType != operation.OperationType)
                 {
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.EditOperation >> Changed archetype from '" + 
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.Edit >> Changed archetype from '" + 
                                      this._operationType + "' to '" + operation.OperationType + "'!");
                     this._operationType = operation.OperationType;
                     this._capabilityClass.SetTag(context.GetConfigProperty(_ArchetypeTag), operation.OperationType.TypeName);
@@ -383,19 +404,31 @@ namespace Plugin.Application.CapabilityModel.API
                 // Check whether our name has changed...
                 if (this.Name != operation.Name)
                 {
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.EditOperation >> Changed name from '" +
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.Edit >> Changed name from '" +
                                      this.Name + "' to '" + operation.Name + "'!");
+                    // Operations have their own package, which now requires a name update as well...
                     if (this._capabilityClass.OwningPackage.Parent.FindPackage(operation.Name, context.GetConfigProperty(_RESTOperationPkgStereotype)) == null)
                     {
                         this._capabilityClass.OwningPackage.Name = operation.Name;
-                        this._capabilityClass.Name = operation.Name;
-                        this._assignedRole = operation.Name;
+
+
                     }
                     else
                     {
-                        Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.EditOperation >> Operation rename from '" +
+                        Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.Edit >> Operation rename from '" +
                                            this.Name + "' to '" + operation.Name + "' failed: name already in use!");
                         return false;
+                    }
+                    // Update class name and role name (which must match the class name)...
+                    this._capabilityClass.Name = operation.Name;
+                    this._assignedRole = operation.Name;
+                    foreach (MEAssociation assoc in Parent.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                    {
+                        if (assoc.Destination.EndPoint == this.CapabilityClass)
+                        {
+                            assoc.SetName(operation.Name, MEAssociation.AssociationEnd.Destination);
+                            break;
+                        }
                     }
                 }
 
@@ -417,7 +450,7 @@ namespace Plugin.Application.CapabilityModel.API
                 // (Re-)Load MIME Types...
                 if (this._consumedMIMETypes != operation.ConsumedMIMETypes || this._producedMIMETypes != operation.ProducedMIMETypes)
                 {
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.EditOperation >> MIME Types have changed!");
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.Edit >> MIME Types have changed!");
                     string MIMETypes = string.Empty;
                     this._consumedMIMETypes = operation.ConsumedMIMETypes;
                     this._producedMIMETypes = operation.ProducedMIMETypes;

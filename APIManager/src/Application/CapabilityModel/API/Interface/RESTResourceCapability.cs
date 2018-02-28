@@ -103,6 +103,19 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// If this is a Document resource, this property returns the associated Business Component. Otherwise, the property is NULL.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal MEClass BusinessComponent
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTResourceCapabilityImp)this._imp).BusinessComponent;
+                else throw new MissingImplementationException("RESTResourceCapabilityImp");
+            }
+        }
+
+        /// <summary>
         /// Returns true if the resource represents resource collection (container of other resources).
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
@@ -259,6 +272,34 @@ namespace Plugin.Application.CapabilityModel.API
         public bool AddOperation(RESTOperationDeclaration operation, bool newMinorVersion)
         {
             if (this._imp != null) return ((RESTResourceCapabilityImp)this._imp).AddOperation(operation, newMinorVersion);
+            else throw new MissingImplementationException("RESTResourceCapabilityImp");
+        }
+
+        /// <summary>
+        /// Deletes the operation specified by the Operation Declaration from the Resource. The function silently fails if the operation
+        /// could not be found. If the operation contains a request and/or response package and these packages contain classes, the delete
+        /// operation will issue a warning since Document Resources might exist that still reference this data.
+        /// </summary>
+        /// <param name="operationClass">Operation to be deleted.</param>
+        /// <param name="newMinorVersion">True when a new minor version must be created.</param>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
+        public void DeleteOperation(MEClass operationClass, bool newMinorVersion)
+        {
+            if (this._imp != null) ((RESTResourceCapabilityImp)this._imp).DeleteOperation(operationClass, newMinorVersion);
+            else throw new MissingImplementationException("RESTResourceCapabilityImp");
+        }
+
+        /// <summary>
+        /// This method is invoked when the user has made one or more changes to a Resource Capability. The method receives a
+        /// Resource Declaration object that contains the (updated) information for the Resource.
+        /// </summary>
+        /// <param name="resource">Updated Resource properties.</param>
+        /// <param name="minorVersionUpdate">Set to 'true' to force update of the minor version of the API.</param>
+        /// <returns>True on successfull completion, false on errors.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
+        internal bool Edit(RESTResourceDeclaration resource, bool minorVersionUpdate)
+        {
+            if (this._imp != null) return ((RESTResourceCapabilityImp)this._imp).Edit(resource, minorVersionUpdate);
             else throw new MissingImplementationException("RESTResourceCapabilityImp");
         }
 

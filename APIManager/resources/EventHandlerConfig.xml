@@ -181,7 +181,7 @@
            </StereotypeList>
          </EventHandler>
          <EventHandler ID="Resource: Edit">
-           <HandlerFQN>Plugin.Application.Events.API.AddOperationsEvent</HandlerFQN>
+           <HandlerFQN>Plugin.Application.Events.API.EditRESTResourceEvent</HandlerFQN>
            <StereotypeList>
              <!-- This event only works on Resources. -->
              <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
@@ -399,7 +399,7 @@
            </StereotypeList>
          </EventHandler>
          <EventHandler ID="Resource: Edit">
-           <HandlerFQN>Plugin.Application.Events.API.AddOperationsEvent</HandlerFQN>
+           <HandlerFQN>Plugin.Application.Events.API.EditRESTResourceEvent</HandlerFQN>
            <StereotypeList>
              <!-- This event only works on Resources. -->
              <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>

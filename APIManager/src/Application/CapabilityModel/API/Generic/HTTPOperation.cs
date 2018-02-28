@@ -81,8 +81,8 @@ namespace Plugin.Application.CapabilityModel.API
         /// Override of compare operator. Two HTTPOperation objects are different if they are of different HTTP Operator type
         /// or if one of them is NULL.
         /// </summary>
-        /// <param name="elementa">First ModelElement to compare.</param>
-        /// <param name="elementb">Second ModelElement to compare.</param>
+        /// <param name="elementa">First HTTPOperation to compare.</param>
+        /// <param name="elementb">Second HTTPOperation to compare.</param>
         /// <returns>True if one of the HTTPOperations is NULL or they hace different HTTP Operation types.</returns>
         public static bool operator !=(HTTPOperation elementa, HTTPOperation elementb)
         {

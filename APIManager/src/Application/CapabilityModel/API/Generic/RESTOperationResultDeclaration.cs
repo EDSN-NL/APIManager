@@ -10,7 +10,7 @@ using Framework.Util;
 
 namespace Plugin.Application.CapabilityModel.API
 {
-    internal sealed class RESTOperationResultDeclaration
+    internal sealed class RESTOperationResultDeclaration: IEquatable<RESTOperationResultDeclaration>
     {
         /// <summary>
         /// Helper class that facilitates translation between code, description and human friendly labels.
@@ -240,6 +240,70 @@ namespace Plugin.Application.CapabilityModel.API
         {
             get { return this._status; }
             set { this._status = value; }
+        }
+
+        /// <summary>
+        /// Compares the Operation Result Declaration against another object. If the other object is also an Operation Result 
+        /// Declaration, the function returns true if both Declarations have the same result code. In all other cases, the
+        /// function returns false.
+        /// </summary>
+        /// <param name="obj">The thing to compare against.</param>
+        /// <returns>True if same object, false otherwise.</returns>
+        public override bool Equals(object obj)
+        {
+            if (obj == null) return false;
+            var objElement = obj as RESTOperationResultDeclaration;
+            return (objElement != null) && Equals(objElement);
+        }
+
+        /// <summary>
+        /// Compares the Operation Result Declaration against another Operation Result Declaration. The function returns true 
+        /// if both Declarations have identical result codes. In all other cases, the function returns false.
+        /// </summary>
+        /// <param name="other">The Operation Result Declaration to compare against.</param>
+        /// <returns>True if same object, false otherwise.</returns>
+        public bool Equals(RESTOperationResultDeclaration other)
+        {
+            return other != null && other._resultCode == this._resultCode;
+        }
+
+        /// <summary>
+        /// Returns a hashcode that is associated with the Operation Result Declaration. The hash code
+        /// is derived from the result code.
+        /// </summary>
+        /// <returns>Hashcode according to Operation Result Declaration.</returns>
+        public override int GetHashCode()
+        {
+            return this._resultCode.GetHashCode();
+        }
+
+        /// <summary>
+        /// Override of compare operator. Two Operation Result Declaration objects are equal if they have the same result code
+        /// or if they are both NULL.
+        /// </summary>
+        /// <param name="elementa">First Operation Result Declaration to compare.</param>
+        /// <param name="elementb">Second Operation Result Declaration to compare.</param>
+        /// <returns>True if the Operation Result Declarations are equal.</returns>
+        public static bool operator ==(RESTOperationResultDeclaration elementa, RESTOperationResultDeclaration elementb)
+        {
+            // Tricky to implement correctly. These first statements make sure that we check whether we are actually
+            // dealing with identical objects and/or whether one or both are NULL.
+            if (ReferenceEquals(elementa, elementb)) return true;
+            if (ReferenceEquals(elementa, null)) return false;
+            if (ReferenceEquals(elementb, null)) return false;
+            return elementa.Equals(elementb);
+        }
+
+        /// <summary>
+        /// Override of compare operator. Two Operation Result Declaration objects are different if they have different 
+        /// result codes or one of them is NULL..
+        /// </summary>
+        /// <param name="elementa">First Operation Result Declaration to compare.</param>
+        /// <param name="elementb">Second Operation Result Declaration to compare.</param>
+        /// <returns>True if the Operation Declarations are different.</returns>
+        public static bool operator !=(RESTOperationResultDeclaration elementa, RESTOperationResultDeclaration elementb)
+        {
+            return !(elementa == elementb);
         }
 
         /// <summary>

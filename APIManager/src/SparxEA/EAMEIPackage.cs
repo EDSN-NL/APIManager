@@ -612,6 +612,26 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Returns true if the package holds one or more Classes. If parameter 'hierarchy' is set to 'true', we check the 
+        /// entire package hierarchy, otherwise, we check only the current package.
+        /// </summary>
+        /// <param name="hierarchy">True when entire hierarchy must be checked, starting at current package.</param>
+        /// <returns>True when package(hierarchy) contains one or more classes.</returns>
+        internal override bool HasContents(bool hierarchy)
+        {
+            bool foundContent = this._package.Elements.Count > 0;
+            if (!foundContent && hierarchy)
+            {
+                foreach(EA.Package package in this._package.Packages)
+                {
+                    foundContent = new MEPackage(package.PackageID).HasContents(hierarchy);
+                    if (foundContent) break;
+                }
+            }
+            return foundContent;
+        }
+
+        /// <summary>
         /// The method checks whether one or more stereotypes from the given list of stereotypes are owned by the Package.
         /// Since HasStereotype supports fully-qualified stereotype names, we don't have to strip the (optional) profile names in this case.
         /// </summary>
