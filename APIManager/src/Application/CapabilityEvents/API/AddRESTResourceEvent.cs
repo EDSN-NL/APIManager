@@ -22,11 +22,6 @@ namespace Plugin.Application.Events.API
         private const string _MessageAssemblyClassStereotype    = "MessageAssemblyClassStereotype";
         private const string _ArchetypeTag                      = "ArchetypeTag";
 
-        // Keep track of (extra) classes and associations to show in the diagram...
-        private List<MEClass> _diagramClassList = new List<MEClass>();
-        private List<MEAssociation> _diagramAssocList = new List<MEAssociation>();
-        private Diagram _currentDiagram;
-
         // Set to TRUE if we're adding resources to the top-level (Interface)...
         private bool _isRootLevelResource; 
 
@@ -133,14 +128,12 @@ namespace Plugin.Application.Events.API
                     if (result)
                     {
                         // Collect the new classes and associations that must be shown on the diagram...
-                        this._diagramClassList = new List<MEClass>();
-                        this._diagramAssocList = new List<MEAssociation>();
-                        this._currentDiagram = svcContext.MyDiagram;
-                        parent.Traverse(DiagramItemsCollector);
+                        DiagramItemsCollector collector = new DiagramItemsCollector(svcContext.MyDiagram);
+                        parent.Traverse(collector.Collect);
 
                         // This updates the selected diagram, which could be in a resource package...
-                        svcContext.MyDiagram.AddClassList(this._diagramClassList);
-                        svcContext.MyDiagram.AddAssociationList(this._diagramAssocList);
+                        svcContext.MyDiagram.AddClassList(collector.DiagramClassList);
+                        svcContext.MyDiagram.AddAssociationList(collector.DiagramAssociationList);
                         svcContext.MyDiagram.Redraw();
                         svcContext.DeclarationPackage.Refresh();
                         MessageBox.Show("Resources have been added successfully.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -149,50 +142,6 @@ namespace Plugin.Application.Events.API
                 }
                 svcContext.UnlockModel();
             }
-        }
-
-        /// <summary>
-        /// Helper function that is invoked by the capability hierarchy traversal for each node in the hierarchy, starting at the Interface
-        /// and subsequently invoked for each subordinate capability (Operation and Message). 
-        /// The function collects items that must be displayed on the updated ServiceModel diagram. It simply collects ALL classes and associations,
-        /// irrespective whether they were already on the diagram before. Superfluous elements are properly handled by the View code, so this is
-        /// not an issue and makes the code at this level a lot simpler.
-        /// </summary>
-        /// <param name="svc">My parent service.</param>
-        /// <param name="cap">The current Capability.</param>
-        /// <returns>Always 'false', which indicates that traversal must continue until all nodes are processed.</returns>
-        private bool DiagramItemsCollector(Service svc, Capability cap)
-        {
-            if (cap != null) // Safety catch, must not be NULL since we start at capability level.   
-            {
-                ContextSlt context = ContextSlt.GetContextSlt();
-                Logger.WriteInfo("Plugin.Application.Events.API.AddResourcesEvent.DiagramItemsCollector >> Traversing capability '" + cap.Name + "'...");
-                if (this._isRootLevelResource)
-                {
-                    if (cap.Parent is RESTInterfaceCapabilityImp)
-                    {
-                        this._diagramClassList.Add(cap.CapabilityClass);
-                        foreach (MEAssociation assoc in cap.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation)) this._diagramAssocList.Add(assoc);
-                    }
-                }
-                else if ((cap is RESTResourceCapability || cap is RESTOperationCapability || cap is RESTOperationResultCapability) ||  
-                         cap.OwningPackage == this._currentDiagram.OwningPackage)
-                {
-                    this._diagramClassList.Add(cap.CapabilityClass);
-                    bool mustShowMsgAssembly = context.GetBoolSetting(FrameworkSettings._SMAddMessageAssemblyToDiagram);
-                    string messageAssemblyStereotype = context.GetConfigProperty(_MessageAssemblyClassStereotype);
-                    foreach (MEAssociation assoc in cap.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
-                    {
-                        this._diagramAssocList.Add(assoc);
-                        // If the endpoint of the association is a Message Assembly, we MIGHT have to add it to the diagram manually...
-                        if (assoc.Destination.EndPoint.HasStereotype(messageAssemblyStereotype) && mustShowMsgAssembly)
-                        {
-                            this._diagramClassList.Add(assoc.Destination.EndPoint);
-                        }
-                    }
-                }
-            }
-            return false;
         }
     }
 }

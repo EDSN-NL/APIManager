@@ -45,7 +45,7 @@ namespace Plugin.Application.Forms
             this.Text = this._isEdit ? "Edit Resource" : "Create new Resource";
             this._resource = resource;
 
-            ResourceNameFld.Text = resource.Name;
+            ResourceNameFld.Text = this._isEdit ? resource.Name : string.Empty;
             if (resource.Parameter != null)
             {
                 ParameterName.Text = resource.Parameter.Name;
@@ -118,7 +118,6 @@ namespace Plugin.Application.Forms
             // Assign context menus to the appropriate controls...
             OperationsList.ContextMenuStrip = OperationMenuStrip;
 
-            ResourceNameFld.Text = resource.Name;
             Ok.Enabled = this._isEdit;
             NewMinorVersion.Checked = false;
             this._hasType = (this._resource.Archetype != RESTResourceCapability.ResourceArchetype.Unknown);

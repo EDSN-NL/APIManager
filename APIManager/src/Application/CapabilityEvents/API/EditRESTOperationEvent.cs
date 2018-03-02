@@ -15,10 +15,6 @@ namespace Plugin.Application.Events.API
         // Configuration properties used by this module...
         private const string _ServiceDeclPkgStereotype = "ServiceDeclPkgStereotype";
 
-        // Keep track of (extra) classes and associations to show in the diagram...
-        private List<MEClass> _diagramClassList = new List<MEClass>();
-        private List<MEAssociation> _diagramAssocList = new List<MEAssociation>();
-
         /// <summary>
         /// The Operation.Edit operation can only be executed on Operation capabilities. Since these are uniquely identified
         /// by their stereotypes, there is no need to perform further checks. 
@@ -63,13 +59,12 @@ namespace Plugin.Application.Events.API
                     if (result)
                     {
                         // Collect the (new) classes and associations that must be shown on the diagram...
-                        this._diagramClassList = new List<MEClass>();
-                        this._diagramAssocList = new List<MEAssociation>();
-                        myOperation.Traverse(DiagramItemsCollector);
+                        DiagramItemsCollector collector = new DiagramItemsCollector(svcContext.MyDiagram);
+                        myOperation.Traverse(collector.Collect);
 
                         // This updates the selected diagram, which could be in a resource package...
-                        svcContext.MyDiagram.AddClassList(this._diagramClassList);
-                        svcContext.MyDiagram.AddAssociationList(this._diagramAssocList);
+                        svcContext.MyDiagram.AddClassList(collector.DiagramClassList);
+                        svcContext.MyDiagram.AddAssociationList(collector.DiagramAssociationList);
                         svcContext.MyDiagram.Redraw();
                         svcContext.DeclarationPackage.Refresh();
                         MessageBox.Show("Operation has been updated successfully.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -78,28 +73,6 @@ namespace Plugin.Application.Events.API
                 }
                 svcContext.UnlockModel();
             }
-        }
-
-        /// <summary>
-        /// Helper function that is invoked by the capability hierarchy traversal for each node in the hierarchy, starting at the Resource
-        /// and subsequently invoked for each subordinate capability (Operation). 
-        /// The function collects items that must be displayed on the updated ServiceModel diagram. It simply collects ALL classes and associations,
-        /// irrespective whether they were already on the diagram before. Superfluous elements are properly handled by the View code, so this is
-        /// not an issue and makes the code at this level a lot simpler.
-        /// </summary>
-        /// <param name="svc">My parent service, we ignore this here.</param>
-        /// <param name="cap">The current Capability.</param>
-        /// <returns>Always 'false', which indicates that traversal must continue until all nodes are processed.</returns>
-        private bool DiagramItemsCollector(Service svc, Capability cap)
-        {
-            if (cap != null) // Safety catch, must not be NULL since we start at capability level.   
-            {
-                Logger.WriteInfo("Plugin.Application.Events.API.EditRESTOperationEvent.DiagramItemsCollector >> Traversing capability '" + cap.Name + "'...");
-                this._diagramClassList.Add(cap.CapabilityClass);
-                foreach (MEAssociation assoc in cap.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
-                    this._diagramAssocList.Add(assoc);
-            }
-            return false;
         }
     }
 }

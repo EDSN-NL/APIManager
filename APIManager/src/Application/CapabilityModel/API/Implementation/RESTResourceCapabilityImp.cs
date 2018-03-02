@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Windows.Forms;
 using System.Collections.Generic;
 using Framework.Model;
 using Framework.Logging;
 using Framework.Context;
 using Framework.Util;
 using Framework.View;
+using Plugin.Application.Events.API;
 
 namespace Plugin.Application.CapabilityModel.API
 {
@@ -49,10 +51,6 @@ namespace Plugin.Application.CapabilityModel.API
         private List<string> _tagNames;                             // List of tag names associated with this resource.
         private RESTParameterDeclaration _parameter;                // In case of Identifier resources, this contains the parameter.
         private MEClass _componentClass;                            // In case of Document resources, this is the associated Business Component.
-
-        // Keep track of (extra) classes and associations to show in the resource diagram...
-        private List<MEClass> _diagramClassList = new List<MEClass>();
-        private List<MEAssociation> _diagramAssocList = new List<MEAssociation>();
 
         /// <summary>
         /// Getters and setters of properties for this class:
@@ -238,7 +236,7 @@ namespace Plugin.Application.CapabilityModel.API
                 foreach (RESTResourceDeclaration resource in resources)
                 {
                     RESTResourceCapability resourceCapability;
-                    bool noDocument = true;
+                    bool existingDocument = false;
                     if (resource.Archetype == RESTResourceCapability.ResourceArchetype.Document)
                     {
                         resourceCapability = ((RESTService)RootService).FindDocumentResource(resource.Name);
@@ -256,11 +254,11 @@ namespace Plugin.Application.CapabilityModel.API
                             resourceCapability.InitialiseParent(parentResource);
                             newNames += (!isFirst) ? ", " + roleName : roleName;
                             isFirst = false;
-                            noDocument = false;
+                            existingDocument = true;
                         }
                     }
 
-                    if (noDocument)    // This is true for non-document resources or for new document resources.
+                    if (!existingDocument)    // This holds for non-document resources or for new document resources.
                     {
                         resourceCapability = new RESTResourceCapability(parentResource, resource);
                         if (resourceCapability.Valid)
@@ -302,9 +300,15 @@ namespace Plugin.Application.CapabilityModel.API
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.Delete >> Deleting the resource collection and all associated resources...");
 
+            if (this._archetype == RESTResourceCapability.ResourceArchetype.Document)
+            {
+                Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.Delete >> Deleted Document Resource '" +
+                                    this.Name + "', please verify integrity!");
+            }
+
             this._myParent.RemoveChild(new RESTResourceCapability(this));     // Unlink this resource from my parent.
-            base.Delete();                                                    // Deletes all resources owned by this capability (Operations, PathExpressions).
-            if (this._isCollection) this._resourcePackage.Parent.DeletePackage(this._resourcePackage);    // Delete the package as last step (if we are a collection).
+            base.Delete();                                                    // Deletes all resources owned by this capability (Operations, Child Resources).
+            if (this._isCollection) this._resourcePackage.Parent.DeletePackage(this._resourcePackage); // Finally, remove my package.
         }
 
         /// <summary>
@@ -467,7 +471,7 @@ namespace Plugin.Application.CapabilityModel.API
 
                 // If I'm a Document check whether we must update the Document Class association...
                 // And if I'm an Identifier, check whether we must update the Identifier properties...
-                if (this._archetype == RESTResourceCapability.ResourceArchetype.Document) AssignDocumentClass(resource);
+                if (this._archetype == RESTResourceCapability.ResourceArchetype.Document) AssignBusinessDocument(resource);
                 else if (this._archetype == RESTResourceCapability.ResourceArchetype.Identifier) AssignIdentifier(resource);
 
                 // Next, we're going to check whether operations have changed. We can either add new operations, remove existing
@@ -650,31 +654,13 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Helper function that collects items that have been added to the specified diagram, relative to the specified parent capability.
-        /// After collecting items, the diagram is updated and refreshed.
-        /// </summary>
-        /// <param name="diagram">Diagram to be updated.</param>
-        /// <param name="parent">Parent class used as starting point for collecting updates.</param>
-        /// <param name="parentLink">Association from my capability to this parent.</param>
-        internal void UpdateResourceDiagram(Diagram diagram, MEClass parent, MEAssociation parentLink)
-        {
-            this._diagramClassList = new List<MEClass> { parent };
-            this._diagramAssocList = new List<MEAssociation> { parentLink };
-            Traverse(DiagramItemsCollector);
-
-            diagram.AddClassList(this._diagramClassList);
-            diagram.AddAssociationList(this._diagramAssocList);
-            diagram.Show();
-        }
-
-        /// <summary>
         // If we're a Document Resource, create the association with the Business Document and register this class as a document.
         // We use the resource name as basis for the role name. This assures that we get the proper role in case the Business Document
         // uses an Alias name (that would already have been incorporated in the resource name at moment of assignment in the user dialog).
         // If an association already exists, this is removed and replaced by a new association.
         /// </summary>
         /// <param name="properties">Resource properties.</param>
-        private void AssignDocumentClass(RESTResourceDeclaration properties)
+        private void AssignBusinessDocument(RESTResourceDeclaration properties)
         {
             ModelSlt model = ModelSlt.GetModelSlt();
 
@@ -687,7 +673,7 @@ namespace Plugin.Application.CapabilityModel.API
                 {
                     if (assoc.Destination.EndPoint == this._componentClass)
                     {
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AssignDocumentClass >> New association, deleting existing one...");
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AssignBusinessDocument >> New association, deleting existing one...");
                         this._capabilityClass.DeleteAssociation(assoc);
                         this._componentClass = null;
                         break;
@@ -697,7 +683,7 @@ namespace Plugin.Application.CapabilityModel.API
 
             if (properties.DocumentClass != null)
             {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AssignDocumentClass >> Associate with Business Component '" + 
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AssignBusinessDocument >> Associate with Business Component '" + 
                                  properties.DocumentClass.Name + "'...");
                 string role = properties.Name.EndsWith("Type") ? properties.Name.Substring(0, properties.Name.IndexOf("Type")) : properties.Name;
                 var componentEndpoint = new EndpointDescriptor(properties.DocumentClass, "1", role, null, true);
@@ -809,20 +795,27 @@ namespace Plugin.Application.CapabilityModel.API
                 // Create the ExternalDocument class if we have defined entries for it...
                 CreateExternalDocumentation(parent, resource);
 
-                // Create the operations that are associated with this Resource...
+                // Create the operations that are associated with this Resource.
+                // If we create a Resource Collection as a child of another Resource that has Documents assigned, these Documents could have been
+                // selected by the Operations of the new Resource. In that case, we have to associate with these Documents in order to keep
+                // things consistent...
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.ConstructCapability >> Creating operations...");
                 var resourceCapItf = new RESTResourceCapability(this);
+                var documentList = new List<RESTResourceDeclaration>();
                 foreach (RESTOperationDeclaration operation in resource.Operations)
                 {
                     if (operation.Status != RESTOperationDeclaration.DeclarationStatus.Deleted &&
                         operation.Status != RESTOperationDeclaration.DeclarationStatus.Invalid)
                     {
                         RESTOperationCapability newOperation = new RESTOperationCapability(resourceCapItf, operation);
+                        if (operation.RequestDocument != null) documentList.Add(new RESTResourceDeclaration(operation.RequestDocument));
+                        if (operation.ResponseDocument != null) documentList.Add(new RESTResourceDeclaration(operation.ResponseDocument));
                     }
                 }
+                if (documentList.Count > 0) AddResources(documentList, false); // This will create association with existing Documents.
 
                 // Check whether we must associate with a Business Document class...
-                AssignDocumentClass(resource);
+                AssignBusinessDocument(resource);
 
                 // And create the child resources that are associated with this Resource...
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.ConstructCapability >> Creating child resources...");
@@ -841,10 +834,17 @@ namespace Plugin.Application.CapabilityModel.API
                     // Create the diagram, add the Interface and the collection to that diagram and collect all child objects that should
                     // also be shown.
                     Diagram myDiagram = this._resourcePackage.CreateDiagram();
+                    DiagramItemsCollector collector = new DiagramItemsCollector(myDiagram);
+                    this._capabilityClass.AssociatedDiagram = myDiagram;
+                    collector.DiagramClassList.Add(parent.CapabilityClass);
+                    collector.DiagramAssociationList.Add(link);
+                    Traverse(collector.Collect);
+
                     myDiagram.AddDiagramProperties();
                     myDiagram.ShowConnectorStereotypes(false);
-                    this._capabilityClass.AssociatedDiagram = myDiagram;
-                    UpdateResourceDiagram(myDiagram, parent.CapabilityClass, link);
+                    myDiagram.AddClassList(collector.DiagramClassList);
+                    myDiagram.AddAssociationList(collector.DiagramAssociationList);
+                    myDiagram.Show();
                 }
                 else if (this._archetype == RESTResourceCapability.ResourceArchetype.Identifier)
                 {
@@ -1047,6 +1047,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
         }
 
+        /************
         /// <summary>
         /// Helper function that is invoked by the capability hierarchy traversal for each node in the hierarchy, starting at the current resource
         /// and subsequently invoked for each subordinate capability (child resources and operations).
@@ -1085,5 +1086,6 @@ namespace Plugin.Application.CapabilityModel.API
             }
             return false;
         }
+        *****************/
     }
 }

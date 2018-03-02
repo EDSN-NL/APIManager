@@ -107,6 +107,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="resources\Settings.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\DeleteRESTResourceEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\DiagramItemsCollector.cs" />
+    <Compile Include="src\Application\CapabilityEvents\API\DeleteRESTOperationEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\EditRESTResourceEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\EditRESTOperationEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\AddRESTOperationEvent.cs" />

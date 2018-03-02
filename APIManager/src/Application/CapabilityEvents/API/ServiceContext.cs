@@ -412,14 +412,13 @@ namespace Plugin.Application.Events.API
         }
 
         /// <summary>
-        /// Refreshes packages and diagram after applying updates, assures that user-view is updated accordingly.
+        /// Refreshes an entire service declaration environment after applying updates, assures that user-view is updated accordingly.
         /// </summary>
         internal void Refresh()
         {
+            // We only refresh the Declaration Package, which in turn refreshes all subordinate packages and diagrams.
             Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext.RefreshContext >> Refreshing packages and diagram...");
-            this._serviceModelPackage.Refresh();
             this._declarationPackage.Refresh();
-            this._diagram.Refresh();
         }
 
         /// <summary>

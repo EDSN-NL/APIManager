@@ -158,6 +158,13 @@
              <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
            </StereotypeList>
          </EventHandler>
+         <EventHandler ID="Operation: Delete">
+           <HandlerFQN>Plugin.Application.Events.API.DeleteRESTOperationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works REST Operations. -->
+             <StereotypeName>Enexis ECDM::RESTOperation</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
          <EventHandler ID="Operation: Edit">
            <HandlerFQN>Plugin.Application.Events.API.EditRESTOperationEvent</HandlerFQN>
            <StereotypeList>
@@ -174,10 +181,10 @@
            </StereotypeList>
          </EventHandler>
          <EventHandler ID="Resource: Delete">
-           <HandlerFQN>Plugin.Application.Events.API.DeleteOperationsEvent</HandlerFQN>
+           <HandlerFQN>Plugin.Application.Events.API.DeleteRESTResourceEvent</HandlerFQN>
            <StereotypeList>
              <!-- This event only works on Resource collections. -->
-             <StereotypeName>Enexis ECDM::Resource</StereotypeName>
+             <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
            </StereotypeList>
          </EventHandler>
          <EventHandler ID="Resource: Edit">
@@ -376,6 +383,13 @@
              <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
            </StereotypeList>
          </EventHandler>
+         <EventHandler ID="Operation: Delete">
+           <HandlerFQN>Plugin.Application.Events.API.DeleteRESTOperationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works REST Operations. -->
+             <StereotypeName>Enexis ECDM::RESTOperation</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
          <EventHandler ID="Operation: Edit">
            <HandlerFQN>Plugin.Application.Events.API.EditRESTOperationEvent</HandlerFQN>
            <StereotypeList>
@@ -392,9 +406,9 @@
            </StereotypeList>
          </EventHandler>
          <EventHandler ID="Resource: Delete">
-           <HandlerFQN>Plugin.Application.Events.API.DeleteOperationsEvent</HandlerFQN>
+           <HandlerFQN>Plugin.Application.Events.API.DeleteRESTResourceEvent</HandlerFQN>
            <StereotypeList>
-             <!-- This event only works on Resources. -->
+             <!-- This event only works on Resource collections. -->
              <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
            </StereotypeList>
          </EventHandler>

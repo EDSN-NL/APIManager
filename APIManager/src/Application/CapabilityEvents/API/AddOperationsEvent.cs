@@ -21,10 +21,6 @@ namespace Plugin.Application.Events.API
         private const string _RequestMessageSuffix              = "RequestMessageSuffix";
         private const string _ResponseMessageSuffix             = "ResponseMessageSuffix";
 
-        // Keep track of (extra) classes and associations to show in the diagram...
-        private List<MEClass> _diagramClassList = new List<MEClass>();
-        private List<MEAssociation> _diagramAssocList = new List<MEAssociation>();
-
         /// <summary>
         /// Checks whether we can process the event in the current context. In this case, we only have to check whether we are called
         /// from a diagram of the correct type, which is determined by the declaration package of which the diagram is a part.
@@ -84,12 +80,11 @@ namespace Plugin.Application.Events.API
                     if (myInterface.AddOperations(dialog.OperationList, dialog.MinorVersionIndicator))
                     {
                         // Collect the classes and associations that must be shown on the diagram...
-                        this._diagramClassList = new List<MEClass>();
-                        this._diagramAssocList = new List<MEAssociation>();
-                        myInterface.Traverse(DiagramItemsCollector);
+                        DiagramItemsCollector collector = new DiagramItemsCollector(svcContext.MyDiagram);
+                        myInterface.Traverse(collector.Collect);
 
-                        svcContext.MyDiagram.AddClassList(this._diagramClassList);
-                        svcContext.MyDiagram.AddAssociationList(this._diagramAssocList);
+                        svcContext.MyDiagram.AddClassList(collector.DiagramClassList);
+                        svcContext.MyDiagram.AddAssociationList(collector.DiagramAssociationList);
                         svcContext.MyDiagram.Redraw();
                         svcContext.DeclarationPackage.Refresh();
                         MessageBox.Show("Operations have been added successfully.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -98,45 +93,6 @@ namespace Plugin.Application.Events.API
                 }
                 svcContext.UnlockModel();
             }
-        }
-
-        /// <summary>
-        /// Helper function that is invoked by the capability hierarchy traversal for each node in the hierarchy, starting at the Interface
-        /// and subsequently invoked for each subordinate capability (Operation and Message). 
-        /// The function collects items that must be displayed on the updated ServiceModel diagram.
-        /// </summary>
-        /// <param name="svc">My parent service.</param>
-        /// <param name="cap">The current Capability.</param>
-        /// <returns>Always 'false', which indicates that traversal must continue until all nodes are processed.</returns>
-        private bool DiagramItemsCollector(Service svc, Capability cap)
-        {
-            if (cap != null) // Safety catch, must not be NULL since we start at capability level.   
-            {
-                Logger.WriteInfo("Plugin.Application.Events.API.AddOperationsEvent.DiagramItemsCollector >> Traversing capability '" + cap.Name + "'...");
-                if (cap is MessageCapability)
-                {
-                    if (ContextSlt.GetContextSlt().GetBoolSetting(FrameworkSettings._SMAddBusinessMsgToDiagram))
-                    {
-                        this._diagramClassList.Add(cap.CapabilityClass);
-                        // We're at the message level, we might (optionally) collect the Message Assembly component(s)...
-                        if (ContextSlt.GetContextSlt().GetBoolSetting(FrameworkSettings._SMAddMessageAssemblyToDiagram))
-                        {
-                            foreach (MEAssociation assoc in cap.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
-                            {
-                                this._diagramAssocList.Add(assoc);
-                                this._diagramClassList.Add(assoc.Destination.EndPoint);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    // In all other cases, we simply collect child associations if available...
-                    this._diagramClassList.Add(cap.CapabilityClass);
-                    foreach (MEAssociation assoc in cap.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation)) this._diagramAssocList.Add(assoc);
-                }
-            }
-            return false;
         }
     }
 }
