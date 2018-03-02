@@ -719,7 +719,6 @@ namespace Plugin.Application.CapabilityModel.API
             {
                 RESTParameterDeclaration.ConvertToAttribute(this._capabilityClass, param);
                 this._parameter = param;
-                this._capabilityClass.Name = param.Name;
             }
         }
 

@@ -194,13 +194,6 @@
              <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
            </StereotypeList>
          </EventHandler>
-         <EventHandler ID="Resource: Rename">
-           <HandlerFQN>Plugin.Application.Events.API.RenameOperationsEvent</HandlerFQN>
-           <StereotypeList>
-             <!-- This event only works on Resources. -->
-             <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
-           </StereotypeList>
-         </EventHandler>
          <EventHandler ID="API Declaration: Create">
            <HandlerFQN>Plugin.Application.Events.API.CreateRESTServiceDeclarationEvent</HandlerFQN>
            <StereotypeList>
@@ -414,13 +407,6 @@
          </EventHandler>
          <EventHandler ID="Resource: Edit">
            <HandlerFQN>Plugin.Application.Events.API.EditRESTResourceEvent</HandlerFQN>
-           <StereotypeList>
-             <!-- This event only works on Resources. -->
-             <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
-           </StereotypeList>
-         </EventHandler>
-         <EventHandler ID="Resource: Rename">
-           <HandlerFQN>Plugin.Application.Events.API.RenameOperationsEvent</HandlerFQN>
            <StereotypeList>
              <!-- This event only works on Resources. -->
              <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>

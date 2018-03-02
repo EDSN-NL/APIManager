@@ -101,10 +101,10 @@ namespace Plugin.Application.CapabilityModel.API
         internal Type TypeEnum { get { return this._type; } }
 
         /// <summary>
-        /// Returns the HTTP Operation type as a string.
+        /// Returns the HTTP Operation type as a PascalCase string.
         /// </summary>
         internal string TypeName { get { return EnumConversions<Type>.EnumToString(this._type); } }
-
+        
         /// <summary>
         /// Class constructor, creates a new instance using the provided enumerated type.
         /// </summary>

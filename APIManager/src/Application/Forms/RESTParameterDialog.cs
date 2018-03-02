@@ -55,7 +55,6 @@ namespace Plugin.Application.Forms
 
             CollectionFormat.Enabled = isEdit && (parameter.Cardinality.Item2 == 0 || parameter.Cardinality.Item2 > 1);
          
-            ParameterDefaultValue.Enabled = false;  // Disable the default value field.
             IsDataType.Checked = true;              // Set default classifier type to 'data type'.
             Ok.Enabled = false;                     // Block the OK button until preconditions have been satisfied.
 
