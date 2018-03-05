@@ -79,6 +79,8 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Runtime.Serialization.Formatters.Soap" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
@@ -412,6 +414,7 @@
     <Compile Include="src\Framework\Util\IllegalContextException.cs" />
     <Compile Include="src\Framework\Util\FileLogger.cs" />
     <Compile Include="src\Framework\Util\LoggerInterface.cs" />
+    <Compile Include="src\Framework\Util\ArchiveFile.cs" />
     <Compile Include="src\Framework\Util\MissingImplementationException.cs" />
     <Compile Include="src\Framework\Util\MetadataCreator.cs" />
     <Compile Include="src\SparxEA\EAClassifierManager.cs" />

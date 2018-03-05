@@ -174,6 +174,13 @@ namespace Framework.Model
         internal abstract void Refresh();
 
         /// <summary>
+        /// Saves the package and all child packages to an XMI file with specified name. The name must be an ABSOLUTE file name!
+        /// </summary>
+        /// <param name="fileName">Absolute filename to use for output.</param>
+        /// <returns>True when saved ok, false on errors.</returns>
+        internal abstract bool Save(string fileName);
+
+        /// <summary>
         /// Selects the package in the package tree and show to user.
         /// </summary>
         internal abstract void ShowInTree();

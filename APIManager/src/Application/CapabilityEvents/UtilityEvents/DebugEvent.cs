@@ -29,6 +29,15 @@ namespace Plugin.Application.Events.Util
 {
     class DebugEvent : EventImplementation
     {
+        private string _rootPath = @"C:\Temp\3010.02.01.01.03.Materials\InfrastructureMaterials_V1\B9";
+        private string[] _fileNames = 
+        {   "InfrastructureMaterials_CommonSchema_v1p0.xsd",
+            "InfrastructureMaterials_Find_v1p0.xsd",
+            "InfrastructureMaterials_Get_v1p0.xsd",
+            "InfrastructureMaterials_GetAvailability_v1p0.xsd",
+            "InfrastructureMaterials_v1p0.wsdl"
+        };
+
         private JSchema _commonSchema;
 
         internal override bool IsValidState() { return true; }
@@ -47,13 +56,14 @@ namespace Plugin.Application.Events.Util
                 MEPackage currentPackage = context.CurrentPackage;
                 Diagram currentDiagram = context.CurrentDiagram;
 
-                string cclass = (currentClass != null) ? currentClass.Name : "Unknown Class";
-                string cpackage = (currentPackage != null) ? currentPackage.Name : "Unknown Package";
-                string cdiagram = (currentDiagram != null) ? currentDiagram.Name : "Unknown Diagram";
-                string message = "Context:" + Environment.NewLine + "Current class = " + cclass + Environment.NewLine +
-                    "Current package = " + cpackage + Environment.NewLine +
-                    "Current diagram = " + cdiagram;
-                MessageBox.Show(message);
+                ArchiveFile archive = new ArchiveFile(this._rootPath + "\\MyArchive.zip");
+                foreach (string name in this._fileNames)
+                {
+                    archive.AddFile(this._rootPath + "\\" + name, "contents");
+                }
+                archive.Create();
+
+                archive.Extract(this._rootPath);
 
                 //MakeCommonSchema();
                 //Test7() ;

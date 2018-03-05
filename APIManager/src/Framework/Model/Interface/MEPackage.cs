@@ -318,6 +318,18 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Saves the package and all child packages to an XMI file with specified name. The name must be an ABSOLUTE file name!
+        /// </summary>
+        /// <param name="fileName">Absolute filename to use for output.</param>
+        /// <returns>True when saved ok, false on errors.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal bool Save(string fileName)
+        {
+            if (this._imp != null) return((MEIPackage)this._imp).Save(fileName);
+            else throw new MissingImplementationException("MEIPackage");
+        }
+
+        /// <summary>
         /// Selects the package in the package tree and show to user.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>

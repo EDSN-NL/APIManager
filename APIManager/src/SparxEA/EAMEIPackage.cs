@@ -794,6 +794,27 @@ namespace SparxEA.Model
         {
             ((EAModelImplementation)this._model).Repository.RefreshModelView(this._package.PackageID);
         }
+
+        /// <summary>
+        /// Saves the package and all child packages to an XMI file with specified name. The name must be an ABSOLUTE file name!
+        /// </summary>
+        /// <param name="fileName">Absolute filename to use for output.</param>
+        /// <returns>True when saved ok, false on errors.</returns>
+        internal override bool Save(string fileName)
+        {
+            bool result = true;
+            try
+            {
+                EA.Project project = ((EAModelImplementation)this._model).Repository.GetProjectInterface();
+                project.ExportPackageXMIEx(this._package.PackageGUID, EnumXMIType.xmiEA251, 2, 3, 0, 1, fileName, 0);
+            }
+            catch (Exception exc)
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIPackage.Save >> Error saving package '" + this._name + "' to XMI file '" + fileName + "':" + Environment.NewLine + exc.Message);
+                result = false;
+            }
+            return result;
+        }
         
         /// <summary>
         /// Updates Package annotation.
