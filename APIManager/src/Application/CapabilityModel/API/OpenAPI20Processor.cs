@@ -161,12 +161,15 @@ namespace Plugin.Application.CapabilityModel.API
                             if (!this._isPathInitialized)
                             {
                                 // Below sequence assures that we have an output path for our Interface file...
-                                string myPath = capability.CapabilityClass.GetTag(context.GetConfigProperty(_PathNameTag));
-                                if (string.IsNullOrEmpty(myPath)) myPath = string.Empty;
-                                if (result = (!string.IsNullOrEmpty(this._currentService.AbsolutePath)) || this._currentService.InitializePath(myPath))
+                                if (this._currentService.InitializePath())
                                 {
                                     capability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), capability.RootService.ComponentPath);
                                     this._isPathInitialized = true;
+                                }
+                                else
+                                {
+                                    Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.ProcessCapability >> Unable to initialize folder structure!");
+                                    return false;  // Unable to create necessary folder structure!
                                 }
                             }
                         }

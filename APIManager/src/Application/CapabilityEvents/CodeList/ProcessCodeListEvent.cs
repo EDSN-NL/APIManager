@@ -96,7 +96,7 @@ namespace Plugin.Application.Events.CodeList
 
             if (processor != null && codeListCapability.HandleCapabilities(processor))
             {
-                string path = codeListService.AbsolutePath;
+                string path = codeListService.FullyQualifiedPath;
                 string fileName = processor.GetCapabilityFilename();
                 string message = "Processing of CodeList '" + codeListCapability.Name + "' finished." + Environment.NewLine;
                 message += "Output path: '" + path + "'." + Environment.NewLine + "Filename: '" + fileName + "'.";

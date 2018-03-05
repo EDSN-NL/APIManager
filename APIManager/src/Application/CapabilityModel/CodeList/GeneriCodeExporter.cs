@@ -127,9 +127,8 @@ namespace Plugin.Application.CapabilityModel.CodeList
                         }
 
                         // Below sequence assures that all capabilities in the current run share the same pathname...
-                        string myPath = this._currentCapability.CapabilityClass.GetTag(context.GetConfigProperty(_PathNameTag));
-                        if (string.IsNullOrEmpty(myPath)) myPath = string.Empty;
-						result = (!string.IsNullOrEmpty(this._currentService.AbsolutePath)) || this._currentService.InitializePath(myPath);
+                        result = this._currentService.InitializePath();
+                        this._currentCapability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), this._currentService.ComponentPath);
                         break;
 
                     // Processing stage is used to create the actual Genericode representation and write the result to file...

@@ -142,7 +142,7 @@ namespace Plugin.Application.CapabilityModel.API
             string namespaceDecl = string.Empty;
             foreach (ProcessingContext ctx in this._operationContextList)
             {
-                string schemaLocation = (ContextSlt.GetContextSlt().GetConfigProperty(_SchemaUseRelativePathName) == "true") ? string.Empty : this._currentService.AbsolutePath + "/";
+                string schemaLocation = (ContextSlt.GetContextSlt().GetConfigProperty(_SchemaUseRelativePathName) == "true") ? string.Empty : this._currentService.FullyQualifiedPath + "/";
                 schemaLocation += ctx.Operation.BaseFileName + ".xsd";
                 namespaceDecl += "\n         <xs:import schemaLocation=\"" + schemaLocation + "\" namespace=\"" +
                                  this._currentService.GetFQN("SOAPOperation", ctx.Operation.Name, -1) + "\"/>";

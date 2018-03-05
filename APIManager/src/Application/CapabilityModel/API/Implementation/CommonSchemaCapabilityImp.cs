@@ -99,7 +99,7 @@ namespace Plugin.Application.CapabilityModel.API
         {
             Tuple<int, int> version = this.CapabilityClass.Version;
             string postfix = Conversions.ToPascalCase(RootService.IsDefaultOperationalStatus ? string.Empty : "_" + RootService.OperationalStatus);
-            return this._rootService.Name + "_" + (this._useAlternativeNaming? this._assignedRole: this.Name) + "_v" + version.Item1 + "p" + version.Item2 + postfix;
+            return (this._useAlternativeNaming? this._rootService.Name + "_" + this._assignedRole: this.Name) + "_v" + version.Item1 + "p" + version.Item2 + postfix;
         }
 
         /// <summary>

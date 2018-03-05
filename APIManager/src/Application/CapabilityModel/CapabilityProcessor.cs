@@ -114,15 +114,13 @@ namespace Plugin.Application.CapabilityModel
 
             // As a safety check, we verify that my service contains a valid absolute path. If not, we attempt
             // to create one...
-            string myPath = this._currentCapability.CapabilityClass.GetTag(context.GetConfigProperty(_PathNameTag));
-            if (string.IsNullOrEmpty(myPath)) myPath = string.Empty;
             string fileName = GetCapabilityFilename();
             string pathName = string.Empty;
             bool result = false;
 
-            if (string.IsNullOrEmpty(this._currentService.AbsolutePath))
+            if (string.IsNullOrEmpty(this._currentService.FullyQualifiedPath))
             {
-                if (!this._currentService.InitializePath(myPath))
+                if (!this._currentService.InitializePath())
                 {
                     Logger.WriteWarning("Plugin.Application.CapabilityModel.CapabilityProcessor.saveProcessedCapability >> Unable to set path, giving up!");
                     return false;
@@ -132,7 +130,7 @@ namespace Plugin.Application.CapabilityModel
             FileStream saveStream = null;
             try
             {
-                using (saveStream = new FileStream(this._currentService.AbsolutePath + "\\" + fileName, FileMode.Create, FileAccess.Write, FileShare.None))
+                using (saveStream = new FileStream(this._currentService.FullyQualifiedPath + "/" + fileName, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     SaveContents(saveStream);   // Actual 'write-to-stream' operation is processor specific and implemented in specialized processors...
                 }
@@ -169,18 +167,10 @@ namespace Plugin.Application.CapabilityModel
             string pathName = string.Empty;
             bool result = false;
 
-            // We attempt to get the path of any of processed child capabilities (must all share the same path anyway)...
-            string myPath = string.Empty;
-            if (this._currentService.SelectedCapabilities.Count > 0)
+            // If the service contains a fully qualified path, we have a proper output structure. If not, we invoke InitializePath to create one...
+            if (string.IsNullOrEmpty(this._currentService.FullyQualifiedPath))
             {
-                Capability child = (this._currentService.SelectedCapabilities[0]);
-                myPath = child.CapabilityClass.GetTag(context.GetConfigProperty(_PathNameTag));
-                if (string.IsNullOrEmpty(myPath)) myPath = string.Empty;
-            }
-
-            if (string.IsNullOrEmpty(this._currentService.AbsolutePath))
-            {
-                if (!this._currentService.InitializePath(myPath))
+                if (!this._currentService.InitializePath())
                 {
                     Logger.WriteWarning("Plugin.Application.CapabilityModel.CapabilityProcessor.saveProcessedService >> Unable to set path, giving up!");
                     return false;
@@ -190,7 +180,7 @@ namespace Plugin.Application.CapabilityModel
             FileStream saveStream = null;
             try
             {
-                saveStream = new FileStream(this._currentService.AbsolutePath + "\\" + fileName, FileMode.Create, FileAccess.Write, FileShare.None);
+                saveStream = new FileStream(this._currentService.FullyQualifiedPath + "\\" + fileName, FileMode.Create, FileAccess.Write, FileShare.None);
                 SaveContents(saveStream);   // Actual 'write-to-stream' operation is processor specific and implemented in specialized processors...
                 result = true;
             }

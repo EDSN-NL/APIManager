@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Configuration;
 using System.Collections.Generic;
 using System.Windows.Forms;
@@ -34,22 +35,23 @@ namespace Plugin.Application.CapabilityModel
     internal abstract class Service
     {
         // Public Configuration properties related to Service in general...
-        internal const string _CommonPkgName                      = "CommonPkgName";
-        internal const string _CommonPkgStereotype                = "CommonPkgStereotype";
-        internal const string _ServiceClassStereotype             = "ServiceClassStereotype";
-        internal const string _ServiceModelPkgName                = "ServiceModelPkgName";
-        internal const string _ServiceModelPkgStereotype          = "ServiceModelPkgStereotype";
-        internal const string _ServiceContainerPkgStereotype      = "ServiceContainerPkgStereotype";
-        internal const string _ServiceSupportModelPathName        = "ServiceSupportModelPathName";
-        internal const string _ServiceParentClassName             = "ServiceParentClassName";
-        internal const string _DomainModelsRootPkgName            = "DomainModelsRootPkgName";
-        internal const string _MaxOperationIDTag                  = "MaxOperationIDTag";
+        internal const string _CommonPkgName                    = "CommonPkgName";
+        internal const string _CommonPkgStereotype              = "CommonPkgStereotype";
+        internal const string _ServiceClassStereotype           = "ServiceClassStereotype";
+        internal const string _ServiceModelPkgName              = "ServiceModelPkgName";
+        internal const string _ServiceModelPkgStereotype        = "ServiceModelPkgStereotype";
+        internal const string _ServiceContainerPkgStereotype    = "ServiceContainerPkgStereotype";
+        internal const string _ServiceSupportModelPathName      = "ServiceSupportModelPathName";
+        internal const string _ServiceParentClassName           = "ServiceParentClassName";
+        internal const string _DomainModelsRootPkgName          = "DomainModelsRootPkgName";
+        internal const string _MaxOperationIDTag                = "MaxOperationIDTag";
 
         // Other configuration properties used by this service...
         private const string _BusinessFunctionIDTag             = "BusinessFunctionIDTag";
         private const string _ServiceOperationalStatusTag       = "ServiceOperationalStatusTag";
         private const string _DefaultOperationalStatus          = "DefaultOperationalStatus";
         private const string _PathNameTag                       = "PathNameTag";
+        private const string _ComponentPathTemplate             = "ComponentPathTemplate";
 
         protected List<Capability> _serviceCapabilities;        // A list of all capabilities configured for this service.
         protected List<Capability> _selectedCapabilities;       // The subset of capabilities that have been selected by the user for processing.
@@ -61,7 +63,7 @@ namespace Plugin.Application.CapabilityModel
         protected Tuple<int,int> _version;                      // The current version of the service.
         protected string _rootPath;                             // Generic root path (configuration item).
         protected string _componentPath;                        // Relative path to location of capability components.
-        protected string _absolutePath;                         // The combination of root- and component path as selected by user.
+        protected string _fullyQualifiedPath;                   // The combination of root- and component path.
 
         // Components that can be used to construct a namespace:
         private string _operationalStatus;                      // Operational status as defined by a tag in the service, can be one
@@ -81,7 +83,7 @@ namespace Plugin.Application.CapabilityModel
         internal int MajorVersion                             { get { return this._version.Item1; } }
         internal Tuple<int, int> Version                      { get { return this._version; } }
         internal string OperationalStatus                     { get { return this._operationalStatus; } }
-        internal string AbsolutePath                          { get { return this._absolutePath; } }
+        internal string FullyQualifiedPath                    { get { return this._fullyQualifiedPath; } }
         internal string ComponentPath                         { get { return this._componentPath; } }
         internal bool Valid                                   { get { return this._serviceClass != null; } }
         internal int BuildNumber
@@ -350,7 +352,7 @@ namespace Plugin.Application.CapabilityModel
         /// </summary>
         /// <param name="defaultPath">Optional default pathname to propose to user.</param>
         /// <returns>True on successfull completion, false when user decided to cancel.</returns>
-        internal bool InitializePath(string defaultPath = null)
+        internal bool InitializePathOLD(string defaultPath = null)
         {
             if (!string.IsNullOrEmpty(defaultPath)) this._componentPath = defaultPath;
             bool isOk = false;
@@ -372,20 +374,91 @@ namespace Plugin.Application.CapabilityModel
                 if (pathDialog.ShowDialog() == DialogResult.OK)
                 {
                     isOk = true;
-                    this._absolutePath = pathDialog.SelectedPath;
-					if (this._absolutePath.StartsWith(this._rootPath, StringComparison.Ordinal)) {
-						this._componentPath = this._absolutePath.Substring(this._rootPath.Length);
+                    this._fullyQualifiedPath = pathDialog.SelectedPath;
+					if (this._fullyQualifiedPath.StartsWith(this._rootPath, StringComparison.Ordinal)) {
+						this._componentPath = this._fullyQualifiedPath.Substring(this._rootPath.Length);
 						Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.initializePath >> Component path set to: " + this._componentPath);
 					}
                     else
                     {
 						Logger.WriteWarning("Plugin.Application.CapabilityModel.Service.initializePath >> Navigated away from configured root path, settings deleted!");
 						this._rootPath = string.Empty;
-						this._componentPath = this._absolutePath;
+						this._componentPath = this._fullyQualifiedPath;
 						ContextSlt context = ContextSlt.GetContextSlt();
 						context.SetStringSetting(FrameworkSettings._RootPath, string.Empty);
 					}
                 }
+            }
+            return isOk;
+        }
+
+        /// <summary>
+        /// Initialize the Root- and Component pathnames. The Root path is taken from configuration and identifies the root of the
+        /// Sandbox (the user-specific, local, storage of artefacts). The Component path is a relative name within the Sandbox and identifies
+        /// the root of the service-specific artefact storage location within the Sandbox.
+        /// Sandbox layout follows the structure of the ECDM repository and is constructed as:
+        ///  [Business-function-ID].[Container-name]    (obtained from Service configuration).
+        ///     [Service-name]_[Major-version]          (obtained from Service configuration).
+        ///        P[Minor-version].B[Build-number]     (obtained from Service configuration).
+        ///           Artefacts                         (configuration constant).
+        ///              [Artefact-files]               (build-specific).
+        /// If we can't find a root-path, we ask the user to select one and we use that to update the root-path configuration accordingly.
+        /// Otherwise, we don't bother the user with file locations since all is constructed automatically. This also assures consistent
+        /// structure and contents of the Sandbox.
+        /// </summary>
+        /// <returns>True on successfull completion, false when user decided to cancel.</returns>
+        internal bool InitializePath()
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            bool isOk = true;
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.initializePath >> Root path is: " + this._rootPath);
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.initializePath >> Component path is: " + this._componentPath);
+
+            try
+            {
+                // If we don't have a configured root path, we ask one from the user.
+                if (string.IsNullOrEmpty(this._rootPath))
+                {
+                    using (var pathDialog = new FolderBrowserDialog())
+                    {
+                        pathDialog.RootFolder = Environment.SpecialFolder.Desktop;
+                        pathDialog.ShowNewFolderButton = true;
+                        pathDialog.Description = "Select (or create) the root folder of your sandbox...";
+                        if (pathDialog.ShowDialog() == DialogResult.OK)
+                        {
+                            this._rootPath = pathDialog.SelectedPath;
+                            context.SetStringSetting(FrameworkSettings._RootPath, this._rootPath);
+                        }
+                        else return false;
+                    }
+                }
+
+                // Retrieve the template for our output structure from configuration and replace the template placeholders with the
+                // actual values. Next, we construct the entire directory hierarchy dictated by the template...
+                this._componentPath = string.Empty;
+                this._fullyQualifiedPath = this._rootPath;
+                string[] pathElements = context.GetConfigProperty(_ComponentPathTemplate).Split('/');
+                foreach (string template in pathElements)
+                {
+                    string pathElement = string.Copy(template);
+                    pathElement = pathElement.Replace("@MAJORVSN@", this.Version.Item1.ToString());
+                    pathElement = pathElement.Replace("@MINORVSN@", this.Version.Item2.ToString());
+                    pathElement = pathElement.Replace("@BUILD@", this.BuildNumber.ToString());
+                    pathElement = pathElement.Replace("@BUSINESSFN@", this._businessFunctionID);
+                    pathElement = pathElement.Replace("@CONTAINER@", this._containerPackage.Name);
+                    pathElement = pathElement.Replace("@SERVICE@", this.Name);
+                    pathElement = pathElement.Replace("@OPERSTATUS@", this._operationalStatus);
+                    this._componentPath += "/" + pathElement;
+                    this._fullyQualifiedPath = this._rootPath + this._componentPath;
+                    if (!Directory.Exists(this._fullyQualifiedPath)) Directory.CreateDirectory(this._fullyQualifiedPath);
+                }
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.initializePath >> Root path on return: " + this._rootPath);
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.initializePath >> Component path on return: " + this._componentPath);
+            }
+            catch (Exception exc)
+            {
+                Logger.WriteError("Plugin.Application.CapabilityModel.Service.initializePath >> Exception when creating path names because: " + exc.Message);
+                isOk = false;
             }
             return isOk;
         }
@@ -487,11 +560,12 @@ namespace Plugin.Application.CapabilityModel
                 throw new IllegalContextException(message);
             }
 
-            // Set the root path, could be an empty string if not defined, in which case Component Path defaults to root directory.
+            // Set the root path, could be an empty string if not defined. Component- and FullyQualified path name initialization is deferred
+            // till the moment we actually need them.
             this._rootPath = context.GetStringSetting(FrameworkSettings._RootPath);
             if (string.IsNullOrEmpty(this._rootPath)) this._rootPath = string.Empty;
-            this._componentPath = "\\";
-            this._absolutePath = string.Empty;
+            this._componentPath = string.Empty;
+            this._fullyQualifiedPath = string.Empty;
 
             // Retrieve the operational status...
             this._operationalStatus = this._serviceClass.GetTag(context.GetConfigProperty(_ServiceOperationalStatusTag));

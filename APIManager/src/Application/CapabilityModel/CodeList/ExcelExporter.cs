@@ -169,9 +169,8 @@ namespace Plugin.Application.CapabilityModel.CodeList
                         }
 
                         // Below sequence assures that all capabilities in the current run share the same pathname...
-                        string myPath = this._currentCapability.CapabilityClass.GetTag(context.GetConfigProperty(_PathNameTag));
-                        if (string.IsNullOrEmpty(myPath)) myPath = string.Empty;
-						result = (!string.IsNullOrEmpty(this._currentService.AbsolutePath)) || this._currentService.InitializePath(myPath);
+						if (!this._currentService.InitializePath()) return false;
+                        this._currentCapability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), this._currentService.ComponentPath);
                         if (this._singleCodeList) this._workSheet = this._workBook.Worksheets.Add(this._currentCapability.Name);
                         break;
 
@@ -290,15 +289,13 @@ namespace Plugin.Application.CapabilityModel.CodeList
 
             // As a safety check, we verify that my service contains a valid absolute path. If not, we attempt
             // to create one...
-            string myPath = this._currentCapability.CapabilityClass.GetTag(context.GetConfigProperty(_PathNameTag));
-            if (string.IsNullOrEmpty(myPath)) myPath = string.Empty;
             string fileName = GetCapabilityFilename();
             string pathName = string.Empty;
             bool result = false;
 
-            if (string.IsNullOrEmpty(this._currentService.AbsolutePath))
+            if (string.IsNullOrEmpty(this._currentService.FullyQualifiedPath))
             {
-                if (!this._currentService.InitializePath(myPath))
+                if (!this._currentService.InitializePath())
                 {
                     Logger.WriteWarning("Plugin.Application.CapabilityModel.CodeList.ExcelExporter.saveProcessedCapability >> Unable to set path, giving up!");
                     return false;
@@ -307,7 +304,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
 
             try
             {
-                this._workBook.SaveAs(this._currentService.AbsolutePath + "\\" + fileName, false);
+                this._workBook.SaveAs(this._currentService.FullyQualifiedPath + "/" + fileName, false);
 
                 // Next, we update the file- and path name tags in our capability class...
                 this._currentCapability.CapabilityClass.SetTag(context.GetConfigProperty(_FileNameTag), fileName);
@@ -317,8 +314,8 @@ namespace Plugin.Application.CapabilityModel.CodeList
             catch (Exception exc)
             {
                 Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.CapabilityProcessor.saveProcessedCapability >> Error writing to '" +
-                                  pathName + "\\" + fileName + "' because:" + Environment.NewLine + exc.Message);
-                panel.WriteError(0, "Error writing to '" + pathName + "\\" + fileName + "' because:" + Environment.NewLine + exc.Message);
+                                  pathName + "/" + fileName + "' because:" + Environment.NewLine + exc.Message);
+                panel.WriteError(0, "Error writing to '" + pathName + "/" + fileName + "' because:" + Environment.NewLine + exc.Message);
             }
             return result;
         }
@@ -340,18 +337,9 @@ namespace Plugin.Application.CapabilityModel.CodeList
             string pathName = string.Empty;
             bool result = false;
 
-            // We attempt to get the path of any of processed child capabilities (must all share the same path anyway)...
-            string myPath = string.Empty;
-            if (this._currentService.SelectedCapabilities.Count > 0)
+            if (string.IsNullOrEmpty(this._currentService.FullyQualifiedPath))
             {
-                Capability child = (this._currentService.SelectedCapabilities[0]);
-                myPath = child.CapabilityClass.GetTag(context.GetConfigProperty(_PathNameTag));
-                if (string.IsNullOrEmpty(myPath)) myPath = string.Empty;
-            }
-
-            if (string.IsNullOrEmpty(this._currentService.AbsolutePath))
-            {
-                if (!this._currentService.InitializePath(myPath))
+                if (!this._currentService.InitializePath())
                 {
                     Logger.WriteWarning("Plugin.Application.CapabilityModel.CodeList.ExcelExporter.saveProcessedService >> Unable to set path, giving up!");
                     return false;
@@ -360,14 +348,14 @@ namespace Plugin.Application.CapabilityModel.CodeList
 
             try
             {
-                this._workBook.SaveAs(this._currentService.AbsolutePath + "\\" + fileName, false);
+                this._workBook.SaveAs(this._currentService.FullyQualifiedPath + "/" + fileName, false);
                 result = true;
             }
             catch (Exception exc)
             {
                 Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.CapabilityProcessor.saveProcessedService >> Error writing to '" +
-                                  pathName + "\\" + fileName + "' because:" + Environment.NewLine + exc.Message);
-                panel.WriteError(0, "Error writing to '" + pathName + "\\" + fileName + "' because:" + Environment.NewLine + exc.Message);
+                                  pathName + "/" + fileName + "' because:" + Environment.NewLine + exc.Message);
+                panel.WriteError(0, "Error writing to '" + pathName + "/" + fileName + "' because:" + Environment.NewLine + exc.Message);
             }
             return result;
         }

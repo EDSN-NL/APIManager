@@ -176,8 +176,6 @@ namespace Plugin.Application.CapabilityModel.API
         internal override void Delete()
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp.delete >> Deleting the operation result and all associated resources...");
-
-           //NOT YET IMPLEMENTED
             base.Delete();
         }
 

@@ -43,7 +43,7 @@ namespace Plugin.Application.CapabilityModel.API
                 // during pre-processing and we can thus safely reference it here.
                 if (this._commonSchema != null)
                 {
-                    string namespaceLocation = (context.GetConfigProperty(_SchemaUseRelativePathName) == "true") ? string.Empty : this._currentService.AbsolutePath + "/";
+                    string namespaceLocation = (context.GetConfigProperty(_SchemaUseRelativePathName) == "true") ? string.Empty : this._currentService.FullyQualifiedPath + "/";
                     namespaceLocation += this._commonSchemaCapability.BaseFileName + ".xsd";
                     this._currentSchema.AddNamespace(this._commonSchemaCapability.NSToken, this._commonSchema.SchemaNamespace, namespaceLocation);
                 }

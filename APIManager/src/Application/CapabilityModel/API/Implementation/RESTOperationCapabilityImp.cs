@@ -559,7 +559,7 @@ namespace Plugin.Application.CapabilityModel.API
         internal override string GetBaseFileName()
         {
             Tuple<int, int> version = this.CapabilityClass.Version;
-            return this._rootService.Name + "_" + this.Name + "_v" + version.Item1 + "p" + version.Item2;
+            return this.Name + "_v" + version.Item1 + "p" + version.Item2;
         }
 
         /// <summary>

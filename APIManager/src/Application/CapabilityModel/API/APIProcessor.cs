@@ -194,16 +194,13 @@ namespace Plugin.Application.CapabilityModel.API
 
                             if (!this._isPathInitialized)
                             {
-                                // Below sequence assures that the path is loaded for all others to use (InterfaceCapability is the first to 
-                                // be processed and it makes sense to use this as the location for all Operations since an Operation can be part
-                                // of multiple Interfaces and can thus be associated with multiple pathnames).
-                                string myPath = capability.CapabilityClass.GetTag(context.GetConfigProperty(_PathNameTag));
-                                if (string.IsNullOrEmpty(myPath)) myPath = string.Empty;
-                                if (result = (!string.IsNullOrEmpty(this._currentService.AbsolutePath)) || this._currentService.InitializePath(myPath))
+                                // Below sequence assures that the path is loaded for all others to use.
+                                if (this._currentService.InitializePath())
                                 {
-                                    capability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), capability.RootService.ComponentPath);
+                                    capability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), this._currentService.ComponentPath);
                                     this._isPathInitialized = true;
                                 }
+                                else return false;      // Unable to create the necessary output structure.
                             }
                         }
                         else if (capability is CommonSchemaCapability && useCommonSchema)
@@ -254,7 +251,7 @@ namespace Plugin.Application.CapabilityModel.API
                             result = (this._interfaceType == InterfaceType.SOAP)? BuildSOAPInterface(itf): true;
 
                             // Save the collected documentation...
-                            DocManagerSlt.GetDocManagerSlt().Save(this._currentService.AbsolutePath, itf.BaseFileName, itf.Name,
+                            DocManagerSlt.GetDocManagerSlt().Save(this._currentService.FullyQualifiedPath, itf.BaseFileName, itf.Name,
                                                                   MEChangeLog.GetDocumentationAsText(itf.CapabilityClass));
                         }
                         else if (capability is CommonSchemaCapability && useCommonSchema)
@@ -271,7 +268,7 @@ namespace Plugin.Application.CapabilityModel.API
                             // we will use the Interface instead. Operation Capabilities don't have post-processing.
                             if (result == true)
                             {
-                                this._panel.WriteInfo(this._panelIndex, "Output written to: '" + this._currentService.AbsolutePath + "'.");
+                                this._panel.WriteInfo(this._panelIndex, "Output written to: '" + this._currentService.FullyQualifiedPath + "'.");
                                 if (context.GetBoolSetting(FrameworkSettings._AutoIncrementBuildNumbers)) this._currentService.BuildNumber++;
                             }
 
