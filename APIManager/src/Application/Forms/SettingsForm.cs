@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Windows.Forms;
 using Framework.Logging;
 using Framework.Context;
-using Plugin.Application.CapabilityModel.API;
 
 namespace Plugin.Application.Forms
 {
@@ -44,6 +42,7 @@ namespace Plugin.Application.Forms
             DEUniqueID.Checked                      = context.GetBoolSetting(FrameworkSettings._DEUniqueID);
             SaveMsgDiagrams.Checked                 = context.GetBoolSetting(FrameworkSettings._SaveMessageDiagrams);
             DocGenUseCommon.Checked                 = context.GetBoolSetting(FrameworkSettings._DocGenUseCommon);
+            DocGenGenerate.Checked                  = context.GetBoolSetting(FrameworkSettings._DocGenUseGenerateDoc);
             AutoLocking.Checked                     = context.GetBoolSetting(FrameworkSettings._UseAutomaticLocking);
             PersistentLocks.Checked                 = context.GetBoolSetting(FrameworkSettings._PersistentModelLocks);
             RAAPIKeys.Text                          = context.GetStringSetting(FrameworkSettings._RESTAuthAPIKeys);
@@ -123,6 +122,7 @@ namespace Plugin.Application.Forms
             context.SetBoolSetting(FrameworkSettings._DEUniqueID, DEUniqueID.Checked);
             context.SetBoolSetting(FrameworkSettings._SaveMessageDiagrams, SaveMsgDiagrams.Checked);
             context.SetBoolSetting(FrameworkSettings._DocGenUseCommon, DocGenUseCommon.Checked);
+            context.SetBoolSetting(FrameworkSettings._DocGenUseGenerateDoc, DocGenGenerate.Checked);
             context.SetBoolSetting(FrameworkSettings._UseAutomaticLocking, AutoLocking.Checked);
             context.SetBoolSetting(FrameworkSettings._PersistentModelLocks, PersistentLocks.Checked);
             context.SetStringSetting(FrameworkSettings._DiagramSaveType, this._imageType);

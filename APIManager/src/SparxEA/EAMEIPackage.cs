@@ -467,13 +467,13 @@ namespace SparxEA.Model
                         // Access uses different syntax from 'real' SQL databases. LIKE clause looks different and we can NOT compare
                         // indices with different data types. Therefor, we explcitly convert PDATA1 to an integer (avoids syntax errors).
                         query = @"SELECT p.Package_ID AS PackageID FROM 
-                             t_package p INNER JOIN t_Object o ON p.Package_ID = Val(o.PDATA1)
+                             t_package p INNER JOIN t_object o ON p.Package_ID = Val(o.PDATA1)
                              WHERE p.Parent_ID = " + this._package.PackageID + " AND o.Stereotype LIKE '*" + checkType + "'";
                     }
                     else
                     {
                         query = @"SELECT p.Package_ID AS PackageID FROM 
-                             t_package p INNER JOIN t_Object o ON p.Package_ID = o.PDATA1
+                             t_package p INNER JOIN t_object o ON p.Package_ID = o.PDATA1
                              WHERE p.Parent_ID = " + this._package.PackageID + " AND o.Stereotype LIKE '%" + checkType + "'";
                     }
                 }
@@ -484,14 +484,14 @@ namespace SparxEA.Model
                         // Access uses different syntax from 'real' SQL databases. LIKE clause looks different and we can NOT compare
                         // indices with different data types. Therefor, we explcitly convert PDATA1 to an integer (avoids syntax errors).
                         query = @"SELECT p.Package_ID AS PackageID FROM 
-                             t_package p INNER JOIN t_Object o ON p.Package_ID = Val(o.PDATA1)
+                             t_package p INNER JOIN t_object o ON p.Package_ID = Val(o.PDATA1)
                              WHERE p.Parent_ID = " + this._package.PackageID + " AND p.Name = '" + childName +
                                  "' AND o.Stereotype LIKE '*" + checkType + "'";
                     }
                     else
                     {
                         query = @"SELECT p.Package_ID AS PackageID FROM 
-                             t_package p INNER JOIN t_Object o ON p.Package_ID = o.PDATA1
+                             t_package p INNER JOIN t_object o ON p.Package_ID = o.PDATA1
                              WHERE p.Parent_ID = " + this._package.PackageID + " AND p.Name = '" + childName +
                                  "' AND o.Stereotype LIKE '%" + checkType + "'";
                     }

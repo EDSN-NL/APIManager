@@ -358,5 +358,17 @@ namespace APIManager.SparxEA.Properties {
                 this["SupplementaryPrefix"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool DocGenGenerateDoc {
+            get {
+                return ((bool)(this["DocGenGenerateDoc"]));
+            }
+            set {
+                this["DocGenGenerateDoc"] = value;
+            }
+        }
     }
 }

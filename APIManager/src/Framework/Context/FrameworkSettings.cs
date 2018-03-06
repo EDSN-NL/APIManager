@@ -46,6 +46,7 @@ namespace Framework.Context
         internal const string _InterfaceContractType          = "InterfaceContractType";
         internal const string _SaveMessageDiagrams            = "SaveMessageDiagrams";
         internal const string _DocGenUseCommon                = "DocGenUseCommon";
+        internal const string _DocGenUseGenerateDoc           = "DocGenGenerateDoc";
         internal const string _SupplementaryPrefixCode        = "SupplementaryPrefixCode";
 
         // These are the names of all currently defined resources:
@@ -102,6 +103,7 @@ namespace Framework.Context
             this._boolSettings.Add(_DEUniqueID, Settings.Default.DEUniqueID);
             this._boolSettings.Add(_SaveMessageDiagrams, Settings.Default.SaveMessageDiagrams);
             this._boolSettings.Add(_DocGenUseCommon, Settings.Default.DocGenUseCommon);
+            this._boolSettings.Add(_DocGenUseGenerateDoc, Settings.Default.DocGenGenerateDoc);
             this._boolSettings.Add(_UseAutomaticLocking, Settings.Default.UseAutomaticLocking);
             this._boolSettings.Add(_PersistentModelLocks, Settings.Default.PersistentModelLocks);
 
@@ -380,6 +382,11 @@ namespace Framework.Context
 
                     case _DocGenUseCommon:
                         Settings.Default.DocGenUseCommon = value;
+                        if (!this._inTransaction) Settings.Default.Save();
+                        break;
+
+                    case _DocGenUseGenerateDoc:
+                        Settings.Default.DocGenGenerateDoc = value;
                         if (!this._inTransaction) Settings.Default.Save();
                         break;
 

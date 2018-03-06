@@ -96,6 +96,7 @@
             this.SupplementaryPrefixCode = new System.Windows.Forms.TextBox();
             this.SupplementaryPrefixLabel = new System.Windows.Forms.Label();
             this.AttributePrefixToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.DocGenGenerate = new System.Windows.Forms.CheckBox();
             this.CodeLists.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -578,10 +579,11 @@
             // 
             // DocumentationGeneration
             // 
+            this.DocumentationGeneration.Controls.Add(this.DocGenGenerate);
             this.DocumentationGeneration.Controls.Add(this.DocGenUseCommon);
             this.DocumentationGeneration.Location = new System.Drawing.Point(427, 281);
             this.DocumentationGeneration.Name = "DocumentationGeneration";
-            this.DocumentationGeneration.Size = new System.Drawing.Size(227, 51);
+            this.DocumentationGeneration.Size = new System.Drawing.Size(227, 85);
             this.DocumentationGeneration.TabIndex = 6;
             this.DocumentationGeneration.TabStop = false;
             this.DocumentationGeneration.Text = "Documentation Generation";
@@ -589,7 +591,7 @@
             // DocGenUseCommon
             // 
             this.DocGenUseCommon.AutoSize = true;
-            this.DocGenUseCommon.Location = new System.Drawing.Point(6, 20);
+            this.DocGenUseCommon.Location = new System.Drawing.Point(5, 42);
             this.DocGenUseCommon.Name = "DocGenUseCommon";
             this.DocGenUseCommon.Size = new System.Drawing.Size(179, 17);
             this.DocGenUseCommon.TabIndex = 0;
@@ -764,9 +766,9 @@
             // 
             this.JSONSpecifics.Controls.Add(this.SupplementaryPrefixCode);
             this.JSONSpecifics.Controls.Add(this.SupplementaryPrefixLabel);
-            this.JSONSpecifics.Location = new System.Drawing.Point(427, 338);
+            this.JSONSpecifics.Location = new System.Drawing.Point(427, 372);
             this.JSONSpecifics.Name = "JSONSpecifics";
-            this.JSONSpecifics.Size = new System.Drawing.Size(226, 106);
+            this.JSONSpecifics.Size = new System.Drawing.Size(226, 72);
             this.JSONSpecifics.TabIndex = 15;
             this.JSONSpecifics.TabStop = false;
             this.JSONSpecifics.Text = "JSON Settings";
@@ -786,6 +788,16 @@
             this.SupplementaryPrefixLabel.Size = new System.Drawing.Size(109, 13);
             this.SupplementaryPrefixLabel.TabIndex = 0;
             this.SupplementaryPrefixLabel.Text = "Supplementary Prefix:";
+            // 
+            // DocGenGenerate
+            // 
+            this.DocGenGenerate.AutoSize = true;
+            this.DocGenGenerate.Location = new System.Drawing.Point(5, 19);
+            this.DocGenGenerate.Name = "DocGenGenerate";
+            this.DocGenGenerate.Size = new System.Drawing.Size(143, 17);
+            this.DocGenGenerate.TabIndex = 1;
+            this.DocGenGenerate.Text = "Generate documentation";
+            this.DocGenGenerate.UseVisualStyleBackColor = true;
             // 
             // SettingsForm
             // 
@@ -914,5 +926,6 @@
         private System.Windows.Forms.TextBox SupplementaryPrefixCode;
         private System.Windows.Forms.Label SupplementaryPrefixLabel;
         private System.Windows.Forms.ToolTip AttributePrefixToolTip;
+        private System.Windows.Forms.CheckBox DocGenGenerate;
     }
 }
