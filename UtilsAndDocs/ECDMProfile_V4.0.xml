@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="windows-1252"?>
 <UMLProfile profiletype="uml2">
-	<Documentation id="9B84831D-3" name="Enexis ECDM" version="3.0" notes="20170918: Vs 3.0:	Enhanced Service Profile for use with REST."/>
+	<Documentation id="9B84831D-3" name="Enexis ECDM" version="4.0" notes="20170918:  Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109:  Vs 3.1:	Added support for 'nillable' elements.&#xA;20180110:  Vs 3.2:	Added 'alternativeNaming' tag to CommonSchema (SOAP backwards compatibility).&#xA;20180213: Vs 3.3:	Defines Service Archtetype and added _metatype to Service.&#xA;20180216: Vs 3.4:	Resource: removed 'isTag', added 'tagNames'.&#xA;20180308: Vs 4.0:	Implemented first draft of the Configuration Management Profile."/>
 	<Content>
 		<Stereotypes>
 			<Stereotype name="ASMBIE" notes="Association Message Business Information Entity." cx="0" cy="0" bgcolor="11009769" fontcolor="3947580" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAssoc" baseStereotypes="ECDMAssoc"/>
@@ -50,6 +50,7 @@
 					<Tag name="fileName" type="string" description="Contains the associated schema name WITHOUT the path name." unit="" values="" default=""/>
 					<Tag name="pathName" type="string" description="Contains the absolute pathname to the schema file." unit="" values="" default=""/>
 					<Tag name="nsToken" type="string" description="Stores the namespace mnemonic name." unit="" values="" default=""/>
+					<Tag name="useAlternativeNaming" type="boolean" description="Set this tag to 'true' to force the 'original' naming convention for the Common Namespace. This implies that the name of the schema is changed to &quot;Common&quot;  (instead of &quot;CommonSchema&quot;) and the namespace will not include the container name. This results in a naming convention that is compatible with the original plugin (and which is inherently wrong because it might lead to naming conflicts).&#xA;The option is included to facilitate backwards compatibility for SOAP services." unit="" values="true,false" default=""/>
 				</TaggedValues>
 			</Stereotype>
 			<Stereotype name="Container" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="3947580" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMComponent" baseStereotypes="ECDMComponent">
@@ -57,7 +58,11 @@
 					<Tag name="containerType" type="enumeration" description="" unit="" values="ApplicationAdapter,ExternalPartyAdapter,Functional" default=""/>
 				</TaggedValues>
 			</Stereotype>
-			<Stereotype name="Content" notes="This stereotype must be be used to mark an attribute as &quot;regular content&quot; of a type. These are typically translated into XSD 'Elements'." cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAttrib" baseStereotypes="ECDMAttrib"/>
+			<Stereotype name="Content" notes="This stereotype must be be used to mark an attribute as &quot;regular content&quot; of a type. These are typically translated into XSD 'Elements'." cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAttrib" baseStereotypes="ECDMAttrib">
+				<TaggedValues>
+					<Tag name="nillable" type="boolean" description="When present and set to 'true', this indicates that implementations can specify the value of the attribute as 'NULL'. This is typically used only in XSD/XML implementations." unit="" values="true,false" default=""/>
+				</TaggedValues>
+			</Stereotype>
 			<Stereotype name="CoreComponent" notes="Aggregate Core Component (ACC), reusable core component (no business context)." cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMComponent" baseStereotypes="ECDMComponent"/>
 			<Stereotype name="DEPRECATED" notes="This Stereotype is used to mark a particular element as Deprecated. Deprecated elements must NOT be used in API definitions!" cx="0" cy="0" bgcolor="33023" fontcolor="-1" bordercolor="-1" borderwidth="1" hideicon="0" generalizes="ECDMRoot" baseStereotypes="ECDMRoot">
 				<AppliesTo>
@@ -237,6 +242,7 @@
 				<TaggedValues>
 					<Tag name="archetype" type="enumeration" description="" unit="" values="Get,Put,Post,Delete,Options,Head,Patch" default=""/>
 					<Tag name="useHeaderParameters" type="boolean" description="Set to 'true' to indicate that the operation uses configured Header Parameters." unit="" values="true,false" default="true"/>
+					<Tag name="useLinkHeaders" type="boolean" description="Set to 'true' to indicate that the operation response might use 'Link' header parameters." unit="" values="true,false" default="false"/>
 					<Tag name="consumesMIMEList" type="string" description="Comma separated list of MIME types that can be consumed by this operation." unit="" values="" default="application/json"/>
 					<Tag name="producesMIMEList" type="string" description="Comma separated list of MIME types that can be produced through this operation." unit="" values="" default="application/json"/>
 				</TaggedValues>
@@ -256,19 +262,22 @@
 			<Stereotype name="RESTResource" metatype="Resource" notes="The ECDM REST model builds an URL using the generic pattern &amp;lt;resource&amp;gt;/&amp;lt;path-expression&amp;gt;/&amp;lt;resource&amp;gt;/&amp;lt;path-expression&amp;gt;/&amp;lt;resource&amp;gt;...&#xA;The role of each resource object within this URL is specified by the 'archetype' tag. The value of the tag is used to impose some validation and construction rules:&#xA;1) Document or Controller resources are allowed only at the end of the URL.&#xA;2) Collection or Store resources MUST always be followed by a Path Expression, i.e. they are NOT allowed at the end of the URL.&#xA;3) Path Expressions can ONLY be owned by a Collection or a Store." cx="0" cy="0" bgcolor="11009769" fontcolor="-1" bordercolor="-1" borderwidth="1" hideicon="0" generalizes="ServiceCapability" baseStereotypes="ServiceCapability">
 				<TaggedValues>
 					<Tag name="archetype" type="enumeration" description="" unit="" values="Collection,Controller,Document,Identifier,Store" default=""/>
-					<Tag name="isTag" type="boolean" description="Set to TRUE if the resource must be inserted in the Interface 'tags' section." unit="" values="true,false" default="false"/>
 					<Tag name="isRootLevel" type="boolean" description="Set to TRUE of this is a root-level resource (otherwise known as 'sub-API').&#xA;Root-level resources are the first resources below the API major version in the URL." unit="" values="true,false" default="false"/>
+					<Tag name="tagNames" type="string" description="Comma separated list of all tag names assigned to this resource." unit="" values="" default=""/>
 				</TaggedValues>
 			</Stereotype>
 			<Stereotype name="SBDH" notes="&lt;i&gt;Service Business Document Header&lt;/i&gt;, used to identify the standardised request- and response headers." cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMComponent" baseStereotypes="ECDMComponent"/>
-			<Stereotype name="Service" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMComponent" baseStereotypes="ECDMComponent">
+			<Stereotype name="Service" metatype="Service" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMComponent" baseStereotypes="ECDMComponent">
 				<AppliesTo>
 					<Apply type="Lifeline"/>
 					<Apply type="Object"/>
 				</AppliesTo>
 				<TaggedValues>
+					<Tag name="archetype" type="enumeration" description="Defines the archetype of the Service." unit="" values="CodeList,Message,REST,SOAP" default=""/>
 					<Tag name="operationalStatus" type="enumeration" description="" unit="" values="Standard,Experimental,Deprecated,Draft" default="Standard"/>
 					<Tag name="maxOperationID" type="int" description="Each Operation that is added to a Service receives a unique sequence number or operationID. In order to keep track of these ID's, the Service maintains the latest index used so far as 'maxOperationID'. OperationID's are never reclaimed, so when an Operation is removed, it's ID won't be re-used." unit="" values="" default=""/>
+					<Tag name="CMState" type="enumeration" description="" unit="" values="Committed,Created,Disabled,Modified,Released" default="Disabled"/>
+					<Tag name="CMBranch" type="string" description="Contains the name of the Configuration Management Branch on which the service is tracked." unit="" values="" default=""/>
 				</TaggedValues>
 			</Stereotype>
 			<Stereotype name="ServiceActor" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMMeta" baseStereotypes="ECDMMeta">

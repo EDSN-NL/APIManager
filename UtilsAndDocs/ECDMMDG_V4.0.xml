@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="windows-1252"?>
-<MDG.Technology version="1.0"><Documentation id="ECDM_MDG_V3" name="Enexis ECDM" version="3.4" notes="Incorporates the ECDM Profile, diagram and toolbox.&#xA;Enhanced for REST functionality,&#xA;Various enhancements."/><UMLProfiles><UMLProfile profiletype="uml2">
-			<Documentation id="9B84831D-3" name="Enexis ECDM" version="3.4" notes="20170918:  Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109:  Vs 3.1:	Added support for 'nillable' elements.&#xA;20180110:  Vs 3.2:	Added 'alternativeNaming' tag to CommonSchema (SOAP backwards compatibility).&#xA;20180213: Vs 3.3:	Defines Service Archtetype and added _metatype to Service.&#xA;20180216: Vs 3.4:	Resource: removed 'isTag', added 'tagNames'."/>
+<MDG.Technology version="1.0"><Documentation id="ECDM_MDG_V4" name="Enexis ECDM" version="4.0" notes="Incorporates the ECDM Profile, diagram and toolbox.&#xA;Enhanced for REST- and CM  functionality,&#xA;Various enhancements."/><UMLProfiles><UMLProfile profiletype="uml2">
+			<Documentation id="9B84831D-3" name="Enexis ECDM" version="4.0" notes="20170918:  Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109:  Vs 3.1:	Added support for 'nillable' elements.&#xA;20180110:  Vs 3.2:	Added 'alternativeNaming' tag to CommonSchema (SOAP backwards compatibility).&#xA;20180213: Vs 3.3:	Defines Service Archtetype and added _metatype to Service.&#xA;20180216: Vs 3.4:	Resource: removed 'isTag', added 'tagNames'.&#xA;20180308: Vs 4.0:	Implemented first draft of the Configuration Management Profile."/>
 			<Content>
 				<Stereotypes>
 					<Stereotype name="ASMBIE" notes="Association Message Business Information Entity." cx="0" cy="0" bgcolor="11009769" fontcolor="3947580" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAssoc" baseStereotypes="ECDMAssoc"/>
@@ -273,9 +273,11 @@
 							<Apply type="Object"/>
 						</AppliesTo>
 						<TaggedValues>
-							<Tag name="archetype" type="enumeration" description="Defines the archetype of the Service." unit="" values="SOAP,REST,Message" default=""/>
+							<Tag name="archetype" type="enumeration" description="Defines the archetype of the Service." unit="" values="CodeList,Message,REST,SOAP" default=""/>
 							<Tag name="operationalStatus" type="enumeration" description="" unit="" values="Standard,Experimental,Deprecated,Draft" default="Standard"/>
 							<Tag name="maxOperationID" type="int" description="Each Operation that is added to a Service receives a unique sequence number or operationID. In order to keep track of these ID's, the Service maintains the latest index used so far as 'maxOperationID'. OperationID's are never reclaimed, so when an Operation is removed, it's ID won't be re-used." unit="" values="" default=""/>
+							<Tag name="CMState" type="enumeration" description="" unit="" values="Committed,Created,Disabled,Modified,Released" default="Disabled"/>
+							<Tag name="CMBranch" type="string" description="Contains the name of the Configuration Management Branch on which the service is tracked." unit="" values="" default=""/>
 						</TaggedValues>
 					</Stereotype>
 					<Stereotype name="ServiceActor" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMMeta" baseStereotypes="ECDMMeta">
@@ -366,7 +368,7 @@
 			</Content>
 		</UMLProfile>
 	</DiagramProfile><UIToolboxes><UMLProfile profiletype="uml2">
-			<Documentation id="B5CD5BB5-B" name="Enexis ECDM" version="2.0" notes="Added support for REST"/>
+			<Documentation id="B5CD5BB5-B" name="Enexis ECDM" version="3.0" notes="26-08-2015:	[1.0] Initial release.&#xA;18-09-2017:	[2.0] Added support for REST&#xA;08-03-2018:	[3.0] Added support for Configuration Management"/>
 			<Content>
 				<Stereotypes>
 					<Stereotype name="(SOAP) Service Modelling" notes="" cx="0" cy="0" bgcolor="-1" fontcolor="-1" bordercolor="-1" borderwidth="-1" hideicon="0">
@@ -417,6 +419,17 @@
 							<Tag name="UML::PackageImport" type="" description="" unit="" values="" default="Package Import"/>
 							<Tag name="UML::PackageMerge" type="" description="" unit="" values="" default="Package Merge"/>
 							<Tag name="UML::Usage" type="" description="" unit="" values="" default="Component Usage"/>
+						</TaggedValues>
+					</Stereotype>
+					<Stereotype name="Configuration Management" notes="" cx="0" cy="0" bgcolor="-1" fontcolor="-1" bordercolor="-1" borderwidth="-1" hideicon="0">
+						<AppliesTo>
+							<Apply type="ToolboxPage"/>
+						</AppliesTo>
+						<TaggedValues>
+							<Tag name="Enexis ECDM::ContainerCI(UML::Class)" type="" description="" unit="" values="" default="ContainerCI"/>
+							<Tag name="Enexis ECDM::DocumentCI(UML::Class)" type="" description="" unit="" values="" default="DocumentCI"/>
+							<Tag name="Enexis ECDM::ModelCI(UML::Class)" type="" description="" unit="" values="" default="ModelCI"/>
+							<Tag name="Enexis ECDM::ServiceCI(UML::Class)" type="" description="" unit="" values="" default="ServiceCI"/>
 						</TaggedValues>
 					</Stereotype>
 					<Stereotype name="Containers" notes="Create the correct package type for your diagram" cx="0" cy="0" bgcolor="-1" fontcolor="-1" bordercolor="-1" borderwidth="-1" hideicon="0">
