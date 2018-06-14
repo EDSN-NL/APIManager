@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-    targetNamespace="urn:x-enexis:ecdm:framework:context:eventhandler"
-    xmlns="urn:x-enexis:ecdm:framework:context:eventhandler">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="urn:x-enexis:ecdm:framework:context:eventhandler"
+    xmlns="urn:x-enexis:ecdm:framework:context:eventhandler" attributeFormDefault="unqualified">
 
     <xs:element name="EventConfiguration">
         <xs:complexType>
@@ -43,24 +42,21 @@
             <xs:element maxOccurs="1" minOccurs="0" name="PackageList">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="1" name="PackageName"
-                            type="xs:normalizedString"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="1" name="PackageName" type="xs:normalizedString"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
             <xs:element maxOccurs="1" minOccurs="0" name="StereotypeList">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="1" name="StereotypeName"
-                            type="xs:normalizedString"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="1" name="StereotypeName" type="xs:normalizedString"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
             <xs:element maxOccurs="1" minOccurs="0" name="ClassList">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="1" name="ClassName"
-                            type="xs:normalizedString"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="1" name="ClassName" type="xs:normalizedString"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>

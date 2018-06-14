@@ -106,7 +106,15 @@ namespace Plugin.Application.Events.API
                     processor = processorMgr.GetProcessorByIndex(_InterfaceClassToken, 0);
                 else MessageBox.Show("No processors are currently defined for Interface processing, aborting!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            if (processor != null) myInterface.HandleCapabilities(processor);
+
+            if (processor != null)
+            {
+                myInterface.HandleCapabilities(processor);
+
+                // Mark service as 'modified' for configuration management and add to diagram in different color...
+                myService.Dirty();
+                myService.Paint(svcContext.MyDiagram);
+            }
             svcContext.UnlockModel();
         }
     }

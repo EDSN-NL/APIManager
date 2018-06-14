@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using Framework.Event;
 using Framework.Logging;
 using Framework.Model;
+using Framework.View;
 using Framework.Context;
 using Plugin.Application.CapabilityModel.CodeList;
 using Plugin.Application.Forms;
@@ -48,12 +49,14 @@ namespace Plugin.Application.Events.CodeList
             ContextSlt context = ContextSlt.GetContextSlt();
             MEClass serviceClass;
             MEPackage declPackage;
+            Diagram myDiagram;
 
             // Figure-out how we got here...
             if (this._event.Scope == TreeScope.Diagram)
             {
                 serviceClass = context.CurrentClass;
                 declPackage = serviceClass.OwningPackage.Parent;
+                myDiagram = context.CurrentDiagram;
             }
             else // (this._event.scope == TreeScope.PackageTree), no other options possible.
             {
@@ -61,6 +64,7 @@ namespace Plugin.Application.Events.CodeList
                 MEPackage serviceModel = declPackage.FindPackage(context.GetConfigProperty(_ServiceModelPkgName));
                 string serviceName = declPackage.Name.Substring(0, declPackage.Name.IndexOf("_V"));
                 serviceClass = serviceModel.FindClass(serviceName, context.GetConfigProperty(_ServiceClassStereotype));
+                myDiagram = serviceModel.FindDiagram(serviceModel.Name);
             }
 
             int currentMajor = serviceClass.Version.Item1;
@@ -72,8 +76,10 @@ namespace Plugin.Application.Events.CodeList
                     Logger.WriteInfo("Plugin.Application.Events.CodeList.CodeListVersionSyncEvent.handleEvent >> Updating all CodeLists to version: '" + dialog.MajorVersion + "'...");
                     var codeListService = new CodeListService(serviceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype));
 
-                    // This will automatically synchronise all children if the major version is different from the current version...
+                    // This will automatically synchronize all children if the major version is different from the current version...
                     codeListService.UpdateVersion(new Tuple<int, int>(dialog.MajorVersion, 0));
+                    codeListService.Dirty();
+                    if (myDiagram != null) codeListService.Paint(myDiagram);
 
                     // Finally, update the package version.
                     string packageName = declPackage.Name.Substring(0, declPackage.Name.IndexOf("_V") + 2);

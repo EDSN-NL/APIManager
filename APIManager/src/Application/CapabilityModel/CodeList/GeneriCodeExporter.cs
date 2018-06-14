@@ -50,6 +50,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
         /// Genericode exports create filenames by appending 'CodeList_vxpy' to the name of the current capability, in which
         /// x and y are major- and minor versions respectively. 
         /// The created name always has an '.xml' extension.
+        /// When configuration management is enabled, filenames will NOT have a version!
         /// </summary>
         /// <returns>Capability-specific filename.</returns>
         internal override string GetCapabilityFilename()
@@ -71,6 +72,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
         /// Genericode exports create filenames by appending 'CodeListSet_vxpy' to the name of the service, in which
         /// x and y are major- and minor versions respectively. If the name already ends with 'List' or 'Lists', we only
         /// append 'Set_vxpy'.
+        /// When configuration management is enabled, filenames will NOT have a version!
         /// The created name always has an '.xml' extension.
         /// </summary>
         /// <returns>Capability-specific filename.</returns>
@@ -78,14 +80,14 @@ namespace Plugin.Application.CapabilityModel.CodeList
         {
             Tuple<int, int> version = this._currentService.Version;
             string name = this._currentService.Name;
-            if (this._currentService.Name.EndsWith("List")) name += "Set_v";
+            if (this._currentService.Name.EndsWith("List")) name += "Set";
             else if (this._currentService.Name.EndsWith("Lists"))
             {
                 name = name.Substring(0, name.Length - 1);  // Remove last character
-                name += "Set_v";
+                name += "Set";
             }
-            else if (!this._currentService.Name.EndsWith("Set")) name += "CodeListSet_v";
-            name += version.Item1 + "p" + version.Item2 + ".xml";
+            else if (!this._currentService.Name.EndsWith("Set")) name += "CodeListSet";
+            name += this._currentService.UseConfigurationMgmt? ".xml": ("_v" + version.Item1 + "p" + version.Item2 + ".xml");
             return name;
         }
 
@@ -126,9 +128,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
                             return false;
                         }
 
-                        // Below sequence assures that all capabilities in the current run share the same pathname...
-                        result = this._currentService.InitializePath();
-                        this._currentCapability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), this._currentService.ComponentPath);
+                        this._currentCapability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), this._currentService.ServiceBuildPath);
                         break;
 
                     // Processing stage is used to create the actual Genericode representation and write the result to file...
@@ -137,6 +137,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
                         this._XMLContents = BuildCodeList();
                         panel.IncreaseBar(1);
                         result = SaveProcessedCapability();
+                        this._currentService.Dirty();   // Mark service as 'modified' for configuration management.
                         break;
 
                     // Cancelling stage is used only to send a message...
@@ -201,11 +202,10 @@ namespace Plugin.Application.CapabilityModel.CodeList
                         }
                         this._XMLContents = BuildCodeListSet();
 
-                        // If instructed to do so, increment our build number to get it ready for next build....
-                        if (context.GetBoolSetting(FrameworkSettings._AutoIncrementBuildNumbers)) this._currentService.BuildNumber++;
                         if (result = SaveProcessedService())
                              panel.WriteInfo(0, "Service processing has been completed successfully.");
                         else panel.WriteError(0, "**ERROR: Unable to save CodeListSet output!");
+                        this._currentService.Dirty();   // Mark service as 'modified' for configuration management.
                         panel.Done();
                         break;
 

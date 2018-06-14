@@ -1,10 +1,8 @@
-﻿using System;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using System.Collections.Generic;
 using Framework.Event;
 using Framework.Logging;
 using Framework.Context;
-using Framework.Model;
 using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 using Plugin.Application.Forms;
@@ -107,7 +105,15 @@ namespace Plugin.Application.Events.API
                     processor = processorMgr.GetProcessorByIndex(_InterfaceClassToken, 0);
                 else MessageBox.Show("No processors are currently defined for Interface processing, aborting!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            if (processor != null) myInterface.HandleCapabilities(processor);
+
+            if (processor != null)
+            {
+                myInterface.HandleCapabilities(processor);
+
+                // Mark service as 'modified' for configuration management and add to diagram in different color...
+                myService.Dirty();
+                myService.Paint(svcContext.MyDiagram);
+            }
             svcContext.UnlockModel();
         }
 

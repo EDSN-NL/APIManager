@@ -88,7 +88,6 @@ namespace Plugin.Application.Events.CodeList
                         var diagramAssocList = new List<MEAssociation>();
 
                         var codeListService = new CodeListService(serviceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype));
-
                         string newNames = string.Empty;
                         bool isFirst = true; // Little trick to get the right amount of ',' separators.
                         SortedList<string, CodeListDirector.DirectorContext> resultSet = director.Context;
@@ -136,6 +135,8 @@ namespace Plugin.Application.Events.CodeList
 
                         myDiagram.AddClassList(diagramClassList);
                         myDiagram.AddAssociationList(diagramAssocList);
+                        codeListService.Dirty();
+                        codeListService.Paint(myDiagram);
                         myDiagram.Redraw();
                         declPackage.Refresh();
                     }

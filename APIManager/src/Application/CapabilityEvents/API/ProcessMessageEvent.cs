@@ -90,6 +90,11 @@ namespace Plugin.Application.Events.API
                     else MessageBox.Show("No processors are currently defined for Messaging, aborting!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 if (processor != null) myMessage.HandleCapabilities(processor);
+
+                // Mark service as 'modified' for configuration management and add to diagram in different color...
+                myService.Dirty();
+                myService.Paint(svcContext.MyDiagram);
+
                 svcContext.UnlockModel();
             }
         }

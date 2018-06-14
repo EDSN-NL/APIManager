@@ -79,6 +79,11 @@ namespace Plugin.Application.Events.API
 
                     if (dialog.MinorVersionIndicator) myService.UpdateVersion(new Tuple<int, int>(myService.Version.Item1, myService.Version.Item2 + 1));
                     myService.CreateLogEntry("Renamed operation: '" + oldName + "' to: '" + svcContext.OperationClass.Name + "'.");
+
+                    // Mark service as 'modified' for configuration management and add to diagram in different color...
+                    myService.Dirty();
+                    myService.Paint(svcContext.MyDiagram);
+
                     svcContext.Refresh();
                 }
                 svcContext.UnlockModel();

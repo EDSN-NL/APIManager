@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using APIManager.SparxEA.Properties;        // Addresses the "settings" environment so we can retrieve run-time settings.
+using Framework.Util;
+using Framework.Logging;
 
 namespace Framework.Context
 {
@@ -26,28 +29,35 @@ namespace Framework.Context
         internal const string _RESTAuthOAuth2FlowAuthCode     = "Authorization Code";
 
         // These are the names of all currently defined settings:
-        internal const string _UseLogFile                     = "UseLogFile";
-        internal const string _LogFileName                    = "LogFileName";
-        internal const string _RootPath                       = "RootPath";
-        internal const string _CLAddSourceEnumsToDiagram      = "CLAddSourcEnumsToDiagram";
-        internal const string _CLAddCodeTypesToDiagram        = "CLAddCodeTypesToDiagram";
-        internal const string _AutoIncrementBuildNumbers      = "AutoIncrementBuildNrs";
-        internal const string _SMAddMessageAssemblyToDiagram  = "SMAddMessageAssemblyToDiagram";
-        internal const string _SMAddBusinessMsgToDiagram      = "SMAddBusinessMsgToDiagram";
-        internal const string _SMCreateCommonSchema           = "SMCreateCommonSchema";
-        internal const string _SMUseMessageHeaders            = "SMUseMessageHeaders";
-        internal const string _SMUseSecurityLevels            = "SMUseSecurityLevels";
-        internal const string _DEBusinessTermName             = "DEBusinessTermName";
-        internal const string _DEDefinition                   = "DEDefinition";
-        internal const string _DEDictionaryEntryName          = "DEDictionaryEntryName";
-        internal const string _DEUniqueID                     = "DEUniqueID";
-        internal const string _DENotes                        = "DENotes";
-        internal const string _DiagramSaveType                = "DiagramSaveType";
-        internal const string _InterfaceContractType          = "InterfaceContractType";
-        internal const string _SaveMessageDiagrams            = "SaveMessageDiagrams";
-        internal const string _DocGenUseCommon                = "DocGenUseCommon";
-        internal const string _DocGenUseGenerateDoc           = "DocGenGenerateDoc";
-        internal const string _SupplementaryPrefixCode        = "SupplementaryPrefixCode";
+        internal const string _UseLogFile                     = "UseLogFile";                   // Use logfile when set to 'true'.
+        internal const string _LogFileName                    = "LogFileName";                  // Fully qualified logfile name (including path).
+        internal const string _CLAddSourceEnumsToDiagram      = "CLAddSourcEnumsToDiagram";     // CodeList: add source enumerations to diagram when 'true'.
+        internal const string _CLAddCodeTypesToDiagram        = "CLAddCodeTypesToDiagram";      // CodeList: add generated CodeType to diagram when 'true'.
+        internal const string _SMAddMessageAssemblyToDiagram  = "SMAddMessageAssemblyToDiagram";    // SOAP: add MessageAssembly classes to service model diagram when 'true'.
+        internal const string _SMAddBusinessMsgToDiagram      = "SMAddBusinessMsgToDiagram";    // SOAP: add BusinessMessage classes to service model diagram when 'true'.
+        internal const string _SMCreateCommonSchema           = "SMCreateCommonSchema";         // SOAP: force creation/parse of common schema when 'true'.
+        internal const string _SMUseMessageHeaders            = "SMUseMessageHeaders";          // SOAP: force use of message headers when creating new diagram when 'true'.
+        internal const string _SMUseSecurityLevels            = "SMUseSecurityLevels";          // SOAP: force checking/creation of security levels when 'true'.
+        internal const string _DEBusinessTermName             = "DEBusinessTermName";           // Documentation: export BusinessTermName when 'true'.
+        internal const string _DEDefinition                   = "DEDefinition";                 // Documentation: export Definition when 'true'.
+        internal const string _DEDictionaryEntryName          = "DEDictionaryEntryName";        // Documentation: export DictionaryEntryName when 'true'.
+        internal const string _DEUniqueID                     = "DEUniqueID";                   // Documentation: export UniqueID when 'true'.
+        internal const string _DENotes                        = "DENotes";                      // Documentation: export Notes when 'true'.
+        internal const string _DiagramSaveType                = "DiagramSaveType";              // User-configured diagram type.
+        internal const string _InterfaceContractType          = "InterfaceContractType";        // Indicates whether we're building SOAP or REST services (also used to select schema type: XSD/JSON).
+        internal const string _SaveMessageDiagrams            = "SaveMessageDiagrams";          // Not Yet Implemented! Save message diagrams in documentation when 'true'.
+        internal const string _DocGenUseCommon                = "DocGenUseCommon";              // ADoc generation: use separate 'common' definitions file when 'true'.
+        internal const string _DocGenUseGenerateDoc           = "DocGenGenerateDoc";            // Adoc generation: enable document generation when 'true'.
+        internal const string _SupplementaryPrefixCode        = "SupplementaryPrefixCode";      // JSON: string to use in schema to indicate element is a supplementary attribute.
+        internal const string _UseConfigurationManagement     = "UseConfigurationManagement";   // Set to 'true' when output must be written to Configuration Management Tool.
+        internal const string _GLUserName                     = "GLUserName";                   // Central Repository: user name.
+        internal const string _GLAccessToken                  = "GLAccessToken";                // Central Repository: access token (encrypted).
+        internal const string _GLEMail                        = "GLEMail";                      // Central Repository: e-mail address of user.
+        internal const string _GLRepositoryBaseURL            = "GLRepositoryBaseURL";          // Central Repository: partial URL to top or remote repository.
+        internal const string _GLRepositoryNamespace          = "GLRepositoryNamespace";        // Relative path from repository base to root of all repositories.
+        internal const string _GLCloneOnCreate                = "GLCloneOnCreate";              // When 'true', we use a clone from remote when creating a local, new, repository.
+        internal const string _RepositoryRootPath             = "RepositoryRootPath";           // Local Repository: path to root of local GIT repositories.
+        internal const string _GITIgnoreEntries               = "GITIgnoreEntries";             // Comma-separated list of GIT-Ignore entries for the session.
 
         // These are the names of all currently defined resources:
         internal const string _CodeListHeader                 = "CodeListHeader";
@@ -74,6 +84,10 @@ namespace Framework.Context
         internal const string _UseAutomaticLocking            = "UseAutomaticLocking";
         internal const string _PersistentModelLocks           = "PersistentModelLocks";
 
+        // We use this as an extra security precaution when encrypting/decrypting settings. Don't change this value or you can't retrieve
+        // existing encrypted values anymore!
+        internal const string _Salt                           = "FrameworkSaltyStuff";
+
         private SortedList<string, string> _stringSettings;
         private SortedList<string, bool> _boolSettings;
         private bool _inTransaction;
@@ -90,7 +104,6 @@ namespace Framework.Context
             this._boolSettings.Add(_UseLogFile, Settings.Default.UseLogfile);
             this._boolSettings.Add(_CLAddSourceEnumsToDiagram, Settings.Default.CLAddSourceEnumsToDiagram);
             this._boolSettings.Add(_CLAddCodeTypesToDiagram, Settings.Default.CLAddCodeTypesToDiagram);
-            this._boolSettings.Add(_AutoIncrementBuildNumbers, Settings.Default.AutoIncrementBuildNrs);
             this._boolSettings.Add(_SMAddMessageAssemblyToDiagram, Settings.Default.SMAddMessageAssemblyToDiagram);
             this._boolSettings.Add(_SMAddBusinessMsgToDiagram, Settings.Default.SMAddBusinessMsgToDiagram);
             this._boolSettings.Add(_SMCreateCommonSchema, Settings.Default.SMCreateCommonSchema);
@@ -106,9 +119,10 @@ namespace Framework.Context
             this._boolSettings.Add(_DocGenUseGenerateDoc, Settings.Default.DocGenGenerateDoc);
             this._boolSettings.Add(_UseAutomaticLocking, Settings.Default.UseAutomaticLocking);
             this._boolSettings.Add(_PersistentModelLocks, Settings.Default.PersistentModelLocks);
+            this._boolSettings.Add(_UseConfigurationManagement, Settings.Default.UseConfigurationManagement);
+            this._boolSettings.Add(_GLCloneOnCreate, Settings.Default.GLCloneOnCreate);
 
             this._stringSettings.Add(_LogFileName, Settings.Default.LogfileName);
-            this._stringSettings.Add(_RootPath, Settings.Default.RootPath);
             this._stringSettings.Add(_DiagramSaveType, Settings.Default.DiagramSaveType);
             this._stringSettings.Add(_InterfaceContractType, Settings.Default.InterfaceContractType);
             this._stringSettings.Add(_RESTAuthAPIKeys, Settings.Default.RESTAuthAPIKeys);
@@ -117,6 +131,13 @@ namespace Framework.Context
             this._stringSettings.Add(_RESTHostName, Settings.Default.RESTHostName);
             this._stringSettings.Add(_RESTSchemes, Settings.Default.RESTSchemes);
             this._stringSettings.Add(_SupplementaryPrefixCode, Settings.Default.SupplementaryPrefix);
+            this._stringSettings.Add(_GLUserName, Settings.Default.GLUserName);
+            this._stringSettings.Add(_GLAccessToken, Settings.Default.GLAccessToken);
+            this._stringSettings.Add(_GLEMail, Settings.Default.GLEMail);
+            this._stringSettings.Add(_GLRepositoryBaseURL, Settings.Default.GLRepositoryURL);
+            this._stringSettings.Add(_GLRepositoryNamespace, Settings.Default.GLRepositoryNamespace);
+            this._stringSettings.Add(_RepositoryRootPath, Settings.Default.RepositoryRootPath);
+            this._stringSettings.Add(_GITIgnoreEntries, Settings.Default.GITIgnoreEntries);
         }
 
         /// <summary>
@@ -203,11 +224,27 @@ namespace Framework.Context
         /// Retrieve string setting by name.
         /// </summary>
         /// <param name="name">Name of the setting to retrieve.</param>
+        /// <param name="isEncrypted">True when string setting must be decrypted before return.</param>
         /// <returns>Value of setting.</returns>
         /// <exception cref="KeyNotFoundException">Specified name does not exist.</exception>
-        internal string GetStringSetting(string name)
+        internal string GetStringSetting(string name, bool isEncrypted = false)
         {
-            return this._stringSettings[name];
+            if (isEncrypted)
+            {
+                try
+                {
+                    var cryptor = new CryptedString();
+                    Logger.WriteInfo("Framework.Context.FrameworkSettings.GetStringSetting >> Encrypted value '" + name + "." + this._stringSettings[name] + "' read.");
+                    return cryptor.Decrypt(this._stringSettings[name], _Salt);
+                }
+                catch (Exception exc)
+                {
+                    Logger.WriteError("Framework.Context.FrameworkSettings.GetStringSetting >> Error decrypting value, resetting contents because: " + exc.Message);
+                    SetStringSetting(name, string.Empty, true);
+                    return string.Empty;
+                }
+            }
+            else return this._stringSettings[name];
         }
 
         /// <summary>
@@ -224,12 +261,21 @@ namespace Framework.Context
         /// <summary>
         /// Update setting by name, writing the new value both to memory as well as persistent storage.
         /// Update is only performed is the new value is different from the old value.
+        /// If optional parameter 'mustEncrypt' is set to 'true', the string value is stored in encrypted form.
         /// </summary>
         /// <param name="name">Name of the setting to update.</param>
-        /// <param name="value">New value of the setting.</param>
+        /// <param name="newValue">New value of the setting.</param>
+        /// <param name="mustEncrypt">Optional indicator that states whether or not the string must be encypted before storage.</param>
         /// <exception cref="KeyNotFoundException">Specified name does not exist.</exception>
-        internal void SetStringSetting(string name, string value)
+        internal void SetStringSetting(string name, string value, bool mustEncrypt = false)
         {
+            if (mustEncrypt)
+            {
+                var cryptor = new CryptedString();
+                value = cryptor.Encrypt(value, _Salt);
+                Logger.WriteInfo("Framework.Context.FrameworkSettings.SetStringSetting >> Encrypted value '" + name + "." + value + "' written.");
+            }
+
             if (this._stringSettings[name] != value)
             {
                 this._stringSettings[name] = value;
@@ -237,11 +283,6 @@ namespace Framework.Context
                 {
                     case _LogFileName:
                         Settings.Default.LogfileName = value;
-                        if (!this._inTransaction) Settings.Default.Save();
-                        break;
-
-                    case _RootPath:
-                        Settings.Default.RootPath = value;
                         if (!this._inTransaction) Settings.Default.Save();
                         break;
 
@@ -285,6 +326,41 @@ namespace Framework.Context
                         if (!this._inTransaction) Settings.Default.Save();
                         break;
 
+                    case _GLUserName:
+                        Settings.Default.GLUserName = value;
+                        if (!this._inTransaction) Settings.Default.Save();
+                        break;
+
+                    case _GLAccessToken:
+                        Settings.Default.GLAccessToken = value;
+                        if (!this._inTransaction) Settings.Default.Save();
+                        break;
+
+                    case _GLEMail:
+                        Settings.Default.GLEMail = value;
+                        if (!this._inTransaction) Settings.Default.Save();
+                        break;
+
+                    case _GLRepositoryBaseURL:
+                        Settings.Default.GLRepositoryURL = value;
+                        if (!this._inTransaction) Settings.Default.Save();
+                        break;
+
+                    case _GLRepositoryNamespace:
+                        Settings.Default.GLRepositoryNamespace = value;
+                        if (!this._inTransaction) Settings.Default.Save();
+                        break;
+
+                    case _RepositoryRootPath:
+                        Settings.Default.RepositoryRootPath = value;
+                        if (!this._inTransaction) Settings.Default.Save();
+                        break;
+
+                    case _GITIgnoreEntries:
+                        Settings.Default.GITIgnoreEntries = value;
+                        if (!this._inTransaction) Settings.Default.Save();
+                        break;
+
                     default:
                         break;
                 }
@@ -317,11 +393,6 @@ namespace Framework.Context
 
                     case _CLAddSourceEnumsToDiagram:
                         Settings.Default.CLAddSourceEnumsToDiagram = value;
-                        if (!this._inTransaction) Settings.Default.Save();
-                        break;
-
-                    case _AutoIncrementBuildNumbers:
-                        Settings.Default.AutoIncrementBuildNrs = value;
                         if (!this._inTransaction) Settings.Default.Save();
                         break;
 
@@ -397,6 +468,16 @@ namespace Framework.Context
 
                     case _PersistentModelLocks:
                         Settings.Default.PersistentModelLocks = value;
+                        if (!this._inTransaction) Settings.Default.Save();
+                        break;
+
+                    case _UseConfigurationManagement:
+                        Settings.Default.UseConfigurationManagement = value;
+                        if (!this._inTransaction) Settings.Default.Save();
+                        break;
+
+                    case _GLCloneOnCreate:
+                        Settings.Default.GLCloneOnCreate = value;
                         if (!this._inTransaction) Settings.Default.Save();
                         break;
 

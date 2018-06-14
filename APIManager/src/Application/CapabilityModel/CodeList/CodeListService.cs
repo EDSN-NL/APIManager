@@ -17,6 +17,8 @@ namespace Plugin.Application.CapabilityModel.CodeList
         private const string _CodeListPkgName           = "CodeListPkgName";
         private const string _CodeListPkgStereotype     = "CodeListPkgStereotype";
         private const string _CodeListClassStereotype   = "CodeListClassStereotype";
+        protected const string _ServiceArchetypeTag     = "ServiceArchetypeTag";
+        private const string _ServiceArchetypeCodeList  = "ServiceArchetypeCodeList";
 
         // Keep track of classes and associations to show in the diagram...
         private List<MEClass> _diagramClassList;
@@ -35,6 +37,9 @@ namespace Plugin.Application.CapabilityModel.CodeList
             // Create a new package for the code types...
             MEPackage codeTypePackage = this._serviceDeclPackage.CreatePackage(context.GetConfigProperty(_CodeListPkgName),
                                                                                context.GetConfigProperty(_CodeListPkgStereotype), 20);
+            // We set the service archetype to 'CodeList'. 
+            this._serviceClass.SetTag(context.GetConfigProperty(_ServiceArchetypeTag), context.GetConfigProperty(_ServiceArchetypeCodeList));
+
             string newNames = string.Empty;
             bool isFirst = true; // Little trick to get the right amount of ',' separators.
             foreach (CodeListDirector.DirectorContext ctx in codeLists.Values)
@@ -71,6 +76,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
             Traverse(DiagramItemsCollector);                        // Performs the actual data collection.
             myDiagram.AddClassList(this._diagramClassList);
             myDiagram.AddAssociationList(this._diagramAssocList);
+            Paint(myDiagram);
             myDiagram.Show();
         }
 

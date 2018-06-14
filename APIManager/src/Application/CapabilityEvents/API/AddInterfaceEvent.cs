@@ -70,6 +70,10 @@ namespace Plugin.Application.Events.API
                     var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
                     var itfCap = new InterfaceCapability(myService, dialog.InterfaceName, null);
                     itfCap.AssociateOperations(dialog.SelectedOperations, dialog.MinorVersionIndicator);
+                    
+                    // Mark service as 'modified' for configuration management and add to diagram in different color...
+                    myService.Dirty();
+                    myService.Paint(svcContext.MyDiagram);
 
                     // Next, collect classes and associations that have to be added to the diagram...
                     var diagramClassList = new List<MEClass>();

@@ -7,6 +7,7 @@ using Framework.Model;
 using Framework.Context;
 using Framework.Util;
 using Plugin.Application.Forms;
+using Plugin.Application.CapabilityModel.API;
 
 namespace Plugin.Application.Events.API
 {
@@ -62,6 +63,11 @@ namespace Plugin.Application.Events.API
                 Logger.WriteError("Plugin.Application.Events.API.AddAnnotationEvent.handleEvent >> Illegal context! Aborting.");
                 return;
             }
+            else if (svcContext.Type != ServiceContext.ServiceType.SOAP)
+            {
+                Logger.WriteWarning("Plugin.Application.Events.API.ProcessSOAPInterfaceEvent.HandleEvent >> Operation only suitable for SOAP Services!");
+                return;
+            }
 
             if (svcContext.LockModel())
             {
@@ -78,6 +84,7 @@ namespace Plugin.Application.Events.API
                     dialog.LoadNodes("Operations on '" + svcContext.InterfaceClass.Name + "' to annotate:", operationList);
                     if (dialog.ShowDialog() == DialogResult.OK)
                     {
+                        var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
                         operationList = dialog.GetCheckedNodes();
                         foreach (MEClass cl in operationList)
                         {
@@ -101,6 +108,10 @@ namespace Plugin.Application.Events.API
                         CreateLogEntry(svcContext.InterfaceClass, dialog.Annotation);
                         CreateLogEntry(commonSchemaClass, dialog.Annotation);
                         CreateLogEntry(svcContext.ServiceClass, dialog.Annotation);
+
+                        // Mark service as 'modified' for configuration management and add to diagram in different color...
+                        myService.Dirty();
+                        myService.Paint(svcContext.MyDiagram);
                     }
                 }
                 svcContext.UnlockModel();

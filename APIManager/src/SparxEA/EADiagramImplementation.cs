@@ -271,6 +271,65 @@ namespace SparxEA.View
         }
 
         /// <summary>
+        /// Changes the color of the specified class on the diagram to the specified color.
+        /// </summary>
+        /// <param name="thisClass">Class to be changed.</param>
+        /// <param name="color">Color to assign to the class.</param>
+        internal override void SetClassColor(MEClass thisClass, Framework.View.Diagram.ClassColor color)
+        {
+            int colorID = -1;
+            // Color coding is 3-byte HEX in order Blue-Green-Red
+            switch (color)
+            {
+                case Framework.View.Diagram.ClassColor.Black:
+                    colorID = 0x0;
+                    break;
+
+                case Framework.View.Diagram.ClassColor.Blue:
+                    colorID = 0xFFC057;
+                    break;
+
+                case Framework.View.Diagram.ClassColor.Orange:
+                    colorID = 0x00C0FF;
+                    break;
+
+                case Framework.View.Diagram.ClassColor.Purple:
+                    colorID = 0xFFA0FF;
+                    break;
+
+                case Framework.View.Diagram.ClassColor.Red:
+                    colorID = 0x0066FF;
+                    break;
+
+                case Framework.View.Diagram.ClassColor.White:
+                    colorID = 0xFFFFFF;
+                    break;
+
+                case Framework.View.Diagram.ClassColor.Yellow:
+                    colorID = 0x57FFFF;
+                    break;
+
+                // Default = 'Default', 'Green' or unknown values:
+                default:
+                    colorID = 0xA7FEE9;
+                    break;
+            }
+
+            for (short i = 0; i < this._diagram.DiagramObjects.Count; i++)
+            {
+                EA.DiagramObject diagramObject = ((EA.DiagramObject)this._diagram.DiagramObjects.GetAt(i));
+                if (diagramObject.ElementID == thisClass.ElementID)
+                {
+                    Logger.WriteInfo("SparxEA.View.EADiagramImplementation.SetClassColor >> Found class '" + 
+                                     thisClass.Name + "', changing color to '" + color + "'...");
+                    diagramObject.BackgroundColor = colorID;
+                    diagramObject.Update();
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
         /// Updates the 'show connector stereotypes' property of the current diagram.
         /// </summary>
         /// <param name="mustShow">Set to 'true' to show connector stereotypes, 'false' otherwise.</param>

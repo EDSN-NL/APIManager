@@ -1,9 +1,13 @@
 ﻿<?xml version="1.0"?>
-<?define ProductVersion = "1.1.6.1"?>
+<?define ProductVersion = "1.1.6.2"?>
 <?define ProductUpgradeCode = "F638BED5-79FC-4145-A683-6DCD3464465B"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 	<Product Id="*" Name="API Manager" Language="1033" UpgradeCode="$(var.ProductUpgradeCode)" Version="$(var.ProductVersion)" Manufacturer="Enexis ICT/BaVo Vernieuwing">
-		<Package Description="#Description" Comments="Windows Installer Package" InstallerVersion="200" Compressed="yes" />
+		<Package Description="#Description" 
+		         Comments="Windows Installer Package" 
+		         InstallerVersion="200" 
+		         Compressed="yes"
+				 InstallScope="perMachine"/>
 		<!--
 			Source media for the installation. 
  			Specifies a single cab file to be embedded in the installer's .msi. 
@@ -11,10 +15,21 @@
 		<Media Id="1" Cabinet="contents.cab" EmbedCab="yes" CompressionLevel="high" />
 		<Icon Id="APIMgr.ico" SourceFile="../APIManager/resources/APIManager.ico" />
 		<Property Id="ARPPRODUCTICON" Value="APIMgr.ico" />
+		
 		<Upgrade Id="$(var.ProductUpgradeCode)">
-			<UpgradeVersion Minimum="$(var.ProductVersion)" IncludeMinimum="no" OnlyDetect="yes" Language="1033" Property="NEWPRODUCTFOUND" />
-			<UpgradeVersion Minimum="0.1.0.0" IncludeMinimum="yes" Maximum="$(var.ProductVersion)" IncludeMaximum="no" Language="1033" Property="UPGRADEFOUND" />
+			<UpgradeVersion Minimum="$(var.ProductVersion)" 
+			                IncludeMinimum="no" 
+			                OnlyDetect="yes" 
+			                Language="1033" 
+			                Property="NEWPRODUCTFOUND" />
+			<UpgradeVersion Minimum="0.1.0.0" 
+			                IncludeMinimum="yes" 
+			                Maximum="$(var.ProductVersion)" 
+			                IncludeMaximum="no" 
+			                Language="1033" 
+			                Property="UPGRADEFOUND" />
 		</Upgrade>
+		
 		<!-- Installation directory and files are defined in Files.wxs -->
 		<Directory Id="TARGETDIR" Name="SourceDir" />
 		<Feature Id="Complete" Title="API Manager" Description="Enterprise Architect Add-In for CDM Management and Interface Generation" Level="1">

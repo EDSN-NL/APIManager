@@ -73,7 +73,13 @@ namespace Plugin.Application.Events.API
                         Logger.WriteWarning("Plugin.Application.Events.API.DeleteInterfaceEvent.handleEvent >> Attempt to delete only Interface!");
                         MessageBox.Show("It is not allowed to delete the only Interface!", "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
-                    else svcContext.Refresh();
+                    else
+                    {
+                        // Mark service as 'modified' for configuration management and add to diagram in different color...
+                        myService.Dirty();
+                        myService.Paint(svcContext.MyDiagram);
+                        svcContext.Refresh();
+                    }
                 }
                 svcContext.UnlockModel();
             }

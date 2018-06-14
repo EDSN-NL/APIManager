@@ -60,6 +60,10 @@ namespace Plugin.Application.Events.API
                 {
                     if (svcContext.LockModel() && picker.ShowDialog() == DialogResult.OK)
                     {
+                        // Mark service as 'modified' for configuration management and add to diagram in different color...
+                        myService.Dirty();
+                        myService.Paint(svcContext.MyDiagram);
+
                         itfCap.AssociateOperations(picker.GetCheckedCapabilities().ConvertAll(Converter), picker.MinorVersionIndicator);
                         svcContext.Refresh();
                     }

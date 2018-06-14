@@ -112,31 +112,21 @@ namespace Plugin.Application.CapabilityModel
             ContextSlt context = ContextSlt.GetContextSlt();
             Logger.WriteInfo("Plugin.Application.CapabilityModel.CapabilityProcessor.saveProcessedCapability >> Saving...");
 
-            // As a safety check, we verify that my service contains a valid absolute path. If not, we attempt
-            // to create one...
+            // Service Buildpath must have been set during service creation and thus must be valid at this point.
             string fileName = GetCapabilityFilename();
-            string pathName = string.Empty;
+            string pathName = this._currentService.ServiceCIPath;
             bool result = false;
-
-            if (string.IsNullOrEmpty(this._currentService.FullyQualifiedPath))
-            {
-                if (!this._currentService.InitializePath())
-                {
-                    Logger.WriteWarning("Plugin.Application.CapabilityModel.CapabilityProcessor.saveProcessedCapability >> Unable to set path, giving up!");
-                    return false;
-                }
-            }
 
             FileStream saveStream = null;
             try
             {
-                using (saveStream = new FileStream(this._currentService.FullyQualifiedPath + "/" + fileName, FileMode.Create, FileAccess.Write, FileShare.None))
+                using (saveStream = new FileStream(pathName + "/" + fileName, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     SaveContents(saveStream);   // Actual 'write-to-stream' operation is processor specific and implemented in specialized processors...
                 }
                 // Next, we update the file- and path name tags in our capability class...
                 this._currentCapability.CapabilityClass.SetTag(context.GetConfigProperty(_FileNameTag), fileName);
-                this._currentCapability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), this._currentService.ComponentPath);
+                this._currentCapability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), this._currentService.ServiceBuildPath);
                 result = true;
             }
             catch (Exception exc)
@@ -164,30 +154,20 @@ namespace Plugin.Application.CapabilityModel
             // As a safety check, we verify that my service contains a valid absolute path. If not, we attempt
             // to create one...
             string fileName = GetServiceFilename();
-            string pathName = string.Empty;
+            string pathName = this._currentService.ServiceCIPath;
             bool result = false;
-
-            // If the service contains a fully qualified path, we have a proper output structure. If not, we invoke InitializePath to create one...
-            if (string.IsNullOrEmpty(this._currentService.FullyQualifiedPath))
-            {
-                if (!this._currentService.InitializePath())
-                {
-                    Logger.WriteWarning("Plugin.Application.CapabilityModel.CapabilityProcessor.saveProcessedService >> Unable to set path, giving up!");
-                    return false;
-                }
-            }
 
             FileStream saveStream = null;
             try
             {
-                saveStream = new FileStream(this._currentService.FullyQualifiedPath + "\\" + fileName, FileMode.Create, FileAccess.Write, FileShare.None);
+                saveStream = new FileStream(pathName + "/" + fileName, FileMode.Create, FileAccess.Write, FileShare.None);
                 SaveContents(saveStream);   // Actual 'write-to-stream' operation is processor specific and implemented in specialized processors...
                 result = true;
             }
             catch (Exception exc)
             {
                 Logger.WriteError("Plugin.Application.CapabilityModel.CapabilityProcessor.saveProcessedService >> Error writing to '" +
-                                  pathName + "\\" + fileName + "' because:\n" + exc.Message);
+                                  pathName + "/" + fileName + "' because:\n" + exc.Message);
             }
             finally
             {

@@ -52,6 +52,11 @@ namespace Plugin.Application.Events.API
                     var myService = new RESTService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
                     var myOperation = new RESTOperationCapability(operationClass);
                     myOperation.Delete();
+
+                    // Mark service as 'modified' for configuration management and add to diagram in different color...
+                    myService.Dirty();
+                    myService.Paint(svcContext.MyDiagram);
+
                     svcContext.Refresh();
                 }
                 svcContext.UnlockModel();

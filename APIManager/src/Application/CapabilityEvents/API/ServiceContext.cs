@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Windows.Forms;
 using Framework.Logging;
 using Framework.Model;
 using Framework.Context;
@@ -19,11 +18,12 @@ namespace Plugin.Application.Events.API
     internal class ServiceContext
     {
         // Currently, we support three 'families' of services, REST, SOAP and Message...
-        internal enum ServiceType { Unknown, REST, SOAP, Message }
+        internal enum ServiceType { Unknown, REST, SOAP, Message, CodeList }
 
         // Configuration properties used by this module...
         private const string _RootPkgName                       = "RootPkgName";
         private const string _ServiceDeclPkgStereotype          = "ServiceDeclPkgStereotype";
+        private const string _CodeListDeclPkgStereotype         = "CodeListDeclPkgStereotype";
         private const string _ServiceOperationPkgStereotype     = "ServiceOperationPkgStereotype";
         private const string _GenericMessagePkgStereotype       = "GenericMessagePkgStereotype";
         private const string _ServiceClassStereotype            = "ServiceClassStereotype";
@@ -103,6 +103,7 @@ namespace Plugin.Application.Events.API
             string interfaceContractClassStereotype = context.GetConfigProperty(_InterfaceContractClassStereotype);
             string operationPkgStereotype           = context.GetConfigProperty(_ServiceOperationPkgStereotype);
             string serviceDeclPkgStereotype         = context.GetConfigProperty(_ServiceDeclPkgStereotype);
+            string codeListDeclPkgStereotype        = context.GetConfigProperty(_CodeListDeclPkgStereotype);
             string serviceClassStereotype           = context.GetConfigProperty(_ServiceClassStereotype);
             string operationClassStereotype         = context.GetConfigProperty(_OperationClassStereotype);
             string operationClassRESTStereotype     = context.GetConfigProperty(_RESTOperationClassStereotype);
@@ -148,13 +149,14 @@ namespace Plugin.Application.Events.API
                     this._serviceModelPackage = currentDiagram.OwningPackage;
                     this._type = (this._serviceModelPackage.Parent.FindPackage(dataModelPkgName, dataModelPkgStereotype) != null) ? ServiceType.REST : ServiceType.SOAP;
                 }
-                else // We're on a Resource Collection diagram...
+                else // We must be on a Resource Collection diagram...
                 {
                     this._resourceCollectionPackage = currentDiagram.OwningPackage;
                     this._serviceModelPackage = currentDiagram.OwningPackage.Parent;
                     this._type = ServiceType.REST;
                 }
                 this._declarationPackage = this._serviceModelPackage.Parent;
+                if (this._declarationPackage.HasStereotype(codeListDeclPkgStereotype)) this._type = ServiceType.CodeList;
 
                 if (currentClass != null)
                 {
@@ -174,6 +176,12 @@ namespace Plugin.Application.Events.API
                 {
                     // We're at the Service Declaration package itself. Not more to detect up here...
                     this._declarationPackage = currentPackage;
+                }
+                else if (currentPackage.HasStereotype(codeListDeclPkgStereotype))
+                {
+                    // We're at a CodeList Declaration package.
+                    this._declarationPackage = currentPackage;
+                    this._type = ServiceType.CodeList;
                 }
                 else if (currentPackage.HasStereotype(operationPkgStereotype))
                 {

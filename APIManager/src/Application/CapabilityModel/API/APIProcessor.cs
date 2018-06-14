@@ -74,7 +74,6 @@ namespace Plugin.Application.CapabilityModel.API
         private Schema _currentSchema;                  // The Operation Schema that we're currently building.
         private InterfaceType _interfaceType;           // Defines our Interface type. 
         private string _currentAccessLevel;             // Set to the access level of the current operation.
-        private bool _isPathInitialized;                // Global setting that assures that the export path is obtained exactly once.
         private string _interfaceDeclaration;           // Contains the constructed interface declaration.
         private CommonSchemaCapability _commonSchemaCapability;     // The Common Schema Capability used for this build.
         private List<Tuple<string, string>> _accessLevels;          // List of Access Levels for each operation.
@@ -135,7 +134,6 @@ namespace Plugin.Application.CapabilityModel.API
             this._commonSchema = null;
             this._commonSchemaCapability = null;
             this._currentSchema = null;
-            this._isPathInitialized = false;
             this._accessLevels = null;
             this._currentAccessLevel = string.Empty;
             this._operationContextList = null;
@@ -159,6 +157,7 @@ namespace Plugin.Application.CapabilityModel.API
 
             ContextSlt context = ContextSlt.GetContextSlt();
             bool result = true;
+            bool generateDocumentation = context.GetBoolSetting(FrameworkSettings._DocGenUseGenerateDoc);
             bool useCommonDocContext = context.GetBoolSetting(FrameworkSettings._DocGenUseCommon);
             bool useCommonSchema = context.GetBoolSetting(FrameworkSettings._SMCreateCommonSchema);
             this._currentCapability = capability;
@@ -191,17 +190,7 @@ namespace Plugin.Application.CapabilityModel.API
                             // Initialize our resources...
                             this._accessLevels = new List<Tuple<string, string>>();
                             this._operationContextList = new List<ProcessingContext>();
-
-                            if (!this._isPathInitialized)
-                            {
-                                // Below sequence assures that the path is loaded for all others to use.
-                                if (this._currentService.InitializePath())
-                                {
-                                    capability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), this._currentService.ComponentPath);
-                                    this._isPathInitialized = true;
-                                }
-                                else return false;      // Unable to create the necessary output structure.
-                            }
+                            capability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), this._currentService.ServiceBuildPath);
                         }
                         else if (capability is CommonSchemaCapability && useCommonSchema)
                         {
@@ -215,9 +204,9 @@ namespace Plugin.Application.CapabilityModel.API
                                                            capability.CapabilityClass.GetTag(context.GetConfigProperty(_NSTokenTag)),
                                                            this._currentService.GetFQN(namespaceTag, Conversions.ToPascalCase(capability.AssignedRole), -1),
                                                            capability.VersionString);
-                            if (useCommonDocContext) DocManagerSlt.GetDocManagerSlt().InitializeCommonDocContext(this._commonSchema.NSToken,
-                                                                                                                 commonSchemaName, 
-                                                                                                                 MEChangeLog.GetDocumentationAsText(capability.CapabilityClass));
+                            if (generateDocumentation && useCommonDocContext)
+                                DocManagerSlt.GetDocManagerSlt().InitializeCommonDocContext(this._commonSchema.NSToken, commonSchemaName, 
+                                                                                            MEChangeLog.GetDocumentationAsText(capability.CapabilityClass));
                         }
                         this._panel.IncreaseBar(1);
                         break;
@@ -227,7 +216,7 @@ namespace Plugin.Application.CapabilityModel.API
                         // First of all, we check whether 'useCommonDocContext' is set and if we don't have a valid common doc context at this point, we 
                         // probably don't have a Common Schema capability as well so it has never been initialized properly. If this is the case, we
                         // create a common doc context here...
-                        if (useCommonDocContext && DocManagerSlt.GetDocManagerSlt().CommonDocContext == null)
+                        if (generateDocumentation && useCommonDocContext && DocManagerSlt.GetDocManagerSlt().CommonDocContext == null)
                         {
                             DocManagerSlt.GetDocManagerSlt().InitializeCommonDocContext(context.GetConfigProperty(_CommonSchemaNSToken),
                                                                                         context.GetConfigProperty(_CommonSchemaRoleName), 
@@ -251,14 +240,18 @@ namespace Plugin.Application.CapabilityModel.API
                             result = (this._interfaceType == InterfaceType.SOAP)? BuildSOAPInterface(itf): true;
 
                             // Save the collected documentation...
-                            DocManagerSlt.GetDocManagerSlt().Save(this._currentService.FullyQualifiedPath, itf.BaseFileName, itf.Name,
-                                                                  MEChangeLog.GetDocumentationAsText(itf.CapabilityClass));
+                            if (generateDocumentation) DocManagerSlt.GetDocManagerSlt().Save(this._currentService.ServiceCIPath, itf.BaseFileName, itf.Name,
+                                                                                             MEChangeLog.GetDocumentationAsText(itf.CapabilityClass));
                         }
                         else if (capability is CommonSchemaCapability && useCommonSchema)
                         {
                             // If we have a Common Schema, we must save it here, but only if we actually used it...
-                            if (result = SaveProcessedCapability()) this._panel.WriteInfo(this._panelIndex, "Interface generation has been completed successfully.");
-                            else                                    this._panel.WriteError(this._panelIndex, "Unable to save Common Schema file!");
+                            if (result = SaveProcessedCapability())
+                            {
+                                this._panel.WriteInfo(this._panelIndex, "Interface generation has been completed successfully.");
+                                this._panel.WriteInfo(this._panelIndex, "Output written to: '" + this._currentService.ServiceCIPath + "'.");
+                            }
+                            else this._panel.WriteError(this._panelIndex, "Unable to save Common Schema file!");
                         }
                         this._panel.IncreaseBar(1);
 
@@ -266,15 +259,8 @@ namespace Plugin.Application.CapabilityModel.API
                         {
                             // End-state is post-processing of the Common Schema. In the unlikely case that we don't have a Common Schema,
                             // we will use the Interface instead. Operation Capabilities don't have post-processing.
-                            if (result == true)
-                            {
-                                this._panel.WriteInfo(this._panelIndex, "Output written to: '" + this._currentService.FullyQualifiedPath + "'.");
-                                if (context.GetBoolSetting(FrameworkSettings._AutoIncrementBuildNumbers)) this._currentService.BuildNumber++;
-                            }
-
                             // Release resources...
                             this._commonSchema = null;
-                            this._isPathInitialized = false;
                             this._panel.Done();
                             this._accessLevels = null;
                             this._interfaceDeclaration = null;
@@ -291,7 +277,6 @@ namespace Plugin.Application.CapabilityModel.API
                             this._panel.IncreaseBar(9999);
                             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.APIProcessor.ProcessCapability >> Deallocation resources!");
                             this._commonSchema = null;
-                            this._isPathInitialized = false;
                             this._commonSchemaCapability = null;
                             this._interfaceDeclaration = null;
                             this._panel.Done();

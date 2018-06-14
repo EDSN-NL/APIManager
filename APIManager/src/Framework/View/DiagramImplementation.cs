@@ -74,6 +74,13 @@ namespace Framework.View
         internal abstract void SaveToClipboard();
 
         /// <summary>
+        /// Changes the color of the specified class on the diagram to the specified color.
+        /// </summary>
+        /// <param name="thisClass">Class to be changed.</param>
+        /// <param name="color">Color to assign to the class.</param>
+        internal abstract void SetClassColor(MEClass thisClass, Diagram.ClassColor color);
+
+        /// <summary>
         /// Layout and show a (new) diagram. Must be called after creation (and optionally adding some elements) in order to
         /// actually show the diagram to the user.
         /// </summary>

@@ -8,6 +8,9 @@ namespace Framework.View
 {
     internal sealed class Diagram: IDisposable
     {
+        // This enumeration can be used to specify a color for a class on the diagram...
+        internal enum ClassColor { Default, Black, White, Red, Orange, Yellow, Green, Blue, Purple }
+
         private DiagramImplementation _imp = null;  // The associated implementation object; does all the 'real' work.
         private bool _disposed;                     // Mark myself as invalid after call to dispose!
 
@@ -159,6 +162,18 @@ namespace Framework.View
         internal void SaveToClipboard()
         {
             if (this._imp != null) this._imp.SaveToClipboard();
+            else throw new MissingImplementationException("DiagramImplementation");
+        }
+
+        /// <summary>
+        /// Changes the color of the specified class on the diagram to the specified color.
+        /// </summary>
+        /// <param name="thisClass">Class to be changed.</param>
+        /// <param name="color">Color to assign to the class.</param>
+        /// <exception cref="MissingImplementationException">No implementation object exists.</exception>
+        internal void SetClassColor (MEClass thisClass, ClassColor color)
+        {
+            if (this._imp != null) this._imp.SetClassColor(thisClass, color);
             else throw new MissingImplementationException("DiagramImplementation");
         }
 

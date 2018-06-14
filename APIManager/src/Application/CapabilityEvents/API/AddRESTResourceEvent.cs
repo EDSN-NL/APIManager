@@ -127,6 +127,10 @@ namespace Plugin.Application.Events.API
                     bool result = resourceContainer.AddResources(resourceList, dialog.MinorVersionIndicator);
                     if (result)
                     {
+                        // Mark service as 'modified' for configuration management and add to diagram in different color...
+                        myService.Dirty();
+                        myService.Paint(svcContext.MyDiagram);
+
                         // Collect the new classes and associations that must be shown on the diagram...
                         DiagramItemsCollector collector = new DiagramItemsCollector(svcContext.MyDiagram);
                         parent.Traverse(collector.Collect);

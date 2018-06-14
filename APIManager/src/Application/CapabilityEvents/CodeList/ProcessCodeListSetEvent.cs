@@ -112,7 +112,11 @@ namespace Plugin.Application.Events.CodeList
                     processor = processorMgr.GetProcessorByIndex(_CodeListClassToken, 0);
                 else MessageBox.Show("No processors are currently defined for CodeList, aborting!");
             }
-            if (processor != null) codeListService.HandleCapabilities(processor);
+            if (processor != null)
+            {
+                codeListService.HandleCapabilities(processor);
+                codeListService.Paint(myDiagram);
+            }
         }
     }
 }

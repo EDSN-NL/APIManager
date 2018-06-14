@@ -17,26 +17,23 @@ using Framework.Util;
 using Framework.Controller;
 using Framework.View;
 using SparxEA.Model;
-using Plugin.Application.CapabilityModel;
-using Plugin.Application.Forms;
 using Framework.Util.SchemaManagement.JSON;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Schema;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema.Infrastructure.Collections;
+using LibGit2Sharp;
+using Plugin.Application.ConfigurationManagement;
+using Plugin.Application.CapabilityModel.API;
+using Plugin.Application.Events.API;
+using Plugin.Application.CapabilityModel;
+using Plugin.Application.Forms;
 
 namespace Plugin.Application.Events.Util
 {
     class DebugEvent : EventImplementation
     {
-        private string _rootPath = @"C:\Temp\3010.02.01.01.03.Materials\InfrastructureMaterials_V1\B9";
-        private string[] _fileNames = 
-        {   "InfrastructureMaterials_CommonSchema_v1p0.xsd",
-            "InfrastructureMaterials_Find_v1p0.xsd",
-            "InfrastructureMaterials_Get_v1p0.xsd",
-            "InfrastructureMaterials_GetAvailability_v1p0.xsd",
-            "InfrastructureMaterials_v1p0.wsdl"
-        };
+        private const string _ServiceDeclPkgStereotype = "ServiceDeclPkgStereotype";
 
         private JSchema _commonSchema;
 
@@ -56,14 +53,69 @@ namespace Plugin.Application.Events.Util
                 MEPackage currentPackage = context.CurrentPackage;
                 Diagram currentDiagram = context.CurrentDiagram;
 
-                ArchiveFile archive = new ArchiveFile(this._rootPath + "\\MyArchive.zip");
-                foreach (string name in this._fileNames)
-                {
-                    archive.AddFile(this._rootPath + "\\" + name, "contents");
-                }
-                archive.Create();
+                currentDiagram.SetClassColor(currentClass, Diagram.ClassColor.Yellow);
 
-                archive.Extract(this._rootPath);
+                /***
+                var svcContext = new ServiceContext(true);
+                MEClass currService = svcContext.ServiceClass;
+                if (currService != null)
+                {
+                    CapabilityModel.Service myService = null;
+                    if (svcContext.Type == ServiceContext.ServiceType.SOAP)
+                    {
+                        Logger.WriteInfo("DebugEvent >> Located application service class '" + currService.Name + "'...");
+                        myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
+                    }
+                    else
+                    {
+                        Logger.WriteInfo("DebugEvent >> Located REST service class '" + currService.Name + "'...");
+                        myService = new RESTService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
+                    }
+                    if (myService != null)
+                    {
+                        var cm = myService.CMContext;
+
+                        cm.CheckoutService();
+                        if (MessageBox.Show("Commit files?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                        {
+                            Logger.WriteInfo("DebugEvent >> Committing files...");
+                            cm.CommitService("Commit message for Service '" + myService.Name + "' from Wouter.");
+                        }
+                        if (MessageBox.Show("Release service?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                        {
+                            Logger.WriteInfo("DebugEvent >> Releasing service...");
+                            cm.ReleaseService("Releasing my Service '" + myService.Name + "' to GitLab!");
+                        }
+                    }
+                }
+                ***/
+
+                /****
+                RepositorySlt repo = RepositorySlt.GetRepositorySlt();
+                repo.SetIdentity("Wouter Meijers", "wouter.meijers@enexis.nl");
+
+                string container1 = "2402.Construction";
+                string container2 = "3010.02.01.01.01.MeasurementDeviceAdministration";
+
+                string svc11 = "ConnectionReconstruction_V1";
+                string svc12 = "WorkOrderDetails_V1";
+                string svc21 = "Meter_V1";
+                
+                
+                repo.SetRootBranch(container1 + "." + svc12);
+                repo.AddToStagingArea(container1 + "/" + svc12);
+                repo.CommitStagingArea("My commit message");
+
+                repo.SetRootBranch(container2 + "." + svc21);
+                repo.AddToStagingArea(container2 + "/" + svc21);
+                repo.CommitStagingArea("My commit message for container 2");
+
+                repo.SetRootBranch(container1 + "." + svc11);
+                repo.AddToStagingArea(container1 + "/" + svc11);
+                repo.CommitStagingArea("My commit message for container 1");
+
+                repo.Push();
+                *****/
 
                 //MakeCommonSchema();
                 //Test7() ;

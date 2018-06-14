@@ -37,16 +37,29 @@
             this.SelectFile = new System.Windows.Forms.Button();
             this.Ok = new System.Windows.Forms.Button();
             this.Cancel = new System.Windows.Forms.Button();
-            this.SelectRootPath = new System.Windows.Forms.Button();
-            this.RootPathName = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.RootPathSelector = new System.Windows.Forms.FolderBrowserDialog();
             this.CLAddSourceEnumsToDiagram = new System.Windows.Forms.CheckBox();
             this.CodeLists = new System.Windows.Forms.GroupBox();
             this.CLAddCodeTypesToDiagram = new System.Windows.Forms.CheckBox();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.AutoIncrementBuildNr = new System.Windows.Forms.CheckBox();
+            this.LogFile = new System.Windows.Forms.GroupBox();
+            this.LocalConfigManagement = new System.Windows.Forms.GroupBox();
+            this.label13 = new System.Windows.Forms.Label();
+            this.GITIgnoreEntries = new System.Windows.Forms.TextBox();
+            this.ConfigurationMgmtIndicator = new System.Windows.Forms.CheckBox();
+            this.SelectRepoPath = new System.Windows.Forms.Button();
+            this.RepoPathName = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.RemoteConfigManagement = new System.Windows.Forms.GroupBox();
+            this.RepositoryNamespace = new System.Windows.Forms.TextBox();
+            this.label14 = new System.Windows.Forms.Label();
+            this.CloneOnCreateIndicator = new System.Windows.Forms.CheckBox();
+            this.RepositoryBaseURL = new System.Windows.Forms.TextBox();
+            this.label12 = new System.Windows.Forms.Label();
+            this.AccessToken = new System.Windows.Forms.TextBox();
+            this.label11 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.UserName = new System.Windows.Forms.TextBox();
+            this.label10 = new System.Windows.Forms.Label();
+            this.EMailAddress = new System.Windows.Forms.TextBox();
             this.ServiceModel = new System.Windows.Forms.GroupBox();
             this.SMAddBusinessMsgToDiagram = new System.Windows.Forms.CheckBox();
             this.SMUseSecurityLevels = new System.Windows.Forms.CheckBox();
@@ -70,12 +83,12 @@
             this.DiagramJPG = new System.Windows.Forms.RadioButton();
             this.DiagramGIF = new System.Windows.Forms.RadioButton();
             this.DiagramBMP = new System.Windows.Forms.RadioButton();
-            this.InterfaceContracts = new System.Windows.Forms.GroupBox();
+            this.SchemaGeneration = new System.Windows.Forms.GroupBox();
             this.IFCSwagger = new System.Windows.Forms.RadioButton();
             this.IFCWSDL = new System.Windows.Forms.RadioButton();
             this.DocumentationGeneration = new System.Windows.Forms.GroupBox();
+            this.DocGenGenerate = new System.Windows.Forms.CheckBox();
             this.DocGenUseCommon = new System.Windows.Forms.CheckBox();
-            this.VersionControl = new System.Windows.Forms.GroupBox();
             this.RESTAuthentication = new System.Windows.Forms.GroupBox();
             this.RAAPIKeyEdit = new System.Windows.Forms.Button();
             this.RAAPIKeys = new System.Windows.Forms.TextBox();
@@ -96,16 +109,20 @@
             this.SupplementaryPrefixCode = new System.Windows.Forms.TextBox();
             this.SupplementaryPrefixLabel = new System.Windows.Forms.Label();
             this.AttributePrefixToolTip = new System.Windows.Forms.ToolTip(this.components);
-            this.DocGenGenerate = new System.Windows.Forms.CheckBox();
+            this.RepoPathSelector = new System.Windows.Forms.FolderBrowserDialog();
+            this.ConfigMgmtToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.CloneOnCreateToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.RepositoryRootToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.GITIgnoreToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.CodeLists.SuspendLayout();
-            this.groupBox1.SuspendLayout();
-            this.groupBox2.SuspendLayout();
+            this.LogFile.SuspendLayout();
+            this.LocalConfigManagement.SuspendLayout();
+            this.RemoteConfigManagement.SuspendLayout();
             this.ServiceModel.SuspendLayout();
             this.Documentation.SuspendLayout();
             this.DiagramTypes.SuspendLayout();
-            this.InterfaceContracts.SuspendLayout();
+            this.SchemaGeneration.SuspendLayout();
             this.DocumentationGeneration.SuspendLayout();
-            this.VersionControl.SuspendLayout();
             this.RESTAuthentication.SuspendLayout();
             this.RESTParameters.SuspendLayout();
             this.Locking.SuspendLayout();
@@ -115,7 +132,7 @@
             // UseLogfile
             // 
             this.UseLogfile.AutoSize = true;
-            this.UseLogfile.Location = new System.Drawing.Point(6, 45);
+            this.UseLogfile.Location = new System.Drawing.Point(6, 21);
             this.UseLogfile.Name = "UseLogfile";
             this.UseLogfile.Size = new System.Drawing.Size(79, 17);
             this.UseLogfile.TabIndex = 2;
@@ -131,16 +148,16 @@
             // 
             // LogfileName
             // 
-            this.LogfileName.Location = new System.Drawing.Point(69, 19);
+            this.LogfileName.Location = new System.Drawing.Point(168, 19);
             this.LogfileName.Name = "LogfileName";
             this.LogfileName.ReadOnly = true;
-            this.LogfileName.Size = new System.Drawing.Size(284, 20);
+            this.LogfileName.Size = new System.Drawing.Size(403, 20);
             this.LogfileName.TabIndex = 0;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(6, 22);
+            this.label1.Location = new System.Drawing.Point(110, 22);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(52, 13);
             this.label1.TabIndex = 0;
@@ -148,9 +165,9 @@
             // 
             // SelectFile
             // 
-            this.SelectFile.Location = new System.Drawing.Point(359, 18);
+            this.SelectFile.Location = new System.Drawing.Point(577, 19);
             this.SelectFile.Name = "SelectFile";
-            this.SelectFile.Size = new System.Drawing.Size(41, 20);
+            this.SelectFile.Size = new System.Drawing.Size(25, 21);
             this.SelectFile.TabIndex = 1;
             this.SelectFile.Text = "...";
             this.SelectFile.UseVisualStyleBackColor = true;
@@ -159,10 +176,10 @@
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(498, 453);
+            this.Ok.Location = new System.Drawing.Point(1094, 358);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
-            this.Ok.TabIndex = 12;
+            this.Ok.TabIndex = 15;
             this.Ok.Text = "Ok";
             this.Ok.UseVisualStyleBackColor = true;
             this.Ok.Click += new System.EventHandler(this.Ok_Click);
@@ -170,44 +187,13 @@
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(579, 454);
+            this.Cancel.Location = new System.Drawing.Point(1175, 358);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
-            this.Cancel.TabIndex = 11;
+            this.Cancel.TabIndex = 14;
             this.Cancel.Text = "Cancel";
             this.Cancel.UseVisualStyleBackColor = true;
             this.Cancel.Click += new System.EventHandler(this.Cancel_Click);
-            // 
-            // SelectRootPath
-            // 
-            this.SelectRootPath.Location = new System.Drawing.Point(359, 18);
-            this.SelectRootPath.Name = "SelectRootPath";
-            this.SelectRootPath.Size = new System.Drawing.Size(41, 20);
-            this.SelectRootPath.TabIndex = 1;
-            this.SelectRootPath.Text = "...";
-            this.SelectRootPath.UseVisualStyleBackColor = true;
-            this.SelectRootPath.Click += new System.EventHandler(this.SelectRootPath_Click);
-            // 
-            // RootPathName
-            // 
-            this.RootPathName.Location = new System.Drawing.Point(69, 19);
-            this.RootPathName.Name = "RootPathName";
-            this.RootPathName.ReadOnly = true;
-            this.RootPathName.Size = new System.Drawing.Size(284, 20);
-            this.RootPathName.TabIndex = 0;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 22);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(58, 13);
-            this.label2.TabIndex = 0;
-            this.label2.Text = "Pathname:";
-            // 
-            // RootPathSelector
-            // 
-            this.RootPathSelector.Description = "Select folder to use as root of ECDM output.";
             // 
             // CLAddSourceEnumsToDiagram
             // 
@@ -223,10 +209,10 @@
             // 
             this.CodeLists.Controls.Add(this.CLAddCodeTypesToDiagram);
             this.CodeLists.Controls.Add(this.CLAddSourceEnumsToDiagram);
-            this.CodeLists.Location = new System.Drawing.Point(12, 145);
+            this.CodeLists.Location = new System.Drawing.Point(633, 131);
             this.CodeLists.Name = "CodeLists";
             this.CodeLists.Size = new System.Drawing.Size(218, 72);
-            this.CodeLists.TabIndex = 4;
+            this.CodeLists.TabIndex = 5;
             this.CodeLists.TabStop = false;
             this.CodeLists.Text = "Code Lists";
             // 
@@ -240,41 +226,206 @@
             this.CLAddCodeTypesToDiagram.Text = "Show CodeType in diagram";
             this.CLAddCodeTypesToDiagram.UseVisualStyleBackColor = true;
             // 
-            // groupBox1
+            // LogFile
             // 
-            this.groupBox1.Controls.Add(this.LogfileName);
-            this.groupBox1.Controls.Add(this.label1);
-            this.groupBox1.Controls.Add(this.SelectFile);
-            this.groupBox1.Controls.Add(this.UseLogfile);
-            this.groupBox1.Location = new System.Drawing.Point(12, 12);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(406, 68);
-            this.groupBox1.TabIndex = 1;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Logfile";
+            this.LogFile.Controls.Add(this.LogfileName);
+            this.LogFile.Controls.Add(this.label1);
+            this.LogFile.Controls.Add(this.SelectFile);
+            this.LogFile.Controls.Add(this.UseLogfile);
+            this.LogFile.Location = new System.Drawing.Point(12, 12);
+            this.LogFile.Name = "LogFile";
+            this.LogFile.Size = new System.Drawing.Size(615, 51);
+            this.LogFile.TabIndex = 1;
+            this.LogFile.TabStop = false;
+            this.LogFile.Text = "Logfile";
             // 
-            // groupBox2
+            // LocalConfigManagement
             // 
-            this.groupBox2.Controls.Add(this.RootPathName);
-            this.groupBox2.Controls.Add(this.SelectRootPath);
-            this.groupBox2.Controls.Add(this.label2);
-            this.groupBox2.Location = new System.Drawing.Point(12, 86);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(406, 53);
-            this.groupBox2.TabIndex = 3;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Sandbox Location";
+            this.LocalConfigManagement.Controls.Add(this.label13);
+            this.LocalConfigManagement.Controls.Add(this.GITIgnoreEntries);
+            this.LocalConfigManagement.Controls.Add(this.ConfigurationMgmtIndicator);
+            this.LocalConfigManagement.Controls.Add(this.SelectRepoPath);
+            this.LocalConfigManagement.Controls.Add(this.RepoPathName);
+            this.LocalConfigManagement.Controls.Add(this.label7);
+            this.LocalConfigManagement.Location = new System.Drawing.Point(12, 74);
+            this.LocalConfigManagement.Name = "LocalConfigManagement";
+            this.LocalConfigManagement.Size = new System.Drawing.Size(615, 81);
+            this.LocalConfigManagement.TabIndex = 3;
+            this.LocalConfigManagement.TabStop = false;
+            this.LocalConfigManagement.Text = "Local Configuration Management (Git)";
             // 
-            // AutoIncrementBuildNr
+            // label13
             // 
-            this.AutoIncrementBuildNr.AutoSize = true;
-            this.AutoIncrementBuildNr.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.AutoIncrementBuildNr.Location = new System.Drawing.Point(6, 21);
-            this.AutoIncrementBuildNr.Name = "AutoIncrementBuildNr";
-            this.AutoIncrementBuildNr.Size = new System.Drawing.Size(165, 17);
-            this.AutoIncrementBuildNr.TabIndex = 4;
-            this.AutoIncrementBuildNr.Text = "Auto-increment build numbers";
-            this.AutoIncrementBuildNr.UseVisualStyleBackColor = true;
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(67, 50);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(95, 13);
+            this.label13.TabIndex = 0;
+            this.label13.Text = "GIT Ignore entries:";
+            // 
+            // GITIgnoreEntries
+            // 
+            this.GITIgnoreEntries.Location = new System.Drawing.Point(168, 47);
+            this.GITIgnoreEntries.Name = "GITIgnoreEntries";
+            this.GITIgnoreEntries.Size = new System.Drawing.Size(434, 20);
+            this.GITIgnoreEntries.TabIndex = 3;
+            this.GITIgnoreEntries.Leave += new System.EventHandler(this.Repoconfig_Leave);
+            // 
+            // ConfigurationMgmtIndicator
+            // 
+            this.ConfigurationMgmtIndicator.AutoSize = true;
+            this.ConfigurationMgmtIndicator.Location = new System.Drawing.Point(6, 22);
+            this.ConfigurationMgmtIndicator.Name = "ConfigurationMgmtIndicator";
+            this.ConfigurationMgmtIndicator.Size = new System.Drawing.Size(64, 17);
+            this.ConfigurationMgmtIndicator.TabIndex = 1;
+            this.ConfigurationMgmtIndicator.Text = "Use CM";
+            this.ConfigurationMgmtIndicator.UseVisualStyleBackColor = true;
+            this.ConfigurationMgmtIndicator.CheckedChanged += new System.EventHandler(this.ConfigurationMgmtIndicator_CheckedChanged);
+            this.ConfigurationMgmtIndicator.Leave += new System.EventHandler(this.Repoconfig_Leave);
+            // 
+            // SelectRepoPath
+            // 
+            this.SelectRepoPath.Location = new System.Drawing.Point(577, 20);
+            this.SelectRepoPath.Name = "SelectRepoPath";
+            this.SelectRepoPath.Size = new System.Drawing.Size(25, 21);
+            this.SelectRepoPath.TabIndex = 2;
+            this.SelectRepoPath.Text = "...";
+            this.SelectRepoPath.UseVisualStyleBackColor = true;
+            this.SelectRepoPath.Click += new System.EventHandler(this.SelectLocalRepoPath_Click);
+            // 
+            // RepoPathName
+            // 
+            this.RepoPathName.Location = new System.Drawing.Point(168, 20);
+            this.RepoPathName.Name = "RepoPathName";
+            this.RepoPathName.ReadOnly = true;
+            this.RepoPathName.Size = new System.Drawing.Size(403, 20);
+            this.RepoPathName.TabIndex = 0;
+            this.RepoPathName.Leave += new System.EventHandler(this.Repoconfig_Leave);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(76, 23);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(86, 13);
+            this.label7.TabIndex = 0;
+            this.label7.Text = "Repository Root:";
+            // 
+            // RemoteConfigManagement
+            // 
+            this.RemoteConfigManagement.Controls.Add(this.RepositoryNamespace);
+            this.RemoteConfigManagement.Controls.Add(this.label14);
+            this.RemoteConfigManagement.Controls.Add(this.CloneOnCreateIndicator);
+            this.RemoteConfigManagement.Controls.Add(this.RepositoryBaseURL);
+            this.RemoteConfigManagement.Controls.Add(this.label12);
+            this.RemoteConfigManagement.Controls.Add(this.AccessToken);
+            this.RemoteConfigManagement.Controls.Add(this.label11);
+            this.RemoteConfigManagement.Controls.Add(this.label9);
+            this.RemoteConfigManagement.Controls.Add(this.UserName);
+            this.RemoteConfigManagement.Controls.Add(this.label10);
+            this.RemoteConfigManagement.Controls.Add(this.EMailAddress);
+            this.RemoteConfigManagement.Location = new System.Drawing.Point(12, 161);
+            this.RemoteConfigManagement.Name = "RemoteConfigManagement";
+            this.RemoteConfigManagement.Size = new System.Drawing.Size(615, 133);
+            this.RemoteConfigManagement.TabIndex = 4;
+            this.RemoteConfigManagement.TabStop = false;
+            this.RemoteConfigManagement.Text = "Remote Configuration Management (GitLab)";
+            // 
+            // RepositoryNamespace
+            // 
+            this.RepositoryNamespace.Location = new System.Drawing.Point(390, 74);
+            this.RepositoryNamespace.Name = "RepositoryNamespace";
+            this.RepositoryNamespace.Size = new System.Drawing.Size(212, 20);
+            this.RepositoryNamespace.TabIndex = 6;
+            this.RepositoryNamespace.Leave += new System.EventHandler(this.Repoconfig_Leave);
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(285, 77);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(99, 13);
+            this.label14.TabIndex = 0;
+            this.label14.Text = "Repo. Namespace:";
+            // 
+            // CloneOnCreateIndicator
+            // 
+            this.CloneOnCreateIndicator.AutoSize = true;
+            this.CloneOnCreateIndicator.Location = new System.Drawing.Point(6, 100);
+            this.CloneOnCreateIndicator.Name = "CloneOnCreateIndicator";
+            this.CloneOnCreateIndicator.Size = new System.Drawing.Size(231, 17);
+            this.CloneOnCreateIndicator.TabIndex = 8;
+            this.CloneOnCreateIndicator.Text = "Clone remote when creating local repository";
+            this.CloneOnCreateIndicator.UseVisualStyleBackColor = true;
+            this.CloneOnCreateIndicator.Leave += new System.EventHandler(this.Repoconfig_Leave);
+            // 
+            // RepositoryBaseURL
+            // 
+            this.RepositoryBaseURL.Location = new System.Drawing.Point(91, 22);
+            this.RepositoryBaseURL.Name = "RepositoryBaseURL";
+            this.RepositoryBaseURL.Size = new System.Drawing.Size(511, 20);
+            this.RepositoryBaseURL.TabIndex = 1;
+            this.RepositoryBaseURL.Leave += new System.EventHandler(this.Repoconfig_Leave);
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(26, 25);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(59, 13);
+            this.label12.TabIndex = 0;
+            this.label12.Text = "Base URL:";
+            // 
+            // AccessToken
+            // 
+            this.AccessToken.Location = new System.Drawing.Point(91, 74);
+            this.AccessToken.Name = "AccessToken";
+            this.AccessToken.Size = new System.Drawing.Size(188, 20);
+            this.AccessToken.TabIndex = 4;
+            this.AccessToken.Leave += new System.EventHandler(this.Repoconfig_Leave);
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(6, 77);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(79, 13);
+            this.label11.TabIndex = 0;
+            this.label11.Text = "Access Token:";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(22, 48);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(63, 13);
+            this.label9.TabIndex = 0;
+            this.label9.Text = "User Name:";
+            // 
+            // UserName
+            // 
+            this.UserName.Location = new System.Drawing.Point(91, 48);
+            this.UserName.Name = "UserName";
+            this.UserName.Size = new System.Drawing.Size(188, 20);
+            this.UserName.TabIndex = 2;
+            this.UserName.Leave += new System.EventHandler(this.Repoconfig_Leave);
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(305, 51);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(79, 13);
+            this.label10.TabIndex = 0;
+            this.label10.Text = "E-mail Address:";
+            // 
+            // EMailAddress
+            // 
+            this.EMailAddress.Location = new System.Drawing.Point(390, 48);
+            this.EMailAddress.Name = "EMailAddress";
+            this.EMailAddress.Size = new System.Drawing.Size(212, 20);
+            this.EMailAddress.TabIndex = 3;
+            this.EMailAddress.Leave += new System.EventHandler(this.Repoconfig_Leave);
             // 
             // ServiceModel
             // 
@@ -283,10 +434,10 @@
             this.ServiceModel.Controls.Add(this.SMUseMsgHeaders);
             this.ServiceModel.Controls.Add(this.SMCreateCmnSchema);
             this.ServiceModel.Controls.Add(this.SMAddMessageAssemblyToDiagram);
-            this.ServiceModel.Location = new System.Drawing.Point(12, 223);
+            this.ServiceModel.Location = new System.Drawing.Point(633, 209);
             this.ServiceModel.Name = "ServiceModel";
             this.ServiceModel.Size = new System.Drawing.Size(218, 143);
-            this.ServiceModel.TabIndex = 7;
+            this.ServiceModel.TabIndex = 8;
             this.ServiceModel.TabStop = false;
             this.ServiceModel.Text = "Service Model";
             // 
@@ -349,10 +500,10 @@
             this.Documentation.Controls.Add(this.DEDictionaryEntryName);
             this.Documentation.Controls.Add(this.DEBusinessTermName);
             this.Documentation.Controls.Add(this.DENotes);
-            this.Documentation.Location = new System.Drawing.Point(236, 223);
+            this.Documentation.Location = new System.Drawing.Point(857, 209);
             this.Documentation.Name = "Documentation";
             this.Documentation.Size = new System.Drawing.Size(182, 143);
-            this.Documentation.TabIndex = 8;
+            this.Documentation.TabIndex = 9;
             this.Documentation.TabStop = false;
             this.Documentation.Text = "Documentation Export";
             // 
@@ -418,9 +569,9 @@
             this.DiagramTypes.Controls.Add(this.DiagramJPG);
             this.DiagramTypes.Controls.Add(this.DiagramGIF);
             this.DiagramTypes.Controls.Add(this.DiagramBMP);
-            this.DiagramTypes.Location = new System.Drawing.Point(427, 12);
+            this.DiagramTypes.Location = new System.Drawing.Point(1045, 12);
             this.DiagramTypes.Name = "DiagramTypes";
-            this.DiagramTypes.Size = new System.Drawing.Size(227, 127);
+            this.DiagramTypes.Size = new System.Drawing.Size(205, 115);
             this.DiagramTypes.TabIndex = 2;
             this.DiagramTypes.TabStop = false;
             this.DiagramTypes.Text = "Save Diagrams";
@@ -447,7 +598,7 @@
             // DiagramTGA
             // 
             this.DiagramTGA.AutoSize = true;
-            this.DiagramTGA.Location = new System.Drawing.Point(157, 95);
+            this.DiagramTGA.Location = new System.Drawing.Point(157, 91);
             this.DiagramTGA.Name = "DiagramTGA";
             this.DiagramTGA.Size = new System.Drawing.Size(43, 17);
             this.DiagramTGA.TabIndex = 9;
@@ -459,7 +610,7 @@
             // DiagramSVGZ
             // 
             this.DiagramSVGZ.AutoSize = true;
-            this.DiagramSVGZ.Location = new System.Drawing.Point(109, 95);
+            this.DiagramSVGZ.Location = new System.Drawing.Point(109, 91);
             this.DiagramSVGZ.Name = "DiagramSVGZ";
             this.DiagramSVGZ.Size = new System.Drawing.Size(50, 17);
             this.DiagramSVGZ.TabIndex = 8;
@@ -471,7 +622,7 @@
             // DiagramSVG
             // 
             this.DiagramSVG.AutoSize = true;
-            this.DiagramSVG.Location = new System.Drawing.Point(63, 95);
+            this.DiagramSVG.Location = new System.Drawing.Point(63, 91);
             this.DiagramSVG.Name = "DiagramSVG";
             this.DiagramSVG.Size = new System.Drawing.Size(45, 17);
             this.DiagramSVG.TabIndex = 7;
@@ -483,7 +634,7 @@
             // DiagramPNG
             // 
             this.DiagramPNG.AutoSize = true;
-            this.DiagramPNG.Location = new System.Drawing.Point(10, 95);
+            this.DiagramPNG.Location = new System.Drawing.Point(10, 91);
             this.DiagramPNG.Name = "DiagramPNG";
             this.DiagramPNG.Size = new System.Drawing.Size(46, 17);
             this.DiagramPNG.TabIndex = 6;
@@ -540,27 +691,27 @@
             this.DiagramBMP.UseVisualStyleBackColor = true;
             this.DiagramBMP.CheckedChanged += new System.EventHandler(this.DiagramTypes_CheckedChanged);
             // 
-            // InterfaceContracts
+            // SchemaGeneration
             // 
-            this.InterfaceContracts.Controls.Add(this.IFCSwagger);
-            this.InterfaceContracts.Controls.Add(this.IFCWSDL);
-            this.InterfaceContracts.Location = new System.Drawing.Point(236, 145);
-            this.InterfaceContracts.Name = "InterfaceContracts";
-            this.InterfaceContracts.Size = new System.Drawing.Size(182, 72);
-            this.InterfaceContracts.TabIndex = 5;
-            this.InterfaceContracts.TabStop = false;
-            this.InterfaceContracts.Text = "Interface Contracts";
+            this.SchemaGeneration.Controls.Add(this.IFCSwagger);
+            this.SchemaGeneration.Controls.Add(this.IFCWSDL);
+            this.SchemaGeneration.Location = new System.Drawing.Point(857, 133);
+            this.SchemaGeneration.Name = "SchemaGeneration";
+            this.SchemaGeneration.Size = new System.Drawing.Size(182, 72);
+            this.SchemaGeneration.TabIndex = 6;
+            this.SchemaGeneration.TabStop = false;
+            this.SchemaGeneration.Text = "Schema Generation";
             // 
             // IFCSwagger
             // 
             this.IFCSwagger.AutoSize = true;
             this.IFCSwagger.Location = new System.Drawing.Point(6, 41);
             this.IFCSwagger.Name = "IFCSwagger";
-            this.IFCSwagger.Size = new System.Drawing.Size(149, 17);
+            this.IFCSwagger.Size = new System.Drawing.Size(95, 17);
             this.IFCSwagger.TabIndex = 1;
             this.IFCSwagger.TabStop = true;
             this.IFCSwagger.Tag = "REST";
-            this.IFCSwagger.Text = "JSON Schema / OpenAPI";
+            this.IFCSwagger.Text = "JSON Schema";
             this.IFCSwagger.UseVisualStyleBackColor = true;
             this.IFCSwagger.CheckedChanged += new System.EventHandler(this.InterfaceContracts_CheckedChanges);
             // 
@@ -569,11 +720,11 @@
             this.IFCWSDL.AutoSize = true;
             this.IFCWSDL.Location = new System.Drawing.Point(6, 19);
             this.IFCWSDL.Name = "IFCWSDL";
-            this.IFCWSDL.Size = new System.Drawing.Size(132, 17);
+            this.IFCWSDL.Size = new System.Drawing.Size(89, 17);
             this.IFCWSDL.TabIndex = 0;
             this.IFCWSDL.TabStop = true;
             this.IFCWSDL.Tag = "SOAP";
-            this.IFCWSDL.Text = "XML Schema / WSDL";
+            this.IFCWSDL.Text = "XML Schema";
             this.IFCWSDL.UseVisualStyleBackColor = true;
             this.IFCWSDL.CheckedChanged += new System.EventHandler(this.InterfaceContracts_CheckedChanges);
             // 
@@ -581,12 +732,22 @@
             // 
             this.DocumentationGeneration.Controls.Add(this.DocGenGenerate);
             this.DocumentationGeneration.Controls.Add(this.DocGenUseCommon);
-            this.DocumentationGeneration.Location = new System.Drawing.Point(427, 281);
+            this.DocumentationGeneration.Location = new System.Drawing.Point(1044, 209);
             this.DocumentationGeneration.Name = "DocumentationGeneration";
-            this.DocumentationGeneration.Size = new System.Drawing.Size(227, 85);
-            this.DocumentationGeneration.TabIndex = 6;
+            this.DocumentationGeneration.Size = new System.Drawing.Size(206, 65);
+            this.DocumentationGeneration.TabIndex = 10;
             this.DocumentationGeneration.TabStop = false;
             this.DocumentationGeneration.Text = "Documentation Generation";
+            // 
+            // DocGenGenerate
+            // 
+            this.DocGenGenerate.AutoSize = true;
+            this.DocGenGenerate.Location = new System.Drawing.Point(5, 19);
+            this.DocGenGenerate.Name = "DocGenGenerate";
+            this.DocGenGenerate.Size = new System.Drawing.Size(143, 17);
+            this.DocGenGenerate.TabIndex = 1;
+            this.DocGenGenerate.Text = "Generate documentation";
+            this.DocGenGenerate.UseVisualStyleBackColor = true;
             // 
             // DocGenUseCommon
             // 
@@ -598,16 +759,6 @@
             this.DocGenUseCommon.Text = "Split Operations and Data Types";
             this.DocGenUseCommon.UseVisualStyleBackColor = true;
             // 
-            // VersionControl
-            // 
-            this.VersionControl.Controls.Add(this.AutoIncrementBuildNr);
-            this.VersionControl.Location = new System.Drawing.Point(427, 224);
-            this.VersionControl.Name = "VersionControl";
-            this.VersionControl.Size = new System.Drawing.Size(227, 51);
-            this.VersionControl.TabIndex = 9;
-            this.VersionControl.TabStop = false;
-            this.VersionControl.Text = "Version Control";
-            // 
             // RESTAuthentication
             // 
             this.RESTAuthentication.Controls.Add(this.RAAPIKeyEdit);
@@ -617,10 +768,10 @@
             this.RESTAuthentication.Controls.Add(this.label4);
             this.RESTAuthentication.Controls.Add(this.RAScheme);
             this.RESTAuthentication.Controls.Add(this.label3);
-            this.RESTAuthentication.Location = new System.Drawing.Point(13, 372);
+            this.RESTAuthentication.Location = new System.Drawing.Point(633, 12);
             this.RESTAuthentication.Name = "RESTAuthentication";
             this.RESTAuthentication.Size = new System.Drawing.Size(217, 113);
-            this.RESTAuthentication.TabIndex = 10;
+            this.RESTAuthentication.TabIndex = 12;
             this.RESTAuthentication.TabStop = false;
             this.RESTAuthentication.Text = "REST Authentication";
             // 
@@ -692,7 +843,7 @@
             this.RESTParameters.Controls.Add(this.label8);
             this.RESTParameters.Controls.Add(this.RESTHostName);
             this.RESTParameters.Controls.Add(this.label6);
-            this.RESTParameters.Location = new System.Drawing.Point(236, 372);
+            this.RESTParameters.Location = new System.Drawing.Point(857, 14);
             this.RESTParameters.Name = "RESTParameters";
             this.RESTParameters.Size = new System.Drawing.Size(182, 113);
             this.RESTParameters.TabIndex = 13;
@@ -735,10 +886,10 @@
             // 
             this.Locking.Controls.Add(this.AutoLocking);
             this.Locking.Controls.Add(this.PersistentLocks);
-            this.Locking.Location = new System.Drawing.Point(426, 146);
+            this.Locking.Location = new System.Drawing.Point(1045, 133);
             this.Locking.Name = "Locking";
-            this.Locking.Size = new System.Drawing.Size(227, 72);
-            this.Locking.TabIndex = 14;
+            this.Locking.Size = new System.Drawing.Size(205, 72);
+            this.Locking.TabIndex = 7;
             this.Locking.TabStop = false;
             this.Locking.Text = "Model Access";
             // 
@@ -766,10 +917,10 @@
             // 
             this.JSONSpecifics.Controls.Add(this.SupplementaryPrefixCode);
             this.JSONSpecifics.Controls.Add(this.SupplementaryPrefixLabel);
-            this.JSONSpecifics.Location = new System.Drawing.Point(427, 372);
+            this.JSONSpecifics.Location = new System.Drawing.Point(1045, 280);
             this.JSONSpecifics.Name = "JSONSpecifics";
-            this.JSONSpecifics.Size = new System.Drawing.Size(226, 72);
-            this.JSONSpecifics.TabIndex = 15;
+            this.JSONSpecifics.Size = new System.Drawing.Size(205, 72);
+            this.JSONSpecifics.TabIndex = 11;
             this.JSONSpecifics.TabStop = false;
             this.JSONSpecifics.Text = "JSON Settings";
             // 
@@ -789,15 +940,9 @@
             this.SupplementaryPrefixLabel.TabIndex = 0;
             this.SupplementaryPrefixLabel.Text = "Supplementary Prefix:";
             // 
-            // DocGenGenerate
+            // RepoPathSelector
             // 
-            this.DocGenGenerate.AutoSize = true;
-            this.DocGenGenerate.Location = new System.Drawing.Point(5, 19);
-            this.DocGenGenerate.Name = "DocGenGenerate";
-            this.DocGenGenerate.Size = new System.Drawing.Size(143, 17);
-            this.DocGenGenerate.TabIndex = 1;
-            this.DocGenGenerate.Text = "Generate documentation";
-            this.DocGenGenerate.UseVisualStyleBackColor = true;
+            this.RepoPathSelector.Description = "Select folder that is the root of the local GIT Repository";
             // 
             // SettingsForm
             // 
@@ -805,19 +950,19 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(665, 496);
+            this.ClientSize = new System.Drawing.Size(1264, 402);
+            this.Controls.Add(this.RemoteConfigManagement);
             this.Controls.Add(this.JSONSpecifics);
             this.Controls.Add(this.Locking);
             this.Controls.Add(this.RESTParameters);
             this.Controls.Add(this.RESTAuthentication);
-            this.Controls.Add(this.VersionControl);
             this.Controls.Add(this.DocumentationGeneration);
-            this.Controls.Add(this.InterfaceContracts);
+            this.Controls.Add(this.SchemaGeneration);
             this.Controls.Add(this.DiagramTypes);
             this.Controls.Add(this.Documentation);
             this.Controls.Add(this.ServiceModel);
-            this.Controls.Add(this.groupBox2);
-            this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.LocalConfigManagement);
+            this.Controls.Add(this.LogFile);
             this.Controls.Add(this.CodeLists);
             this.Controls.Add(this.Cancel);
             this.Controls.Add(this.Ok);
@@ -830,22 +975,22 @@
             this.Text = "API Manager Settings";
             this.CodeLists.ResumeLayout(false);
             this.CodeLists.PerformLayout();
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
+            this.LogFile.ResumeLayout(false);
+            this.LogFile.PerformLayout();
+            this.LocalConfigManagement.ResumeLayout(false);
+            this.LocalConfigManagement.PerformLayout();
+            this.RemoteConfigManagement.ResumeLayout(false);
+            this.RemoteConfigManagement.PerformLayout();
             this.ServiceModel.ResumeLayout(false);
             this.ServiceModel.PerformLayout();
             this.Documentation.ResumeLayout(false);
             this.Documentation.PerformLayout();
             this.DiagramTypes.ResumeLayout(false);
             this.DiagramTypes.PerformLayout();
-            this.InterfaceContracts.ResumeLayout(false);
-            this.InterfaceContracts.PerformLayout();
+            this.SchemaGeneration.ResumeLayout(false);
+            this.SchemaGeneration.PerformLayout();
             this.DocumentationGeneration.ResumeLayout(false);
             this.DocumentationGeneration.PerformLayout();
-            this.VersionControl.ResumeLayout(false);
-            this.VersionControl.PerformLayout();
             this.RESTAuthentication.ResumeLayout(false);
             this.RESTAuthentication.PerformLayout();
             this.RESTParameters.ResumeLayout(false);
@@ -867,16 +1012,11 @@
         private System.Windows.Forms.Button SelectFile;
         private System.Windows.Forms.Button Ok;
         private System.Windows.Forms.Button Cancel;
-        private System.Windows.Forms.Button SelectRootPath;
-        private System.Windows.Forms.TextBox RootPathName;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.FolderBrowserDialog RootPathSelector;
         private System.Windows.Forms.CheckBox CLAddSourceEnumsToDiagram;
         private System.Windows.Forms.GroupBox CodeLists;
         private System.Windows.Forms.CheckBox CLAddCodeTypesToDiagram;
-        private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.CheckBox AutoIncrementBuildNr;
+        private System.Windows.Forms.GroupBox LogFile;
+        private System.Windows.Forms.GroupBox LocalConfigManagement;
         private System.Windows.Forms.GroupBox ServiceModel;
         private System.Windows.Forms.CheckBox SMAddMessageAssemblyToDiagram;
         private System.Windows.Forms.CheckBox SMUseSecurityLevels;
@@ -899,13 +1039,12 @@
         private System.Windows.Forms.RadioButton DiagramBMP;
         private System.Windows.Forms.CheckBox SaveMsgDiagrams;
         private System.Windows.Forms.Label FormatLabel;
-        private System.Windows.Forms.GroupBox InterfaceContracts;
+        private System.Windows.Forms.GroupBox SchemaGeneration;
         private System.Windows.Forms.RadioButton IFCSwagger;
         private System.Windows.Forms.RadioButton IFCWSDL;
         private System.Windows.Forms.CheckBox SMAddBusinessMsgToDiagram;
         private System.Windows.Forms.GroupBox DocumentationGeneration;
         private System.Windows.Forms.CheckBox DocGenUseCommon;
-        private System.Windows.Forms.GroupBox VersionControl;
         private System.Windows.Forms.GroupBox RESTAuthentication;
         private System.Windows.Forms.Button RAAPIKeyEdit;
         private System.Windows.Forms.TextBox RAAPIKeys;
@@ -927,5 +1066,28 @@
         private System.Windows.Forms.Label SupplementaryPrefixLabel;
         private System.Windows.Forms.ToolTip AttributePrefixToolTip;
         private System.Windows.Forms.CheckBox DocGenGenerate;
+        private System.Windows.Forms.Button SelectRepoPath;
+        private System.Windows.Forms.TextBox RepoPathName;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.GroupBox RemoteConfigManagement;
+        private System.Windows.Forms.TextBox AccessToken;
+        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.TextBox EMailAddress;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.TextBox UserName;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.TextBox RepositoryBaseURL;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.FolderBrowserDialog RepoPathSelector;
+        private System.Windows.Forms.CheckBox ConfigurationMgmtIndicator;
+        private System.Windows.Forms.ToolTip ConfigMgmtToolTip;
+        private System.Windows.Forms.ToolTip CloneOnCreateToolTip;
+        private System.Windows.Forms.TextBox GITIgnoreEntries;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.ToolTip RepositoryRootToolTip;
+        private System.Windows.Forms.ToolTip GITIgnoreToolTip;
+        private System.Windows.Forms.CheckBox CloneOnCreateIndicator;
+        private System.Windows.Forms.TextBox RepositoryNamespace;
+        private System.Windows.Forms.Label label14;
     }
 }

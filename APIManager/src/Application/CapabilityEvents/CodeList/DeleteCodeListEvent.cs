@@ -40,7 +40,6 @@ namespace Plugin.Application.Events.CodeList
             ModelSlt model = ModelSlt.GetModelSlt();
             MEPackage serviceModel = null;
             MEClass codeListClass = context.CurrentClass;
-            
             Diagram myDiagram = null;
 
             // Figure-out how we got here...
@@ -75,6 +74,8 @@ namespace Plugin.Application.Events.CodeList
                 var codeListService = new CodeListService(serviceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype));
                 codeListService.UpdateVersion(new Tuple<int, int>(codeListService.Version.Item1, codeListService.Version.Item2 + 1));
                 codeListService.CreateLogEntry("Deleted CodeList: " + codeListClass.Name);
+                codeListService.Dirty();
+                codeListService.Paint(myDiagram);
             }
         }
     }

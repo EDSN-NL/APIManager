@@ -49,18 +49,6 @@ namespace APIManager.SparxEA.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string RootPath {
-            get {
-                return ((string)(this["RootPath"]));
-            }
-            set {
-                this["RootPath"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool CLAddSourceEnumsToDiagram {
             get {
@@ -80,18 +68,6 @@ namespace APIManager.SparxEA.Properties {
             }
             set {
                 this["CLAddCodeTypesToDiagram"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool AutoIncrementBuildNrs {
-            get {
-                return ((bool)(this["AutoIncrementBuildNrs"]));
-            }
-            set {
-                this["AutoIncrementBuildNrs"] = value;
             }
         }
         
@@ -368,6 +344,114 @@ namespace APIManager.SparxEA.Properties {
             }
             set {
                 this["DocGenGenerateDoc"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string GLUserName {
+            get {
+                return ((string)(this["GLUserName"]));
+            }
+            set {
+                this["GLUserName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string GLAccessToken {
+            get {
+                return ((string)(this["GLAccessToken"]));
+            }
+            set {
+                this["GLAccessToken"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string GLEMail {
+            get {
+                return ((string)(this["GLEMail"]));
+            }
+            set {
+                this["GLEMail"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string GLRepositoryURL {
+            get {
+                return ((string)(this["GLRepositoryURL"]));
+            }
+            set {
+                this["GLRepositoryURL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string RepositoryRootPath {
+            get {
+                return ((string)(this["RepositoryRootPath"]));
+            }
+            set {
+                this["RepositoryRootPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UseConfigurationManagement {
+            get {
+                return ((bool)(this["UseConfigurationManagement"]));
+            }
+            set {
+                this["UseConfigurationManagement"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool GLCloneOnCreate {
+            get {
+                return ((bool)(this["GLCloneOnCreate"]));
+            }
+            set {
+                this["GLCloneOnCreate"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string GITIgnoreEntries {
+            get {
+                return ((string)(this["GITIgnoreEntries"]));
+            }
+            set {
+                this["GITIgnoreEntries"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string GLRepositoryNamespace {
+            get {
+                return ((string)(this["GLRepositoryNamespace"]));
+            }
+            set {
+                this["GLRepositoryNamespace"] = value;
             }
         }
     }

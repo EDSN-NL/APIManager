@@ -96,14 +96,16 @@ namespace Plugin.Application.CapabilityModel.CodeList
         {
             Tuple<int, int> version = this._currentService.Version;
             string name = this._currentService.Name;
-            if (this._currentService.Name.EndsWith("List")) name += "Set_v";
+            if (this._currentService.Name.EndsWith("List")) name += "Set";
             else if (this._currentService.Name.EndsWith("Lists"))
             {
                 name = name.Substring(0, name.Length - 1);  // Remove last character
-                name += "Set_v";
+                name += "Set";
             }
-            else if (!this._currentService.Name.EndsWith("Set")) name += "CodeListSet_v";
-            name += version.Item1 + "p" + version.Item2 + "b" + this._currentService.BuildNumber + ".xlsx";
+            else if (!this._currentService.Name.EndsWith("Set")) name += "CodeListSet";
+            name += this._currentService.UseConfigurationMgmt? ".xlsx": 
+                                                               ("_v" + version.Item1 + "p" + version.Item2 + "b" + 
+                                                               this._currentService.BuildNumber + ".xlsx");
             return name;
         }
 
@@ -136,8 +138,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
         /// Performs the actual processing on the specified capability. We implement only two stages:
         /// Pre-processing is used to assure that valid pathnames are constructed in our Service object. Since this is checked by the
         /// first capability that is processed, all capabilities in this run will share the same pathname as the name selected for
-        /// the first capability. This name is verified by the user and if the user decides to cancel, no work will be lost since
-        /// nothing has been processed at that time.
+        /// the first capability.
         /// </summary>
         /// <param name="capability">The capability to be processed.</param>
         /// <param name="stage">The current processing stage.</param>
@@ -167,14 +168,11 @@ namespace Plugin.Application.CapabilityModel.CodeList
                             Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.ExcelExporter.processCapability >> Illegal context, aborting!");
                             return false;
                         }
-
-                        // Below sequence assures that all capabilities in the current run share the same pathname...
-						if (!this._currentService.InitializePath()) return false;
-                        this._currentCapability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), this._currentService.ComponentPath);
+                        this._currentCapability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), this._currentService.ServiceBuildPath);
                         if (this._singleCodeList) this._workSheet = this._workBook.Worksheets.Add(this._currentCapability.Name);
                         break;
 
-                    // Processing stage is used to create the actual Genericode representation and write the result to file...
+                    // Processing stage is used to create the actual Excel representation and write the result to file...
                     case ProcessingStage.Process:
                         panel.WriteInfo(1, "Processing CodeList: '" + this._currentCapability.Name + "'...");
                         BuildCodeList();
@@ -183,7 +181,10 @@ namespace Plugin.Application.CapabilityModel.CodeList
                         {
                             this._workSheet.Columns(1, 10).AdjustToContents();
                             if (result = SaveProcessedCapability())
+                            {
                                 panel.WriteInfo(0, "Capability processing has been completed successfully.");
+                                this._currentService.Dirty();   // Mark service as 'modified' for Configuration Management.
+                            }
                             else panel.WriteError(0, "Unable to save Excel output!");
                         }
                         break;
@@ -252,13 +253,11 @@ namespace Plugin.Application.CapabilityModel.CodeList
                             return false;
                         }
 
-                        // If instructed to do so, increment our build number to get it ready for next build....
-                        if (context.GetBoolSetting(FrameworkSettings._AutoIncrementBuildNumbers)) this._currentService.BuildNumber++;
-
                         this._workSheet.Columns(1, 10).AdjustToContents();
                         if (result = SaveProcessedService())
                              panel.WriteInfo(0, "Service processing has been completed successfully.");
                         else panel.WriteError(0, "Unable to save Excel output!");
+                        this._currentService.Dirty();       // Mark service as 'modified' for configuration management.
                         panel.Done();
                         break;
 
@@ -290,25 +289,16 @@ namespace Plugin.Application.CapabilityModel.CodeList
             // As a safety check, we verify that my service contains a valid absolute path. If not, we attempt
             // to create one...
             string fileName = GetCapabilityFilename();
-            string pathName = string.Empty;
+            string pathName = this._currentService.ServiceCIPath;
             bool result = false;
-
-            if (string.IsNullOrEmpty(this._currentService.FullyQualifiedPath))
-            {
-                if (!this._currentService.InitializePath())
-                {
-                    Logger.WriteWarning("Plugin.Application.CapabilityModel.CodeList.ExcelExporter.saveProcessedCapability >> Unable to set path, giving up!");
-                    return false;
-                }
-            }
 
             try
             {
-                this._workBook.SaveAs(this._currentService.FullyQualifiedPath + "/" + fileName, false);
+                this._workBook.SaveAs(pathName + "/" + fileName, false);
 
                 // Next, we update the file- and path name tags in our capability class...
                 this._currentCapability.CapabilityClass.SetTag(context.GetConfigProperty(_FileNameTag), fileName);
-                this._currentCapability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), this._currentService.ComponentPath);
+                this._currentCapability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), this._currentService.ServiceBuildPath);
                 result = true;
             }
             catch (Exception exc)
@@ -334,21 +324,12 @@ namespace Plugin.Application.CapabilityModel.CodeList
             // As a safety check, we verify that my service contains a valid absolute path. If not, we attempt
             // to create one...
             string fileName = GetServiceFilename();
-            string pathName = string.Empty;
+            string pathName = this._currentService.ServiceCIPath;
             bool result = false;
-
-            if (string.IsNullOrEmpty(this._currentService.FullyQualifiedPath))
-            {
-                if (!this._currentService.InitializePath())
-                {
-                    Logger.WriteWarning("Plugin.Application.CapabilityModel.CodeList.ExcelExporter.saveProcessedService >> Unable to set path, giving up!");
-                    return false;
-                }
-            }
 
             try
             {
-                this._workBook.SaveAs(this._currentService.FullyQualifiedPath + "/" + fileName, false);
+                this._workBook.SaveAs(pathName + "/" + fileName, false);
                 result = true;
             }
             catch (Exception exc)

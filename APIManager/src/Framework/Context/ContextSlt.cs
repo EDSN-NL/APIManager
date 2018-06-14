@@ -179,12 +179,13 @@ namespace Framework.Context
         /// Retrieve string setting by name. This is a pass-through to the 'FrameworkSettings' component.
         /// </summary>
         /// <param name="name">Name of the setting to retrieve.</param>
+        /// <param name="isEncrypted">Set to 'true' if setting must be decrypted before return.</param>
         /// <returns>Value of setting.</returns>
         /// <exception cref="KeyNotFoundException">Specified name does not exist.</exception>
         /// <exception cref="MissingImplementationException">No implementation object exists or no FrameworkSettings object has been loaded (yet).</exception>
-        internal string GetStringSetting(string name)
+        internal string GetStringSetting(string name, bool isEncrypted = false)
         {
-            if (this._contextImp != null) return this._contextImp.GetStringSetting(name);
+            if (this._contextImp != null) return this._contextImp.GetStringSetting(name, isEncrypted);
             else throw new MissingImplementationException("ContextImplementation");
         }
 
@@ -300,11 +301,12 @@ namespace Framework.Context
         /// </summary>
         /// <param name="name">Name of the setting to update.</param>
         /// <param name="value">New value of the setting.</param>
+        /// <param name="mustEncrypt">Set to 'true' if setting must be stored as an encrypted string.</param>
         /// <exception cref="KeyNotFoundException">Specified name does not exist.</exception>
         /// <exception cref="MissingImplementationException">No implementation object exists. or no FrameworkSettings object has been loaded (yet).</exception>
-        internal void SetStringSetting(string name, string value)
+        internal void SetStringSetting(string name, string value, bool mustEncrypt = false)
         {
-            if (this._contextImp != null) this._contextImp.SetStringSetting(name, value);
+            if (this._contextImp != null) this._contextImp.SetStringSetting(name, value, mustEncrypt);
             else throw new MissingImplementationException("ContextImplementation");
         }
 

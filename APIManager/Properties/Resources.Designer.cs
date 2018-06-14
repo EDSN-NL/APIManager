@@ -386,6 +386,21 @@ namespace APIManager.SparxEA.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ECDM Service Repository use of contents.
+        ///
+        ///THIS REPOSITORY AND THE INFORMATION CONTAINED HEREIN IS PROVIDED ON AN AS IS BASIS AND ENEXIS DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, 
+        ///INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF 
+        ///MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. 
+        ///
+        ///NONE OF THE INFORMATION PRESENT IN THIS REPOSITORY MAY BE USED IN ANY FORM WITHOUT EXPLICIT WRITTEN CONSENT FROM THE REPOSITORY  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string GITLicenseTemplate {
+            get {
+                return ResourceManager.GetString("GITLicenseTemplate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to swagger: &quot;2.0&quot;
         ///#========================================================================================
         ///#          OpenAPI 2.0 (Swagger) definition for API: &apos;@SERVICE@&apos;

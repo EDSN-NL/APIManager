@@ -70,6 +70,8 @@ namespace Plugin.Application.Events.CodeList
             if (codeListCapability.Update())    // Performs the actual update operation.
             {
                 // Only in case something has actually been updated do we refresh the diagram and package views...
+                codeListService.Dirty();
+                codeListService.Paint(myDiagram);
                 serviceModel.Refresh();
                 myDiagram.Refresh();
             }

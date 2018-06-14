@@ -160,17 +160,8 @@ namespace Plugin.Application.CapabilityModel.API
 
                             if (!this._isPathInitialized)
                             {
-                                // Below sequence assures that we have an output path for our Interface file...
-                                if (this._currentService.InitializePath())
-                                {
-                                    capability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), capability.RootService.ComponentPath);
-                                    this._isPathInitialized = true;
-                                }
-                                else
-                                {
-                                    Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.ProcessCapability >> Unable to initialize folder structure!");
-                                    return false;  // Unable to create necessary folder structure!
-                                }
+                                capability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), capability.RootService.ServiceBuildPath);
+                                this._isPathInitialized = true;
                             }
                         }
                         this._panel.IncreaseBar(1);
@@ -256,6 +247,11 @@ namespace Plugin.Application.CapabilityModel.API
                             this._JSONWriter.WriteEndObject();          // End of OpenAPI definition object.
                             this._JSONWriter.Flush();
                             result = SaveProcessedCapability();
+                            if (result == true)
+                            {
+                                this._panel.WriteInfo(this._panelIndex, "Interface generation has been completed successfully.");
+                                this._panel.WriteInfo(this._panelIndex, "Output written to: '" + this._currentService.ServiceCIPath + "'.");
+                            }
 
                             // Release resources...
                             this._isPathInitialized = false;

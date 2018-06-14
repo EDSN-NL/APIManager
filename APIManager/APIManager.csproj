@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\LibGit2Sharp-SSH.NativeBinaries.1.0.14\build\LibGit2Sharp-SSH.NativeBinaries.props" Condition="Exists('..\packages\LibGit2Sharp-SSH.NativeBinaries.1.0.14\build\LibGit2Sharp-SSH.NativeBinaries.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -20,6 +21,8 @@
     <NoStdLib>False</NoStdLib>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -31,6 +34,7 @@
     <WarningLevel>4</WarningLevel>
     <RegisterForComInterop>true</RegisterForComInterop>
     <LangVersion>default</LangVersion>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>PdbOnly</DebugType>
@@ -64,11 +68,17 @@
       <HintPath>C:\Program Files (x86)\Sparx Systems\EA\Interop.EA.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="LibGit2Sharp, Version=1.0.22.0, Culture=neutral, PublicKeyToken=7cbde695407f0333, processorArchitecture=MSIL">
+      <HintPath>..\packages\LibGit2Sharp-SSH.1.0.22\lib\net40\LibGit2Sharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json.Schema, Version=3.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.Schema.3.0.5\lib\net45\Newtonsoft.Json.Schema.dll</HintPath>
+    </Reference>
+    <Reference Include="NGitLab">
+      <HintPath>\\Mac\Home\UserData\GITHubRepositories\NGitLab\NGitLab\NGitLab\bin\Release\net45\NGitLab.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -76,11 +86,14 @@
       <HintPath>C:\Program Files (x86)\Siemens\EA SVG Export\SVGExport.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Runtime.Serialization.Formatters.Soap" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
@@ -118,6 +131,7 @@
     <Compile Include="src\Application\CapabilityEvents\API\AddRESTResourceEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\CreateRESTServiceDeclarationEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\ProcessRESTInterfaceEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\CommitServiceEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\CodeList\ProcessCodeListSetEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\UpdateChangeLogEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\DeleteInterfaceEvent.cs" />
@@ -179,11 +193,18 @@
     <Compile Include="src\Application\CapabilityModel\CodeList\ExcelExporter.cs" />
     <Compile Include="src\Application\CapabilityModel\ProgressPanelSlt.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Interface\OperationCapability.cs" />
+    <Compile Include="src\Application\ConfigurationManagement\CMContext.cs" />
     <Compile Include="src\Application\Forms\AccessLevelForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="src\Application\Forms\AccessLevelForm.designer.cs">
       <DependentUpon>AccessLevelForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\CMChangeMessage.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\CMChangeMessage.Designer.cs">
+      <DependentUpon>CMChangeMessage.cs</DependentUpon>
     </Compile>
     <Compile Include="src\Application\Forms\RESTResponseCodeDialog.cs">
       <SubType>Form</SubType>
@@ -233,6 +254,8 @@
     <Compile Include="src\Application\Forms\RESTAuthEditAPIKeys.Designer.cs">
       <DependentUpon>RESTAuthEditAPIKeys.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Application\ConfigurationManagement\RemoteRepository.cs" />
+    <Compile Include="src\Application\ConfigurationManagement\CMRepositorySlt.cs" />
     <Compile Include="src\Framework\Model\Interface\MEClassMetaData.cs" />
     <Compile Include="src\Framework\SchemaManagement\JSON\JSONPropertyInterface.cs" />
     <Compile Include="src\Framework\SchemaManagement\JSON\JSONSchema.cs" />
@@ -250,6 +273,7 @@
     <Compile Include="src\Framework\SchemaManagement\SchemaAttribute.cs" />
     <Compile Include="src\Framework\SchemaManagement\Facet.cs" />
     <Compile Include="src\Framework\SchemaManagement\PrimitiveType.cs" />
+    <Compile Include="src\Framework\Util\CryptedString.cs" />
     <Compile Include="src\Framework\Util\Compression.cs" />
     <Compile Include="src\Framework\Util\IllegalEnumException.cs" />
     <Compile Include="src\Framework\Util\IllegalCardinalityException.cs" />
@@ -385,10 +409,10 @@
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\SettingsEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\AboutEvent.cs" />
     <Compile Include="src\Framework\Context\FrameworkSettings.cs" />
-    <Compile Include="src\Framework\EventConfig\EventGroupDescriptor.cs" />
-    <Compile Include="src\Framework\EventConfig\EventTreeDescriptor.cs" />
-    <Compile Include="src\Framework\EventConfig\EventHandlerConfiguration.cs" />
-    <Compile Include="src\Framework\EventConfig\EventHandlerDescriptor.cs" />
+    <Compile Include="src\Framework\Event\EventConfig\EventGroupDescriptor.cs" />
+    <Compile Include="src\Framework\Event\EventConfig\EventTreeDescriptor.cs" />
+    <Compile Include="src\Framework\Event\EventConfig\EventHandlerConfiguration.cs" />
+    <Compile Include="src\Framework\Event\EventConfig\EventHandlerDescriptor.cs" />
     <Compile Include="src\Framework\Event\EventImplementation.cs" />
     <Compile Include="src\Framework\Model\Implementation\MEIAssociation.cs" />
     <Compile Include="src\Framework\Model\Implementation\MEIAttribute.cs" />
@@ -456,6 +480,10 @@
   <ItemGroup>
     <Content Include="ECDMLogo.ico" />
     <Content Include="resources\APIManager.ico" />
+    <None Include="resources\GITLicenseTemplate.txt" />
+    <None Include="resources\CMConfig.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="resources\OpenAPI20Header.txt" />
     <None Include="packages.config" />
     <None Include="resources\SOAPSchemaHeaderOCPP.txt" />
@@ -477,6 +505,10 @@
     <None Include="resources\ASCIIDocMessageClasses-backup.txt" />
     <None Include="resources\ECDMLogo.ico" />
     <None Include="resources\ECDMLogo.png" />
+    <Content Include="resources\CMConfig.xml">
+      <SubType>Designer</SubType>
+    </Content>
+    <None Include="resources\DefaultGITConfig.txt" />
     <Content Include="resources\EDSN-LDT-MappingTable.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -521,6 +553,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Application\Forms\AddInterfaceInput.resx">
       <DependentUpon>AddInterfaceInput.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\CMChangeMessage.resx">
+      <DependentUpon>CMChangeMessage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Application\Forms\RESTResponseCodeDialog.resx">
       <DependentUpon>RESTResponseCodeDialog.cs</DependentUpon>
@@ -591,6 +626,12 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\LibGit2Sharp-SSH.NativeBinaries.1.0.14\build\LibGit2Sharp-SSH.NativeBinaries.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\LibGit2Sharp-SSH.NativeBinaries.1.0.14\build\LibGit2Sharp-SSH.NativeBinaries.props'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

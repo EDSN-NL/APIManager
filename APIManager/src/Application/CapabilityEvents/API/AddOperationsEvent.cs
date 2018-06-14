@@ -79,6 +79,10 @@ namespace Plugin.Application.Events.API
 
                     if (myInterface.AddOperations(dialog.OperationList, dialog.MinorVersionIndicator))
                     {
+                        // Mark service as 'modified' for configuration management and add to diagram in different color...
+                        myService.Dirty();
+                        myService.Paint(svcContext.MyDiagram);
+
                         // Collect the classes and associations that must be shown on the diagram...
                         DiagramItemsCollector collector = new DiagramItemsCollector(svcContext.MyDiagram);
                         myInterface.Traverse(collector.Collect);

@@ -21,7 +21,7 @@ namespace Plugin.Application.Events.Util
         internal override void HandleEvent()
         {
             // Create and show the settings form. This will update the user configuration settings.
-            Logger.WriteInfo("Framework.Event.Util.SettingsEvent.handleEvent >> Showing settings dialogue...");
+            Logger.WriteInfo("Framework.Event.Util.SettingsEvent.handleEvent >> Showing settings dialogue with user...");
             using (var settingsForm = new SettingsForm())
             {
                 // All necessary updates are performed by the dialog so there is no additional processing in here!

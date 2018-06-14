@@ -76,6 +76,7 @@ namespace Plugin.Application.CapabilityModel.API
             Traverse(DiagramItemsCollector);                        // Performs the actual data collection.
             myDiagram.AddClassList(this._diagramClassList);
             myDiagram.AddAssociationList(this._diagramAssocList);
+            Paint(myDiagram);
             myDiagram.Show();
         }
 

@@ -212,6 +212,13 @@
            <!-- Simply shows meta data of currently selected class. Does not required specific preconditions. -->
            <HandlerFQN>Plugin.Application.Events.Util.ClassInspectorEvent</HandlerFQN>
          </EventHandler>
+         <EventHandler ID="Service: Commit">
+           <HandlerFQN>Plugin.Application.Events.Util.CommitServiceEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on 'Service' classes. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
          <EventHandler ID="Edit Capability Documentation">
            <HandlerFQN>Plugin.Application.Events.Util.CapabilityDocumentationEvent</HandlerFQN>
            <StereotypeList>
@@ -422,6 +429,13 @@
          <EventHandler ID="Class Inspector">
            <!-- Simply shows meta data of currently selected class. Does not required specific preconditions. -->
            <HandlerFQN>Plugin.Application.Events.Util.ClassInspectorEvent</HandlerFQN>
+         </EventHandler>
+         <EventHandler ID="Service: Commit">
+           <HandlerFQN>Plugin.Application.Events.Util.CommitServiceEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on 'Service' classes. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
          </EventHandler>
          <EventHandler ID="Edit Capability Documentation">
            <HandlerFQN>Plugin.Application.Events.Util.CapabilityDocumentationEvent</HandlerFQN>

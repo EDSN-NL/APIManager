@@ -192,17 +192,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
 
                         if (this._standAlone)
                         {
-                            // Below sequence assures that we have a valid pathname for the schema file.
-                            // In case of non-stand-alone use, this should have been initialized elsewhere.
-                            if (this._currentService.InitializePath())
-                            {
-                                this._currentCapability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), this._currentService.ComponentPath);
-                            }
-                            else
-                            {
-                                Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.processCapability >> Error creating output structure, aborting!");
-                                return false;
-                            }
+                            this._currentCapability.CapabilityClass.SetTag(context.GetConfigProperty(_PathNameTag), this._currentService.ServiceBuildPath);
                         }
 
                         if (!this._extSchema)
@@ -247,8 +237,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                                 if (result = SaveProcessedCapability())
                                 {
                                     this._panel.WriteInfo(this._panelIndex, "Message processing has been completed successfully.");
-                                    this._panel.WriteInfo(this._panelIndex, "Output written to: '" + this._currentService.FullyQualifiedPath + "'.");
-                                    if (context.GetBoolSetting(FrameworkSettings._AutoIncrementBuildNumbers)) this._currentService.BuildNumber++;
+                                    this._panel.WriteInfo(this._panelIndex, "Output written to: '" + this._currentService.ServiceCIPath + "'.");
                                 }
                                 else this._panel.WriteError(this._panelIndex, "Unable to save Schema file!");
                                 this._panel.Done();

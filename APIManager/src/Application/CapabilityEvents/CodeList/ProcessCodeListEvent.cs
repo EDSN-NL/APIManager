@@ -96,11 +96,10 @@ namespace Plugin.Application.Events.CodeList
 
             if (processor != null && codeListCapability.HandleCapabilities(processor))
             {
-                string path = codeListService.FullyQualifiedPath;
-                string fileName = processor.GetCapabilityFilename();
                 string message = "Processing of CodeList '" + codeListCapability.Name + "' finished." + Environment.NewLine;
-                message += "Output path: '" + path + "'." + Environment.NewLine + "Filename: '" + fileName + "'.";
+                message += "Output path: '" + codeListService.ServiceCIPath + "'." + Environment.NewLine + "Filename: '" + processor.GetCapabilityFilename() + "'.";
                 MessageBox.Show(message, "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                codeListService.Paint(myDiagram);
             }
         }
     }

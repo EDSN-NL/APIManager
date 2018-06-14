@@ -129,6 +129,10 @@ namespace Plugin.Application.Events.API
                         }
                         if (dialog.MinorVersionIndicator) myService.UpdateVersion(new Tuple<int, int>(myService.Version.Item1, myService.Version.Item2 + 1));
                         myService.CreateLogEntry("Deleted operation: '" + svcContext.OperationClass.Name + "' from interface(s): '" + interfaceNames + "'.");
+                        
+                        // Mark service as 'modified' for configuration management and add to diagram in different color...
+                        myService.Dirty();
+                        myService.Paint(svcContext.MyDiagram);
                         svcContext.Refresh();
                     }
                     else Logger.WriteError("Plugin.Application.Events.API.DeleteOperationsEvent.handleEvent >> Unable to delete operation '" + 
