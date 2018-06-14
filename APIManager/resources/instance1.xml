@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CMConfiguratiion xmlns="urn:x-enexis:ecdm:framework:context:configmanagement"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="urn:x-enexis:ecdm:framework:context:configmanagement file:/Users/wmeijers/UserData/Bedrijven/Customers/Enexis/ECDM%20ROOT/Sparx%20EA/Add-Ins/API%20Manager/APIManager/resources/CMConfig.xsd">
+    <ServiceCI serviceKind="CodeList">
+        <ContainerCI nameFromType="nameFromType1" suffixTemplate="suffixTemplate1">
+            <DocumentCI capabilityName="capabilityName1" capabilityType="capabilityType1" suffixTemplate="suffixTemplate3"/>
+            <DocumentCI capabilityName="capabilityName3" capabilityType="capabilityType3" suffixTemplate="suffixTemplate5"/>
+            <ModelCI packageName="packageName1" packageType="packageType1" suffixTemplate="suffixTemplate7"/>
+            <ModelCI packageName="packageName3" packageType="packageType3" suffixTemplate="suffixTemplate9"/>
+        </ContainerCI>
+        <ContainerCI nameFromType="nameFromType3" suffixTemplate="suffixTemplate11">
+            <DocumentCI capabilityName="capabilityName5" capabilityType="capabilityType5" suffixTemplate="suffixTemplate13"/>
+            <DocumentCI capabilityName="capabilityName7" capabilityType="capabilityType7" suffixTemplate="suffixTemplate15"/>
+            <ModelCI packageName="packageName5" packageType="packageType5" suffixTemplate="suffixTemplate17"/>
+            <ModelCI packageName="packageName7" packageType="packageType7" suffixTemplate="suffixTemplate19"/>
+        </ContainerCI>
+        <DocumentCI capabilityName="capabilityName9" capabilityType="capabilityType9" suffixTemplate="suffixTemplate21"/>
+        <DocumentCI capabilityName="capabilityName11" capabilityType="capabilityType11" suffixTemplate="suffixTemplate23"/>
+        <ModelCI packageName="packageName9" packageType="packageType9" suffixTemplate="suffixTemplate25"/>
+        <ModelCI packageName="packageName11" packageType="packageType11" suffixTemplate="suffixTemplate27"/>
+    </ServiceCI>
+    <ServiceCI serviceKind="CodeList">
+        <ContainerCI nameFromType="nameFromType5" suffixTemplate="suffixTemplate29">
+            <DocumentCI capabilityName="capabilityName13" capabilityType="capabilityType13" suffixTemplate="suffixTemplate31"/>
+            <DocumentCI capabilityName="capabilityName15" capabilityType="capabilityType15" suffixTemplate="suffixTemplate33"/>
+            <ModelCI packageName="packageName13" packageType="packageType13" suffixTemplate="suffixTemplate35"/>
+            <ModelCI packageName="packageName15" packageType="packageType15" suffixTemplate="suffixTemplate37"/>
+        </ContainerCI>
+        <ContainerCI nameFromType="nameFromType7" suffixTemplate="suffixTemplate39">
+            <DocumentCI capabilityName="capabilityName17" capabilityType="capabilityType17" suffixTemplate="suffixTemplate41"/>
+            <DocumentCI capabilityName="capabilityName19" capabilityType="capabilityType19" suffixTemplate="suffixTemplate43"/>
+            <ModelCI packageName="packageName17" packageType="packageType17" suffixTemplate="suffixTemplate45"/>
+            <ModelCI packageName="packageName19" packageType="packageType19" suffixTemplate="suffixTemplate47"/>
+        </ContainerCI>
+        <DocumentCI capabilityName="capabilityName21" capabilityType="capabilityType21" suffixTemplate="suffixTemplate49"/>
+        <DocumentCI capabilityName="capabilityName23" capabilityType="capabilityType23" suffixTemplate="suffixTemplate51"/>
+        <ModelCI packageName="packageName21" packageType="packageType21" suffixTemplate="suffixTemplate53"/>
+        <ModelCI packageName="packageName23" packageType="packageType23" suffixTemplate="suffixTemplate55"/>
+    </ServiceCI>
+</CMConfiguratiion>
