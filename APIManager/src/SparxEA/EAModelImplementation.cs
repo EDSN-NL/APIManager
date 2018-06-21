@@ -277,6 +277,34 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// This function returns a list of all Classes that contain a tag with provided name and a tag value matching the provided value.
+        /// </summary>
+        /// <param name="tagName">Tag that must be present in the Class.</param>
+        /// <param name="tagValue">Matching value string (query performs a 'like' on this value).</param>
+        /// <returns>List of Classes that contain the specified tag and value.</returns>
+        internal override List<MEClass> FindTaggedValue(string tagName, string tagValue)
+        {
+            bool isLocalDB = ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local;
+            string likeClause = isLocalDB ? "LIKE '*" : "LIKE '%";  // EAP files use different syntax for 'like'!
+
+            String query = @"SELECT o.Object_ID AS ElementID
+                            FROM(t_objectproperties p INNER JOIN t_object o ON p.Object_ID = o.Object_ID) 
+                            WHERE p.Property = '" + tagName + "' AND p.Value " + likeClause + tagValue + "'";
+
+            var queryResult = new XmlDocument();                            // Repository query will return an XML Document.
+            queryResult.LoadXml(Repository.SQLQuery(query));                // Execute query and store result in XML Document.
+            XmlNodeList elements = queryResult.GetElementsByTagName("Row"); // Retrieve parent class name and package in which class resides.
+            List<MEClass> classList = new List<MEClass>();
+
+            foreach (XmlNode element in elements)
+            {
+                int elementID = Convert.ToInt32(element["ElementID"].InnerText.Trim());
+                classList.Add(new MEClass(elementID));
+            }
+            return classList;
+        }
+
+        /// <summary>
         /// This function provides an efficient mechanism to obtain classes that are associated with the provided class. The function returns a list
         /// of all MEClass objects that are referenced from the provided source class, i.e. are at the 'receiving end' of an association.
         /// </summary>

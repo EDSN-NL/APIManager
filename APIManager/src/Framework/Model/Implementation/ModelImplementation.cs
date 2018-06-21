@@ -69,6 +69,14 @@ namespace Framework.Model
         internal abstract MEPackage FindPackage(string path, string packageName);
 
         /// <summary>
+        /// This function returns a list of all Classes that contain a tag with provided name and a tag value matching the provided value.
+        /// </summary>
+        /// <param name="tagName">Tag that must be present in the Class.</param>
+        /// <param name="tagValue">Matching value string (query performs a 'like' on this value).</param>
+        /// <returns>List of Classes that contain the specified tag and value.</returns>
+        internal abstract List<MEClass> FindTaggedValue(string tagName, string tagValue);
+
+        /// <summary>
         /// This method removes the contents of the dictionary and diagram list. Use with caution since calling the method will break
         /// all interface objects that are still around!
         /// </summary>

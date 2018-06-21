@@ -111,6 +111,20 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// This function returns a list of all Classes that contain a tag with provided name and a tag value matching the provided value.
+        /// </summary>
+        /// <param name="tagName">Tag that must be present in the Class.</param>
+        /// <param name="tagValue">Matching value string (query performs a 'like' on this value).</param>
+        /// <returns>List of Classes that contain the specified tag and value.</returns>
+        /// <returns>Retrieved package or NULL on errors / nothing found.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal List<MEClass> FindTaggedValue(string tagName, string tagValue)
+        {
+            if (this._modelImp != null) return this._modelImp.FindTaggedValue(tagName, tagValue);
+            else throw new MissingImplementationException("ModelImplementation");
+        }
+
+        /// <summary>
         /// Can be used to remove all context from the model. Since this involves cleaning the implementation caches, make sure
         /// that no interface objects are still around since these might break after the flush!
         /// </summary>
