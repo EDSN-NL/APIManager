@@ -3,6 +3,7 @@ using Framework.Event;
 using Framework.Logging;
 using Framework.Model;
 using Framework.Context;
+using Framework.View;
 using Plugin.Application.Forms;
 using Plugin.Application.CapabilityModel.API;
 
@@ -42,11 +43,12 @@ namespace Plugin.Application.Events.API
                 {
                     if (dialog.ShowDialog() == DialogResult.OK)
                     {
-                        // We only have to invoke this constructor in order to create the entire service structure (we like to keep events simple :-)
+                        // We only have to invoke this constructor in order to create the entire service structure...
                         var svc = new ApplicationService(containerPackage, dialog.PackageName, dialog.OperationList,
                                                          context.GetConfigProperty(_ServiceDeclPkgStereotype));
-                        if (!svc.Valid) MessageBox.Show("Error creating Service declaration, nothing has been created!",
-                                                        "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        if (svc.Valid) svc.Paint(svc.ModelPkg.FindDiagram(svc.ModelPkg.Name));
+                        else MessageBox.Show("Error creating Service declaration, nothing has been created!",
+                                             "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
                 ModelSlt.GetModelSlt().UnlockModel(containerPackage);

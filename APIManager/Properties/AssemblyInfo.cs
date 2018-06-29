@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -9,9 +9,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle ("API Manager")]
 [assembly: AssemblyDescription ("API Manager is a Sparx Enterprise Architect plugin that is used to manage formal API specifications from UML models. It supports generation of SOAP/WSDL and/or REST/OpenAPI 2.0 interfaces as well as messages according to XSD or JSON schema's.")]
 [assembly: AssemblyConfiguration ("")]
-[assembly: AssemblyCompany ("Enexis ICT - BaVo Vernieuwing")]
-[assembly: AssemblyProduct ("APIManager")]
-[assembly: AssemblyCopyright ("Copyright ©  2018, Enexis B.V.")]
+[assembly: AssemblyCompany("Enexis ICT - CST-Integration")]
+[assembly: AssemblyProduct("API Manager")]
+[assembly: AssemblyCopyright("Copyright ©  2018, Enexis B.V.")]
 [assembly: AssemblyTrademark ("Created for Enexis by Nebulon b.v. (info@nebulon.nl)")]
 [assembly: AssemblyCulture ("")]
 // Most of this solution is 'internal reference only'. The only components that MUST be 'COM-Visible' are the 
@@ -19,6 +19,8 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible (false)]
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid ("386c6da7-1c6c-45a1-a423-59dbccd4f0b4")]
+[assembly: AssemblyVersion("1.2.2.0")]
+[assembly: AssemblyFileVersion("1.2.2.0")]
 // Version information for an assembly consists of the following four values:
 //
 //      Major Version
@@ -29,5 +31,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.1.6.2")]
-[assembly: AssemblyFileVersion("1.1.6.2")]
+
+

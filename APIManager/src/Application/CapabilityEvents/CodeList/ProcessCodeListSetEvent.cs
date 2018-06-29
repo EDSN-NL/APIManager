@@ -83,6 +83,14 @@ namespace Plugin.Application.Events.CodeList
             }
 
             var codeListService = new CodeListService(serviceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype));
+            if (!codeListService.Checkout())
+            {
+                MessageBox.Show("Unable to checkout service '" + codeListService.Name +
+                                "' from configuration management; probably caused by uncommitted changes from another service!" +
+                                Environment.NewLine + "Please commit pending changes before starting work on a new service!",
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             // Let's ask the user which CodeLists to process...
             using (var clPicker = new CodeListPicker())

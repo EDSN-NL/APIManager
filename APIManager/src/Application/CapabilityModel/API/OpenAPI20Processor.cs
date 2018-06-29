@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Runtime.Remoting;
 using System.Collections.Generic;
+using System.Reflection;
 using Newtonsoft.Json;
 using Framework.Util.SchemaManagement;
 using Framework.Util.SchemaManagement.JSON;

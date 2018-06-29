@@ -55,9 +55,12 @@ namespace Framework.Context
         internal const string _GLEMail                        = "GLEMail";                      // Central Repository: e-mail address of user.
         internal const string _GLRepositoryBaseURL            = "GLRepositoryBaseURL";          // Central Repository: partial URL to top or remote repository.
         internal const string _GLRepositoryNamespace          = "GLRepositoryNamespace";        // Relative path from repository base to root of all repositories.
-        internal const string _GLCloneOnCreate                = "GLCloneOnCreate";              // When 'true', we use a clone from remote when creating a local, new, repository.
         internal const string _RepositoryRootPath             = "RepositoryRootPath";           // Local Repository: path to root of local GIT repositories.
+
+        // GIT Settings
         internal const string _GITIgnoreEntries               = "GITIgnoreEntries";             // Comma-separated list of GIT-Ignore entries for the session.
+        internal const string _GITUseProxy                    = "GITUseProxy";                  // True when we need a proxy server to connect.
+        internal const string _GITProxyServer                 = "GITProxyServer";               // Server name and port number.
 
         // These are the names of all currently defined resources:
         internal const string _CodeListHeader                 = "CodeListHeader";
@@ -120,7 +123,7 @@ namespace Framework.Context
             this._boolSettings.Add(_UseAutomaticLocking, Settings.Default.UseAutomaticLocking);
             this._boolSettings.Add(_PersistentModelLocks, Settings.Default.PersistentModelLocks);
             this._boolSettings.Add(_UseConfigurationManagement, Settings.Default.UseConfigurationManagement);
-            this._boolSettings.Add(_GLCloneOnCreate, Settings.Default.GLCloneOnCreate);
+            this._boolSettings.Add(_GITUseProxy, Settings.Default.GITUseProxy);
 
             this._stringSettings.Add(_LogFileName, Settings.Default.LogfileName);
             this._stringSettings.Add(_DiagramSaveType, Settings.Default.DiagramSaveType);
@@ -138,6 +141,7 @@ namespace Framework.Context
             this._stringSettings.Add(_GLRepositoryNamespace, Settings.Default.GLRepositoryNamespace);
             this._stringSettings.Add(_RepositoryRootPath, Settings.Default.RepositoryRootPath);
             this._stringSettings.Add(_GITIgnoreEntries, Settings.Default.GITIgnoreEntries);
+            this._stringSettings.Add(_GITProxyServer, Settings.Default.GITProxyServer);
         }
 
         /// <summary>
@@ -283,87 +287,76 @@ namespace Framework.Context
                 {
                     case _LogFileName:
                         Settings.Default.LogfileName = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _DiagramSaveType:
                         Settings.Default.DiagramSaveType = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _InterfaceContractType:
                         Settings.Default.InterfaceContractType = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _RESTAuthScheme:
                         Settings.Default.RESTAuthScheme = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _RESTAuthAPIKeys:
                         Settings.Default.RESTAuthAPIKeys = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _RESTAuthOAuth2Flow:
                         Settings.Default.RESTAuthOAuth2Flow = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _RESTHostName:
                         Settings.Default.RESTHostName = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _RESTSchemes:
                         Settings.Default.RESTSchemes = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _SupplementaryPrefixCode:
                         Settings.Default.SupplementaryPrefix = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _GLUserName:
                         Settings.Default.GLUserName = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _GLAccessToken:
                         Settings.Default.GLAccessToken = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _GLEMail:
                         Settings.Default.GLEMail = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _GLRepositoryBaseURL:
                         Settings.Default.GLRepositoryURL = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _GLRepositoryNamespace:
                         Settings.Default.GLRepositoryNamespace = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _RepositoryRootPath:
                         Settings.Default.RepositoryRootPath = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _GITIgnoreEntries:
                         Settings.Default.GITIgnoreEntries = value;
-                        if (!this._inTransaction) Settings.Default.Save();
+                        break;
+
+                    case _GITProxyServer:
+                        Settings.Default.GITProxyServer = value;
                         break;
 
                     default:
-                        break;
+                        return;
                 }
+                if (!this._inTransaction) Settings.Default.Save();
             }
         }
 
@@ -383,107 +376,88 @@ namespace Framework.Context
                 {
                     case _UseLogFile:
                         Settings.Default.UseLogfile = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _CLAddCodeTypesToDiagram:
                         Settings.Default.CLAddCodeTypesToDiagram = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _CLAddSourceEnumsToDiagram:
                         Settings.Default.CLAddSourceEnumsToDiagram = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _SMAddMessageAssemblyToDiagram:
                         Settings.Default.SMAddMessageAssemblyToDiagram = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _SMAddBusinessMsgToDiagram:
                         Settings.Default.SMAddBusinessMsgToDiagram = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _SMCreateCommonSchema:
                         Settings.Default.SMCreateCommonSchema = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _SMUseMessageHeaders:
                         Settings.Default.SMUseMessageHeaders = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _SMUseSecurityLevels:
                         Settings.Default.SMUseSecurityLevels = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _DEBusinessTermName:
                         Settings.Default.DEBusinessTermName = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _DEDefinition:
                         Settings.Default.DEDefinition = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _DEDictionaryEntryName:
                         Settings.Default.DEDictionaryEntryName = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _DENotes:
                         Settings.Default.DENotes = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _DEUniqueID:
                         Settings.Default.DEUniqueID = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _SaveMessageDiagrams:
                         Settings.Default.SaveMessageDiagrams = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _DocGenUseCommon:
                         Settings.Default.DocGenUseCommon = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _DocGenUseGenerateDoc:
                         Settings.Default.DocGenGenerateDoc = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _UseAutomaticLocking:
                         Settings.Default.UseAutomaticLocking = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _PersistentModelLocks:
                         Settings.Default.PersistentModelLocks = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
                     case _UseConfigurationManagement:
                         Settings.Default.UseConfigurationManagement = value;
-                        if (!this._inTransaction) Settings.Default.Save();
                         break;
 
-                    case _GLCloneOnCreate:
-                        Settings.Default.GLCloneOnCreate = value;
-                        if (!this._inTransaction) Settings.Default.Save();
+                    case _GITUseProxy:
+                        Settings.Default.GITUseProxy = value;
                         break;
 
                     default:
-                        break;
+                        return;
                 }
+                if (!this._inTransaction) Settings.Default.Save();
             }
         }
 

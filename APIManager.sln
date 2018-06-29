@@ -4,7 +4,10 @@ VisualStudioVersion = 15.0.27130.2020
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APIManager", "APIManager\APIManager.csproj", "{386C6DA7-1C6C-45A1-A423-59DBCCD4F0B4}"
 EndProject
-Project("{CFEE4113-1246-4D54-95CB-156813CB8593}") = "WiXInstaller", "WiXInstaller\WiXInstaller.wixproj", "{ECDD250E-B3ED-4572-9A24-CBF69C00F857}"
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "APIManagerSetup", "APIManagerSetup\APIManagerSetup.wixproj", "{4DD55E70-0742-402F-B594-0D2FAD184127}"
+	ProjectSection(ProjectDependencies) = postProject
+		{386C6DA7-1C6C-45A1-A423-59DBCCD4F0B4} = {386C6DA7-1C6C-45A1-A423-59DBCCD4F0B4}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,14 +25,12 @@ Global
 		{386C6DA7-1C6C-45A1-A423-59DBCCD4F0B4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{386C6DA7-1C6C-45A1-A423-59DBCCD4F0B4}.Release|x86.ActiveCfg = Release|Any CPU
 		{386C6DA7-1C6C-45A1-A423-59DBCCD4F0B4}.Release|x86.Build.0 = Release|Any CPU
-		{ECDD250E-B3ED-4572-9A24-CBF69C00F857}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ECDD250E-B3ED-4572-9A24-CBF69C00F857}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ECDD250E-B3ED-4572-9A24-CBF69C00F857}.Debug|x86.ActiveCfg = Debug|x86
-		{ECDD250E-B3ED-4572-9A24-CBF69C00F857}.Debug|x86.Build.0 = Debug|x86
-		{ECDD250E-B3ED-4572-9A24-CBF69C00F857}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ECDD250E-B3ED-4572-9A24-CBF69C00F857}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ECDD250E-B3ED-4572-9A24-CBF69C00F857}.Release|x86.ActiveCfg = Release|x86
-		{ECDD250E-B3ED-4572-9A24-CBF69C00F857}.Release|x86.Build.0 = Release|x86
+		{4DD55E70-0742-402F-B594-0D2FAD184127}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{4DD55E70-0742-402F-B594-0D2FAD184127}.Debug|x86.ActiveCfg = Debug|x86
+		{4DD55E70-0742-402F-B594-0D2FAD184127}.Debug|x86.Build.0 = Debug|x86
+		{4DD55E70-0742-402F-B594-0D2FAD184127}.Release|Any CPU.ActiveCfg = Release|x86
+		{4DD55E70-0742-402F-B594-0D2FAD184127}.Release|x86.ActiveCfg = Release|x86
+		{4DD55E70-0742-402F-B594-0D2FAD184127}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -15,19 +15,19 @@ namespace Plugin.Application.ConfigurationManagement
     sealed internal class CMRepositorySlt
     {
         // Configuration settings used by this module...
-        private const string _CMDefaultGITConfigFile    = "CMDefaultGITConfigFile";
-        private const string _CMGITConfigSection        = "CMGITConfigSection";
-        private const string _CMGITConfigTokens         = "CMGITConfigTokens";
-        private const string _CMDummyUser               = "CMDummyUser";
-        private const string _CMRepoCreateMessage       = "CMRepoCreateMessage";
+        private const string _CMGITConfigTokens             = "CMGITConfigTokens";
+        private const string _CMGITProxyToken               = "CMGITProxyToken";
+        private const string _CMDummyUser                   = "CMDummyUser";
+        private const string _CMRepoCreateMessage           = "CMRepoCreateMessage";
 
-        private const string _MasterBranch              = "master";     // Name of the GIT master branch...
-        private const string _GITDirectory              = ".git";       // Name of the default GIT repository directory.
+        private const string _MasterBranch = "master";     // Name of the GIT master branch...
+        private const string _GITDirectory = ".git";       // Name of the default GIT repository directory.
 
         // These are a set of configuration properties shared among all LocalRepository objects...
         private static string _gitIgnorePatterns;       // Set of ignore patterns for the repository.
         private static string _workingDirectory;        // Absolute path to the top of the repository.
         private static bool _enabled;                   // Set to 'true' in when CM is enabled.
+        private static bool _hasRepository;             // Set to 'true' when a local repository exists and is initialized.
         private static readonly CMRepositorySlt _repositorySlt = new CMRepositorySlt();     // The singleton repository instance.
 
         private Repository _gitRepository;              // Represents the actual GIT repository.
@@ -38,14 +38,13 @@ namespace Plugin.Application.ConfigurationManagement
         private Branch _currentBranch;                  // Identifies the currrently active branch in the repository.
 
         private string _repositoryRootPath;             // Absolute path to the root of the local GIT repository (typically workingDirectory/.git).
-        private bool _isValid;                          // Set to true when configuration management has been initialized correctly.
         private bool _dirty;                            // Set to 'true' in case files have been added to the staging area, but not yet committed.
 
         /// <summary>
         /// Returns true if Configuration Management is enabled (and properly initialized), false otherwise. 
         /// None of the CM functions will work in case CM is disabled!
         /// </summary>
-        internal bool IsCMEnabled { get { return _enabled && this._isValid; } }
+        internal bool IsCMEnabled { get { return _enabled && _hasRepository; } }
 
         /// <summary>
         /// Returns true when Configuration Management is enabled (and properly initialized) and the working directory has changed since the last commit.
@@ -155,7 +154,7 @@ namespace Plugin.Application.ConfigurationManagement
         /// <exception cref="ArgumentException">Thrown when the pull resulted in merge conflicts.</exception>
         internal void Pull()
         {
-            Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.Pull >> Pulling current branch '" + 
+            Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.Pull >> Pulling current branch '" +
                               this._currentBranch.FriendlyName + "' from remote...");
             this._remote.Pull();
         }
@@ -206,8 +205,8 @@ namespace Plugin.Application.ConfigurationManagement
         /// </summary>
         internal void ResetBranch(string thisBranch = null)
         {
-            Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.ResetBranch >> Delete branch '" + 
-                             thisBranch + "' and checkout the master branch..."); 
+            Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.ResetBranch >> Delete branch '" +
+                             thisBranch + "' and checkout the master branch...");
             if (!string.IsNullOrEmpty(thisBranch))
             {
                 Branch deleteBranch = this._gitRepository.Branches[thisBranch];
@@ -318,9 +317,9 @@ namespace Plugin.Application.ConfigurationManagement
             ContextSlt context = ContextSlt.GetContextSlt();
             _workingDirectory = context.GetStringSetting(FrameworkSettings._RepositoryRootPath);
             _enabled = context.GetBoolSetting(FrameworkSettings._UseConfigurationManagement);
+            _hasRepository = false;
             _gitIgnorePatterns = context.GetStringSetting(FrameworkSettings._GITIgnoreEntries);
 
-            this._isValid = false;
             this._identity = null;
             string dummyUser = ContextSlt.GetContextSlt().GetConfigProperty(_CMDummyUser);
             string[] userAndMail = dummyUser.Split(':');
@@ -329,62 +328,7 @@ namespace Plugin.Application.ConfigurationManagement
 
             try
             {
-                if (_enabled)
-                {
-                    UpdateGITConfigFile();
-                    if (!Directory.Exists(_workingDirectory + "/" + _GITDirectory))
-                    {
-                        Logger.WriteWarning("Framework.ConfigurationManagement.CMRepositorySlt >> No repository found at location '" + _workingDirectory + "', creating one...");
-                        if (context.GetBoolSetting(FrameworkSettings._GLCloneOnCreate))
-                        {
-                            // Make a remote clone to local...
-                            this._repositoryRootPath = RemoteRepository.Clone(_workingDirectory);
-                            this._gitRepository = new Repository(_workingDirectory);
-                        }
-                        else
-                        {
-                            Repository.Init(_workingDirectory);
-                            this._gitRepository = new Repository(_workingDirectory);
-
-                            // Bit of a hack: create an empty commit in case of local repository, so we have a valid HEAD to attach stuff to.
-                            Signature authorSig = new Signature(this._dummyIdentity, DateTime.Now);
-                            Signature committerSig = authorSig;
-                            CommitOptions options = new CommitOptions();
-                            options.AllowEmptyCommit = true;
-                            this._lastCommit = this._gitRepository.Commit(context.GetConfigProperty(_CMRepoCreateMessage), authorSig, committerSig, options);
-                        }
-                        this._dirty = false;
-                        Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt >> Repository successfully created at location '" + _workingDirectory + "'.");
-                    }
-                    else
-                    {
-                        Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt >> Opening existing repository at location '" + _workingDirectory + "'...");
-                        this._gitRepository = new Repository(_workingDirectory);
-                        this._dirty = this._gitRepository.RetrieveStatus(new StatusOptions()).IsDirty;
-                    }
-
-                    this._repositoryRootPath = this._gitRepository.Info.Path;
-                    this._remote = new RemoteRepository(this._gitRepository);
-
-                    // Load ignore patterns for the current session....
-                    string[] ignorePatterns = _gitIgnorePatterns.Split(',');
-                    this._gitRepository.Ignore.AddTemporaryRules(ignorePatterns);
-
-                    // Determine our currently active branch, must always have one!...
-                    this._currentBranch = null;
-                    foreach (Branch branch in this._gitRepository.Branches.Where(branch => !branch.IsRemote))
-                    {
-                        if (branch.IsCurrentRepositoryHead)
-                        {
-                            this._currentBranch = branch;
-                            Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt >> Current branch initialized to '" + branch.FriendlyName + "'...");
-                            break;
-                        }
-                    }
-
-                    this._isValid = true;
-                    Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt >> Repository root path set to '" + this._repositoryRootPath + "'.");
-                }
+                if (_enabled) OpenRepository();
                 else
                 {
                     Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt >> Configuration Management is disabled!");
@@ -399,69 +343,121 @@ namespace Plugin.Application.ConfigurationManagement
                 this._gitRepository = null;
                 this._remote = null;
                 this._repositoryRootPath = string.Empty;
-                this._isValid = false;
+                _hasRepository = false;
             }
         }
 
         /// <summary>
-        /// Helper function that verifies whether we have a 'master' GIT Config file. If not, we create one. If there is one, we update it to assure
-        /// that our desired config tokens are present.
+        /// Checks whether we have a local repository. If not, we create one. If there is one, we initialize a local repository object.
+        /// On return, the repository is open and initialized.
         /// </summary>
-        private void UpdateGITConfigFile()
+        private void OpenRepository()
         {
             ContextSlt context = ContextSlt.GetContextSlt();
-            string masterConfigFile = context.GetConfigProperty(_CMDefaultGITConfigFile);
-            string configSection = context.GetConfigProperty(_CMGITConfigSection);
-            string[] configTokens = context.GetConfigProperty(_CMGITConfigTokens).Split(',');
-            string configContents = string.Empty;   // All of the config file contents.
-            string configHead = string.Empty;       // All sections preceding our config section, includes our section header.
-            string configTail = string.Empty;       // All sections after our config section.
-            string ourSection = string.Empty;       // Only our config section.
+            Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositoryslt.OpenRepository >> Initializing local repository at '" + _workingDirectory + "'...");
 
-            if (File.Exists(masterConfigFile))
+            if (!_hasRepository)
             {
-                Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.UpdateGITConfigFile >> File already exists, insert our stuff...");
-                configHead = File.ReadAllText(masterConfigFile);
-            }
-
-            // Check if we already have the section ID...
-            int sectionIdx = configHead.LastIndexOf(configSection);
-            if (sectionIdx >= 0)
-            {
-                // We found the (last) occurence of our config section, we now split the config file so that we have access to the section.
-                configTail = configHead.Substring(sectionIdx + configSection.Length);
-                configHead = configHead.Substring(0, sectionIdx + configSection.Length);
-                int nextSection = configTail.IndexOf('[');
-                if (nextSection >= 0)
+                if (!Directory.Exists(_workingDirectory + "/" + _GITDirectory))
                 {
-                    // There are sections after our section, cut our section from the tail...
-                    ourSection = configTail.Substring(0, nextSection);
-                    configTail = configTail.Substring(nextSection);
+                    Logger.WriteWarning("Framework.ConfigurationManagement.CMRepositorySlt.OpenRepository >> No repository found at location '" + _workingDirectory + "', creating one...");
+                    try
+                    {
+                        Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositoryslt.OpenRepository >> Trying to clone remote to local...");
+                        this._repositoryRootPath = RemoteRepository.Clone(_workingDirectory);
+                        this._gitRepository = new Repository(_workingDirectory);
+                    }
+                    catch // On errors, assume we can't clone remote and thus only create a local repository...
+                    {
+                        Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositoryslt.OpenRepository >> Cloning failed, create empty local repository instead...");
+                        Repository.Init(_workingDirectory);
+                        this._gitRepository = new Repository(_workingDirectory);
+
+                        // Bit of a hack: create an empty commit in case of local repository, so we have a valid HEAD to attach stuff to.
+                        Signature authorSig = new Signature(this._dummyIdentity, DateTime.Now);
+                        Signature committerSig = authorSig;
+                        CommitOptions options = new CommitOptions();
+                        options.AllowEmptyCommit = true;
+                        this._lastCommit = this._gitRepository.Commit(context.GetConfigProperty(_CMRepoCreateMessage), authorSig, committerSig, options);
+                    }
+                    this._dirty = false;
+                    Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.OpenRepository >> Repository successfully created at location '" + _workingDirectory + "'.");
                 }
                 else
                 {
-                    // No more sections, tail is empty.
-                    ourSection = configTail;
-                    configTail = string.Empty;
+                    try
+                    {
+                        Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.OpenRepository >> Opening existing repository at location '" + _workingDirectory + "'...");
+                        this._gitRepository = new Repository(_workingDirectory);
+                        this._dirty = this._gitRepository.RetrieveStatus(new StatusOptions()).IsDirty;
+                    }
+                    catch (Exception exc)
+                    {
+                        string msg = exc.Message;
+                        Logger.WriteError("OpenRepository Failed with exception: " + msg);
+                    }
                 }
+                UpdateGITConfiguration();
+
+                this._repositoryRootPath = this._gitRepository.Info.Path;
+                this._remote = new RemoteRepository(this._gitRepository);
+
+                // Load ignore patterns for the current session....
+                string[] ignorePatterns = _gitIgnorePatterns.Split(',');
+                this._gitRepository.Ignore.AddTemporaryRules(ignorePatterns);
+
+                // Determine our currently active branch, must always have one!...
+                this._currentBranch = null;
+                foreach (Branch branch in this._gitRepository.Branches.Where(branch => !branch.IsRemote))
+                {
+                    if (branch.IsCurrentRepositoryHead)
+                    {
+                        this._currentBranch = branch;
+                        Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.OpenRepository >> Current branch initialized to '" + branch.FriendlyName + "'...");
+                        break;
+                    }
+                }
+
+                _hasRepository = true;
+                Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.OpenRepository >> Repository root path set to '" + this._repositoryRootPath + "'.");
+            }
+        }
+
+        /// <summary>
+        /// Helper function that updates the GIT configuration of our local repository to include configured settings (core properties and/or 
+        /// proxy configuration). Note that proxy settings are configured at global level (since these typically affect ALL traffic to and
+        /// from remote repositories).
+        /// </summary>
+        private void UpdateGITConfiguration()
+        {
+            Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.UpdateGITConfiguration >> Updating configuration settings...");
+            ContextSlt context = ContextSlt.GetContextSlt();
+            LibGit2Sharp.Configuration cfg = this._gitRepository.Config;
+
+            foreach (string configToken in context.GetConfigProperty(_CMGITConfigTokens).Split(','))
+            {
+                Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.UpdateGITConfiguration >> Processing config token '" + configToken + "'...");
+                string[] kvPair = configToken.Split(':');
+                cfg.Set<string>(kvPair[0].Trim(), kvPair[1].Trim(), ConfigurationLevel.Local);
+            }
+
+            /***************
+            string proxyToken = context.GetConfigProperty(_CMGITProxyToken);
+            string[] proxyKV = proxyToken.Split(':');
+            proxyKV[1] = proxyKV[1].Replace("@SERVER@", context.GetStringSetting(FrameworkSettings._GITProxyServer)).Trim();
+            if (context.GetBoolSetting(FrameworkSettings._GITUseProxy))
+            {
+                Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.UpdateGITConfiguration >> Set proxy '" +
+                                 proxyKV[0] + ":" + proxyKV[1] + "'...");
+                cfg.Set<string>(proxyKV[0], proxyKV[1], ConfigurationLevel.Global);
             }
             else
             {
-                // Our section does not yet exist, add our section header to the end.
-                configHead += Environment.NewLine + configSection + Environment.NewLine;
+                Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.UpdateGITConfiguration >> Remove proxy '" +
+                                 proxyKV[0] + ":" + proxyKV[1] + "'...");
+                cfg.Unset(proxyKV[0], ConfigurationLevel.Global);
             }
-
-            // Now, add our tokens to our section (if not already there)...
-            foreach (string token in configTokens)
-            {
-                string[] kvPair = token.Split('=');
-                if (!ourSection.Contains(kvPair[0].Trim())) ourSection += "  " + token.Trim() + Environment.NewLine;
-            }
-
-            configContents = configHead + ourSection + configTail;
-            Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.UpdateGITConfigFile >> Writing contents '" + 
-                             configContents + "' to file '" + masterConfigFile + "'...");
-            File.WriteAllText(masterConfigFile, configContents);
+            ****************/
         }
     }
 }

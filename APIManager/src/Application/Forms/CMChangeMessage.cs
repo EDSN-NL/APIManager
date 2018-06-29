@@ -18,9 +18,10 @@ namespace Plugin.Application.Forms
         /// <summary>
         /// Dialog constructor.
         /// </summary>
-        internal CMChangeMessage()
+        internal CMChangeMessage(bool showAutoRelease = true)
         {
             InitializeComponent();
+            DoAutoRelease.Visible = showAutoRelease;
             DoAutoRelease.Checked = false;
             AnnotationFld.Text = string.Empty;
             Ok.Enabled = false;

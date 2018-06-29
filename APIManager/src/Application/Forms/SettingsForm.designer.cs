@@ -49,9 +49,10 @@
             this.RepoPathName = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.RemoteConfigManagement = new System.Windows.Forms.GroupBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.UseProxy = new System.Windows.Forms.CheckBox();
             this.RepositoryNamespace = new System.Windows.Forms.TextBox();
             this.label14 = new System.Windows.Forms.Label();
-            this.CloneOnCreateIndicator = new System.Windows.Forms.CheckBox();
             this.RepositoryBaseURL = new System.Windows.Forms.TextBox();
             this.label12 = new System.Windows.Forms.Label();
             this.AccessToken = new System.Windows.Forms.TextBox();
@@ -111,9 +112,12 @@
             this.AttributePrefixToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.RepoPathSelector = new System.Windows.Forms.FolderBrowserDialog();
             this.ConfigMgmtToolTip = new System.Windows.Forms.ToolTip(this.components);
-            this.CloneOnCreateToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.RepositoryRootToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.GITIgnoreToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.ProxyServerName = new System.Windows.Forms.TextBox();
+            this.ProxyServer = new System.Windows.Forms.GroupBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.ProxyServerPort = new System.Windows.Forms.TextBox();
             this.CodeLists.SuspendLayout();
             this.LogFile.SuspendLayout();
             this.LocalConfigManagement.SuspendLayout();
@@ -127,6 +131,7 @@
             this.RESTParameters.SuspendLayout();
             this.Locking.SuspendLayout();
             this.JSONSpecifics.SuspendLayout();
+            this.ProxyServer.SuspendLayout();
             this.SuspendLayout();
             // 
             // UseLogfile
@@ -313,9 +318,9 @@
             // 
             // RemoteConfigManagement
             // 
+            this.RemoteConfigManagement.Controls.Add(this.ProxyServer);
             this.RemoteConfigManagement.Controls.Add(this.RepositoryNamespace);
             this.RemoteConfigManagement.Controls.Add(this.label14);
-            this.RemoteConfigManagement.Controls.Add(this.CloneOnCreateIndicator);
             this.RemoteConfigManagement.Controls.Add(this.RepositoryBaseURL);
             this.RemoteConfigManagement.Controls.Add(this.label12);
             this.RemoteConfigManagement.Controls.Add(this.AccessToken);
@@ -326,17 +331,36 @@
             this.RemoteConfigManagement.Controls.Add(this.EMailAddress);
             this.RemoteConfigManagement.Location = new System.Drawing.Point(12, 161);
             this.RemoteConfigManagement.Name = "RemoteConfigManagement";
-            this.RemoteConfigManagement.Size = new System.Drawing.Size(615, 133);
+            this.RemoteConfigManagement.Size = new System.Drawing.Size(615, 166);
             this.RemoteConfigManagement.TabIndex = 4;
             this.RemoteConfigManagement.TabStop = false;
             this.RemoteConfigManagement.Text = "Remote Configuration Management (GitLab)";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(137, 22);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(38, 13);
+            this.label2.TabIndex = 0;
+            this.label2.Text = "Name:";
+            // 
+            // UseProxy
+            // 
+            this.UseProxy.AutoSize = true;
+            this.UseProxy.Location = new System.Drawing.Point(6, 21);
+            this.UseProxy.Name = "UseProxy";
+            this.UseProxy.Size = new System.Drawing.Size(108, 17);
+            this.UseProxy.TabIndex = 3;
+            this.UseProxy.Text = "Use Proxy Server";
+            this.UseProxy.UseVisualStyleBackColor = true;
             // 
             // RepositoryNamespace
             // 
             this.RepositoryNamespace.Location = new System.Drawing.Point(390, 74);
             this.RepositoryNamespace.Name = "RepositoryNamespace";
             this.RepositoryNamespace.Size = new System.Drawing.Size(212, 20);
-            this.RepositoryNamespace.TabIndex = 6;
+            this.RepositoryNamespace.TabIndex = 5;
             this.RepositoryNamespace.Leave += new System.EventHandler(this.Repoconfig_Leave);
             // 
             // label14
@@ -347,17 +371,6 @@
             this.label14.Size = new System.Drawing.Size(99, 13);
             this.label14.TabIndex = 0;
             this.label14.Text = "Repo. Namespace:";
-            // 
-            // CloneOnCreateIndicator
-            // 
-            this.CloneOnCreateIndicator.AutoSize = true;
-            this.CloneOnCreateIndicator.Location = new System.Drawing.Point(6, 100);
-            this.CloneOnCreateIndicator.Name = "CloneOnCreateIndicator";
-            this.CloneOnCreateIndicator.Size = new System.Drawing.Size(231, 17);
-            this.CloneOnCreateIndicator.TabIndex = 8;
-            this.CloneOnCreateIndicator.Text = "Clone remote when creating local repository";
-            this.CloneOnCreateIndicator.UseVisualStyleBackColor = true;
-            this.CloneOnCreateIndicator.Leave += new System.EventHandler(this.Repoconfig_Leave);
             // 
             // RepositoryBaseURL
             // 
@@ -396,7 +409,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(22, 48);
+            this.label9.Location = new System.Drawing.Point(22, 51);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(63, 13);
             this.label9.TabIndex = 0;
@@ -944,6 +957,43 @@
             // 
             this.RepoPathSelector.Description = "Select folder that is the root of the local GIT Repository";
             // 
+            // ProxyServerName
+            // 
+            this.ProxyServerName.Location = new System.Drawing.Point(181, 19);
+            this.ProxyServerName.Name = "ProxyServerName";
+            this.ProxyServerName.Size = new System.Drawing.Size(265, 20);
+            this.ProxyServerName.TabIndex = 1;
+            // 
+            // ProxyServer
+            // 
+            this.ProxyServer.Controls.Add(this.ProxyServerPort);
+            this.ProxyServer.Controls.Add(this.label15);
+            this.ProxyServer.Controls.Add(this.UseProxy);
+            this.ProxyServer.Controls.Add(this.ProxyServerName);
+            this.ProxyServer.Controls.Add(this.label2);
+            this.ProxyServer.Location = new System.Drawing.Point(9, 100);
+            this.ProxyServer.Name = "ProxyServer";
+            this.ProxyServer.Size = new System.Drawing.Size(593, 56);
+            this.ProxyServer.TabIndex = 6;
+            this.ProxyServer.TabStop = false;
+            this.ProxyServer.Text = "Proxy Server";
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Location = new System.Drawing.Point(452, 22);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(29, 13);
+            this.label15.TabIndex = 10;
+            this.label15.Text = "Port:";
+            // 
+            // ProxyServerPort
+            // 
+            this.ProxyServerPort.Location = new System.Drawing.Point(487, 19);
+            this.ProxyServerPort.Name = "ProxyServerPort";
+            this.ProxyServerPort.Size = new System.Drawing.Size(100, 20);
+            this.ProxyServerPort.TabIndex = 2;
+            // 
             // SettingsForm
             // 
             this.AcceptButton = this.Ok;
@@ -999,6 +1049,8 @@
             this.Locking.PerformLayout();
             this.JSONSpecifics.ResumeLayout(false);
             this.JSONSpecifics.PerformLayout();
+            this.ProxyServer.ResumeLayout(false);
+            this.ProxyServer.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -1081,13 +1133,17 @@
         private System.Windows.Forms.FolderBrowserDialog RepoPathSelector;
         private System.Windows.Forms.CheckBox ConfigurationMgmtIndicator;
         private System.Windows.Forms.ToolTip ConfigMgmtToolTip;
-        private System.Windows.Forms.ToolTip CloneOnCreateToolTip;
         private System.Windows.Forms.TextBox GITIgnoreEntries;
         private System.Windows.Forms.Label label13;
         private System.Windows.Forms.ToolTip RepositoryRootToolTip;
         private System.Windows.Forms.ToolTip GITIgnoreToolTip;
-        private System.Windows.Forms.CheckBox CloneOnCreateIndicator;
         private System.Windows.Forms.TextBox RepositoryNamespace;
         private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.CheckBox UseProxy;
+        private System.Windows.Forms.GroupBox ProxyServer;
+        private System.Windows.Forms.TextBox ProxyServerPort;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.TextBox ProxyServerName;
     }
 }

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?define ProductVersion = "1.2.2.0"?>
+<?define ProductUpgradeCode = "F638BED5-79FC-4145-A683-6DCD3464465B"?>
+<?define Configuration = "Release"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product Id="*"
+             Name="API Manager"
+             Language="1033"
+             UpgradeCode="$(var.ProductUpgradeCode)"
+             Version="$(var.ProductVersion)"
+             Manufacturer="Enexis ICT/BaVo Vernieuwing">
+    <Package Description="#Description"
+		         Comments="Windows Installer Package"
+		         InstallerVersion="200"
+		         Compressed="yes"
+				 InstallScope="perMachine"/>
+    <!--
+			Source media for the installation. 
+ 			Specifies a single cab file to be embedded in the installer's .msi. 
+		-->
+    <Media Id="1" Cabinet="contents.cab" EmbedCab="yes" CompressionLevel="high" />
+    <Icon Id="APIMgr.ico" SourceFile="../APIManager/resources/APIManager.ico" />
+    <Property Id="ARPPRODUCTICON" Value="APIMgr.ico" />
+
+    <Upgrade Id="$(var.ProductUpgradeCode)">
+      <UpgradeVersion Minimum="$(var.ProductVersion)"
+			                IncludeMinimum="no"
+			                OnlyDetect="yes"
+			                Language="1033"
+			                Property="NEWPRODUCTFOUND" />
+      <UpgradeVersion Minimum="0.1.0.0"
+			                IncludeMinimum="yes"
+			                Maximum="$(var.ProductVersion)"
+			                IncludeMaximum="no"
+			                Language="1033"
+			                Property="UPGRADEFOUND" />
+    </Upgrade>
+
+    <!-- Installation directory and files are defined in Files.wxs -->
+    <Directory Id="TARGETDIR" Name="SourceDir" />
+    <Feature Id="Complete" Title="API Manager" Description="Enterprise Architect Add-In for CDM Management and Interface Generation" Level="1">
+      <ComponentRef Id="APIMgrFiles" />
+      <ComponentRef Id="APIMgrResources" />
+      <ComponentRef Id="APIMgrRegEntries" />
+      <ComponentRef Id="APIMgrRegEntries_x86" />
+      <ComponentRef Id="GitNativeResourcesX64" />
+      <ComponentRef Id="GitNativeResourcesX86" />
+    </Feature>
+
+    <CustomAction Id="PreventDowngrading" Error="A newer version is already installed, please uninstall before re-attempting this installation." />
+
+    <!-- Sequences -->
+    <InstallExecuteSequence>
+      <Custom Action="PreventDowngrading" After="FindRelatedProducts">NEWPRODUCTFOUND</Custom>
+      <RemoveExistingProducts After="InstallValidate" />
+    </InstallExecuteSequence>
+
+    <InstallUISequence>
+      <Custom Action="PreventDowngrading" After="FindRelatedProducts">NEWPRODUCTFOUND</Custom>
+    </InstallUISequence>
+    <!--
+ 			Using the Wix UI library.
+
+			WixUI_Minimal is the most basic of the WixUI stock dialog sets.
+ 			Its sole dialog combines the welcome and license-agreement dialogs and omits the feature customization dialog. 
+			WixUI_Minimal is appropriate when your product has no optional features.
+ 		-->
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR"/>
+    <UIRef Id="WixUI_Minimal" />
+  </Product>
+
+  <Fragment>
+    <DirectoryRef Id="TARGETDIR">
+      <Directory Id="ProgramFilesFolder" Name="PFiles">
+        <Directory Id="INSTALLDIR" Name="APIManager">
+          <Component Id="APIMgrFiles" Guid="15C7D1B5-6B1F-4692-A25C-1250F961CF84" DiskId="1">
+            <File Id="LicenseFile" Name="license.rtf" Source="license.rtf" />
+            <File Id="APIManager.dll.config" Name="APIManager.dll.config" Source="..\APIManager\bin\$(var.Configuration)\APIManager.dll.config" />
+            <File Id="APIManager.pdb" Name="APIManager.pdb" Source="..\APIManager\bin\$(var.Configuration)\APIManager.pdb" />
+            <File Id="APIManager.tlb" Name="APIManager.tlb" Source="..\APIManager\bin\$(var.Configuration)\APIManager.tlb" />
+            <File Id="ClosedXML.dll" Name="ClosedXML.dll" Source="..\APIManager\bin\$(var.Configuration)\ClosedXML.dll" />
+            <File Id="ClosedXML.pdb" Name="ClosedXML.pdb" Source="..\APIManager\bin\$(var.Configuration)\ClosedXML.pdb" />
+            <File Id="LibGit2Sharp.dll" Name="LibGit2Sharp.dll" Source="..\APIManager\bin\$(var.Configuration)\LibGit2Sharp.dll" />
+            <File Id="LibGit2Sharp.dll.config" Name="LibGit2Sharp.dll.config" Source="..\APIManager\bin\$(var.Configuration)\LibGit2Sharp.dll.config" />
+            <File Id="LibGit2Sharp.pdb" Name="LibGit2Sharp.pdb" Source="..\APIManager\bin\$(var.Configuration)\LibGit2Sharp.pdb" />
+            <File Id="LibGit2Sharp.xml" Name="LibGit2Sharp.xml" Source="..\APIManager\bin\$(var.Configuration)\LibGit2Sharp.xml" />
+            <File Id="NGitLab.dll" Name="NGitLab.dll" Source="..\APIManager\bin\$(var.Configuration)\NGitLab.dll" />
+            <File Id="DocumentFormat.OpenXml.dll" Name="DocumentFormat.OpenXml.dll" Source="..\packages\DocumentFormat.OpenXml.2.5\lib\DocumentFormat.OpenXml.dll" />
+            <File Id="Interop.EA.dll" Name="Interop.EA.dll" Source="..\APIManager\bin\$(var.Configuration)\Interop.EA.dll" />
+            <File Id="Newtonsoft.Json.dll" Name="Newtonsoft.Json.dll" Source="..\APIManager\bin\$(var.Configuration)\Newtonsoft.Json.dll" />
+            <File Id="Newtonsoft.Json.Schema.dll" Name="Newtonsoft.Json.Schema.dll" Source="..\APIManager\bin\$(var.Configuration)\Newtonsoft.Json.Schema.dll" />
+            <File Id="Newtonsoft.Json.Schema.xml" Name="Newtonsoft.Json.Schema.xml" Source="..\APIManager\bin\$(var.Configuration)\Newtonsoft.Json.Schema.xml" />
+            <File Id="Newtonsoft.Json.xml" Name="Newtonsoft.Json.xml" Source="..\APIManager\bin\$(var.Configuration)\Newtonsoft.Json.xml" />
+            <!-- Below are all registration entries generated by executing:
+									"C:\Program Files (x86)\WiX Toolset v3.11\bin\heat.exe" file APIManager.dll -ag -template fragment -out APIManager.wxs
+									We might have to re-do this whenever the plugin contents change (version changes)...
+								-->
+            <Class Id="{A03F4EA9-892A-327F-9ADF-D34265455C07}" Context="InprocServer32" Description="APIManager.SparxEA.EAController" ThreadingModel="both" ForeignServer="mscoree.dll">
+              <ProgId Id="APIManager.SparxEA.EAController" Description="APIManager.SparxEA.EAController" />
+            </Class>
+            <File Id="fil8C03749AE75BF7AE0848FBB7F9C3C77B" KeyPath="yes" Source="..\APIManager\bin\$(var.Configuration)\APIManager.dll" />
+            <RegistryValue Root="HKCR" Key="CLSID\{A03F4EA9-892A-327F-9ADF-D34265455C07}\Implemented Categories\{62C8FE65-4EBB-45e7-B440-6E39B2CDBF29}" Value="" Type="string" Action="write" />
+            <RegistryValue Root="HKCR" Key="CLSID\{A03F4EA9-892A-327F-9ADF-D34265455C07}\InprocServer32\$(var.ProductVersion)" Name="Class" Value="APIManager.SparxEA.EAController" Type="string" Action="write" />
+            <RegistryValue Root="HKCR" Key="CLSID\{A03F4EA9-892A-327F-9ADF-D34265455C07}\InprocServer32\$(var.ProductVersion)" Name="Assembly" Value="APIManager, Version=$(var.ProductVersion), Culture=neutral, PublicKeyToken=null" Type="string" Action="write" />
+            <RegistryValue Root="HKCR" Key="CLSID\{A03F4EA9-892A-327F-9ADF-D34265455C07}\InprocServer32\$(var.ProductVersion)" Name="RuntimeVersion" Value="v4.0.30319" Type="string" Action="write" />
+            <RegistryValue Root="HKCR" Key="CLSID\{A03F4EA9-892A-327F-9ADF-D34265455C07}\InprocServer32\$(var.ProductVersion)" Name="CodeBase" Value="file:///[#fil8C03749AE75BF7AE0848FBB7F9C3C77B]" Type="string" Action="write" />
+            <RegistryValue Root="HKCR" Key="CLSID\{A03F4EA9-892A-327F-9ADF-D34265455C07}\InprocServer32" Name="Class" Value="APIManager.SparxEA.EAController" Type="string" Action="write" />
+            <RegistryValue Root="HKCR" Key="CLSID\{A03F4EA9-892A-327F-9ADF-D34265455C07}\InprocServer32" Name="Assembly" Value="APIManager, Version=$(var.ProductVersion), Culture=neutral, PublicKeyToken=null" Type="string" Action="write" />
+            <RegistryValue Root="HKCR" Key="CLSID\{A03F4EA9-892A-327F-9ADF-D34265455C07}\InprocServer32" Name="RuntimeVersion" Value="v4.0.30319" Type="string" Action="write" />
+            <RegistryValue Root="HKCR" Key="CLSID\{A03F4EA9-892A-327F-9ADF-D34265455C07}\InprocServer32" Name="CodeBase" Value="file:///[#fil8C03749AE75BF7AE0848FBB7F9C3C77B]" Type="string" Action="write" />
+            <!-- END OF GENERATED PART! -->
+          </Component>
+          <Component Id="APIMgrRegEntries" Guid="2854300A-0115-4F57-8D0A-479D5A6B03A3" UninstallWhenSuperseded="yes">
+            <RegistryKey Root="HKLM" Key="SOFTWARE\Wow6432Node\Sparx Systems\EAAddins\APIManager">
+              <RegistryValue Type="string" Value="APIManager.SparxEA.EAController" />
+            </RegistryKey>
+            <Condition> %PROCESSOR_ARCHITECTURE="AMD64" OR %PROCESSOR_ARCHITECTURE="IE64"</Condition>
+          </Component>
+          <Component Id="APIMgrRegEntries_x86" Guid="CE240611-C890-4B28-B637-A45AFF357F9F" UninstallWhenSuperseded="yes">
+            <RegistryKey Root="HKLM" Key="SOFTWARE\Sparx Systems\EAAddins\APIManager">
+              <RegistryValue Type="string" Value="APIManager.SparxEA.EAController" />
+            </RegistryKey>
+            <Condition> %PROCESSOR_ARCHITECTURE="x86"</Condition>
+          </Component>
+          <Directory Id="RESOURCEDIR" Name="resources">
+            <Component Id="APIMgrResources" Guid="A6C9768F-4C41-4249-947C-34D7EA6DEF90" DiskId="1">
+              <File Id="CodeListHeader.txt" Name="CodeListHeader.txt" Source="..\APIManager\resources\CodeListHeader.txt" />
+              <File Id="EDSN_LDT_MappingTable.txt" Name="EDSN-LDT-MappingTable.txt" Source="..\APIManager\resources\EDSN-LDT-MappingTable.txt" />
+              <File Id="EventHandlerConfig.xml" Name="EventHandlerConfig.xml" Source="..\APIManager\resources\EventHandlerConfig.xml" />
+              <File Id="EventHandlerConfig.xsd" Name="EventHandlerConfig.xsd" Source="..\APIManager\resources\EventHandlerConfig.xsd" />
+              <File Id="GenericodeTemplate.txt" Name="GenericodeTemplate.txt" Source="..\APIManager\resources\GenericodeTemplate.txt" />
+              <File Id="GenericodeTemplate.xml" Name="GenericodeTemplate.xml" Source="..\APIManager\resources\GenericodeTemplate.xml" />
+              <File Id="GenericodeSetTemplate.txt" Name="GenericodeSetTemplate.txt" Source="..\APIManager\resources\GenericodeSetTemplate.txt" />
+            </Component>
+          </Directory>
+          <Directory Id="LIBDIR" Name="lib">
+            <Directory Id="WIN32DIR" Name="win32">
+              <Directory Id="X64DIR" Name="x64">
+                <Component Id="GitNativeResourcesX64" Guid="BC107B8B-4E0B-4748-981E-5554FC7E9678" DiskId="1">
+                  <File Id="git2_6311e88_x64.dll" Name="git2-6311e88.dll" Source="..\APIManager\bin\$(var.Configuration)\lib\win32\x64\git2-6311e88.dll" />
+                  <File Id="git2_6311e88_x64.pdb" Name="git2-6311e88.pdb" Source="..\APIManager\bin\$(var.Configuration)\lib\win32\x64\git2-6311e88.pdb" />
+                </Component>
+              </Directory>
+              <Directory Id="X86DIR" Name="x86">
+                <Component Id="GitNativeResourcesX86" Guid="5EEAE17E-43A4-4D5B-B317-FEDAEA462316" DiskId="1">
+                  <File Id="git2_6311e88_x86.dll" Name="git2-6311e88.dll" Source="..\APIManager\bin\$(var.Configuration)\lib\win32\x86\git2-6311e88.dll" />
+                  <File Id="git2_6311e88_x86.pdb" Name="git2-6311e88.pdb" Source="..\APIManager\bin\$(var.Configuration)\lib\win32\x86\git2-6311e88.pdb" />
+                </Component>
+              </Directory>
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+    </DirectoryRef>
+  </Fragment>
+</Wix>
