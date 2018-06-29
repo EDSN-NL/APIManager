@@ -45,8 +45,9 @@ namespace Plugin.Application.Events.API
                         // We only have to invoke this constructor in order to create the entire service structure (we like to keep events simple :-)
                         var svc = new RESTService(containerPackage, dialog.MetaData, dialog.Resources,
                                                   context.GetConfigProperty(_ServiceDeclPkgStereotype));
-                        if (!svc.Valid) MessageBox.Show("Error creating Service declaration, not all components have been created!",
-                                                        "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        if (svc.Valid) svc.Paint(svc.ModelPkg.FindDiagram(svc.ModelPkg.Name));
+                        else MessageBox.Show("Error creating Service declaration, not all components might have been created!",
+                                             "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
                 ModelSlt.GetModelSlt().UnlockModel(containerPackage);

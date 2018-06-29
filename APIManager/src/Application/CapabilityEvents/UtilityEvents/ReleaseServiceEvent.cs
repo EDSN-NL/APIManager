@@ -13,7 +13,7 @@ namespace Plugin.Application.Events.Util
 {
     /// <summary>
     /// </summary>
-    class CommitServiceEvent : EventImplementation
+    class ReleaseServiceEvent : EventImplementation
     {
         // Configuration properties used by this module...
         private const string _ServiceDeclPkgStereotype      = "ServiceDeclPkgStereotype";
@@ -34,19 +34,19 @@ namespace Plugin.Application.Events.Util
         }
 
         /// <summary>
-        /// Processes the 'Commit Service' message, which will push service CI's to the local Configuration Management repository.
-        /// If the service has not yet been processed (i.e. no CI's have been produced), you can not commit it.
+        /// Processes the 'Release Service' message, which will push service CI's to the central Configuration Management repository.
+        /// If the service has not yet been committed (to the local repository), you can not release it!
         /// </summary>
         internal override void HandleEvent()
         {
-            Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Message processing...");
+            Logger.WriteInfo("Plugin.Application.Events.API.ReleaseServiceEvent.HandleEvent >> Message processing...");
             ContextSlt context = ContextSlt.GetContextSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
             Service myService;
 
             if (!svcContext.Valid)
             {
-                Logger.WriteError("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
+                Logger.WriteError("Plugin.Application.Events.API.ReleaseServiceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
                 return;
             }
 
@@ -54,53 +54,47 @@ namespace Plugin.Application.Events.Util
             {
                 if (svcContext.Type == ServiceContext.ServiceType.REST)
                 {
-                    Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Committing a REST Service...");
+                    Logger.WriteInfo("Plugin.Application.Events.API.ReleaseServiceEvent.HandleEvent >> Committing a REST Service...");
                     myService = new RESTService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
                 }
                 else if (svcContext.Type == ServiceContext.ServiceType.CodeList)
                 {
-                    Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Committing a CodeList Service...");
+                    Logger.WriteInfo("Plugin.Application.Events.API.ReleaseServiceEvent.HandleEvent >> Committing a CodeList Service...");
                     myService = new CodeListService(svcContext.ServiceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype), _NOBUILDHIERARCHY);
                 }
                 else    // Assume it's either SOAP or Message (which is based on SOAP)...
                 {
-                    Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Committing a SOAP/Message Service...");
+                    Logger.WriteInfo("Plugin.Application.Events.API.ReleaseServiceEvent.HandleEvent >> Committing a SOAP/Message Service...");
                     myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
                 }
             }
             catch
             {
-                Logger.WriteError("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Unable to determine proper context for commit!");
+                Logger.WriteError("Plugin.Application.Events.API.ReleaseServiceEvent.HandleEvent >> Unable to determine proper context for commit!");
                 return;
             }
 
-            if (myService.ConfigurationMgmtState == CMState.Modified)
+            if (myService.ConfigurationMgmtState == CMState.Committed)
             {
-                using (var dialog = new CMChangeMessage())
+                using (var dialog = new CMChangeMessage(false))
                 {
                     if (dialog.ShowDialog() == DialogResult.OK)
                     {
-                        string commitID = context.GetConfigProperty(_CommitIDLeader) +
-                                          myService.BusinessFunctionID + ":" +
-                                          myService.ContainerPkg.Name + ":" +
-                                          myService.Name + ":" +
-                                          myService.Version.Item1 + ":" +
-                                          myService.Version.Item2 + ":" +
-                                          myService.BuildNumber;
-                        Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> CommitID = '" + commitID + "'...");
-                        myService.CMContext.CommitService(commitID + Environment.NewLine + dialog.Annotation);
-                        if (dialog.AutoRelease)
-                        {
-                            Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Performing auto-release...");
-                            myService.CMContext.ReleaseService(commitID + Environment.NewLine + dialog.Annotation);
-                            myService.ConfigurationMgmtState = CMState.Released;
-                        }
-                        else myService.ConfigurationMgmtState = CMState.Committed;
+                        string releaseID = context.GetConfigProperty(_CommitIDLeader) +
+                                           myService.BusinessFunctionID + ":" +
+                                           myService.ContainerPkg.Name + ":" +
+                                           myService.Name + ":" +
+                                           myService.Version.Item1 + ":" +
+                                           myService.Version.Item2 + ":" +
+                                           myService.BuildNumber;
+                        Logger.WriteInfo("Plugin.Application.Events.API.ReleaseServiceEvent.HandleEvent >> ReleaseID = '" + releaseID + "'...");
+                        myService.CMContext.ReleaseService(releaseID + Environment.NewLine + dialog.Annotation);
+                        myService.ConfigurationMgmtState = CMState.Released;
                         myService.Paint(context.CurrentDiagram);
                     }
                 }
             }
-            else MessageBox.Show("Service must be 'Processed' before it can be committed!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            else MessageBox.Show("Service must be 'Committed' before it can be released!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }

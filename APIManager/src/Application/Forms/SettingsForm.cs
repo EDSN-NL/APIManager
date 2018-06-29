@@ -44,7 +44,7 @@ namespace Plugin.Application.Forms
             AutoLocking.Checked                     = context.GetBoolSetting(FrameworkSettings._UseAutomaticLocking);
             PersistentLocks.Checked                 = context.GetBoolSetting(FrameworkSettings._PersistentModelLocks);
             ConfigurationMgmtIndicator.Checked      = context.GetBoolSetting(FrameworkSettings._UseConfigurationManagement);
-            CloneOnCreateIndicator.Checked          = context.GetBoolSetting(FrameworkSettings._GLCloneOnCreate);
+            UseProxy.Checked                        = context.GetBoolSetting(FrameworkSettings._GITUseProxy);
             RAAPIKeys.Text                          = context.GetStringSetting(FrameworkSettings._RESTAuthAPIKeys);
             RESTHostName.Text                       = context.GetStringSetting(FrameworkSettings._RESTHostName);
             RESTSchemes.Text                        = context.GetStringSetting(FrameworkSettings._RESTSchemes);
@@ -56,6 +56,13 @@ namespace Plugin.Application.Forms
             RepoPathName.Text                       = context.GetStringSetting(FrameworkSettings._RepositoryRootPath);
             RepositoryNamespace.Text                = context.GetStringSetting(FrameworkSettings._GLRepositoryNamespace);
             GITIgnoreEntries.Text                   = context.GetStringSetting(FrameworkSettings._GITIgnoreEntries);
+
+            string proxyServer = context.GetStringSetting(FrameworkSettings._GITProxyServer);
+            if (!string.IsNullOrEmpty(proxyServer))
+            {
+                ProxyServerName.Text = proxyServer.Substring(0, proxyServer.IndexOf(':'));
+                ProxyServerPort.Text = proxyServer.Substring(proxyServer.IndexOf(':') + 1);
+            }
 
             RAScheme.Items.AddRange(new object[]
             {
@@ -116,10 +123,6 @@ namespace Plugin.Application.Forms
                                          @"When enabled, the local repository path acts as the root of a local GIT repository and the remote " +
                                            "repository must be configured. When disabled, the remote repository is disabled and the repository path " +
                                            "is the root of our local file store.");
-            CloneOnCreateToolTip.SetToolTip(CloneOnCreateIndicator,
-                                         @"When enabled, we use the remote repository info to create a local clone of the remote when we create a new, " +
-                                          "local repository. By default, the local repository is created as an empty repository which will be loaded " +
-                                          "on-demand whenever new services are created.");
             GITIgnoreToolTip.SetToolTip(GITIgnoreEntries, "Comma-separated list of entries for Git-Ignore");
             RepositoryRootToolTip.SetToolTip(RepositoryBaseURL, "Our GITLab URL.");
         }
@@ -154,7 +157,7 @@ namespace Plugin.Application.Forms
             context.SetBoolSetting(FrameworkSettings._UseAutomaticLocking, AutoLocking.Checked);
             context.SetBoolSetting(FrameworkSettings._PersistentModelLocks, PersistentLocks.Checked);
             context.SetBoolSetting(FrameworkSettings._UseConfigurationManagement, ConfigurationMgmtIndicator.Checked);
-            context.SetBoolSetting(FrameworkSettings._GLCloneOnCreate, CloneOnCreateIndicator.Checked);
+            context.SetBoolSetting(FrameworkSettings._GITUseProxy, UseProxy.Checked);
 
             context.SetStringSetting(FrameworkSettings._DiagramSaveType, this._imageType);
             context.SetStringSetting(FrameworkSettings._InterfaceContractType, this._interfaceType);
@@ -169,6 +172,7 @@ namespace Plugin.Application.Forms
             context.SetStringSetting(FrameworkSettings._GLAccessToken, AccessToken.Text, true);
             context.SetStringSetting(FrameworkSettings._GLEMail, EMailAddress.Text);
             context.SetStringSetting(FrameworkSettings._GITIgnoreEntries, GITIgnoreEntries.Text);
+            context.SetStringSetting(FrameworkSettings._GITProxyServer, ProxyServerName.Text + ":" + ProxyServerPort.Text);
 
             // Check repository root path, should not end with separator (should not happen since user can not type the path, just to be save...)
             string thePath = RepoPathName.Text;
@@ -351,7 +355,8 @@ namespace Plugin.Application.Forms
         /// <param name="form">SettingsForm instance that raised the event.</param>
         public static void OnSettingsChanged(SettingsForm form)
         {
-            SettingsChanged?.Invoke(form, null);
+        	var handler = SettingsChanged;
+        	if (handler != null) handler(form, null);
         }
     }
 }

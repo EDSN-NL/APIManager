@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System;
+using System.Windows.Forms;
 using Framework.Event;
 using Framework.Logging;
 using Framework.Context;
@@ -71,6 +72,14 @@ namespace Plugin.Application.Events.API
                 // object by using the 'MEClass' constructor, which fetches the appropriate implementation object from the registry...
                 var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
                 var myMessage = new MessageCapability(context.CurrentClass);
+                if (!myService.Checkout())
+                {
+                    MessageBox.Show("Unable to checkout service '" + myService.Name +
+                                    "' from configuration management; probably caused by uncommitted changes from another service!" +
+                                    Environment.NewLine + "Please commit pending changes before starting work on a new service!",
+                                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
 
                 ProcessorManagerSlt processorMgr = ProcessorManagerSlt.GetProcessorManagerSlt();
                 CapabilityProcessor processor = null;

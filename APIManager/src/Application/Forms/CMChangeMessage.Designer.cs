@@ -83,9 +83,9 @@
             this.DoAutoRelease.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.DoAutoRelease.Location = new System.Drawing.Point(12, 150);
             this.DoAutoRelease.Name = "DoAutoRelease";
-            this.DoAutoRelease.Size = new System.Drawing.Size(210, 20);
+            this.DoAutoRelease.Size = new System.Drawing.Size(154, 20);
             this.DoAutoRelease.TabIndex = 2;
-            this.DoAutoRelease.Text = "Automatic release after commit";
+            this.DoAutoRelease.Text = "Release after commit";
             this.DoAutoRelease.UseVisualStyleBackColor = true;
             // 
             // CMChangeMessage

@@ -421,18 +421,6 @@ namespace APIManager.SparxEA.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool GLCloneOnCreate {
-            get {
-                return ((bool)(this["GLCloneOnCreate"]));
-            }
-            set {
-                this["GLCloneOnCreate"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string GITIgnoreEntries {
             get {
@@ -452,6 +440,30 @@ namespace APIManager.SparxEA.Properties {
             }
             set {
                 this["GLRepositoryNamespace"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool GITUseProxy {
+            get {
+                return ((bool)(this["GITUseProxy"]));
+            }
+            set {
+                this["GITUseProxy"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string GITProxyServer {
+            get {
+                return ((string)(this["GITProxyServer"]));
+            }
+            set {
+                this["GITProxyServer"] = value;
             }
         }
     }

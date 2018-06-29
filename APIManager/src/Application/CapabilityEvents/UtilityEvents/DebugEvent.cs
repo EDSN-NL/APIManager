@@ -9,6 +9,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.Xml.Schema;
 using System.Web.Services.Description;
+using System.Runtime.InteropServices;
 using Framework.Event;
 using Framework.Logging;
 using Framework.Model;
@@ -53,7 +54,10 @@ namespace Plugin.Application.Events.Util
                 MEPackage currentPackage = context.CurrentPackage;
                 Diagram currentDiagram = context.CurrentDiagram;
 
-                currentDiagram.SetClassColor(currentClass, Diagram.ClassColor.Yellow);
+                List<MEClass> classList = model.FindTaggedValue("CMState", "created");
+                string names = "Classes in created state: ";
+                foreach (MEClass cl in classList) names += cl.Name + ", ";
+                MessageBox.Show(names);
 
                 /***
                 var svcContext = new ServiceContext(true);

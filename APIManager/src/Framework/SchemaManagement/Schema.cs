@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using Framework.Logging;
 
 namespace Framework.Util.SchemaManagement
 {

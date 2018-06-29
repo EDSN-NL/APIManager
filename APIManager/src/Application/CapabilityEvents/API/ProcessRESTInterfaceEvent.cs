@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System;
+using System.Windows.Forms;
 using System.Collections.Generic;
 using Framework.Event;
 using Framework.Logging;
@@ -69,6 +70,14 @@ namespace Plugin.Application.Events.API
             var myInterface = new RESTInterfaceCapability(svcContext.InterfaceClass);
             var allResources = new List<Capability>();
             foreach (Capability cap in myInterface.ResourceList()) allResources.Add(cap);
+            if (!myService.Checkout())
+            {
+                MessageBox.Show("Unable to checkout service '" + myService.Name +
+                                "' from configuration management; probably caused by uncommitted changes from another service!" +
+                                Environment.NewLine + "Please commit pending changes before starting work on a new service!",
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             using (var picker = new CapabilityPicker("Select root Resource(s) to include in the interface:", allResources, true, false))
             {

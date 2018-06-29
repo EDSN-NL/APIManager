@@ -1,11 +1,14 @@
-﻿using System.Windows.Forms;
+﻿using System;
+using System.Windows.Forms;
 using System.Collections.Generic;
 using Framework.Event;
 using Framework.Logging;
 using Framework.Context;
+using Framework.Model;
 using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 using Plugin.Application.Forms;
+using Plugin.Application.ConfigurationManagement;
 
 namespace Plugin.Application.Events.API
 {
@@ -68,6 +71,15 @@ namespace Plugin.Application.Events.API
             var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
             var myInterface = new InterfaceCapability(svcContext.InterfaceClass);
             List<Capability> allOperations = myInterface.GetOperations().ConvertAll(BaseConverter);
+            if (!myService.Checkout())
+            {
+                MessageBox.Show("Unable to checkout service '" + myService.Name + 
+                                "' from configuration management; probably caused by uncommitted changes on branch(es): '" + 
+                                CMContext.FindBranchesInState(CMState.Modified) + "'." + Environment.NewLine + 
+                                "Please commit pending changes before starting work on a new service!",
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             using (var picker = new CapabilityPicker("Select Operation(s) to include in the build:", allOperations, true, false))
             {

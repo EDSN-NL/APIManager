@@ -24,8 +24,9 @@ namespace Plugin.Application.CapabilityModel
     // Modified - Service is in configuration management, but configuration items have been changed (and not yet committed);
     // Committed - Configuration items have been committed to local repository, but have not yet been released to central repository;
     // Released - Configuration items have been committed and released to central repository;
+    // CheckedOut - Service has been checked-out from configuration management but no changes have been made (yet).
     // Disabled indicates that configuration management is not used.
-    internal enum CMState { Disabled, Created, Modified, Committed, Released }
+    internal enum CMState { Disabled, Created, Modified, Committed, Released, CheckedOut }
 
     /// <summary>
     /// Within the model, the 'Service' represents the deliverable API, as well as the top of the capability
@@ -199,35 +200,7 @@ namespace Plugin.Application.CapabilityModel
         internal CMState ConfigurationMgmtState
         {
             get { return this._configurationMgmtState; }
-            set
-            {
-                // We can change the state ONLY when Configuration Management is enabled!
-                if (this._configurationMgmtState != CMState.Disabled && value != this._configurationMgmtState)
-                {
-                    this._configurationMgmtState = value;
-                    this._serviceClass.SetTag(ContextSlt.GetContextSlt().GetConfigProperty(_CMStateTag),
-                                              EnumConversions<CMState>.EnumToString(value), true);
-                    // We change the color of the Service class on diagrams based on configuration state.
-                    // As long as the service has CI's that have not yet been committed, the class shows up in orange.
-                    // When the CI's have been committed, but not yet been officially released, the class shows up in yellow.
-                    // When the service is in 'stable' state (released to CI/CD), the class shows up in default color (green).
-                    switch (this._configurationMgmtState)
-                    {
-                        case CMState.Created:
-                        case CMState.Modified:
-                            this._representationColor = Diagram.ClassColor.Orange;
-                            break;
-
-                        case CMState.Committed:
-                            this._representationColor = Diagram.ClassColor.Yellow;
-                            break;
-
-                        default:
-                            this._representationColor = Diagram.ClassColor.Default;
-                            break;
-                    }
-                }
-            }
+            set { UpdateCMState(value); }
         }
 
         /// <summary>
@@ -409,6 +382,31 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
+        /// When CM is enabled, this method assures that the CM context for the service is prepared for use. This includes synchronisation
+        /// with remote repository and creation of the appropriate working branch. The service CM state is updated to reflect the new state.
+        /// </summary>
+        /// <returns>True when successfully checked-out (or CM not active for the service), false on errors.</returns>
+        internal bool Checkout()
+        {
+            bool result = false;
+            try
+            {
+                if (this._CMContext != null && this._CMContext.CMEnabled)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.Checkout >> Checking out service '" + Name + "'...");
+                    this._CMContext.CheckoutService();
+                }
+                result = true;
+            }
+            catch (Exception exc)
+            {
+                Logger.WriteError("Plugin.Application.CapabilityModel.Service.Checkout >> Checkout of service '" + Name + 
+                                  "' failed because: " + Environment.NewLine + exc.Message);
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Facilitates creation of log entries in the Service annotation area. It retrieves the current log, adds an
         /// entry to it and writes the log back to the annotation area of the servic.
         /// </summary>
@@ -428,17 +426,11 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
-        /// Force the Configuration Management state to 'modified'. Will have effect only when Configuration Management is enabled.
+        /// Force the Configuration Management state to 'modified'. Will have effect only when Configuration Management is enabled for the service.
         /// </summary>
         internal void Dirty()
         {
-            if (this._configurationMgmtState != CMState.Disabled && this._configurationMgmtState != CMState.Modified)
-            {
-                this._configurationMgmtState  = CMState.Modified;
-                this._serviceClass.SetTag(ContextSlt.GetContextSlt().GetConfigProperty(_CMStateTag),
-                                          EnumConversions<CMState>.EnumToString(CMState.Modified), true);
-                this._representationColor = Diagram.ClassColor.Orange;
-            }
+            if (this._configurationMgmtState != CMState.Disabled) UpdateCMState(CMState.Modified);
         }
 
         /// <summary>
@@ -507,7 +499,7 @@ namespace Plugin.Application.CapabilityModel
                 FQN = FQN.Replace("@YEAR@", DateTime.Now.Year.ToString());
                 FQN = FQN.Replace("@MONTH@", DateTime.Now.Month.ToString());
             }
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.getFQN >> Cpnstructed: '" + FQN + "'.");
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.getFQN >> Constructed: '" + FQN + "'.");
             return FQN;
         }
 
@@ -742,59 +734,25 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
-        /// Helper function that determines the configuration management state of the service and loads properties accordingly.
+        /// Helper function, called by constructors, which determines the configuration management state of the service and loads properties accordingly.
         /// </summary>
         /// <param name="isNewService">True when we're creating a new service, false (default) for existing services.</param>
         private void LoadCMState(bool isNewService = false)
         {
-            ContextSlt context = ContextSlt.GetContextSlt();
-            string CMStateTagName = context.GetConfigProperty(_CMStateTag);
-            this._configurationMgmtState = context.GetBoolSetting(FrameworkSettings._UseConfigurationManagement) ? CMState.Created : CMState.Disabled;
+            string CMStateTagName = ContextSlt.GetContextSlt().GetConfigProperty(_CMStateTag);
 
-            if (this._configurationMgmtState != CMState.Disabled)
+            // For existing services, we attempt to retrieve configuration management state from the model...
+            if (!isNewService)
             {
-                // For existing services, we attempt to retrieve configuration management state from the model...
-                if (!isNewService)
-                {
-                    string configMgmtState = this._serviceClass.GetTag(CMStateTagName);
-                    if (string.IsNullOrEmpty(configMgmtState)) isNewService = true;     // If we don't have a current state, treat as a new service!
-                    else this._configurationMgmtState = EnumConversions<CMState>.StringToEnum(configMgmtState);
-                }
-
-                // We go here either when creating a new service, or when we encounter an existing service that does not have config. mgmt state...
-                if (isNewService)
-                {
-                    this._serviceClass.SetTag(CMStateTagName, EnumConversions<CMState>.EnumToString(CMState.Created), true);
-                    string operationalStatus = IsDefaultOperationalStatus ? string.Empty : this._operationalStatus;
-                }
-                this._CMContext = new CMContext(this);
-
-                // We change the color of the Service class on diagrams based on configuration state.
-                // As long as the service has CI's that have not yet been committed, the class shows up in orange.
-                // When the CI's have been committed, but not yet been officially released, the class shows up in yellow.
-                // When the service is in 'stable' state (released to CI/CD), the class shows up in default color (green).
-                switch (this._configurationMgmtState)
-                {
-                    case CMState.Created:
-                    case CMState.Modified:
-                        this._representationColor = Diagram.ClassColor.Orange;
-                        break;
-
-                    case CMState.Committed:
-                        this._representationColor = Diagram.ClassColor.Yellow;
-                        break;
-
-                    default:
-                        this._representationColor = Diagram.ClassColor.Default;
-                        break;
-                }
+                string configMgmtState = this._serviceClass.GetTag(CMStateTagName);
+                if (string.IsNullOrEmpty(configMgmtState)) isNewService = true;     // If we don't have a current state, treat as a new service!
+                else UpdateCMState(EnumConversions<CMState>.StringToEnum(configMgmtState));
             }
-            else
-            {
-                // When configuration management is disabled, reset entries in the model...
-                this._serviceClass.SetTag(CMStateTagName, "Disabled");
-                this._CMContext = null;
-            }
+
+            // We go here either when creating a new service, or when we encounter an existing service that does not have config. mgmt state...
+            if (isNewService) UpdateCMState(CMState.Created);
+
+            this._CMContext = new CMContext(this);
         }
 
         /// <summary>
@@ -836,6 +794,49 @@ namespace Plugin.Application.CapabilityModel
             }
             Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.handleStage >> Processing result: " + result);
             return result;
+        }
+
+        /// <summary>
+        /// Helper function that updates our Configuration Management state to a new value and adjusts the class display color accordingly.
+        /// If Configuration Management is currently disabled for the model, the function ignores the received value and switches the
+        /// state to 'Disabled' instead.
+        /// </summary>
+        /// <param name="newState">New Configuration Management state.</param>
+        private void UpdateCMState (CMState newState)
+        {
+            if (ContextSlt.GetContextSlt().GetBoolSetting(FrameworkSettings._UseConfigurationManagement) == false) newState = CMState.Disabled;
+
+            if (newState != this._configurationMgmtState)
+            {
+                this._configurationMgmtState = newState;
+                this._serviceClass.SetTag(ContextSlt.GetContextSlt().GetConfigProperty(_CMStateTag),
+                                          EnumConversions<CMState>.EnumToString(newState), true);
+
+                // We change the color of the Service class on diagrams based on configuration state.
+                // As long as the service has CI's that have not (yet) been touched, the class shows up in white.
+                // When CI's have been created or changed but not committed, the class shows up in red.
+                // When the CI's have been committed, but not yet officially released, the class shows up in yellow.
+                // When the service is in 'stable' state (released to CI/CD), the class shows up in default color (green).
+                switch (this._configurationMgmtState)
+                {
+                    case CMState.Created:
+                    case CMState.CheckedOut:
+                        this._representationColor = Diagram.ClassColor.White;
+                        break;
+
+                    case CMState.Modified:
+                        this._representationColor = Diagram.ClassColor.Red;
+                        break;
+
+                    case CMState.Committed:
+                        this._representationColor = Diagram.ClassColor.Yellow;
+                        break;
+
+                    default:
+                        this._representationColor = Diagram.ClassColor.Default;
+                        break;
+                }
+            }
         }
     }
 }
