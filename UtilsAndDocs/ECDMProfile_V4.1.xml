@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="windows-1252"?>
 <UMLProfile profiletype="uml2">
-	<Documentation id="9B84831D-3" name="Enexis ECDM" version="4.0" notes="20170918:  Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109:  Vs 3.1:	Added support for 'nillable' elements.&#xA;20180110:  Vs 3.2:	Added 'alternativeNaming' tag to CommonSchema (SOAP backwards compatibility).&#xA;20180213: Vs 3.3:	Defines Service Archtetype and added _metatype to Service.&#xA;20180216: Vs 3.4:	Resource: removed 'isTag', added 'tagNames'.&#xA;20180308: Vs 4.0:	Implemented first draft of the Configuration Management Profile."/>
+	<Documentation id="9B84831D-3" name="Enexis ECDM" version="4.1" notes="20170918:  Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109:  Vs 3.1:	Added support for 'nillable' elements.&#xA;20180110:  Vs 3.2:	Added 'alternativeNaming' tag to CommonSchema (SOAP backwards compatibility).&#xA;20180213: Vs 3.3:	Defines Service Archtetype and added _metatype to Service.&#xA;20180216: Vs 3.4:	Resource: removed 'isTag', added 'tagNames'.&#xA;20180308: Vs 4.0:	Implemented first draft of the Configuration Management Profile.&#xA;20180620: Vs 4.1:	Added another state to Service CM state: CheckedOut."/>
 	<Content>
 		<Stereotypes>
 			<Stereotype name="ASMBIE" notes="Association Message Business Information Entity." cx="0" cy="0" bgcolor="11009769" fontcolor="3947580" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAssoc" baseStereotypes="ECDMAssoc"/>
@@ -276,7 +276,7 @@
 					<Tag name="archetype" type="enumeration" description="Defines the archetype of the Service." unit="" values="CodeList,Message,REST,SOAP" default=""/>
 					<Tag name="operationalStatus" type="enumeration" description="" unit="" values="Standard,Experimental,Deprecated,Draft" default="Standard"/>
 					<Tag name="maxOperationID" type="int" description="Each Operation that is added to a Service receives a unique sequence number or operationID. In order to keep track of these ID's, the Service maintains the latest index used so far as 'maxOperationID'. OperationID's are never reclaimed, so when an Operation is removed, it's ID won't be re-used." unit="" values="" default=""/>
-					<Tag name="CMState" type="enumeration" description="" unit="" values="Committed,Created,Disabled,Modified,Released" default="Disabled"/>
+					<Tag name="CMState" type="enumeration" description="" unit="" values="Committed,Created,Disabled,Modified,Released,CheckedOut" default="Disabled"/>
 					<Tag name="CMBranch" type="string" description="Contains the name of the Configuration Management Branch on which the service is tracked." unit="" values="" default=""/>
 				</TaggedValues>
 			</Stereotype>

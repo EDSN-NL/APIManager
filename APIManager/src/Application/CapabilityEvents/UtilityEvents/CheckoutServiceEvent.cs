@@ -69,9 +69,9 @@ namespace Plugin.Application.Events.Util
                     myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
                 }
             }
-            catch
+            catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Unable to determine proper context for commit!");
+                Logger.WriteError("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Caught an exception during service creation: " + Environment.NewLine + exc.Message);
                 return;
             }
 
