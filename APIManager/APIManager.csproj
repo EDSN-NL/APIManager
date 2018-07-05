@@ -513,6 +513,12 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="resources\DefaultGITConfig.txt" />
+    <Content Include="git2-6311e88.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="git2-6311e88.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="resources\EDSN-LDT-MappingTable.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
