@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Schema;
-using Newtonsoft.Json.Linq;
 using Framework.Logging;
-using Framework.Context;
 
 namespace Framework.Util.SchemaManagement.JSON
 {

@@ -49,7 +49,7 @@ namespace Plugin.Application.ConfigurationManagement
             this._myIdentity = null;
 
             LoadConfiguration();
-        
+
             //InitializeRemote();     // Make sure that the remote repository actually exists...
 
             // If the remote repository is not registered yet, we perform an explicit registration.
@@ -58,8 +58,17 @@ namespace Plugin.Application.ConfigurationManagement
                 Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository >> Explicit registration of remote repository '" + _RemoteName + "'...");
                 this._myRemote = this._repository.Network.Remotes.Add(_RemoteName, _repositoryURL);
             }
-            else this._myRemote = this._repository.Network.Remotes[_RemoteName];
-
+            else
+            {
+                this._myRemote = this._repository.Network.Remotes[_RemoteName];
+                if (this._myRemote.Url != _repositoryURL)
+                {
+                    Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository >> Registered URL '" + this._myRemote.Url + 
+                                     "' is different from configured URL '" + _repositoryURL + "'; updating registration...");
+                    this._repository.Network.Remotes.Remove(_RemoteName);
+                    this._myRemote = this._repository.Network.Remotes.Add(_RemoteName, _repositoryURL);
+                }
+            }
             UpdateBranches();       // Assures that we're tracking the current HEAD.
         }
 

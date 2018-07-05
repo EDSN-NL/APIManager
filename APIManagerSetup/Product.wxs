@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?define ProductVersion = "1.2.2.0"?>
 <?define ProductUpgradeCode = "F638BED5-79FC-4145-A683-6DCD3464465B"?>
-<?define Configuration = "Release"?>
+<?define Configuration = "Debug"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Product Id="*"
              Name="API Manager"

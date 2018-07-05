@@ -441,7 +441,6 @@ namespace Plugin.Application.ConfigurationManagement
                 cfg.Set<string>(kvPair[0].Trim(), kvPair[1].Trim(), ConfigurationLevel.Local);
             }
 
-            /***************
             string proxyToken = context.GetConfigProperty(_CMGITProxyToken);
             string[] proxyKV = proxyToken.Split(':');
             proxyKV[1] = proxyKV[1].Replace("@SERVER@", context.GetStringSetting(FrameworkSettings._GITProxyServer)).Trim();
@@ -457,7 +456,6 @@ namespace Plugin.Application.ConfigurationManagement
                                  proxyKV[0] + ":" + proxyKV[1] + "'...");
                 cfg.Unset(proxyKV[0], ConfigurationLevel.Global);
             }
-            ****************/
         }
     }
 }
