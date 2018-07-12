@@ -186,6 +186,17 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Returns the name of the model that is currently open.
+        /// </summary>
+        /// <returns>Name of currently opened model or empty string if none found.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal string GetModelName()
+        {
+            if (this._modelImp != null) return this._modelImp.GetModelName();
+            else throw new MissingImplementationException("ModelImplementation");
+        }
+
+        /// <summary>
         /// Public Model "factory" method. Simply returns the static instance.
         /// </summary>
         /// <returns>Context singleton object</returns>

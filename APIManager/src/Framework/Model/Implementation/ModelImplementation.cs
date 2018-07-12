@@ -145,6 +145,12 @@ namespace Framework.Model
         internal abstract ModelElementImplementation GetModelElementImplementation(ModelElementType type, string elementGUID);
 
         /// <summary>
+        /// Returns the name of te currently opened model (EA project name).
+        /// </summary>
+        /// <returns>Name of currently opened project or empty string if unknown.</returns>
+        internal abstract string GetModelName();
+
+        /// <summary>
         /// Retrieves the model repository type. Typically, this requires a tool-specific implementation.
         /// </summary>
         /// <returns>Repository type enumeration.</returns>

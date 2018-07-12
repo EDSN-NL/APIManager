@@ -418,6 +418,32 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Returns the name of te currently opened model (EA project name) as a LOWERCASE string.
+        /// </summary>
+        /// <returns>Name of currently opened project or empty string if unknown.</returns>
+        internal override string GetModelName()
+        {
+            const string _Extension = ".eap";
+            const string _DBEndPattern = " --- dbtype";
+
+            string connectionString = this._repository.ConnectionString.ToLower();
+            string modelName = string.Empty;
+            if (connectionString.Contains(_Extension))
+            {
+                // Local file.
+                int endOfPath = connectionString.LastIndexOf('\\');
+                modelName = connectionString.Substring(endOfPath + 1, connectionString.IndexOf(_Extension) - endOfPath - 1);
+            }
+            else if (connectionString.Contains(_DBEndPattern))
+            {
+                // SQL Directory
+                modelName = connectionString.Substring(0, connectionString.IndexOf(_DBEndPattern));
+            }
+            Logger.WriteInfo("SparxEA.Model.EAModelImplementation.GetModelName >> Retrieved model name '" + modelName + "'.");
+            return modelName;
+        }
+
+        /// <summary>
         /// Many model elements are specializations of another element type. In order to reduce the number of levels in the dictionary and
         /// to avoid redundant entries, we maintain the dictionary on 'root-types' only. This function receives a ModelElementType and
         /// returns the root type of that type in order to arrive at the correct dictionary entry.
