@@ -374,6 +374,38 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Export the package (and optional sub-packages) as an XMI file to the specified output path.
+        /// </summary>
+        /// <param name="fileName">Absolute pathname to output path and file.</param>
+        /// <param name="recursive">When true (default) export the entire hierarchy. When false, export only the current package. </param>
+        internal override bool ExportPackage(string fileName, bool recursive)
+        {
+            int _NoFormatXML        = Convert.ToInt32(false);
+            int _UseDTD             = Convert.ToInt32(true);
+            int _NoPictures         = 0;
+            int _NoPictureFormats   = -1;
+
+            bool result = true;
+            try
+            {
+                fileName = fileName.Replace('/', '\\');    
+                EA.Project project = ((EAModelImplementation)this._model).Repository.GetProjectInterface();
+                project.ExportPackageXMIEx(this._package.PackageGUID,
+                                           EnumXMIType.xmiEADefault,    // Of xmiEA251?
+                                           _NoPictures, _NoPictureFormats, _NoFormatXML, _UseDTD,
+                                           fileName,
+                                           !recursive? Convert.ToInt32(EA.ExportPackageXMIFlag.epSaveToStub): 0);
+            }
+            catch (Exception exc)
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIPackage.ExportPackage >> Error exporting package '" + this._name + 
+                                  "' to XMI file '" + fileName + "':" + Environment.NewLine + exc.Message);
+                result = false;
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Searches the package for any class with given name and optional stereotype.
         /// </summary>
         /// <param name="className">Name of class to find.</param>
@@ -668,6 +700,47 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Import the package from the specified XML file into this package, overwriting all contents.
+        /// </summary>
+        /// <param name="fileName">Absolute pathname to input path and file.</param>
+        /// <returns>True when imported successsfully, false when unable to import.</returns>
+        internal override bool ImportPackage(string fileName)
+        {
+            int _ImportDiagrams = Convert.ToInt32(true);
+            int _NoStripGUID    = Convert.ToInt32(false);
+
+            bool result = true;
+            try
+            {
+                // Delete all sub-packages, elements and diagrams in this package as a preparation for the import...
+                this._package.Packages.Refresh();
+                for (short i = (short)(this._package.Packages.Count - 1); i >= 0; this._package.Packages.DeleteAt(i--, true));
+                for (short i = (short)(this._package.Elements.Count - 1); i >= 0; this._package.Elements.DeleteAt(i--, true));
+                for (short i = (short)(this._package.Diagrams.Count - 1); i >= 0; this._package.Diagrams.DeleteAt(i--, true));
+                this._package.Packages.Refresh();
+
+                fileName = fileName.Replace('/', '\\');
+                EA.Project project = ((EAModelImplementation)this._model).Repository.GetProjectInterface();
+                string resultMsg = project.ImportPackageXMI(this._package.PackageGUID,
+                                                            fileName,
+                                                            _ImportDiagrams, _NoStripGUID);
+                if (resultMsg != this._package.PackageGUID)
+                {
+                    Logger.WriteError("SparxEA.Model.EAMEIPackage.ImportPackage >> Error importing package '" + this._name +
+                                      "' from XMI file '" + fileName + "':" + Environment.NewLine + resultMsg);
+                    result = false;
+                }
+            }
+            catch (Exception exc)
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIPackage.ImportPackage >> Error importing package '" + this._name +
+                                  "' from XMI file '" + fileName + "':" + Environment.NewLine + exc.Message);
+                result = false;
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Test whether the package is currently locked. We do this by checking the database for the presence of a lock for the current user.
         /// When no user is found (or we get an exception), we assume that security is not enabled and the package is thus unlocked.
         /// When a user is found, we check for a lock for the current package. This can have three different results:
@@ -793,27 +866,6 @@ namespace SparxEA.Model
         internal override void Refresh()
         {
             ((EAModelImplementation)this._model).Repository.RefreshModelView(this._package.PackageID);
-        }
-
-        /// <summary>
-        /// Saves the package and all child packages to an XMI file with specified name. The name must be an ABSOLUTE file name!
-        /// </summary>
-        /// <param name="fileName">Absolute filename to use for output.</param>
-        /// <returns>True when saved ok, false on errors.</returns>
-        internal override bool Save(string fileName)
-        {
-            bool result = true;
-            try
-            {
-                EA.Project project = ((EAModelImplementation)this._model).Repository.GetProjectInterface();
-                project.ExportPackageXMIEx(this._package.PackageGUID, EnumXMIType.xmiEA251, 2, 3, 0, 1, fileName, 0);
-            }
-            catch (Exception exc)
-            {
-                Logger.WriteError("SparxEA.Model.EAMEIPackage.Save >> Error saving package '" + this._name + "' to XMI file '" + fileName + "':" + Environment.NewLine + exc.Message);
-                result = false;
-            }
-            return result;
         }
         
         /// <summary>

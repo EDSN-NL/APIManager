@@ -2,17 +2,43 @@
 using System.IO;
 using System.Text;
 using System.IO.Compression;
+using Framework.Context;
 
 namespace Framework.Util
 {
+    /// <summary>
+    /// The Compression class provides methods to compress and uncompress strings and single files.
+    /// </summary>
     internal static class Compression
     {
+        // Configuration settings used by this module:
+        private const string _CompressedFileSuffix = "CompressedFileSuffix";
+
+        /// <summary>
+        /// Compress the specified file and optionally remove the original, uncompressed, file.
+        /// </summary>
+        /// <param name="fileName">Absolute path to te file to be compressed.</param>
+        /// <returns>The name of the generated compressed file.</returns>
+        public static string FileZip(string fileName, bool deleteOriginal)
+        {
+            string outName = fileName.Substring(0, fileName.LastIndexOf(".")) + ContextSlt.GetContextSlt().GetConfigProperty(_CompressedFileSuffix);
+            fileName = fileName.Replace('\\', '/');
+            string entryName = fileName.Substring(fileName.LastIndexOf('/') + 1);
+            using (FileStream fs = new FileStream(outName, FileMode.Create))
+            using (ZipArchive arch = new ZipArchive(fs, ZipArchiveMode.Create))
+            {
+                arch.CreateEntryFromFile(fileName, entryName);
+            }
+            if (deleteOriginal) File.Delete(fileName);
+            return outName;
+        }
+
         /// <summary>
         /// Compress the specified string into an array of bytes and return this as a Base64-encoded text string.
         /// </summary>
         /// <param name="str">The string to be compressed.</param>
         /// <returns>Compressed string as Base64 string.</returns>
-        public static string Zip(string str)
+        public static string StringZip(string str)
         {
             var bytes = Encoding.UTF8.GetBytes(str);
 
@@ -27,12 +53,28 @@ namespace Framework.Util
         }
 
         /// <summary>
+        /// Decompresses the specified file to its associated directory.
+        /// </summary>
+        /// <param name="fileName">Absolute path to te file to be inflated.</param>
+        public static void FileUnzip(string fileName)
+        {
+            fileName = fileName.Replace('\\', '/');
+            string dirName = fileName.Substring(0, fileName.LastIndexOf('/'));
+
+            using (FileStream fs = new FileStream(fileName, FileMode.Open))
+            using (ZipArchive arch = new ZipArchive(fs, ZipArchiveMode.Read))
+            {
+                arch.ExtractToDirectory(dirName);
+            }
+        }
+
+        /// <summary>
         /// Deflate a byte array that has been compressed earlier with call to 'Zip'. The array must be passed as a Base64-encoded
         /// text string.
         /// </summary>
         /// <param name="bytes">Base64-encoded text string that must be deflated.</param>
         /// <returns>The original string.</returns>
-        internal static string Unzip(string base64String)
+        internal static string StringUnzip(string base64String)
         {
             var base64EncodedBytes = Convert.FromBase64String(base64String);
             using (var msi = new MemoryStream(base64EncodedBytes))

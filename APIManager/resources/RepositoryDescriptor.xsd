@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" targetNamespace="urn:x-enexis:ecdm:plugin:application:configuration-management"
+    xmlns="urn:x-enexis:ecdm:plugin:application:configuration-management" elementFormDefault="qualified" vc:minVersion="1.1">
+
+    <xs:element name="RepositoryList">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element maxOccurs="unbounded" minOccurs="1" name="Repository" type="RepositoryType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:complexType name="RemoteType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="User" type="UserType"/>
+            <xs:element maxOccurs="1" minOccurs="1" name="RepositoryRootURL" type="xs:anyURI"/>
+            <xs:element name="RepositoryNamespace" type="xs:normalizedString"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="RepositoryType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="RootPath" type="xs:normalizedString"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Description" type="xs:string"/>
+            <xs:element minOccurs="0" name="GITIgnore" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Remote" type="RemoteType"/>
+        </xs:sequence>
+        <xs:attribute name="name" use="required" type="xs:normalizedString"/>
+        <xs:attribute name="useCM" type="xs:boolean" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="UserType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="UserName" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="1" name="EMail" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="1" name="Password" type="xs:token"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

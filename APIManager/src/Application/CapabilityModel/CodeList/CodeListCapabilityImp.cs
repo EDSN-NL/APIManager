@@ -185,7 +185,9 @@ namespace Plugin.Application.CapabilityModel.CodeList
         internal override string GetBaseFileName()
         {
             Tuple<int, int> version = this.CapabilityClass.Version;
-            return this.Name + "CodeList_v" + version.Item1 + "p" + version.Item2;
+            string postfix = Conversions.ToPascalCase(RootService.IsDefaultOperationalStatus ? string.Empty : "_" + RootService.OperationalStatus);
+            return (this._rootService.UseConfigurationMgmt) ? this.Name + "CodeList" + postfix: 
+                                                              this.Name + "CodeList_v" + version.Item1 + "p" + version.Item2 + postfix;
         }
 
         /// <summary>

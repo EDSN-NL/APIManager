@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Security;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
@@ -24,11 +25,11 @@ using Newtonsoft.Json.Schema;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema.Infrastructure.Collections;
 using LibGit2Sharp;
-using Plugin.Application.ConfigurationManagement;
 using Plugin.Application.CapabilityModel.API;
 using Plugin.Application.Events.API;
 using Plugin.Application.CapabilityModel;
 using Plugin.Application.Forms;
+using APIManager.SparxEA.Properties;        // Addresses the "settings" environment so we can retrieve run-time settings.
 
 namespace Plugin.Application.Events.Util
 {
@@ -53,46 +54,6 @@ namespace Plugin.Application.Events.Util
                 MEClass currentClass = context.CurrentClass;
                 MEPackage currentPackage = context.CurrentPackage;
                 Diagram currentDiagram = context.CurrentDiagram;
-
-                List<MEClass> classList = model.FindTaggedValue("CMState", "created");
-                string names = "Classes in created state: ";
-                foreach (MEClass cl in classList) names += cl.Name + ", ";
-                MessageBox.Show(names);
-
-                /***
-                var svcContext = new ServiceContext(true);
-                MEClass currService = svcContext.ServiceClass;
-                if (currService != null)
-                {
-                    CapabilityModel.Service myService = null;
-                    if (svcContext.Type == ServiceContext.ServiceType.SOAP)
-                    {
-                        Logger.WriteInfo("DebugEvent >> Located application service class '" + currService.Name + "'...");
-                        myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
-                    }
-                    else
-                    {
-                        Logger.WriteInfo("DebugEvent >> Located REST service class '" + currService.Name + "'...");
-                        myService = new RESTService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
-                    }
-                    if (myService != null)
-                    {
-                        var cm = myService.CMContext;
-
-                        cm.CheckoutService();
-                        if (MessageBox.Show("Commit files?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                        {
-                            Logger.WriteInfo("DebugEvent >> Committing files...");
-                            cm.CommitService("Commit message for Service '" + myService.Name + "' from Wouter.");
-                        }
-                        if (MessageBox.Show("Release service?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                        {
-                            Logger.WriteInfo("DebugEvent >> Releasing service...");
-                            cm.ReleaseService("Releasing my Service '" + myService.Name + "' to GitLab!");
-                        }
-                    }
-                }
-                ***/
 
                 /****
                 RepositorySlt repo = RepositorySlt.GetRepositorySlt();

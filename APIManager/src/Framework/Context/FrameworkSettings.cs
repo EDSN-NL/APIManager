@@ -49,18 +49,6 @@ namespace Framework.Context
         internal const string _DocGenUseCommon                = "DocGenUseCommon";              // ADoc generation: use separate 'common' definitions file when 'true'.
         internal const string _DocGenUseGenerateDoc           = "DocGenGenerateDoc";            // Adoc generation: enable document generation when 'true'.
         internal const string _SupplementaryPrefixCode        = "SupplementaryPrefixCode";      // JSON: string to use in schema to indicate element is a supplementary attribute.
-        internal const string _UseConfigurationManagement     = "UseConfigurationManagement";   // Set to 'true' when output must be written to Configuration Management Tool.
-        internal const string _GLUserName                     = "GLUserName";                   // Central Repository: user name.
-        internal const string _GLAccessToken                  = "GLAccessToken";                // Central Repository: access token (encrypted).
-        internal const string _GLEMail                        = "GLEMail";                      // Central Repository: e-mail address of user.
-        internal const string _GLRepositoryBaseURL            = "GLRepositoryBaseURL";          // Central Repository: partial URL to top or remote repository.
-        internal const string _GLRepositoryNamespace          = "GLRepositoryNamespace";        // Relative path from repository base to root of all repositories.
-        internal const string _RepositoryRootPath             = "RepositoryRootPath";           // Local Repository: path to root of local GIT repositories.
-
-        // GIT Settings
-        internal const string _GITIgnoreEntries               = "GITIgnoreEntries";             // Comma-separated list of GIT-Ignore entries for the session.
-        internal const string _GITUseProxy                    = "GITUseProxy";                  // True when we need a proxy server to connect.
-        internal const string _GITProxyServer                 = "GITProxyServer";               // Server name and port number.
 
         // These are the names of all currently defined resources:
         internal const string _CodeListHeader                 = "CodeListHeader";
@@ -122,8 +110,6 @@ namespace Framework.Context
             this._boolSettings.Add(_DocGenUseGenerateDoc, Settings.Default.DocGenGenerateDoc);
             this._boolSettings.Add(_UseAutomaticLocking, Settings.Default.UseAutomaticLocking);
             this._boolSettings.Add(_PersistentModelLocks, Settings.Default.PersistentModelLocks);
-            this._boolSettings.Add(_UseConfigurationManagement, Settings.Default.UseConfigurationManagement);
-            this._boolSettings.Add(_GITUseProxy, Settings.Default.GITUseProxy);
 
             this._stringSettings.Add(_LogFileName, Settings.Default.LogfileName);
             this._stringSettings.Add(_DiagramSaveType, Settings.Default.DiagramSaveType);
@@ -134,14 +120,6 @@ namespace Framework.Context
             this._stringSettings.Add(_RESTHostName, Settings.Default.RESTHostName);
             this._stringSettings.Add(_RESTSchemes, Settings.Default.RESTSchemes);
             this._stringSettings.Add(_SupplementaryPrefixCode, Settings.Default.SupplementaryPrefix);
-            this._stringSettings.Add(_GLUserName, Settings.Default.GLUserName);
-            this._stringSettings.Add(_GLAccessToken, Settings.Default.GLAccessToken);
-            this._stringSettings.Add(_GLEMail, Settings.Default.GLEMail);
-            this._stringSettings.Add(_GLRepositoryBaseURL, Settings.Default.GLRepositoryURL);
-            this._stringSettings.Add(_GLRepositoryNamespace, Settings.Default.GLRepositoryNamespace);
-            this._stringSettings.Add(_RepositoryRootPath, Settings.Default.RepositoryRootPath);
-            this._stringSettings.Add(_GITIgnoreEntries, Settings.Default.GITIgnoreEntries);
-            this._stringSettings.Add(_GITProxyServer, Settings.Default.GITProxyServer);
         }
 
         /// <summary>
@@ -237,9 +215,8 @@ namespace Framework.Context
             {
                 try
                 {
-                    var cryptor = new CryptedString();
                     Logger.WriteInfo("Framework.Context.FrameworkSettings.GetStringSetting >> Encrypted value '" + name + "." + this._stringSettings[name] + "' read.");
-                    return cryptor.Decrypt(this._stringSettings[name], _Salt);
+                    return CryptString.DecryptPlain(this._stringSettings[name], _Salt);
                 }
                 catch (Exception exc)
                 {
@@ -275,8 +252,7 @@ namespace Framework.Context
         {
             if (mustEncrypt)
             {
-                var cryptor = new CryptedString();
-                value = cryptor.Encrypt(value, _Salt);
+                value = CryptString.EncryptPlain(value, _Salt);
                 Logger.WriteInfo("Framework.Context.FrameworkSettings.SetStringSetting >> Encrypted value '" + name + "." + value + "' written.");
             }
 
@@ -319,38 +295,6 @@ namespace Framework.Context
 
                     case _SupplementaryPrefixCode:
                         Settings.Default.SupplementaryPrefix = value;
-                        break;
-
-                    case _GLUserName:
-                        Settings.Default.GLUserName = value;
-                        break;
-
-                    case _GLAccessToken:
-                        Settings.Default.GLAccessToken = value;
-                        break;
-
-                    case _GLEMail:
-                        Settings.Default.GLEMail = value;
-                        break;
-
-                    case _GLRepositoryBaseURL:
-                        Settings.Default.GLRepositoryURL = value;
-                        break;
-
-                    case _GLRepositoryNamespace:
-                        Settings.Default.GLRepositoryNamespace = value;
-                        break;
-
-                    case _RepositoryRootPath:
-                        Settings.Default.RepositoryRootPath = value;
-                        break;
-
-                    case _GITIgnoreEntries:
-                        Settings.Default.GITIgnoreEntries = value;
-                        break;
-
-                    case _GITProxyServer:
-                        Settings.Default.GITProxyServer = value;
                         break;
 
                     default:
@@ -444,14 +388,6 @@ namespace Framework.Context
 
                     case _PersistentModelLocks:
                         Settings.Default.PersistentModelLocks = value;
-                        break;
-
-                    case _UseConfigurationManagement:
-                        Settings.Default.UseConfigurationManagement = value;
-                        break;
-
-                    case _GITUseProxy:
-                        Settings.Default.GITUseProxy = value;
                         break;
 
                     default:

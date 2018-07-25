@@ -319,7 +319,8 @@ namespace Framework.Event
             internal RetrieveNodeVisitor(string name)
             {
                 this._name = name;
-                this._children = null;
+                this._children = new List<EventNode>();
+                this._parentNode = null;
             }
 
             /// <summary>
@@ -333,7 +334,6 @@ namespace Framework.Event
                 bool done = false;
                 if (treeNode.Data.Name == this._name)
                 {
-                    this._children = new List<EventNode>();
                     foreach (TreeNode<EventNode> node in treeNode.Children) this._children.Add(node.Data);
                     this._parentNode = treeNode;
                     done = true;

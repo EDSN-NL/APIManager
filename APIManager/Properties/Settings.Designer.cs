@@ -349,66 +349,6 @@ namespace APIManager.SparxEA.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string GLUserName {
-            get {
-                return ((string)(this["GLUserName"]));
-            }
-            set {
-                this["GLUserName"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string GLAccessToken {
-            get {
-                return ((string)(this["GLAccessToken"]));
-            }
-            set {
-                this["GLAccessToken"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string GLEMail {
-            get {
-                return ((string)(this["GLEMail"]));
-            }
-            set {
-                this["GLEMail"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string GLRepositoryURL {
-            get {
-                return ((string)(this["GLRepositoryURL"]));
-            }
-            set {
-                this["GLRepositoryURL"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string RepositoryRootPath {
-            get {
-                return ((string)(this["RepositoryRootPath"]));
-            }
-            set {
-                this["RepositoryRootPath"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool UseConfigurationManagement {
             get {
@@ -434,36 +374,12 @@ namespace APIManager.SparxEA.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string GLRepositoryNamespace {
+        public string RepositoryDescriptorList {
             get {
-                return ((string)(this["GLRepositoryNamespace"]));
+                return ((string)(this["RepositoryDescriptorList"]));
             }
             set {
-                this["GLRepositoryNamespace"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool GITUseProxy {
-            get {
-                return ((bool)(this["GITUseProxy"]));
-            }
-            set {
-                this["GITUseProxy"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string GITProxyServer {
-            get {
-                return ((string)(this["GITProxyServer"]));
-            }
-            set {
-                this["GITProxyServer"] = value;
+                this["RepositoryDescriptorList"] = value;
             }
         }
     }

@@ -4,11 +4,9 @@ using System.Collections.Generic;
 using Framework.Event;
 using Framework.Logging;
 using Framework.Context;
-using Framework.Model;
 using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 using Plugin.Application.Forms;
-using Plugin.Application.ConfigurationManagement;
 
 namespace Plugin.Application.Events.API
 {

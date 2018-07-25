@@ -418,7 +418,8 @@ namespace SparxEA.Model
         }
 
         /// <summary>
-        /// Returns the name of te currently opened model (EA project name) as a LOWERCASE string.
+        /// Returns the name of the currently opened model (EA project name) as a LOWERCASE string.
+        /// The name returned is the name presented in the "Project Name" column of the EA "Open Project" dialog, but translated to lowercase.
         /// </summary>
         /// <returns>Name of currently opened project or empty string if unknown.</returns>
         internal override string GetModelName()
@@ -427,20 +428,9 @@ namespace SparxEA.Model
             const string _DBEndPattern = " --- dbtype";
 
             string connectionString = this._repository.ConnectionString.ToLower();
-            string modelName = string.Empty;
-            if (connectionString.Contains(_Extension))
-            {
-                // Local file.
-                int endOfPath = connectionString.LastIndexOf('\\');
-                modelName = connectionString.Substring(endOfPath + 1, connectionString.IndexOf(_Extension) - endOfPath - 1);
-            }
-            else if (connectionString.Contains(_DBEndPattern))
-            {
-                // SQL Directory
-                modelName = connectionString.Substring(0, connectionString.IndexOf(_DBEndPattern));
-            }
-            Logger.WriteInfo("SparxEA.Model.EAModelImplementation.GetModelName >> Retrieved model name '" + modelName + "'.");
-            return modelName;
+            connectionString = connectionString.Substring(connectionString.LastIndexOf('\\') + 1);
+            string endPattern = (connectionString.Contains(_Extension)) ? _Extension : _DBEndPattern;
+            return connectionString.Substring(0, connectionString.IndexOf(endPattern));
         }
 
         /// <summary>

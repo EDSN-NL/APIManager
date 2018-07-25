@@ -1,9 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Windows.Forms;
-using Framework.Event;
+﻿using Framework.Event;
 using Framework.Context;
 using Framework.Model;
-using Framework.Logging;
 using Plugin.Application.Forms;
 
 namespace Plugin.Application.Events.Util
@@ -27,8 +24,7 @@ namespace Plugin.Application.Events.Util
             MEClass currentClass = ContextSlt.GetContextSlt().CurrentClass;
             if (currentClass != null)
             {
-                ClassInspector dialog = new ClassInspector(currentClass.Metadata);
-                dialog.ShowDialog();
+                using (ClassInspector dialog = new ClassInspector(currentClass.Metadata)) dialog.ShowDialog();
             }
         }
     }

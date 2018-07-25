@@ -552,17 +552,6 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Returns the file name (without extension) for this Capability. The extension is left out since this typically depends on the
-        /// chosen serialization mechanism. The filename returned by this method only provides a generic name to be used for further, serialization
-        /// dependent, processing.
-        /// </summary>
-        internal override string GetBaseFileName()
-        {
-            Tuple<int, int> version = this.CapabilityClass.Version;
-            return this.Name + "_v" + version.Item1 + "p" + version.Item2;
-        }
-
-        /// <summary>
         /// Returns a short textual identification of the capability type.
         /// </summary>
         /// <returns>Capability type name.</returns>

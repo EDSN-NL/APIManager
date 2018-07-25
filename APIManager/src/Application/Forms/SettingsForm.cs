@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using Framework.Logging;
 using Framework.Context;
+using Framework.ConfigurationManagement;
 
 namespace Plugin.Application.Forms
 {
@@ -43,26 +44,10 @@ namespace Plugin.Application.Forms
             DocGenGenerate.Checked                  = context.GetBoolSetting(FrameworkSettings._DocGenUseGenerateDoc);
             AutoLocking.Checked                     = context.GetBoolSetting(FrameworkSettings._UseAutomaticLocking);
             PersistentLocks.Checked                 = context.GetBoolSetting(FrameworkSettings._PersistentModelLocks);
-            ConfigurationMgmtIndicator.Checked      = context.GetBoolSetting(FrameworkSettings._UseConfigurationManagement);
-            UseProxy.Checked                        = context.GetBoolSetting(FrameworkSettings._GITUseProxy);
             RAAPIKeys.Text                          = context.GetStringSetting(FrameworkSettings._RESTAuthAPIKeys);
             RESTHostName.Text                       = context.GetStringSetting(FrameworkSettings._RESTHostName);
             RESTSchemes.Text                        = context.GetStringSetting(FrameworkSettings._RESTSchemes);
             SupplementaryPrefixCode.Text            = context.GetStringSetting(FrameworkSettings._SupplementaryPrefixCode);
-            UserName.Text                           = context.GetStringSetting(FrameworkSettings._GLUserName);
-            AccessToken.Text                        = context.GetStringSetting(FrameworkSettings._GLAccessToken, true);
-            EMailAddress.Text                       = context.GetStringSetting(FrameworkSettings._GLEMail);
-            RepositoryBaseURL.Text                  = context.GetStringSetting(FrameworkSettings._GLRepositoryBaseURL);
-            RepoPathName.Text                       = context.GetStringSetting(FrameworkSettings._RepositoryRootPath);
-            RepositoryNamespace.Text                = context.GetStringSetting(FrameworkSettings._GLRepositoryNamespace);
-            GITIgnoreEntries.Text                   = context.GetStringSetting(FrameworkSettings._GITIgnoreEntries);
-
-            string proxyServer = context.GetStringSetting(FrameworkSettings._GITProxyServer);
-            if (!string.IsNullOrEmpty(proxyServer))
-            {
-                ProxyServerName.Text = proxyServer.Substring(0, proxyServer.IndexOf(':'));
-                ProxyServerPort.Text = proxyServer.Substring(proxyServer.IndexOf(':') + 1);
-            }
 
             RAScheme.Items.AddRange(new object[]
             {
@@ -104,27 +89,24 @@ namespace Plugin.Application.Forms
                 }
             }
 
-            // Enable/disable repository-related controls.
-            // Note that repository-root is required at all times. If we don't use configuration management, it acts as
-            // the root of the local file store for output files. If configuration management is enabled, it acts as
-            // the root of our local GIT repository.
-            RemoteConfigManagement.Enabled = ConfigurationMgmtIndicator.Checked;
-            if (!RemoteConfigManagement.Enabled)
+            // Load the CM descriptor info...
+            CMRepositoryDscManagerSlt dscMgr = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt();
+            foreach (RepositoryDescriptor dsc in dscMgr.DescriptorList)
             {
-                UserName.Text      = string.Empty;
-                AccessToken.Text   = string.Empty;
-                EMailAddress.Text  = string.Empty;
-                RepositoryBaseURL.Text = string.Empty;
+                ListViewItem newItem = new ListViewItem(dsc.Name);
+                newItem.SubItems.Add(dsc.Description);
+                newItem.SubItems.Add(dsc.IsCMEnabled? "yes": "no");
+                ResponseCodeList.Items.Add(newItem);
             }
 
             // Load Tool-Tips...
             AttributePrefixToolTip.SetToolTip(SupplementaryPrefixCode, "Defines the prefix that is added to a Supplementary Attribute when used as a JSON property.");
-            ConfigMgmtToolTip.SetToolTip(ConfigurationMgmtIndicator, 
-                                         @"When enabled, the local repository path acts as the root of a local GIT repository and the remote " +
-                                           "repository must be configured. When disabled, the remote repository is disabled and the repository path " +
-                                           "is the root of our local file store.");
-            GITIgnoreToolTip.SetToolTip(GITIgnoreEntries, "Comma-separated list of entries for Git-Ignore");
-            RepositoryRootToolTip.SetToolTip(RepositoryBaseURL, "Our GITLab URL.");
+            ConfigMgmtToolTip.SetToolTip(ConfigurationManagementGroup, 
+                                         @"Please configure at least one repository to be used for writing output schema's and/or interfaces");
+
+            // Assign context menus to the appropriate controls...
+            ResponseCodeList.ContextMenuStrip = CMMenuStrip;
+
         }
 
         /// <summary>
@@ -156,8 +138,6 @@ namespace Plugin.Application.Forms
             context.SetBoolSetting(FrameworkSettings._DocGenUseGenerateDoc, DocGenGenerate.Checked);
             context.SetBoolSetting(FrameworkSettings._UseAutomaticLocking, AutoLocking.Checked);
             context.SetBoolSetting(FrameworkSettings._PersistentModelLocks, PersistentLocks.Checked);
-            context.SetBoolSetting(FrameworkSettings._UseConfigurationManagement, ConfigurationMgmtIndicator.Checked);
-            context.SetBoolSetting(FrameworkSettings._GITUseProxy, UseProxy.Checked);
 
             context.SetStringSetting(FrameworkSettings._DiagramSaveType, this._imageType);
             context.SetStringSetting(FrameworkSettings._InterfaceContractType, this._interfaceType);
@@ -168,31 +148,6 @@ namespace Plugin.Application.Forms
             context.SetStringSetting(FrameworkSettings._RESTHostName, RESTHostName.Text);
             context.SetStringSetting(FrameworkSettings._RESTSchemes, RESTSchemes.Text);
             context.SetStringSetting(FrameworkSettings._SupplementaryPrefixCode, SupplementaryPrefixCode.Text);
-            context.SetStringSetting(FrameworkSettings._GLUserName, UserName.Text);
-            context.SetStringSetting(FrameworkSettings._GLAccessToken, AccessToken.Text, true);
-            context.SetStringSetting(FrameworkSettings._GLEMail, EMailAddress.Text);
-            context.SetStringSetting(FrameworkSettings._GITIgnoreEntries, GITIgnoreEntries.Text);
-            context.SetStringSetting(FrameworkSettings._GITProxyServer, ProxyServerName.Text + ":" + ProxyServerPort.Text);
-
-            // Check repository root path, should not end with separator (should not happen since user can not type the path, just to be save...)
-            string thePath = RepoPathName.Text;
-            if (thePath.EndsWith("/") || thePath.EndsWith("\\"))
-                thePath = thePath.Substring(0, thePath.Length - 1);
-            context.SetStringSetting(FrameworkSettings._RepositoryRootPath, thePath);
-
-            // Check Repository namespace, should not start- or end with separator...
-            thePath = RepositoryNamespace.Text;
-            if (thePath.EndsWith("/") || thePath.EndsWith("\\"))
-                thePath = thePath.Substring(0, thePath.Length - 1);
-            if (thePath.StartsWith("/") || thePath.StartsWith("\\"))
-                thePath = thePath.Substring(1, thePath.Length - 1);
-            context.SetStringSetting(FrameworkSettings._GLRepositoryNamespace, thePath);
-
-            // Check Repository base URL, should not end with separator...
-            thePath = RepositoryBaseURL.Text;
-            if (thePath.EndsWith("/") || thePath.EndsWith("\\"))
-                thePath = thePath.Substring(0, thePath.Length - 1);
-            context.SetStringSetting(FrameworkSettings._GLRepositoryBaseURL, thePath);
 
             // Check is we still have to use the logfile. If not, we switch to an empty filename, which effectively disables logging...
             // Note that empty files will not be persisted!
@@ -225,21 +180,6 @@ namespace Plugin.Application.Forms
                 LogfileName.Text = LogfileSelector.FileName;
                 LogfileName.Update();
                 Logger.WriteInfo("Custom.Event.EventImp.SettingsForm.SelectLogfile_Click >> Selected logfile: " + LogfileName.Text);
-            }
-        }
-
-        /// <summary>
-        /// Invoked when the user selected the 'local repository path chooser' button.
-        /// </summary>
-        /// <param name="sender">ignored</param>
-        /// <param name="e">ignored</param>
-        private void SelectLocalRepoPath_Click(object sender, EventArgs e)
-        {
-            if (RepoPathSelector.ShowDialog() == DialogResult.OK)
-            {
-                RepoPathName.Text = RepoPathSelector.SelectedPath;
-                RepoPathName.Update();
-                Logger.WriteInfo("Custom.Event.EventImp.SettingsForm.SelectLocalRepoPath >> Selected path: " + RepoPathName.Text);
             }
         }
 
@@ -315,17 +255,6 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
-        /// This event is raised whenever the user changed the value of the 'Use Configuration Management' checkmark.
-        /// The event method enables or disables the remote repository configuration accordingly.
-        /// </summary>
-        /// <param name="sender">Ignored.</param>
-        /// <param name="e">Ignored.</param>
-        private void ConfigurationMgmtIndicator_CheckedChanged(object sender, EventArgs e)
-        {
-            RemoteConfigManagement.Enabled = ConfigurationMgmtIndicator.Checked;
-        }
-
-        /// <summary>
         /// Issues a warning to the user when one of the CM settings is initialized and/or changed.
         /// </summary>
         /// <param name="sender">Ignored.</param>
@@ -337,6 +266,110 @@ namespace Plugin.Application.Forms
                 MessageBox.Show("(Changes to) Configuration Management Settings will ONLY become active after a restart of Enterprise Architect!", 
                                 "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 this._userNotifiedCMChanges = true;
+            }
+        }
+
+        /// <summary>
+        /// This event is raised when the user clicked the 'add new repository' button (or menu item). It invokes a user dialog to
+        /// create a new repository descriptor and registers this with the repository manager.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void AddRepository_Click(object sender, EventArgs e)
+        {
+            CMRepositoryDscManagerSlt dscMgr = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt();
+            RepositoryDescriptor.DescriptorProperties properties = new RepositoryDescriptor.DescriptorProperties();
+            properties._name                = string.Empty;
+            properties._description         = string.Empty;
+            properties._useCM               = false;
+            properties._GITIgnore           = string.Empty;
+            properties._identity            = null;
+            properties._password            = null;
+            properties._localPath           = string.Empty;
+            properties._remoteURL           = null;
+            properties._remoteNamespace     = null;
+            properties._identity            = null;
+
+            using (var dialog = new CMRepositorySetting(properties))
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    if (dscMgr.AddDescriptor(dialog.Properties))
+                    {
+                        ListViewItem newItem = new ListViewItem(dialog.Properties._name);
+                        newItem.SubItems.Add(dialog.Properties._description);
+                        newItem.SubItems.Add(dialog.Properties._useCM ? "yes" : "no");
+                        ResponseCodeList.Items.Add(newItem);
+                    }
+                    else MessageBox.Show("A repository with this name already exists!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        /// <summary>
+        /// This event is raised when the user clicked the 'delete existing repository' button (or menu item).
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void DeleteRepository_Click(object sender, EventArgs e)
+        {
+            if (ResponseCodeList.SelectedItems.Count > 0)
+            {
+                ListViewItem key = ResponseCodeList.SelectedItems[0];
+                if (MessageBox.Show("You are about to delete repository configuration '" + key.Text + "'! Are you sure?",
+                                    "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                {
+                    CMRepositoryDscManagerSlt dscMgr = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt();
+                    dscMgr.DeleteDescriptor(key.Text);
+                    ResponseCodeList.Items.Remove(key);
+
+                }
+            }
+        }
+
+        /// <summary>
+        /// This event is raised wen the user clicked the 'edit existing repository' button (or menu item).
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void EditRepository_Click(object sender, EventArgs e)
+        {
+            if (ResponseCodeList.SelectedItems.Count > 0)
+            {
+                ListViewItem myItem = ResponseCodeList.SelectedItems[0];
+                string originalKey = myItem.Text;
+                CMRepositoryDscManagerSlt dscMgr = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt();
+                RepositoryDescriptor.DescriptorProperties properties = dscMgr.Find(myItem.Text).Properties;
+
+                using (var dialog = new CMRepositorySetting(properties))
+                {
+                    if (dialog.ShowDialog() == DialogResult.OK)
+                    {
+                        if (dscMgr.EditDescriptor(originalKey, dialog.Properties))
+                        {
+                            myItem.SubItems[0].Text = dialog.Properties._name;
+                            myItem.SubItems[1].Text = dialog.Properties._description;
+                            myItem.SubItems[2].Text = dialog.Properties._useCM ? "yes" : "no";
+                        }
+                        else MessageBox.Show("Renaming repository resulted in duplicate name, please try again!", 
+                                             "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// This event is raised when the user selects the 'delete all repositories' button, which will remove all descriptors.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void DeleteAllRepositories_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("This will delete ALL repository configurations! Are you sure?", 
+                                "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+            {
+                CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().DeleteAllDescriptors();
+                ResponseCodeList.Items.Clear();
             }
         }
     }

@@ -41,26 +41,6 @@
             this.CodeLists = new System.Windows.Forms.GroupBox();
             this.CLAddCodeTypesToDiagram = new System.Windows.Forms.CheckBox();
             this.LogFile = new System.Windows.Forms.GroupBox();
-            this.LocalConfigManagement = new System.Windows.Forms.GroupBox();
-            this.label13 = new System.Windows.Forms.Label();
-            this.GITIgnoreEntries = new System.Windows.Forms.TextBox();
-            this.ConfigurationMgmtIndicator = new System.Windows.Forms.CheckBox();
-            this.SelectRepoPath = new System.Windows.Forms.Button();
-            this.RepoPathName = new System.Windows.Forms.TextBox();
-            this.label7 = new System.Windows.Forms.Label();
-            this.RemoteConfigManagement = new System.Windows.Forms.GroupBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.UseProxy = new System.Windows.Forms.CheckBox();
-            this.RepositoryNamespace = new System.Windows.Forms.TextBox();
-            this.label14 = new System.Windows.Forms.Label();
-            this.RepositoryBaseURL = new System.Windows.Forms.TextBox();
-            this.label12 = new System.Windows.Forms.Label();
-            this.AccessToken = new System.Windows.Forms.TextBox();
-            this.label11 = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
-            this.UserName = new System.Windows.Forms.TextBox();
-            this.label10 = new System.Windows.Forms.Label();
-            this.EMailAddress = new System.Windows.Forms.TextBox();
             this.ServiceModel = new System.Windows.Forms.GroupBox();
             this.SMAddBusinessMsgToDiagram = new System.Windows.Forms.CheckBox();
             this.SMUseSecurityLevels = new System.Windows.Forms.CheckBox();
@@ -110,18 +90,23 @@
             this.SupplementaryPrefixCode = new System.Windows.Forms.TextBox();
             this.SupplementaryPrefixLabel = new System.Windows.Forms.Label();
             this.AttributePrefixToolTip = new System.Windows.Forms.ToolTip(this.components);
-            this.RepoPathSelector = new System.Windows.Forms.FolderBrowserDialog();
             this.ConfigMgmtToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.RepositoryRootToolTip = new System.Windows.Forms.ToolTip(this.components);
-            this.GITIgnoreToolTip = new System.Windows.Forms.ToolTip(this.components);
-            this.ProxyServerName = new System.Windows.Forms.TextBox();
-            this.ProxyServer = new System.Windows.Forms.GroupBox();
-            this.label15 = new System.Windows.Forms.Label();
-            this.ProxyServerPort = new System.Windows.Forms.TextBox();
+            this.ConfigurationManagementGroup = new System.Windows.Forms.GroupBox();
+            this.DeleteAllRepositories = new System.Windows.Forms.Button();
+            this.EditRepository = new System.Windows.Forms.Button();
+            this.ResponseCodeList = new System.Windows.Forms.ListView();
+            this.RepositoryName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.Description = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.IsCMEnabled = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.DeleteRepository = new System.Windows.Forms.Button();
+            this.AddRepository = new System.Windows.Forms.Button();
+            this.CMMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.addToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CodeLists.SuspendLayout();
             this.LogFile.SuspendLayout();
-            this.LocalConfigManagement.SuspendLayout();
-            this.RemoteConfigManagement.SuspendLayout();
             this.ServiceModel.SuspendLayout();
             this.Documentation.SuspendLayout();
             this.DiagramTypes.SuspendLayout();
@@ -131,13 +116,14 @@
             this.RESTParameters.SuspendLayout();
             this.Locking.SuspendLayout();
             this.JSONSpecifics.SuspendLayout();
-            this.ProxyServer.SuspendLayout();
+            this.ConfigurationManagementGroup.SuspendLayout();
+            this.CMMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // UseLogfile
             // 
             this.UseLogfile.AutoSize = true;
-            this.UseLogfile.Location = new System.Drawing.Point(6, 21);
+            this.UseLogfile.Location = new System.Drawing.Point(402, 19);
             this.UseLogfile.Name = "UseLogfile";
             this.UseLogfile.Size = new System.Drawing.Size(79, 17);
             this.UseLogfile.TabIndex = 2;
@@ -153,16 +139,16 @@
             // 
             // LogfileName
             // 
-            this.LogfileName.Location = new System.Drawing.Point(168, 19);
+            this.LogfileName.Location = new System.Drawing.Point(67, 16);
             this.LogfileName.Name = "LogfileName";
             this.LogfileName.ReadOnly = true;
-            this.LogfileName.Size = new System.Drawing.Size(403, 20);
+            this.LogfileName.Size = new System.Drawing.Size(287, 20);
             this.LogfileName.TabIndex = 0;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(110, 22);
+            this.label1.Location = new System.Drawing.Point(9, 19);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(52, 13);
             this.label1.TabIndex = 0;
@@ -170,7 +156,7 @@
             // 
             // SelectFile
             // 
-            this.SelectFile.Location = new System.Drawing.Point(577, 19);
+            this.SelectFile.Location = new System.Drawing.Point(360, 15);
             this.SelectFile.Name = "SelectFile";
             this.SelectFile.Size = new System.Drawing.Size(25, 21);
             this.SelectFile.TabIndex = 1;
@@ -181,7 +167,7 @@
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(1094, 358);
+            this.Ok.Location = new System.Drawing.Point(966, 359);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
             this.Ok.TabIndex = 15;
@@ -192,7 +178,7 @@
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(1175, 358);
+            this.Cancel.Location = new System.Drawing.Point(1047, 359);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
             this.Cancel.TabIndex = 14;
@@ -214,7 +200,7 @@
             // 
             this.CodeLists.Controls.Add(this.CLAddCodeTypesToDiagram);
             this.CodeLists.Controls.Add(this.CLAddSourceEnumsToDiagram);
-            this.CodeLists.Location = new System.Drawing.Point(633, 131);
+            this.CodeLists.Location = new System.Drawing.Point(505, 131);
             this.CodeLists.Name = "CodeLists";
             this.CodeLists.Size = new System.Drawing.Size(218, 72);
             this.CodeLists.TabIndex = 5;
@@ -239,206 +225,10 @@
             this.LogFile.Controls.Add(this.UseLogfile);
             this.LogFile.Location = new System.Drawing.Point(12, 12);
             this.LogFile.Name = "LogFile";
-            this.LogFile.Size = new System.Drawing.Size(615, 51);
+            this.LogFile.Size = new System.Drawing.Size(487, 51);
             this.LogFile.TabIndex = 1;
             this.LogFile.TabStop = false;
             this.LogFile.Text = "Logfile";
-            // 
-            // LocalConfigManagement
-            // 
-            this.LocalConfigManagement.Controls.Add(this.label13);
-            this.LocalConfigManagement.Controls.Add(this.GITIgnoreEntries);
-            this.LocalConfigManagement.Controls.Add(this.ConfigurationMgmtIndicator);
-            this.LocalConfigManagement.Controls.Add(this.SelectRepoPath);
-            this.LocalConfigManagement.Controls.Add(this.RepoPathName);
-            this.LocalConfigManagement.Controls.Add(this.label7);
-            this.LocalConfigManagement.Location = new System.Drawing.Point(12, 74);
-            this.LocalConfigManagement.Name = "LocalConfigManagement";
-            this.LocalConfigManagement.Size = new System.Drawing.Size(615, 81);
-            this.LocalConfigManagement.TabIndex = 3;
-            this.LocalConfigManagement.TabStop = false;
-            this.LocalConfigManagement.Text = "Local Configuration Management (Git)";
-            // 
-            // label13
-            // 
-            this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(67, 50);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(95, 13);
-            this.label13.TabIndex = 0;
-            this.label13.Text = "GIT Ignore entries:";
-            // 
-            // GITIgnoreEntries
-            // 
-            this.GITIgnoreEntries.Location = new System.Drawing.Point(168, 47);
-            this.GITIgnoreEntries.Name = "GITIgnoreEntries";
-            this.GITIgnoreEntries.Size = new System.Drawing.Size(434, 20);
-            this.GITIgnoreEntries.TabIndex = 3;
-            this.GITIgnoreEntries.Leave += new System.EventHandler(this.Repoconfig_Leave);
-            // 
-            // ConfigurationMgmtIndicator
-            // 
-            this.ConfigurationMgmtIndicator.AutoSize = true;
-            this.ConfigurationMgmtIndicator.Location = new System.Drawing.Point(6, 22);
-            this.ConfigurationMgmtIndicator.Name = "ConfigurationMgmtIndicator";
-            this.ConfigurationMgmtIndicator.Size = new System.Drawing.Size(64, 17);
-            this.ConfigurationMgmtIndicator.TabIndex = 1;
-            this.ConfigurationMgmtIndicator.Text = "Use CM";
-            this.ConfigurationMgmtIndicator.UseVisualStyleBackColor = true;
-            this.ConfigurationMgmtIndicator.CheckedChanged += new System.EventHandler(this.ConfigurationMgmtIndicator_CheckedChanged);
-            this.ConfigurationMgmtIndicator.Leave += new System.EventHandler(this.Repoconfig_Leave);
-            // 
-            // SelectRepoPath
-            // 
-            this.SelectRepoPath.Location = new System.Drawing.Point(577, 20);
-            this.SelectRepoPath.Name = "SelectRepoPath";
-            this.SelectRepoPath.Size = new System.Drawing.Size(25, 21);
-            this.SelectRepoPath.TabIndex = 2;
-            this.SelectRepoPath.Text = "...";
-            this.SelectRepoPath.UseVisualStyleBackColor = true;
-            this.SelectRepoPath.Click += new System.EventHandler(this.SelectLocalRepoPath_Click);
-            // 
-            // RepoPathName
-            // 
-            this.RepoPathName.Location = new System.Drawing.Point(168, 20);
-            this.RepoPathName.Name = "RepoPathName";
-            this.RepoPathName.ReadOnly = true;
-            this.RepoPathName.Size = new System.Drawing.Size(403, 20);
-            this.RepoPathName.TabIndex = 0;
-            this.RepoPathName.Leave += new System.EventHandler(this.Repoconfig_Leave);
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(76, 23);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(86, 13);
-            this.label7.TabIndex = 0;
-            this.label7.Text = "Repository Root:";
-            // 
-            // RemoteConfigManagement
-            // 
-            this.RemoteConfigManagement.Controls.Add(this.ProxyServer);
-            this.RemoteConfigManagement.Controls.Add(this.RepositoryNamespace);
-            this.RemoteConfigManagement.Controls.Add(this.label14);
-            this.RemoteConfigManagement.Controls.Add(this.RepositoryBaseURL);
-            this.RemoteConfigManagement.Controls.Add(this.label12);
-            this.RemoteConfigManagement.Controls.Add(this.AccessToken);
-            this.RemoteConfigManagement.Controls.Add(this.label11);
-            this.RemoteConfigManagement.Controls.Add(this.label9);
-            this.RemoteConfigManagement.Controls.Add(this.UserName);
-            this.RemoteConfigManagement.Controls.Add(this.label10);
-            this.RemoteConfigManagement.Controls.Add(this.EMailAddress);
-            this.RemoteConfigManagement.Location = new System.Drawing.Point(12, 161);
-            this.RemoteConfigManagement.Name = "RemoteConfigManagement";
-            this.RemoteConfigManagement.Size = new System.Drawing.Size(615, 166);
-            this.RemoteConfigManagement.TabIndex = 4;
-            this.RemoteConfigManagement.TabStop = false;
-            this.RemoteConfigManagement.Text = "Remote Configuration Management (GitLab)";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(137, 22);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(38, 13);
-            this.label2.TabIndex = 0;
-            this.label2.Text = "Name:";
-            // 
-            // UseProxy
-            // 
-            this.UseProxy.AutoSize = true;
-            this.UseProxy.Location = new System.Drawing.Point(6, 21);
-            this.UseProxy.Name = "UseProxy";
-            this.UseProxy.Size = new System.Drawing.Size(108, 17);
-            this.UseProxy.TabIndex = 3;
-            this.UseProxy.Text = "Use Proxy Server";
-            this.UseProxy.UseVisualStyleBackColor = true;
-            // 
-            // RepositoryNamespace
-            // 
-            this.RepositoryNamespace.Location = new System.Drawing.Point(390, 74);
-            this.RepositoryNamespace.Name = "RepositoryNamespace";
-            this.RepositoryNamespace.Size = new System.Drawing.Size(212, 20);
-            this.RepositoryNamespace.TabIndex = 5;
-            this.RepositoryNamespace.Leave += new System.EventHandler(this.Repoconfig_Leave);
-            // 
-            // label14
-            // 
-            this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(285, 77);
-            this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(99, 13);
-            this.label14.TabIndex = 0;
-            this.label14.Text = "Repo. Namespace:";
-            // 
-            // RepositoryBaseURL
-            // 
-            this.RepositoryBaseURL.Location = new System.Drawing.Point(91, 22);
-            this.RepositoryBaseURL.Name = "RepositoryBaseURL";
-            this.RepositoryBaseURL.Size = new System.Drawing.Size(511, 20);
-            this.RepositoryBaseURL.TabIndex = 1;
-            this.RepositoryBaseURL.Leave += new System.EventHandler(this.Repoconfig_Leave);
-            // 
-            // label12
-            // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(26, 25);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(59, 13);
-            this.label12.TabIndex = 0;
-            this.label12.Text = "Base URL:";
-            // 
-            // AccessToken
-            // 
-            this.AccessToken.Location = new System.Drawing.Point(91, 74);
-            this.AccessToken.Name = "AccessToken";
-            this.AccessToken.Size = new System.Drawing.Size(188, 20);
-            this.AccessToken.TabIndex = 4;
-            this.AccessToken.Leave += new System.EventHandler(this.Repoconfig_Leave);
-            // 
-            // label11
-            // 
-            this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(6, 77);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(79, 13);
-            this.label11.TabIndex = 0;
-            this.label11.Text = "Access Token:";
-            // 
-            // label9
-            // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(22, 51);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(63, 13);
-            this.label9.TabIndex = 0;
-            this.label9.Text = "User Name:";
-            // 
-            // UserName
-            // 
-            this.UserName.Location = new System.Drawing.Point(91, 48);
-            this.UserName.Name = "UserName";
-            this.UserName.Size = new System.Drawing.Size(188, 20);
-            this.UserName.TabIndex = 2;
-            this.UserName.Leave += new System.EventHandler(this.Repoconfig_Leave);
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(305, 51);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(79, 13);
-            this.label10.TabIndex = 0;
-            this.label10.Text = "E-mail Address:";
-            // 
-            // EMailAddress
-            // 
-            this.EMailAddress.Location = new System.Drawing.Point(390, 48);
-            this.EMailAddress.Name = "EMailAddress";
-            this.EMailAddress.Size = new System.Drawing.Size(212, 20);
-            this.EMailAddress.TabIndex = 3;
-            this.EMailAddress.Leave += new System.EventHandler(this.Repoconfig_Leave);
             // 
             // ServiceModel
             // 
@@ -447,7 +237,7 @@
             this.ServiceModel.Controls.Add(this.SMUseMsgHeaders);
             this.ServiceModel.Controls.Add(this.SMCreateCmnSchema);
             this.ServiceModel.Controls.Add(this.SMAddMessageAssemblyToDiagram);
-            this.ServiceModel.Location = new System.Drawing.Point(633, 209);
+            this.ServiceModel.Location = new System.Drawing.Point(505, 209);
             this.ServiceModel.Name = "ServiceModel";
             this.ServiceModel.Size = new System.Drawing.Size(218, 143);
             this.ServiceModel.TabIndex = 8;
@@ -513,7 +303,7 @@
             this.Documentation.Controls.Add(this.DEDictionaryEntryName);
             this.Documentation.Controls.Add(this.DEBusinessTermName);
             this.Documentation.Controls.Add(this.DENotes);
-            this.Documentation.Location = new System.Drawing.Point(857, 209);
+            this.Documentation.Location = new System.Drawing.Point(729, 209);
             this.Documentation.Name = "Documentation";
             this.Documentation.Size = new System.Drawing.Size(182, 143);
             this.Documentation.TabIndex = 9;
@@ -582,7 +372,7 @@
             this.DiagramTypes.Controls.Add(this.DiagramJPG);
             this.DiagramTypes.Controls.Add(this.DiagramGIF);
             this.DiagramTypes.Controls.Add(this.DiagramBMP);
-            this.DiagramTypes.Location = new System.Drawing.Point(1045, 12);
+            this.DiagramTypes.Location = new System.Drawing.Point(917, 12);
             this.DiagramTypes.Name = "DiagramTypes";
             this.DiagramTypes.Size = new System.Drawing.Size(205, 115);
             this.DiagramTypes.TabIndex = 2;
@@ -708,7 +498,7 @@
             // 
             this.SchemaGeneration.Controls.Add(this.IFCSwagger);
             this.SchemaGeneration.Controls.Add(this.IFCWSDL);
-            this.SchemaGeneration.Location = new System.Drawing.Point(857, 133);
+            this.SchemaGeneration.Location = new System.Drawing.Point(729, 133);
             this.SchemaGeneration.Name = "SchemaGeneration";
             this.SchemaGeneration.Size = new System.Drawing.Size(182, 72);
             this.SchemaGeneration.TabIndex = 6;
@@ -745,7 +535,7 @@
             // 
             this.DocumentationGeneration.Controls.Add(this.DocGenGenerate);
             this.DocumentationGeneration.Controls.Add(this.DocGenUseCommon);
-            this.DocumentationGeneration.Location = new System.Drawing.Point(1044, 209);
+            this.DocumentationGeneration.Location = new System.Drawing.Point(916, 209);
             this.DocumentationGeneration.Name = "DocumentationGeneration";
             this.DocumentationGeneration.Size = new System.Drawing.Size(206, 65);
             this.DocumentationGeneration.TabIndex = 10;
@@ -781,7 +571,7 @@
             this.RESTAuthentication.Controls.Add(this.label4);
             this.RESTAuthentication.Controls.Add(this.RAScheme);
             this.RESTAuthentication.Controls.Add(this.label3);
-            this.RESTAuthentication.Location = new System.Drawing.Point(633, 12);
+            this.RESTAuthentication.Location = new System.Drawing.Point(505, 12);
             this.RESTAuthentication.Name = "RESTAuthentication";
             this.RESTAuthentication.Size = new System.Drawing.Size(217, 113);
             this.RESTAuthentication.TabIndex = 12;
@@ -856,7 +646,7 @@
             this.RESTParameters.Controls.Add(this.label8);
             this.RESTParameters.Controls.Add(this.RESTHostName);
             this.RESTParameters.Controls.Add(this.label6);
-            this.RESTParameters.Location = new System.Drawing.Point(857, 14);
+            this.RESTParameters.Location = new System.Drawing.Point(729, 14);
             this.RESTParameters.Name = "RESTParameters";
             this.RESTParameters.Size = new System.Drawing.Size(182, 113);
             this.RESTParameters.TabIndex = 13;
@@ -899,7 +689,7 @@
             // 
             this.Locking.Controls.Add(this.AutoLocking);
             this.Locking.Controls.Add(this.PersistentLocks);
-            this.Locking.Location = new System.Drawing.Point(1045, 133);
+            this.Locking.Location = new System.Drawing.Point(917, 133);
             this.Locking.Name = "Locking";
             this.Locking.Size = new System.Drawing.Size(205, 72);
             this.Locking.TabIndex = 7;
@@ -930,7 +720,7 @@
             // 
             this.JSONSpecifics.Controls.Add(this.SupplementaryPrefixCode);
             this.JSONSpecifics.Controls.Add(this.SupplementaryPrefixLabel);
-            this.JSONSpecifics.Location = new System.Drawing.Point(1045, 280);
+            this.JSONSpecifics.Location = new System.Drawing.Point(917, 280);
             this.JSONSpecifics.Name = "JSONSpecifics";
             this.JSONSpecifics.Size = new System.Drawing.Size(205, 72);
             this.JSONSpecifics.TabIndex = 11;
@@ -953,46 +743,121 @@
             this.SupplementaryPrefixLabel.TabIndex = 0;
             this.SupplementaryPrefixLabel.Text = "Supplementary Prefix:";
             // 
-            // RepoPathSelector
+            // ConfigurationManagementGroup
             // 
-            this.RepoPathSelector.Description = "Select folder that is the root of the local GIT Repository";
+            this.ConfigurationManagementGroup.Controls.Add(this.DeleteAllRepositories);
+            this.ConfigurationManagementGroup.Controls.Add(this.EditRepository);
+            this.ConfigurationManagementGroup.Controls.Add(this.ResponseCodeList);
+            this.ConfigurationManagementGroup.Controls.Add(this.DeleteRepository);
+            this.ConfigurationManagementGroup.Controls.Add(this.AddRepository);
+            this.ConfigurationManagementGroup.Location = new System.Drawing.Point(12, 69);
+            this.ConfigurationManagementGroup.Name = "ConfigurationManagementGroup";
+            this.ConfigurationManagementGroup.Size = new System.Drawing.Size(487, 180);
+            this.ConfigurationManagementGroup.TabIndex = 16;
+            this.ConfigurationManagementGroup.TabStop = false;
+            this.ConfigurationManagementGroup.Text = "Configuration Management";
             // 
-            // ProxyServerName
+            // DeleteAllRepositories
             // 
-            this.ProxyServerName.Location = new System.Drawing.Point(181, 19);
-            this.ProxyServerName.Name = "ProxyServerName";
-            this.ProxyServerName.Size = new System.Drawing.Size(265, 20);
-            this.ProxyServerName.TabIndex = 1;
+            this.DeleteAllRepositories.Image = ((System.Drawing.Image)(resources.GetObject("DeleteAllRepositories.Image")));
+            this.DeleteAllRepositories.Location = new System.Drawing.Point(105, 146);
+            this.DeleteAllRepositories.Name = "DeleteAllRepositories";
+            this.DeleteAllRepositories.Size = new System.Drawing.Size(25, 25);
+            this.DeleteAllRepositories.TabIndex = 4;
+            this.DeleteAllRepositories.UseVisualStyleBackColor = true;
+            this.DeleteAllRepositories.Click += new System.EventHandler(this.DeleteAllRepositories_Click);
             // 
-            // ProxyServer
+            // EditRepository
             // 
-            this.ProxyServer.Controls.Add(this.ProxyServerPort);
-            this.ProxyServer.Controls.Add(this.label15);
-            this.ProxyServer.Controls.Add(this.UseProxy);
-            this.ProxyServer.Controls.Add(this.ProxyServerName);
-            this.ProxyServer.Controls.Add(this.label2);
-            this.ProxyServer.Location = new System.Drawing.Point(9, 100);
-            this.ProxyServer.Name = "ProxyServer";
-            this.ProxyServer.Size = new System.Drawing.Size(593, 56);
-            this.ProxyServer.TabIndex = 6;
-            this.ProxyServer.TabStop = false;
-            this.ProxyServer.Text = "Proxy Server";
+            this.EditRepository.Image = ((System.Drawing.Image)(resources.GetObject("EditRepository.Image")));
+            this.EditRepository.Location = new System.Drawing.Point(74, 146);
+            this.EditRepository.Name = "EditRepository";
+            this.EditRepository.Size = new System.Drawing.Size(25, 25);
+            this.EditRepository.TabIndex = 3;
+            this.EditRepository.UseVisualStyleBackColor = true;
+            this.EditRepository.Click += new System.EventHandler(this.EditRepository_Click);
             // 
-            // label15
+            // ResponseCodeList
             // 
-            this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(452, 22);
-            this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(29, 13);
-            this.label15.TabIndex = 10;
-            this.label15.Text = "Port:";
+            this.ResponseCodeList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.RepositoryName,
+            this.Description,
+            this.IsCMEnabled});
+            this.ResponseCodeList.FullRowSelect = true;
+            this.ResponseCodeList.GridLines = true;
+            this.ResponseCodeList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.ResponseCodeList.Location = new System.Drawing.Point(12, 19);
+            this.ResponseCodeList.MultiSelect = false;
+            this.ResponseCodeList.Name = "ResponseCodeList";
+            this.ResponseCodeList.Size = new System.Drawing.Size(463, 121);
+            this.ResponseCodeList.TabIndex = 0;
+            this.ResponseCodeList.UseCompatibleStateImageBehavior = false;
+            this.ResponseCodeList.View = System.Windows.Forms.View.Details;
             // 
-            // ProxyServerPort
+            // RepositoryName
             // 
-            this.ProxyServerPort.Location = new System.Drawing.Point(487, 19);
-            this.ProxyServerPort.Name = "ProxyServerPort";
-            this.ProxyServerPort.Size = new System.Drawing.Size(100, 20);
-            this.ProxyServerPort.TabIndex = 2;
+            this.RepositoryName.Text = "EA Project Name";
+            this.RepositoryName.Width = 138;
+            // 
+            // Description
+            // 
+            this.Description.Text = "Description";
+            this.Description.Width = 236;
+            // 
+            // IsCMEnabled
+            // 
+            this.IsCMEnabled.Text = "CM Enabled";
+            this.IsCMEnabled.Width = 84;
+            // 
+            // DeleteRepository
+            // 
+            this.DeleteRepository.Image = ((System.Drawing.Image)(resources.GetObject("DeleteRepository.Image")));
+            this.DeleteRepository.Location = new System.Drawing.Point(43, 146);
+            this.DeleteRepository.Name = "DeleteRepository";
+            this.DeleteRepository.Size = new System.Drawing.Size(25, 25);
+            this.DeleteRepository.TabIndex = 2;
+            this.DeleteRepository.UseVisualStyleBackColor = true;
+            this.DeleteRepository.Click += new System.EventHandler(this.DeleteRepository_Click);
+            // 
+            // AddRepository
+            // 
+            this.AddRepository.Image = ((System.Drawing.Image)(resources.GetObject("AddRepository.Image")));
+            this.AddRepository.Location = new System.Drawing.Point(12, 146);
+            this.AddRepository.Name = "AddRepository";
+            this.AddRepository.Size = new System.Drawing.Size(25, 25);
+            this.AddRepository.TabIndex = 1;
+            this.AddRepository.UseVisualStyleBackColor = true;
+            this.AddRepository.Click += new System.EventHandler(this.AddRepository_Click);
+            // 
+            // CMMenuStrip
+            // 
+            this.CMMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.addToolStripMenuItem,
+            this.editToolStripMenuItem,
+            this.deleteToolStripMenuItem});
+            this.CMMenuStrip.Name = "CMMenuStrip";
+            this.CMMenuStrip.Size = new System.Drawing.Size(108, 70);
+            // 
+            // addToolStripMenuItem
+            // 
+            this.addToolStripMenuItem.Name = "addToolStripMenuItem";
+            this.addToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.addToolStripMenuItem.Text = "Add";
+            this.addToolStripMenuItem.Click += new System.EventHandler(this.AddRepository_Click);
+            // 
+            // editToolStripMenuItem
+            // 
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.editToolStripMenuItem.Text = "Delete";
+            this.editToolStripMenuItem.Click += new System.EventHandler(this.DeleteRepository_Click);
+            // 
+            // deleteToolStripMenuItem
+            // 
+            this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.deleteToolStripMenuItem.Text = "Edit";
+            this.deleteToolStripMenuItem.Click += new System.EventHandler(this.EditRepository_Click);
             // 
             // SettingsForm
             // 
@@ -1000,8 +865,8 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(1264, 402);
-            this.Controls.Add(this.RemoteConfigManagement);
+            this.ClientSize = new System.Drawing.Size(1134, 402);
+            this.Controls.Add(this.ConfigurationManagementGroup);
             this.Controls.Add(this.JSONSpecifics);
             this.Controls.Add(this.Locking);
             this.Controls.Add(this.RESTParameters);
@@ -1011,7 +876,6 @@
             this.Controls.Add(this.DiagramTypes);
             this.Controls.Add(this.Documentation);
             this.Controls.Add(this.ServiceModel);
-            this.Controls.Add(this.LocalConfigManagement);
             this.Controls.Add(this.LogFile);
             this.Controls.Add(this.CodeLists);
             this.Controls.Add(this.Cancel);
@@ -1027,10 +891,6 @@
             this.CodeLists.PerformLayout();
             this.LogFile.ResumeLayout(false);
             this.LogFile.PerformLayout();
-            this.LocalConfigManagement.ResumeLayout(false);
-            this.LocalConfigManagement.PerformLayout();
-            this.RemoteConfigManagement.ResumeLayout(false);
-            this.RemoteConfigManagement.PerformLayout();
             this.ServiceModel.ResumeLayout(false);
             this.ServiceModel.PerformLayout();
             this.Documentation.ResumeLayout(false);
@@ -1049,8 +909,8 @@
             this.Locking.PerformLayout();
             this.JSONSpecifics.ResumeLayout(false);
             this.JSONSpecifics.PerformLayout();
-            this.ProxyServer.ResumeLayout(false);
-            this.ProxyServer.PerformLayout();
+            this.ConfigurationManagementGroup.ResumeLayout(false);
+            this.CMMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -1068,7 +928,6 @@
         private System.Windows.Forms.GroupBox CodeLists;
         private System.Windows.Forms.CheckBox CLAddCodeTypesToDiagram;
         private System.Windows.Forms.GroupBox LogFile;
-        private System.Windows.Forms.GroupBox LocalConfigManagement;
         private System.Windows.Forms.GroupBox ServiceModel;
         private System.Windows.Forms.CheckBox SMAddMessageAssemblyToDiagram;
         private System.Windows.Forms.CheckBox SMUseSecurityLevels;
@@ -1118,32 +977,20 @@
         private System.Windows.Forms.Label SupplementaryPrefixLabel;
         private System.Windows.Forms.ToolTip AttributePrefixToolTip;
         private System.Windows.Forms.CheckBox DocGenGenerate;
-        private System.Windows.Forms.Button SelectRepoPath;
-        private System.Windows.Forms.TextBox RepoPathName;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.GroupBox RemoteConfigManagement;
-        private System.Windows.Forms.TextBox AccessToken;
-        private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.TextBox EMailAddress;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.TextBox UserName;
-        private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.TextBox RepositoryBaseURL;
-        private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.FolderBrowserDialog RepoPathSelector;
-        private System.Windows.Forms.CheckBox ConfigurationMgmtIndicator;
         private System.Windows.Forms.ToolTip ConfigMgmtToolTip;
-        private System.Windows.Forms.TextBox GITIgnoreEntries;
-        private System.Windows.Forms.Label label13;
         private System.Windows.Forms.ToolTip RepositoryRootToolTip;
-        private System.Windows.Forms.ToolTip GITIgnoreToolTip;
-        private System.Windows.Forms.TextBox RepositoryNamespace;
-        private System.Windows.Forms.Label label14;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.CheckBox UseProxy;
-        private System.Windows.Forms.GroupBox ProxyServer;
-        private System.Windows.Forms.TextBox ProxyServerPort;
-        private System.Windows.Forms.Label label15;
-        private System.Windows.Forms.TextBox ProxyServerName;
+        private System.Windows.Forms.GroupBox ConfigurationManagementGroup;
+        private System.Windows.Forms.Button EditRepository;
+        private System.Windows.Forms.ListView ResponseCodeList;
+        private System.Windows.Forms.ColumnHeader RepositoryName;
+        private System.Windows.Forms.ColumnHeader Description;
+        private System.Windows.Forms.ColumnHeader IsCMEnabled;
+        private System.Windows.Forms.Button DeleteRepository;
+        private System.Windows.Forms.Button AddRepository;
+        private System.Windows.Forms.ContextMenuStrip CMMenuStrip;
+        private System.Windows.Forms.ToolStripMenuItem addToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
+        private System.Windows.Forms.Button DeleteAllRepositories;
     }
 }

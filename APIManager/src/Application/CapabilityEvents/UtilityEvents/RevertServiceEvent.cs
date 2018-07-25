@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using System.Collections.Generic;
 using Framework.Event;
 using Framework.Logging;
 using Framework.Context;
@@ -8,13 +9,14 @@ using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 using Plugin.Application.CapabilityModel.CodeList;
 using Plugin.Application.Events.API;
+using Plugin.Application.Forms;
 
 namespace Plugin.Application.Events.Util
 {
     /// <summary>
     /// Process an explicit 'service checkout' event.
     /// </summary>
-    class CheckoutServiceEvent : EventImplementation
+    class RevertServiceEvent : EventImplementation
     {
         // Configuration properties used by this module...
         private const string _ServiceDeclPkgStereotype      = "ServiceDeclPkgStereotype";
@@ -42,14 +44,14 @@ namespace Plugin.Application.Events.Util
         /// </summary>
         internal override void HandleEvent()
         {
-            Logger.WriteInfo("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Message processing...");
+            Logger.WriteInfo("Plugin.Application.Events.API.RevertServiceEvent.HandleEvent >> Message processing...");
             ContextSlt context = ContextSlt.GetContextSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
             Service myService;
 
             if (!svcContext.Valid)
             {
-                Logger.WriteError("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
+                Logger.WriteError("Plugin.Application.Events.API.RevertServiceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
                 return;
             }
 
@@ -57,40 +59,38 @@ namespace Plugin.Application.Events.Util
             {
                 if (svcContext.Type == ServiceContext.ServiceType.REST)
                 {
-                    Logger.WriteInfo("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Checking-out a REST Service...");
+                    Logger.WriteInfo("Plugin.Application.Events.API.RevertServiceEvent.HandleEvent >> Reverting a REST Service...");
                     myService = new RESTService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
                 }
                 else if (svcContext.Type == ServiceContext.ServiceType.CodeList)
                 {
-                    Logger.WriteInfo("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Checking-out a CodeList Service...");
+                    Logger.WriteInfo("Plugin.Application.Events.API.RevertServiceEvent.HandleEvent >> Reverting a CodeList Service...");
                     myService = new CodeListService(svcContext.ServiceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype), _NOBUILDHIERARCHY);
                 }
                 else    // Assume it's either SOAP or Message (which is based on SOAP)...
                 {
-                    Logger.WriteInfo("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Checking-out a SOAP/Message Service...");
+                    Logger.WriteInfo("Plugin.Application.Events.API.RevertServiceEvent.HandleEvent >> Reverting a SOAP/Message Service...");
                     myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
                 }
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Caught an exception during service creation: " + Environment.NewLine + exc.Message);
+                Logger.WriteError("Plugin.Application.Events.API.RevertServiceEvent.HandleEvent >> Caught an exception during service creation: " + Environment.NewLine + exc.Message);
                 return;
             }
 
-            if (!myService.Checkout())
+            List<string> releases = myService.CMContext.GetReleaseTags();
+            if (releases.Count > 0)
             {
-                MessageBox.Show("Unable to checkout service '" + myService.Name +
-                                "' from configuration management; probably caused by uncommitted changes on branch(es): '" +
-                                CMContext.FindBranchesInState(CMState.Modified) + "'." + Environment.NewLine +
-                                "Please commit pending changes before starting work on a new service!",
-                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                using (var pickerDialog = new CMRevertPicker(releases))
+                {
+                    if (pickerDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        MessageBox.Show("Selected tag = " + pickerDialog.SelectedTag + ", with version: " + pickerDialog.AssignedVersion.Item1 + "." + pickerDialog.AssignedVersion.Item2 + "." + pickerDialog.AssignedVersion.Item3);
+                    }
+                }
             }
-            else
-            {
-                MessageBox.Show("Successfully checked-out service '" + myService.Name + "'.",
-                                "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                myService.Paint(svcContext.MyDiagram);
-            }
+            else MessageBox.Show("Nothing to revert to!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

@@ -185,6 +185,18 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Export the package (and optional sub-packages) as an XMI file to the specified output path.
+        /// </summary>
+        /// <param name="fileName">Absolute pathname to output path and file.</param>
+        /// <param name="recursive">When true (default) export the entire hierarchy. When false, export only the current package. </param>
+        /// <returns>True when exported successfully, false on errors.</returns>
+        internal bool ExportPackage(string fileName, bool recursive = true)
+        {
+            if (this._imp != null) return ((MEIPackage)this._imp).ExportPackage(fileName, recursive);
+            else throw new MissingImplementationException("MEIPackage");
+        }
+
+        /// <summary>
         /// The method searches the current package for the first child with specified name and optional stereotype.
         /// You can have multiple child packages with the same name. In that case, differentiation by Stereotype makes sense.
         /// If stereotype is not specified, we return the first match found. In case of name + stereotype, we return the first
@@ -264,6 +276,18 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Import the package from the specified XML file into this package, overwriting all contents.
+        /// </summary>
+        /// <param name="fileName">Absolute pathname to input path and file.</param>
+        /// <returns>True when imported successsfully, false when unable to import.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal bool ImportPackage(string fileName)
+        {
+            if (this._imp != null) return ((MEIPackage)this._imp).ImportPackage(fileName);
+            else throw new MissingImplementationException("MEIPackage");
+        }
+
+        /// <summary>
         /// Test whether the package is currently locked. We do this by checking for the presence of a lock for the current user.
         /// When no user is found, we assume that security is not enabled and the package is thus unlocked.
         /// When a user is found, we check for a lock for the current package. This can have three different results:
@@ -314,18 +338,6 @@ namespace Framework.Model
         internal void Refresh()
         {
             if (this._imp != null) ((MEIPackage)this._imp).Refresh();
-            else throw new MissingImplementationException("MEIPackage");
-        }
-
-        /// <summary>
-        /// Saves the package and all child packages to an XMI file with specified name. The name must be an ABSOLUTE file name!
-        /// </summary>
-        /// <param name="fileName">Absolute filename to use for output.</param>
-        /// <returns>True when saved ok, false on errors.</returns>
-        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal bool Save(string fileName)
-        {
-            if (this._imp != null) return((MEIPackage)this._imp).Save(fileName);
             else throw new MissingImplementationException("MEIPackage");
         }
 

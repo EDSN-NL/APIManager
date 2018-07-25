@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using Framework.Event;
 using Framework.Logging;
 using Framework.Context;
+using Framework.ConfigurationManagement;
 using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 using Plugin.Application.CapabilityModel.CodeList;
@@ -30,7 +31,9 @@ namespace Plugin.Application.Events.Util
         /// <returns>True.</returns>
         internal override bool IsValidState()
         {
-            return (ContextSlt.GetContextSlt().GetBoolSetting(FrameworkSettings._UseConfigurationManagement));
+            RepositoryDescriptor repoDsc = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor();
+            if (repoDsc == null) Logger.WriteWarning("Plugin.Application.Events.API.CommitServiceEvent.IsValidState >> Unable to retrieve a matching CM Repository configuration!");
+            return (repoDsc != null && repoDsc.IsCMEnabled) ? true : false;
         }
 
         /// <summary>
@@ -80,23 +83,24 @@ namespace Plugin.Application.Events.Util
                 {
                     if (dialog.ShowDialog() == DialogResult.OK)
                     {
-                        string commitID = context.GetConfigProperty(_CommitIDLeader) +
-                                          myService.BusinessFunctionID + ":" +
-                                          myService.ContainerPkg.Name + ":" +
-                                          myService.Name + ":" +
-                                          myService.Version.Item1 + ":" +
-                                          myService.Version.Item2 + ":" +
-                                          myService.BuildNumber;
-                        Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> CommitID = '" + commitID + "'...");
-                        myService.CMContext.CommitService(commitID + Environment.NewLine + dialog.Annotation);
-                        if (dialog.AutoRelease)
+                        try
                         {
-                            Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Performing auto-release...");
-                            myService.CMContext.ReleaseService(commitID + Environment.NewLine + dialog.Annotation);
-                            myService.ConfigurationMgmtState = CMState.Released;
+                            string commitID = context.GetConfigProperty(_CommitIDLeader) +
+                                              myService.BusinessFunctionID + ":" +
+                                              myService.ContainerPkg.Name + ":" +
+                                              myService.Name + ":" +
+                                              myService.Version.Item1 + ":" +
+                                              myService.Version.Item2 + ":" +
+                                              myService.BuildNumber;
+                            Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> CommitID = '" + commitID + "'...");
+                            myService.CMContext.CommitService(commitID + Environment.NewLine + dialog.Annotation, dialog.AutoRelease);
+                            myService.Paint(context.CurrentDiagram);
                         }
-                        else myService.ConfigurationMgmtState = CMState.Committed;
-                        myService.Paint(context.CurrentDiagram);
+                        catch (CMOutOfSyncException)
+                        {
+                            MessageBox.Show("Unable to release service to remote repository because the build number '" + myService.BuildNumber + 
+                                            "'  has already been used before!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
                     }
                 }
             }

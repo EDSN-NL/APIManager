@@ -8,7 +8,7 @@ using Framework.Context;
 using Framework.Exceptions;
 using Framework.Util;
 using Framework.View;
-using Plugin.Application.ConfigurationManagement;
+using Framework.ConfigurationManagement;
 
 namespace Plugin.Application.CapabilityModel
 {
@@ -72,11 +72,12 @@ namespace Plugin.Application.CapabilityModel
 
         // Versioning and configuration management...
         private Tuple<int,int> _version;                        // The current version of the service.
-        private string _repositoryPath;                         // Absolute path to the root of the local repository.
+        private string _repositoryPath;                         // Absolute path to the root of our local repository.
         private string _serviceBuildPath;                       // Relative path to the location of service artifacts within the local repository.
         private CMContext _CMContext;                           // Configuration management context for this service.
         private CMState _configurationMgmtState;                // Current configuration management state for this service.
         private Diagram.ClassColor _representationColor;        // The color in which the Service Class must be drawn on diagrams.
+        private bool _useCM;                                    // Set to 'true' if Configuration Management is enabled.
 
         // Components that can be used to construct a namespace:
         private string _operationalStatus;                      // Operational status as defined by a tag in the service, can be one
@@ -212,7 +213,7 @@ namespace Plugin.Application.CapabilityModel
         /// <param name="containerPackage">The package that will hold the service declaration.</param>
         /// <param name="qualifiedServiceName">Full name of the service, including major version suffix.</param>
         /// <param name="declarationStereotype">Defines the type of service that we're constructing.</param>
-        /// <exception cref="ConfigurationsErrorException">Error retrieving items from configuration.</exception>
+        /// <exception cref="ConfigurationsErrorException">Error retrieving items from configuration or configuration settings invalid.</exception>
         protected Service(MEPackage containerPackage, string qualifiedServiceName, string declarationStereotype)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.Service >> Creating service with name: '" + qualifiedServiceName + "' in package '" + containerPackage.Name + "'...");
@@ -223,8 +224,6 @@ namespace Plugin.Application.CapabilityModel
                 ModelSlt model = ModelSlt.GetModelSlt();
                 this._serviceCapabilities = new List<Capability>();
                 this._selectedCapabilities = null;
-                this._repositoryPath = string.Empty;
-                this._serviceBuildPath = string.Empty;
                 this._representationColor = Diagram.ClassColor.Default;
 
                 string serviceName = qualifiedServiceName.Substring(0, qualifiedServiceName.IndexOf("_V"));
@@ -277,6 +276,7 @@ namespace Plugin.Application.CapabilityModel
             {
                 Logger.WriteError("Plugin.Application.CapabilityModel.Service >> Service creation failed because:" +
                                   Environment.NewLine + exc.Message);
+                throw;
             }
         }
 
@@ -573,27 +573,25 @@ namespace Plugin.Application.CapabilityModel
         /// Each Service also has a 'ServiceBuildPath', which references a service-specific directory containing Service-specific configuration
         /// items. This path is relative to the repository root.
         /// </summary>
+        /// <exception cref="ConfigurationErrorsException">Is thrown when we could not retrieve a valid repository descriptor or the root path has not been set.</exception>
         internal void InitializePath()
         {
             try
             {
                 // If we don't have a configured root path, throw an exception...
                 ContextSlt context = ContextSlt.GetContextSlt();
-                this._repositoryPath = context.GetStringSetting(FrameworkSettings._RepositoryRootPath);
-                if (string.IsNullOrEmpty(this._repositoryPath)) throw new InvalidOperationException("Configuration Root Path not set, aborting!");
+                if (string.IsNullOrEmpty(this._repositoryPath)) throw new ConfigurationErrorsException("Configuration Root Path not set, aborting!");
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.initializePath >> Repository path set to '" + this._repositoryPath + "'...");
 
                 // We might miss some levels in the structure, so construct as we go. (rootPath MUST exist)...
-                this._serviceBuildPath = this._businessFunctionID;
-                if (!Directory.Exists(this._repositoryPath + "/" + this._serviceBuildPath)) Directory.CreateDirectory(this._repositoryPath + "/" + this._serviceBuildPath);
-                this._serviceBuildPath += "/" + this._containerPackage.Name;
+                this._serviceBuildPath = this._businessFunctionID + "." + this._containerPackage.Name;
                 if (!Directory.Exists(this._repositoryPath + "/" + this._serviceBuildPath)) Directory.CreateDirectory(this._repositoryPath + "/" + this._serviceBuildPath);
 
                 if (IsDefaultOperationalStatus) this._serviceBuildPath += "/" + Name + "_V" + Version.Item1.ToString();
                 else this._serviceBuildPath += "/" + Name + "_" + OperationalStatus + "_V" + Version.Item1.ToString();
                 if (!Directory.Exists(this._repositoryPath + "/" + this._serviceBuildPath)) Directory.CreateDirectory(this._repositoryPath + "/" + this._serviceBuildPath);
 
-                if (!context.GetBoolSetting(FrameworkSettings._UseConfigurationManagement))
+                if (!this._useCM)
                 {
                     string buildDir = "/P" + Version.Item2.ToString() + "B" + BuildNumber;
                     this._serviceBuildPath += buildDir;
@@ -676,9 +674,13 @@ namespace Plugin.Application.CapabilityModel
         internal void UpdateVersion(Tuple<int,int> newVersion)
         {
             Tuple<int, int> currentVersion = this._serviceClass.Version;
+            if (currentVersion == newVersion) return;   
+
             this._serviceClass.Version = newVersion;
             this._version = newVersion;
+            this._serviceClass.BuildNumber = 0;
             bool needCMUpdate = false;
+
             if (currentVersion.Item1 != newVersion.Item1)
             {
                 CreateLogEntry("Major version changed to: '" + MajorVersion + ".0'.");
@@ -737,9 +739,19 @@ namespace Plugin.Application.CapabilityModel
         /// Helper function, called by constructors, which determines the configuration management state of the service and loads properties accordingly.
         /// </summary>
         /// <param name="isNewService">True when we're creating a new service, false (default) for existing services.</param>
+        /// <exception cref="ConfigurationErrorsException">Is thrown when we could not retrieve a proper CM repository descriptor.</exception>
         private void LoadCMState(bool isNewService = false)
         {
             string CMStateTagName = ContextSlt.GetContextSlt().GetConfigProperty(_CMStateTag);
+            RepositoryDescriptor repoDsc = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor();
+            if (repoDsc == null)
+            {
+                string message = "Unable to retrieve proper CM repository descriptor, aborting!";
+                Logger.WriteError("Plugin.Application.CapabilityModel.Service >> " + message);
+                throw new ConfigurationErrorsException(message);
+            }
+            this._useCM = repoDsc.IsCMEnabled;
+            this._repositoryPath = repoDsc.LocalRootPath;
 
             // For existing services, we attempt to retrieve configuration management state from the model...
             if (!isNewService)
@@ -753,6 +765,33 @@ namespace Plugin.Application.CapabilityModel
             if (isNewService) UpdateCMState(CMState.Created);
 
             this._CMContext = new CMContext(this);
+
+            // We now check whether our service version is aligned with the last-released version of the service (if any). In case of a mismatch
+            // in major- or minor version, we issue a warning (since this could be intentional).
+            // When the build number is out of sync, we update the local build number and issue a warning to the user.
+            // We should do this only when CM is in use, otherwise, we have no history to check.
+            if (!isNewService && this._useCM)
+            {
+                Tuple<int, int, int> lastReleased = this._CMContext.GetLastReleasedVersion();
+                if (lastReleased.Item1 > 0)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.LoadCMState >> We have an existing release: '" + 
+                                     lastReleased.Item1 + "." + lastReleased.Item2 + "." + lastReleased.Item3 + "'...");
+                    if (this._version.Item1 != lastReleased.Item1 || this._version.Item2 != lastReleased.Item2)
+                    {
+                        Logger.WriteWarning("Plugin.Application.CapabilityModel.Service.LoadCMState >> Service '" + Name + 
+                                            "' with version '" + this._version.Item1 + "." + this._version.Item2 + 
+                                            "' does not match last released version '" + lastReleased.Item1 + "." + lastReleased.Item2 + "'!");
+                    }
+                    else if (this.BuildNumber <= lastReleased.Item3)
+                    {
+                        Logger.WriteWarning("Plugin.Application.CapabilityModel.Service.LoadCMState >> Service '" + Name +
+                                            "' has a build number '" + this.BuildNumber + "', which does not match last released number '" + 
+                                            lastReleased.Item3 + "'; service updated!");
+                        this.BuildNumber = lastReleased.Item3 + 1;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -804,7 +843,7 @@ namespace Plugin.Application.CapabilityModel
         /// <param name="newState">New Configuration Management state.</param>
         private void UpdateCMState (CMState newState)
         {
-            if (ContextSlt.GetContextSlt().GetBoolSetting(FrameworkSettings._UseConfigurationManagement) == false) newState = CMState.Disabled;
+            if (!this._useCM) newState = CMState.Disabled;
 
             if (newState != this._configurationMgmtState)
             {

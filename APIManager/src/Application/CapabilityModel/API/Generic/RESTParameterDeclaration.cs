@@ -459,7 +459,7 @@ namespace Plugin.Application.CapabilityModel.API
                 using (StringWriter textWriter = new StringWriter())
                 {
                     serializer.Serialize(textWriter, stateObject);
-                    return Compression.Zip(textWriter.ToString());
+                    return Compression.StringZip(textWriter.ToString());
                 }
             }
             catch (Exception exc)
@@ -480,7 +480,7 @@ namespace Plugin.Application.CapabilityModel.API
             {
                 RESTParameterState stateObject;
                 XmlSerializer serializer = new XmlSerializer(typeof(RESTParameterState));
-                using (StringReader textReader = new StringReader(Compression.Unzip(stateString)))
+                using (StringReader textReader = new StringReader(Compression.StringUnzip(stateString)))
                 {
                     stateObject = (RESTParameterState)serializer.Deserialize(textReader);
                 }
