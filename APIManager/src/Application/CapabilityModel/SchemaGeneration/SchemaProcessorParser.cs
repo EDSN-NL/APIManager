@@ -346,10 +346,12 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                         // For those rare occasions where we have to deal with class hierarchies, we also add a base number that reflects the position
                         // of each attribute within the entire hierarchy.
                         int sequenceKey = attribute.SequenceKey + sequenceBase;
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Attribute '" + attribute.Name + "' has sequence: " + sequenceKey);
                         ContentAttribute contentAttrib = null;
                         string nillableTag = attribute.GetTag(context.GetConfigProperty(_NillableTag));
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Read tag '" + context.GetConfigProperty(_NillableTag) + "' and got: '" + nillableTag + "'...");
                         bool isNillable = !string.IsNullOrEmpty(nillableTag) && string.Compare(nillableTag, "true", true) == 0;
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Attribute '" + 
+                                         attribute.Name + "' has sequence: " + sequenceKey + " and nillable-indicator: " + isNillable);
                         if (targetSchema is XMLSchema)
                         {
                             contentAttrib = new XMLContentAttribute((XMLSchema)targetSchema, attributeName, classifierCtx.Name, sequenceKey, choiceGroup, cardinality,

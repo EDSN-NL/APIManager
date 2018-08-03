@@ -123,10 +123,11 @@ namespace Framework.ConfigurationManagement
 
         /// <summary>
         /// Get- or set the user identity (username and e-mail).
+        /// If we don't have a valid identity, we return an illegal one with "Dummy.User" and "Dummy.EMail".
         /// </summary>
         internal Identity UserIdentity
         {
-            get { return this._identity?? new Identity(string.Empty, string.Empty); }
+            get { return this._identity?? new Identity("Dummy.User", "Dummy.EMail"); }
             set { if (value != this._identity) { this._identity = value; this._dirty = true; } }
         }
 
