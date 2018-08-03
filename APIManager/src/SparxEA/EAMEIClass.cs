@@ -5,7 +5,6 @@ using EA;
 using Framework.Context;
 using Framework.Logging;
 using Framework.Model;
-using Framework.View;
 
 namespace SparxEA.Model
 {
@@ -124,6 +123,7 @@ namespace SparxEA.Model
                     stereoTypes += (stereoTypes.Length > 0) ? "," + stereotype : stereotype;
                     this._element.StereotypeEx = stereoTypes;
                     this._element.Update();
+                    ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
                 }
             }
         }
@@ -249,6 +249,7 @@ namespace SparxEA.Model
 
             sourceEnd.Update();
             destinationEnd.Update();
+            ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
             return new MEAssociation(connector.ConnectorID);
         }
 
@@ -345,11 +346,12 @@ namespace SparxEA.Model
             newAttribute.Visibility = "Public";
             if (isConstant && string.IsNullOrEmpty(defaultValue))
             {
-                Logger.WriteWarning("SparxEA.Model.EAMEIClass.createAttribute >> Attribute: '" + attribName + "' in class: '" + this._element.Name +
+                Logger.WriteWarning("Attribute: '" + attribName + "' in class: '" + this._element.Name +
                                     "' marked constant without specified default value, skipped!");
             }
             else newAttribute.IsConst = isConstant;
             newAttribute.Update();
+            ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
             return new MEAttribute(newAttribute.AttributeID);
         }
 
@@ -367,11 +369,12 @@ namespace SparxEA.Model
                     this._element.Connectors.DeleteAt(i, true); // Refresh options currently does not work.
                     this._element.Connectors.Refresh();
                     association.InValidate();                   // Make sure to mark associated implementation as invalid!
+                    ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
                     return;
                 }
             }
-            Logger.WriteWarning("SparxEA.Model.EAMEIClass.deleteAssociation >> Attempt to delete '" + association.ElementID +
-                                "' from class: '" + this._element.Name + "' failed; association not found!");
+            Logger.WriteWarning("Attempt to delete '" + association.ElementID + "' from class: '" + this._element.Name + 
+                                "' failed; association not found!");
         }
 
         /// <summary>
@@ -389,11 +392,11 @@ namespace SparxEA.Model
                     this._element.Attributes.DeleteAt(i, true); // Refresh options currently does not work.
                     this._element.Attributes.Refresh();
                     attribute.InValidate();                     // Make sure to mark associated implementation as invalid!
+                    ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
                     return;
                 }
             }
-            Logger.WriteWarning("SparxEA.Model.EAMEIClass.DeleteAttribute >> Attempt to delete '" + attribute.Name +
-                 "' from class: '" + this._element.Name + "' failed; attribute not found!");
+            Logger.WriteWarning("Attempt to delete '" + attribute.Name + "' from class: '" + this._element.Name + "' failed; attribute not found!");
         }
 
         /// <summary>
@@ -791,6 +794,7 @@ namespace SparxEA.Model
                     attrib.Update();
                 }
                 this._element.Refresh();
+                ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
             }
             return !repairNeeded;
         }
@@ -803,6 +807,7 @@ namespace SparxEA.Model
         {
             this._element.Notes = text;
             this._element.Update();
+            ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
         }
 
         /// <summary>
@@ -814,6 +819,7 @@ namespace SparxEA.Model
             this._element.Alias = newAliasName;
             this._aliasName = newAliasName;
             this._element.Update();
+            ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
         }
 
         /// <summary>
@@ -840,6 +846,7 @@ namespace SparxEA.Model
             this._element.Name = newName;
             this._name = newName;
             this._element.Update();
+            ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
         }
 
         /// <summary>
@@ -850,6 +857,7 @@ namespace SparxEA.Model
         {
             this._element.Phase = buildNumber.ToString();
             this._element.Update();
+            ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
         }
 
         /// <summary>
@@ -861,6 +869,7 @@ namespace SparxEA.Model
         {
             this._element.Version = version.Item1 + "." + version.Item2;
             this._element.Update();
+            ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
         }
 
         /// <summary>
@@ -882,6 +891,7 @@ namespace SparxEA.Model
                         t.Value = tagValue;
                         t.Update();
                         this._element.TaggedValues.Refresh();
+                        ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
                         return;
                     }
                 }
@@ -893,9 +903,14 @@ namespace SparxEA.Model
                     newTag.Value = tagValue;
                     newTag.Update();
                     this._element.TaggedValues.Refresh();
+                    ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
                 }
             }
-            catch { /* & ignore all errors */ }
+            catch (Exception exc)
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIClass.SetTag >> Unable to update tag '" + tagName + "' in class '" + this.Name + 
+                                  "' because: " + Environment.NewLine + exc.Message);
+            }
         }
 
         /// <summary>

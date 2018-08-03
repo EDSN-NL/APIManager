@@ -196,7 +196,7 @@ namespace Plugin.Application.CapabilityModel.API
                 }
                 else
                 {
-                    Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AddOperation >> Failed to create operation!");
+                    Logger.WriteWarning("Failed to create operation!");
                     result = false;
                 }
 
@@ -270,7 +270,7 @@ namespace Plugin.Application.CapabilityModel.API
                         }
                         else
                         {
-                            Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AddResources >> Failed to create resource '" + resource.Name + "'!");
+                            Logger.WriteWarning("Failed to create resource '" + resource.Name + "'!");
                             result = false;
                         }
                     }
@@ -302,8 +302,7 @@ namespace Plugin.Application.CapabilityModel.API
 
             if (this._archetype == RESTResourceCapability.ResourceArchetype.Document)
             {
-                Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.Delete >> Deleted Document Resource '" +
-                                    this.Name + "', please verify integrity!");
+                Logger.WriteWarning("Deleted Document Resource '" + this.Name + "', please verify integrity!");
             }
 
             this._myParent.RemoveChild(new RESTResourceCapability(this));     // Unlink this resource from my parent.
@@ -943,8 +942,7 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         this._parameter = new RESTParameterDeclaration(attrib);
                         if (this._capabilityClass.Attributes.Count > 1)
-                            Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Resource '" +
-                                                this.Name + "' has too many attributes, only '" + this._parameter.Name + "' is used!");
+                            Logger.WriteWarning("Resource '" + this.Name + "' has too many attributes, only '" + this._parameter.Name + "' is used!");
                         break;
                     }
                 }
@@ -1011,8 +1009,7 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                     else
                     {
-                        Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Unknown child type '" + 
-                                            node.GetType() + "' with name '" + node.Data.Name + "'!");
+                        Logger.WriteWarning("Unknown child type '" + node.GetType() + "' with name '" + node.Data.Name + "'!");
                         //this._capabilityClass = null;
                         //return;
                     }

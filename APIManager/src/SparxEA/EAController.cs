@@ -349,7 +349,7 @@ namespace APIManager.SparxEA
                     }
                     else
                     {
-                        Logger.WriteWarning("APIManager.SparxEA.EAController.EA_OnContextItemChanged >> reported type 'otDiagram' does in fact returns a '" + o.GetType() + "'!");
+                        Logger.WriteWarning("Reported type 'otDiagram' does in fact returns a '" + o.GetType() + "'!");
                     }
                     break;
 

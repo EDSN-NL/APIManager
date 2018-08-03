@@ -125,7 +125,7 @@ namespace Plugin.Application.Events.CodeList
                                 else
                                 {
                                     // Oops, creation of capability structure failed, ignore and continue with next.
-                                    Logger.WriteWarning("Plugin.Application.Events.CodeList.AddCodeListsEvent.handleEvent >> Adding CodeList '" + ctx.name + "' failed!");
+                                    Logger.WriteWarning("Adding CodeList '" + ctx.name + "' failed!");
                                 }
                             }
                         }

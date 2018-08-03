@@ -182,7 +182,7 @@ namespace Plugin.Application.CapabilityModel.API
             // At the moment, we only support REST-type interface contracts. All other prefixed will be simply ignored.
             if (contractStandard != "rest")
             {
-                Logger.WriteWarning("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.GetInterfaceContractTag >> Unsupported contract type: '" + contractStandard + "' specified, ignored!");
+                Logger.WriteWarning("Unsupported contract type: '" + contractStandard + "' specified, ignored!");
                 this._panel.WriteWarning(this._panelIndex, "Unsupported contract type: '" + contractStandard + "' specified, ignored!");
             }
 

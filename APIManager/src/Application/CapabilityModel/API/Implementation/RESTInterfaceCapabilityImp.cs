@@ -159,7 +159,7 @@ namespace Plugin.Application.CapabilityModel.API
                     else
                     {
                         // Oops, something went terribly wrong during construction of the collection. Invalidate and exit!
-                        Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTInterfaceCapabilityImp (create) >> Failed to create resource '" + resource.Name + "'!");
+                        Logger.WriteWarning("Failed to create resource '" + resource.Name + "'!");
                         this._capabilityClass = null;       // Invalidates the capability!
                     }
                 }
@@ -255,7 +255,7 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                     else
                     {
-                        Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTInterfaceCapabilityImp.AddResources >> Failed to create resource '" + resource.Name + "'!");
+                        Logger.WriteWarning("Failed to create resource '" + resource.Name + "'!");
                         result = false;
                     }
                 }
@@ -423,7 +423,7 @@ namespace Plugin.Application.CapabilityModel.API
             // No operation: An Interface Capability is the 'top' of the Capability tree and will have no meaningful parent Capabilities.
             // It will thus no be used in practice.
             string parentMsg = (parent != null) ? parent.Name : "-Null Parent-";
-            Logger.WriteWarning("Plugin.Application.CapabilityModel.APIManager.RESTInterfaceCapabilityImp.initialiseParent >> Interface should not have parent Capability '" + parentMsg + "'!");
+            Logger.WriteWarning("Interface should not have parent Capability '" + parentMsg + "'!");
         }
 
         /// <summary>

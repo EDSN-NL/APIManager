@@ -1216,7 +1216,7 @@ namespace SparxEA.ModelTransform
                 ClassifierManagerSlt.ClassifierIdentity id = ClassifierManagerSlt.GetClassifierManagerSlt().FindClassifierByName(typeName);
                 if (id != null) return new KeyValuePair<string, string>(typeName, id.GUID);
             }
-            Logger.WriteWarning("transformEDSNLogicalDataType >> Nothing to transform!");
+            Logger.WriteWarning("Nothing to transform!");
             return result;
         }
 

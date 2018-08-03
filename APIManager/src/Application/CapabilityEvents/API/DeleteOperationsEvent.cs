@@ -59,7 +59,7 @@ namespace Plugin.Application.Events.API
             }
             else if (svcContext.Type != ServiceContext.ServiceType.SOAP)
             {
-                Logger.WriteWarning("Plugin.Application.Events.API.DeleteOperationsEvent.HandleEvent >> Operation only suitable for SOAP Services!");
+                Logger.WriteWarning("Operation only suitable for SOAP Services!");
                 return;
             }
 

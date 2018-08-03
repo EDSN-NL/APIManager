@@ -70,7 +70,7 @@ namespace Plugin.Application.Events.API
             }
             else if (svcContext.Type != ServiceContext.ServiceType.REST)
             {
-                Logger.WriteWarning("Plugin.Application.Events.API.AddRESTOperationEvent.HandleEvent >> Operation only suitable for REST Services!");
+                Logger.WriteWarning("Operation only suitable for REST Services!");
                 return;
             }
 

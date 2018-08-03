@@ -124,6 +124,7 @@ namespace SparxEA.Model
                         }
                         break;
                 }
+                ((EAModelImplementation)this._model).Repository.AdviseConnectorChange(this._connector.ConnectorID);
             }
         }
 
@@ -163,6 +164,7 @@ namespace SparxEA.Model
                         }
                         break;
                 }
+                ((EAModelImplementation)this._model).Repository.AdviseConnectorChange(this._connector.ConnectorID);
             }
         }
 
@@ -432,6 +434,7 @@ namespace SparxEA.Model
             }
             // Force refresh of connector data...
             this._connector = ((EAModelImplementation)this._model).Repository.GetConnectorByID(this._connector.ConnectorID);
+            ((EAModelImplementation)this._model).Repository.AdviseConnectorChange(this._connector.ConnectorID);
         }
 
         /// <summary>
@@ -455,6 +458,7 @@ namespace SparxEA.Model
             }
             // Force refresh of connector data...
             this._connector = ((EAModelImplementation)this._model).Repository.GetConnectorByID(this._connector.ConnectorID);
+            ((EAModelImplementation)this._model).Repository.AdviseConnectorChange(this._connector.ConnectorID);
         }
 
         /// <summary>
@@ -491,6 +495,7 @@ namespace SparxEA.Model
             }
             this._connector.Direction = "Source -> Destination";
             this._connector.Update();
+            ((EAModelImplementation)this._model).Repository.AdviseConnectorChange(this._connector.ConnectorID);
         }
 
         /// <summary>
@@ -514,6 +519,7 @@ namespace SparxEA.Model
             }
             // Force refresh of connector data...
             this._connector = ((EAModelImplementation)this._model).Repository.GetConnectorByID(this._connector.ConnectorID);
+            ((EAModelImplementation)this._model).Repository.AdviseConnectorChange(this._connector.ConnectorID);
         }
 
         /// <summary>
@@ -574,8 +580,12 @@ namespace SparxEA.Model
                 }
                 // Force refresh of connector data...
                 this._connector = ((EAModelImplementation)this._model).Repository.GetConnectorByID(this._connector.ConnectorID);
+                ((EAModelImplementation)this._model).Repository.AdviseConnectorChange(this._connector.ConnectorID);
             }
-            catch { /* & ignore all errors */ }
+            catch (Exception exc)
+            {
+                Logger.WriteError("SparxEA.Model.EAIAssociation.SetTag >> Caught an exception because: " + Environment.NewLine + exc.Message);
+            }
         }
 
         /// <summary>
@@ -620,6 +630,7 @@ namespace SparxEA.Model
                     firstOne = false;
                 }
             }
+            ((EAModelImplementation)this._model).Repository.AdviseConnectorChange(this._connector.ConnectorID);
             return resultList;
         }
 

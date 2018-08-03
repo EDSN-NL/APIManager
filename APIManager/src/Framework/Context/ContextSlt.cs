@@ -198,7 +198,7 @@ namespace Framework.Context
         {
             this._contextImp = imp;
             if (this._contextImp != null) this._contextImp.Initialize();
-            else Logger.WriteWarning("Framework.Context.ContextSlt.initialize >> Initialized with empty implementation!");
+            else Logger.WriteWarning("Initialized with empty implementation!");
         }
 
         /// <summary>

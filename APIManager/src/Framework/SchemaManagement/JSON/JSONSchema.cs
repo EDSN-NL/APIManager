@@ -83,7 +83,7 @@ namespace Framework.Util.SchemaManagement.JSON
             }
             else
             {
-                Logger.WriteWarning("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Warning: duplicate class '" + className + "' in schema '" + this._id + "' skipped.");
+                Logger.WriteWarning("Warning: duplicate class '" + className + "' in schema '" + this._id + "' skipped.");
                 SetLastError(string.Empty);
                 return true;
             }
@@ -182,13 +182,13 @@ namespace Framework.Util.SchemaManagement.JSON
                 else
                 {
                     string lastError = "Choice Group '" + choiceList.Values[0].Name + "' in class '" + className + "' only has a single element!";
-                    Logger.WriteWarning("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >>  " + lastError);
+                    Logger.WriteWarning(lastError);
                 }
 
                 if (choiceList.Count > 1)
                 {
                     string lastError = "Class '" + className + "' defines multiple Choice Groups, JSON only supports ONE. All but first group are ignored!";
-                    Logger.WriteWarning("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >>  " + lastError);
+                    Logger.WriteWarning(lastError);
                 }
             }
 
@@ -338,7 +338,7 @@ namespace Framework.Util.SchemaManagement.JSON
         /// <exception cref="MissingImplementationException">When no implementation object is present for the schema.</exception>
         internal override void AddNamespace(string nsToken, string nsName, string nsLocation)
         {
-            Logger.WriteWarning("Framework.Util.SchemaManagement.JSON.JSONSchema.AddNamespace >> Method not supported for JSON schema.");
+            Logger.WriteWarning("Method 'AddNamespace' not supported for JSON schema.");
         }
 
         /// <summary>
@@ -427,7 +427,7 @@ namespace Framework.Util.SchemaManagement.JSON
                         this._schema = messageSchema;
 
                         if (this._rootClasses.Count > 1)
-                            Logger.WriteWarning("Framework.Util.SchemaManagement.JSON.JSONSchema.Build >> Multiple message root classes defined, all other then first are ignored!");
+                            Logger.WriteWarning("Multiple message root classes defined, all other then first are ignored!");
                     }
                     else Logger.WriteError("Framework.Util.SchemaManagement.JSON.JSONSchema.Build >> Message schema has no message root class defined!");
                 }
@@ -655,7 +655,7 @@ namespace Framework.Util.SchemaManagement.JSON
                     if (unique) this._externalSchemas.Add(extSchema);
                 }
             }
-            else Logger.WriteWarning("Framework.Util.SchemaManagement.JSON.JSONSchema.Merge >> Attempt to merge empty or incompatible schema!");
+            else Logger.WriteWarning("Attempt to merge empty or incompatible schema!");
         }
 
         /// <summary>

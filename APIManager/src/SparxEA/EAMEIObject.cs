@@ -282,7 +282,7 @@ namespace SparxEA.Model
             string runState = this._classPart.RunState;
             if (string.IsNullOrEmpty(runState))
             {
-                string message = "SparxEA.Model.EAMEIObject.getRunTimeState >> Unable to retrieve run - state for object '" + this._name + "'!";
+                string message = "Unable to retrieve run - state for object '" + this._name + "'!";
                 Logger.WriteWarning(message);
                 throw new InvalidOperationException(message);
             }

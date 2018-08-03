@@ -58,7 +58,7 @@ namespace Plugin.Application.Events.API
             }
             else if (svcContext.Type != ServiceContext.ServiceType.SOAP)
             {
-                Logger.WriteWarning("Plugin.Application.Events.API.DeleteInterfaceEvent.HandleEvent >> Operation only suitable for SOAP Services!");
+                Logger.WriteWarning("Operation only suitable for SOAP Services!");
                 return;
             }
 
@@ -70,7 +70,7 @@ namespace Plugin.Application.Events.API
                     var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
                     if (!myService.DeleteInterface(new InterfaceCapability(svcContext.InterfaceClass), dialog.MinorVersionIndicator))
                     {
-                        Logger.WriteWarning("Plugin.Application.Events.API.DeleteInterfaceEvent.handleEvent >> Attempt to delete only Interface!");
+                        Logger.WriteWarning("Attempt to delete only Interface!");
                         MessageBox.Show("It is not allowed to delete the only Interface!", "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                     else

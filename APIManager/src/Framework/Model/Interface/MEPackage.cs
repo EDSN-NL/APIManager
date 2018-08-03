@@ -251,6 +251,20 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Searches the current package for the existance of a Model Profiler element of which the name contains the specified fragment (case
+        /// insensitive). The first matching component is returned (or NULL if nothing found).
+        /// When no name is specified, the function returns the first Profiler found in the package.
+        /// </summary>
+        /// <param name="nameFragment">Optional string that must be part of the name (case insensitive).</param>
+        /// <returns>First matching profiler element or NULL if not found.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal MEProfiler FindProfiler(string nameFragment = null)
+        {
+            if (this._imp != null) return ((MEIPackage)this._imp).FindProfiler(nameFragment);
+            else throw new MissingImplementationException("MEIPackage");
+        }
+
+        /// <summary>
         /// Returns a list of all classes in the package that have the specified stereotype. If no stereotype is
         /// specified, the method searches for 'Business Component' classes as well as all data types.
         /// </summary>
@@ -284,6 +298,32 @@ namespace Framework.Model
         internal bool ImportPackage(string fileName)
         {
             if (this._imp != null) return ((MEIPackage)this._imp).ImportPackage(fileName);
+            else throw new MissingImplementationException("MEIPackage");
+        }
+
+        /// <summary>
+        /// Import the package from the specified XML file into a new package underneath the current package. The new parent package
+        /// for the import is specified by 'parentPackageName'. If the container package does not yet exist, it is created first.
+        /// The imported package has all it's GUID's replaced by new instances so that the import does not conflict with possible
+        /// existing packages. Also, if the imported package contains any Profilers, these will be reloaded (as long as we can locate a
+        /// donor package with the same name as the newly imported package. If not, the Profilers are left alone for the user to fix).
+        /// For te Profile reload to work, the original package (which has been exported to XMI), MUST be a direct child package of 
+        /// the current package. Also, we copy Profilers FROM the existing package (if found) TO the newly imported package. So, if
+        /// the package structures have changed, not all Profilers might have been correctly copied over so this method works best
+        /// for a full package copy (export to XMI - import from XMI at other location).
+        /// Unlike the 'other' ImportPackage, which overwrites the current package, this import variant thus imports 'underneath' the
+        /// current package. Therefore, we don't make assumptions on the name of the imported package.
+        /// </summary>
+        /// <param name="fileName">Absolute pathname to input path and file.</param>
+        /// <param name="parentPackageName">Package that will act as the parent for the imported package. Will be created if not already
+        /// present.</param>
+        /// <param name="parentStereotype">The stereotype to be assigned to the parent package.</param>
+        /// <param name="newImportedPackageName">Optionally, one can specify a new name for the imported package.</param>
+        /// <returns>True when imported successsfully, false when unable to import.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal bool ImportPackage(string fileName, string parentPackageName, string parentStereotype, string newImportedPackageName = null)
+        {
+            if (this._imp != null) return ((MEIPackage)this._imp).ImportPackage(fileName, parentPackageName, parentStereotype, newImportedPackageName);
             else throw new MissingImplementationException("MEIPackage");
         }
 

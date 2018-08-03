@@ -521,6 +521,10 @@ namespace SparxEA.Model
                         imp = new EAMEIPackage(this, elementID);
                         break;
 
+                    case ModelElementType.Profiler:
+                        imp = new EAMEIProfiler(this, elementID);
+                        break;
+
                     case ModelElementType.Supplementary:
                         imp = new EAMEISupplementary(this, elementID);
                         break;
@@ -581,6 +585,10 @@ namespace SparxEA.Model
 
                 case ModelElementType.Package:
                     imp = new EAMEIPackage(this, elementGUID);
+                    break;
+
+                case ModelElementType.Profiler:
+                    imp = new EAMEIProfiler(this, elementGUID);
                     break;
 
                 case ModelElementType.Supplementary:

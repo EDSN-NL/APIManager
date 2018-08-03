@@ -143,8 +143,7 @@ namespace Plugin.Application.CapabilityModel.API
                         break;
 
                     default:
-                        Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTSecurity.GetOAuth2DescriptorSchema >> Configured OAuth2 flow '" +
-                                            flowLabel + "' is invalid!");
+                        Logger.WriteWarning(" Configured OAuth2 flow '" + flowLabel + "' is invalid!");
                         return string.Empty;
                 }
                 return string.Empty;

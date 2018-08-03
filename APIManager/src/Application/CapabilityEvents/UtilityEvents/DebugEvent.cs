@@ -55,6 +55,10 @@ namespace Plugin.Application.Events.Util
                 MEPackage currentPackage = context.CurrentPackage;
                 Diagram currentDiagram = context.CurrentDiagram;
 
+                string exportFile = "C:/temp/" + currentPackage.Name + ".xmi";
+                currentPackage.ExportPackage(exportFile);
+                currentPackage.Parent.ImportPackage(exportFile, currentPackage.Parent.Name, "ServiceContainer", currentPackage.Name + "_COPY");
+
                 /****
                 RepositorySlt repo = RepositorySlt.GetRepositorySlt();
                 repo.SetIdentity("Wouter Meijers", "wouter.meijers@enexis.nl");

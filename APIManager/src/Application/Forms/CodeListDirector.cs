@@ -258,7 +258,7 @@ namespace Plugin.Application.Forms
                         }
                         if (!correctID)
                         {
-                            Logger.WriteWarning("Plugin.Application.CapabilityModel.CodeListDirector.getAgencyMetaData >> Wrong type of identifier selected!");
+                            Logger.WriteWarning("Wrong type of identifier selected!");
                             MessageBox.Show("Please select an Identifier of type '" + _AgencyIDTypeCode + "'!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                         agencyDescriptor.Dispose();

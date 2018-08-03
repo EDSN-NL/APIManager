@@ -100,7 +100,7 @@ namespace Framework.Util.SchemaManagement.JSON
 
                 if (!string.IsNullOrEmpty(defaultValue))
                 {
-                    Logger.WriteWarning("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Attribute '" + attributeName + "' of type '" +
+                    Logger.WriteWarning("Attribute '" + attributeName + "' of type '" +
                                         classifierName + "' has BOTH default- and fixed value, default is ignored!");
                 }
             }
@@ -355,7 +355,7 @@ namespace Framework.Util.SchemaManagement.JSON
 
                 if (!string.IsNullOrEmpty(defaultValue))
                 {
-                    Logger.WriteWarning("Framework.Util.SchemaManagement.JSON.JSONSupplementaryAttribute >> Attribute '" + name + "' of type '" +
+                    Logger.WriteWarning("Attribute '" + name + "' of type '" +
                                         classifier + "' has BOTH default- and fixed value, default is ignored!");
                 }
             }

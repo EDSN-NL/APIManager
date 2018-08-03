@@ -79,7 +79,7 @@ namespace Plugin.Application.CapabilityModel.API
                 if (!interfaceCapability.Valid)
                 {
                     // Oops, something went terribly wrong during construction of the interface. Roll-back and exit!
-                    Logger.WriteWarning("Plugin.Application.CapabilityModel.APIProcessor.RESTService >> Interface creation failed, roll-back!");
+                    Logger.WriteWarning("Interface creation failed, rolling-back!");
                     return;
                 }
 

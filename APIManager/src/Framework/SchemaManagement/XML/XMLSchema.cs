@@ -73,7 +73,7 @@ namespace Framework.Util.SchemaManagement.XML
                 }
                 else
                 {
-                    Logger.WriteWarning("Framework.Util.SchemaManagement.XML.XMLSchema.addABIEType " + this.NSToken + ">> Warning: duplicate class '" + newType.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
+                    Logger.WriteWarning("Warning: duplicate class '" + newType.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
                     SetLastError(string.Empty);
                     return true;
                 }
@@ -249,7 +249,7 @@ namespace Framework.Util.SchemaManagement.XML
                 }
                 else
                 {
-                    Logger.WriteWarning("Framework.Util.SchemaManagement.XML.XMLSchema.addComplexClassifier " + this.NSToken + " >> Warning: duplicate type '" + newClassifier.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
+                    Logger.WriteWarning("Warning: duplicate type '" + newClassifier.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
                     SetLastError(string.Empty);
                     return true;
                 }
@@ -408,12 +408,12 @@ namespace Framework.Util.SchemaManagement.XML
                         }
                         else
                         {
-                            Logger.WriteWarning("Framework.Util.SchemaManagement.XML.XMLSchema.addEnumClassifier " + this.NSToken + " >> Warning: duplicate enumeration '" + derivedType.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
+                            Logger.WriteWarning("Warning: duplicate enumeration '" + derivedType.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
                         }
                     }
                     else
                     {
-                        Logger.WriteWarning("Framework.Util.SchemaManagement.XML.XMLSchema.addEnumClassifier " + this.NSToken + " >> Warning: duplicate enumeration base '" + baseTypeName + "' in schema with namespace token '" + this.NSToken + "' skipped.");
+                        Logger.WriteWarning("Warning: duplicate enumeration base '" + baseTypeName + "' in schema with namespace token '" + this.NSToken + "' skipped.");
                     }
                     SetLastError(string.Empty);
                     return true;
@@ -429,7 +429,7 @@ namespace Framework.Util.SchemaManagement.XML
                     }
                     else
                     {
-                        Logger.WriteWarning("Framework.Util.SchemaManagement.XML.XMLSchema.addEnumClassifier " + this.NSToken + " >> Warning: duplicate enumeration '" + newType.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
+                        Logger.WriteWarning("Warning: duplicate enumeration '" + newType.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
                         SetLastError(string.Empty);
                         return true;
                     }
@@ -516,7 +516,7 @@ namespace Framework.Util.SchemaManagement.XML
                 }
                 else
                 {
-                    Logger.WriteWarning("Framework.Util.SchemaManagement.XML.XMLSchema.addExternalClassifier " + this.NSToken + " >> Warning: duplicate type '" + newClassifier.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
+                    Logger.WriteWarning("Warning: duplicate type '" + newClassifier.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
                     SetLastError(string.Empty);
                     return true;
                 }
@@ -720,7 +720,7 @@ namespace Framework.Util.SchemaManagement.XML
                     }
                     else
                     {
-                        Logger.WriteWarning("Framework.Util.SchemaManagement.XML.XMLSchema.addSimpleClassifier " + this.NSToken + " >> Warning: duplicate type '" + newType.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
+                        Logger.WriteWarning("Warning: duplicate type '" + newType.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
                         SetLastError(string.Empty);
                         return true;
                     }

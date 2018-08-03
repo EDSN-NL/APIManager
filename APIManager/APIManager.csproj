@@ -275,6 +275,8 @@
     </Compile>
     <Compile Include="src\Framework\ConfigurationManagement\RemoteRepository.cs" />
     <Compile Include="src\Framework\ConfigurationManagement\CMRepositorySlt.cs" />
+    <Compile Include="src\Framework\Model\Implementation\MEIProfiler.cs" />
+    <Compile Include="src\Framework\Model\Interface\MEProfiler.cs" />
     <Compile Include="src\Framework\Model\Interface\MEClassMetaData.cs" />
     <Compile Include="src\Framework\SchemaManagement\JSON\JSONPropertyInterface.cs" />
     <Compile Include="src\Framework\SchemaManagement\JSON\JSONSchema.cs" />
@@ -482,6 +484,7 @@
     <Compile Include="src\SparxEA\EAAddinFramework.cs" />
     <Compile Include="src\SparxEA\EADiagramImplementation.cs" />
     <Compile Include="src\SparxEA\EAMEIAssociation.cs" />
+    <Compile Include="src\SparxEA\EAMEIProfiler.cs" />
     <Compile Include="src\SparxEA\EAMEIObject.cs" />
     <Compile Include="src\SparxEA\EAMEISupplementary.cs" />
     <Compile Include="src\SparxEA\EAMEIFacet.cs" />

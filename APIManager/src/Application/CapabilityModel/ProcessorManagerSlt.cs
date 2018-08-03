@@ -138,12 +138,12 @@ namespace Plugin.Application.CapabilityModel
                             }
                             else
                             {
-                                Logger.WriteWarning("Plugin.Application.CapabilityModel.ProcessorManagerSlt.initialize >> Invalid Capability Processor definition: '" + processorClassFQN + "'!");
+                                Logger.WriteWarning("Invalid Capability Processor definition: '" + processorClassFQN + "'!");
                             }
                         }
                         catch (Exception)
                         {
-                            Logger.WriteWarning("Plugin.Application.CapabilityModel.ProcessorManagerSlt.initialize >> Invalid Capability Processor definition: '" + processorClassFQN + "'!");
+                            Logger.WriteWarning("Invalid Capability Processor definition: '" + processorClassFQN + "'!");
                         }
                     }
                     this._initialized = true;

@@ -47,7 +47,7 @@ namespace Plugin.Application.Events.API
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
             if (svcContext.Type != ServiceContext.ServiceType.SOAP)
             {
-                Logger.WriteWarning("Plugin.Application.Events.API.AddInterfaceEvent.HandleEvent >> Operation only suitable for SOAP Services!");
+                Logger.WriteWarning("Operation only suitable for SOAP Services!");
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace Plugin.Application.Events.API
             }
             else if (svcContext.Type != ServiceContext.ServiceType.SOAP)
             {
-                Logger.WriteWarning("Plugin.Application.Events.API.AddInterfaceEvent.HandleEvent >> Operation only suitable for SOAP Services!");
+                Logger.WriteWarning("Operation only suitable for SOAP Services!");
                 return;
             }
 

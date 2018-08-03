@@ -136,9 +136,8 @@ namespace Plugin.Application.CapabilityModel
                     Tuple<int, int> svcVersion = this._trackedService.Version;
                     if (svcVersion.Item1 == lastReleased.Item1 && svcVersion.Item2 == lastReleased.Item2 && this._trackedService.BuildNumber <= lastReleased.Item3)
                     {
-                        Logger.WriteWarning("Plugin.Application.ConfigurationManagement.CMContext.CheckoutService >> Service '" + this._trackedService.Name +
-                                            "' has a build number '" + this._trackedService.BuildNumber + "', which does not match last released number '" +
-                                            lastReleased.Item3 + "'; service updated!");
+                        Logger.WriteWarning("Service '" + this._trackedService.Name + "' has a build number '" + this._trackedService.BuildNumber + 
+                                            "', which does not match last released number '" + lastReleased.Item3 + "'; service updated!");
                         this._trackedService.BuildNumber = lastReleased.Item3 + 1;
                         buildAdjusted = true;
                     }
@@ -159,7 +158,7 @@ namespace Plugin.Application.CapabilityModel
                 }
                 else if (buildAdjusted)
                 {
-                    Logger.WriteWarning("Plugin.Application.ConfigurationManagement.CMContext.CheckoutService >> Cached branch lags behind last release, please verify consistency!");
+                    Logger.WriteWarning("Cached branch lags behind last release, please verify consistency!");
                 }
 
                 this._repository.SetRootBranch(this._branchName);

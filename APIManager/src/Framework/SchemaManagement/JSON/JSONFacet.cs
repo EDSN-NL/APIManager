@@ -40,7 +40,7 @@ namespace Framework.Util.SchemaManagement.JSON
                             if (this.FacetToken == "LEN" || this.FacetToken == "MAXL") thisSchema.MaximumLength = val;
                             if (this.FacetToken == "LEN" || this.FacetToken == "MINL") thisSchema.MinimumLength = val;
                         }
-                        else Logger.WriteWarning("Framework.Util.SchemaManagement.JSON.AddFacet >> Facet '[" + this.FacetToken + "]" + this.FacetValue +
+                        else Logger.WriteWarning("Facet '[" + this.FacetToken + "]" + this.FacetValue +
                                                  "' in Schema '" + thisSchema.Title + "' can not be properly parsed; ignored!");
                     }
                     break;
@@ -64,7 +64,7 @@ namespace Framework.Util.SchemaManagement.JSON
                                 thisSchema.ExclusiveMinimum = (this.FacetToken.EndsWith("E")) ? true : false;
                             }
                         }
-                        else Logger.WriteWarning("Framework.Util.SchemaManagement.JSON.AddFacet >> Facet '[" + this.FacetToken + "]" + this.FacetValue +
+                        else Logger.WriteWarning("Facet '[" + this.FacetToken + "]" + this.FacetValue +
                                                  "' in Schema '" + thisSchema.Title + "' can not be properly parsed; ignored!");
                     }
                     break;

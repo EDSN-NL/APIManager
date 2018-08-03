@@ -119,7 +119,7 @@ namespace Framework.Util.SchemaManagement
                 this._fixedValue = string.Empty;
                 if (fixedValue != string.Empty)
                 {
-                    Logger.WriteWarning("Framework.Util.SchemaManagement.SchemaAttribute >> Attribute can not have both default- and fixed values, fixed value '" + fixedValue + "' has been ignored!");
+                    Logger.WriteWarning("Attribute can not have both default- and fixed values, fixed value '" + fixedValue + "' has been ignored!");
                 }
             }
             else if (fixedValue != string.Empty)

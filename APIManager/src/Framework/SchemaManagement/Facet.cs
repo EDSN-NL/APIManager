@@ -53,7 +53,7 @@ namespace Framework.Util.SchemaManagement
 
             if (this._facetToken == string.Empty)
             {
-                Logger.WriteWarning("Framework.Util.SchemaManagement.Facet >> Illegal facet name '" + facetName + "' received, instance is empty!");
+                Logger.WriteWarning("Illegal facet name '" + facetName + "' received, instance is empty!");
                 return;
             }
         }

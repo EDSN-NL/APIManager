@@ -252,7 +252,7 @@ namespace Plugin.Application.Events.API
                 else if (this._type != ServiceType.Unknown)
                 {
                     this._serviceClass.SetTag(svcArchetypeTag, EnumConversions<ServiceType>.EnumToString(this._type));
-                    Logger.WriteWarning("Plugin.Application.Events.API.ServiceContext >> Found Service class without archetype; setting archetype to '" + 
+                    Logger.WriteWarning("Found Service class without archetype; setting archetype to '" + 
                                         this._type + "', please verify correctness!");
                 }
             }

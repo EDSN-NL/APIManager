@@ -388,7 +388,7 @@ namespace Plugin.Application.CapabilityModel.API
                             this._JSONWriter.WritePropertyName("collectionFormat");
                             this._JSONWriter.WriteValue(collectionFormat.ToString().ToLower());
                         }
-                        else Logger.WriteWarning("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestHeaderParameters >> Collection specification is missing in attribute '" + attrib.Name + "'!");
+                        else Logger.WriteWarning("Collection specification is missing in attribute '" + attrib.Name + "'!");
                     }
                 }
                 this._JSONWriter.WriteEndObject();
@@ -441,7 +441,7 @@ namespace Plugin.Application.CapabilityModel.API
                                     this._JSONWriter.WritePropertyName("collectionFormat");
                                     this._JSONWriter.WriteValue(collectionFormat.ToString().ToLower());
                                 }
-                                else Logger.WriteWarning("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Collection specification is missing in attribute '" + attrib.Name + "'!");
+                                else Logger.WriteWarning("Collection specification is missing in attribute '" + attrib.Name + "'!");
                             }
                         } this._JSONWriter.WriteEndObject();
                     }
@@ -518,7 +518,7 @@ namespace Plugin.Application.CapabilityModel.API
                                 this._JSONWriter.WritePropertyName("collectionFormat");
                                 this._JSONWriter.WriteValue(collectionFormat.ToString().ToLower());
                             }
-                            else Logger.WriteWarning("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteQueryParameters >> Collection specification is missing in attribute '" + attrib.Name + "'!");
+                            else Logger.WriteWarning("Collection specification is missing in attribute '" + attrib.Name + "'!");
                         }
                     }
                     this._JSONWriter.WriteEndObject();
@@ -722,7 +722,7 @@ namespace Plugin.Application.CapabilityModel.API
                                 this._JSONWriter.WritePropertyName("collectionFormat");
                                 this._JSONWriter.WriteValue(resourceParam.CollectionFormat.ToString().ToLower());
                             }
-                            else Logger.WriteWarning("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteIdentifierParameter >> Collection specification is missing in resource '" + this._currentResource.Name + "'!");
+                            else Logger.WriteWarning("Collection specification is missing in resource '" + this._currentResource.Name + "'!");
                         }
                     }
                     this._JSONWriter.WriteEndObject();
@@ -773,7 +773,7 @@ namespace Plugin.Application.CapabilityModel.API
                             this._JSONWriter.WritePropertyName("collectionFormat");
                             this._JSONWriter.WriteValue(collectionFormat.ToString().ToLower());
                         }
-                        else Logger.WriteWarning("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WritePagination >> Collection specification is missing in attribute '" + attrib.Name + "'!");
+                        else Logger.WriteWarning("Collection specification is missing in attribute '" + attrib.Name + "'!");
                     }
                 }
                 this._JSONWriter.WriteEndObject();

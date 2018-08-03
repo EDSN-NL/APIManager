@@ -101,14 +101,14 @@ namespace Framework.ConfigurationManagement
                     Push();
                     this._dirty = false;
                 }
-                else Logger.WriteWarning("Framework.ConfigurationManagement.CMRepositorySlt.CommitStagingArea >> No changes to commit!");
+                else Logger.WriteWarning("No changes to commit!");
             }
             catch (Exception exc)
             {
-                if (exc.Message.Contains("No changes")) Logger.WriteWarning("Framework.ConfigurationManagement.CMRepositorySlt.CommitStagingArea >> Nothing to commit!");
+                if (exc.Message.Contains("No changes")) Logger.WriteWarning("Nothing to commit!");
                 else if (exc.Message.Contains("unknown certificate check failure"))
                 {
-                    Logger.WriteWarning("Framework.ConfigurationManagement.CMRepositorySlt.CommitStagingArea >> Spurious 'certificate failure' detected, retrying...");
+                    Logger.WriteWarning("Spurious 'certificate failure' detected, retrying...");
                     CommitStagingArea(message);
                 }
                 else throw;
@@ -373,7 +373,7 @@ namespace Framework.ConfigurationManagement
             {
                 if (!Directory.Exists(this._workingDirectory + "/" + _GITDirectory))
                 {
-                    Logger.WriteWarning("Framework.ConfigurationManagement.CMRepositorySlt.OpenRepository >> No repository found at location '" + this._workingDirectory + "', creating one...");
+                    Logger.WriteWarning("No repository found at location '" + this._workingDirectory + "', creating one...");
                     try
                     {
                         Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositoryslt.OpenRepository >> Trying to clone remote to local...");

@@ -32,7 +32,7 @@ namespace Plugin.Application.Events.Util
         internal override bool IsValidState()
         {
             RepositoryDescriptor repoDsc = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor();
-            if (repoDsc == null) Logger.WriteWarning("Plugin.Application.Events.API.ReleaseServiceEvent.IsValidState >> Unable to retrieve a matching CM Repository configuration!");
+            if (repoDsc == null) Logger.WriteWarning("Unable to retrieve a matching CM Repository configuration!");
             return (repoDsc != null && repoDsc.IsCMEnabled) ? true : false;
         }
 

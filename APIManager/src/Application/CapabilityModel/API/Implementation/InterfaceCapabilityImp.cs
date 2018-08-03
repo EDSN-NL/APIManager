@@ -90,7 +90,7 @@ namespace Plugin.Application.CapabilityModel.API
                         else
                         {
                             // Oops, something went terribly wrong during construction of the operation. Invalidate and exit!
-                            Logger.WriteWarning("Plugin.Application.CapabilityModel.API.InterfaceCapabilityImp >> Failed to create operation '" + operationName + "'!");
+                            Logger.WriteWarning("Failed to create operation '" + operationName + "'!");
                             this._capabilityClass = null;       // Invalidates the capability!
                         }
                     }
@@ -203,7 +203,7 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                     else
                     {
-                        Logger.WriteWarning("Plugin.Application.CapabilityModel.API.InterfaceCapabilityImp >> Failed to create operation '" + operationName + "'!");
+                        Logger.WriteWarning("Failed to create operation '" + operationName + "'!");
                         result = false;
                     }
                 }
@@ -420,7 +420,7 @@ namespace Plugin.Application.CapabilityModel.API
             // No operation: An Interface Capability is the 'top' of the Capability tree and will have no meaningful parent Capabilities.
             // It will thus no be used in practice.
             string parentMsg = (parent != null) ? parent.Name : "-Null Parent-";
-            Logger.WriteWarning("Plugin.Application.CapabilityModel.APIManager.InterfaceCapabilityImp.initialiseParent >> Interface should not have parent Capability '" + parentMsg + "'!");
+            Logger.WriteWarning("Interface should not have parent Capability '" + parentMsg + "'!");
         }
 
         /// <summary>

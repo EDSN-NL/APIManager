@@ -16,11 +16,12 @@ namespace Framework.Model
     /// Facet = a specialized attribute that defines a facet of a class or data type;
     /// Object = an instantiation of a class;
     /// Package = a container for classes, diagrams or other packages;
+    /// Profile = a model profiler (specialized class that is able to transform models);
     /// Supplementary = a specicialized attribute that defines supplementary characteristics of a class or data type;
     /// Union = a collection of attributes;
     /// Unknown = undefined type.
     /// </summary>
-    internal enum ModelElementType    { Association, Attribute, Class, DataType, Enumeration, Facet, Object, Package, Supplementary, Union, Unknown };
+    internal enum ModelElementType    { Association, Attribute, Class, DataType, Enumeration, Facet, Object, Package, Profiler, Supplementary, Union, Unknown };
     internal enum AttributeType       { Attribute, Supplementary, Facet, Unknown};   // Sub-set used to define different attribute types.
     internal enum DataType            { DataType, Enumeration, Union, Unknown};      // Sub-set used to define different data types.
 

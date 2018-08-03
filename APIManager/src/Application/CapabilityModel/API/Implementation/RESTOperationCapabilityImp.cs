@@ -369,8 +369,7 @@ namespace Plugin.Application.CapabilityModel.API
                     package = this.OperationPackage.FindPackage(responsePkgName, responsePkgStereotype);
                     hasData = package != null && package.HasContents();
                 }
-                if (hasData) Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.Delete >> Deleted Operation '" +
-                                                 this.Name + "' contains message data, please verify integrity!");
+                if (hasData) Logger.WriteWarning("Deleted Operation '" + this.Name + "' contains message data, please verify integrity!");
             }
             this._parent.RemoveChild(new RESTOperationCapability(this));            // Detaches the operation from the parent.
             base.Delete();                                                          // Deletes the class structure and package.

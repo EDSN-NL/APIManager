@@ -427,7 +427,7 @@ namespace Plugin.Application.CapabilityModel.API
             // Parameters of type Class must be treated differently since an attribute can only be a simple type!
             if (!(param.Classifier is MEDataType) && !(param.Classifier is MEEnumeratedType))
             {
-                Logger.WriteWarning("Plugin.Application.CapabilityModel.API.RestParameterDeclaration.ConvertToAttribute >> Attempt to convert class-based attribute '" + 
+                Logger.WriteWarning("Attempt to convert class-based attribute '" + 
                                     param.Name + "' to an attribute of class '" + parent.Name + "' is not supported!");
             }
             return newAttrib;

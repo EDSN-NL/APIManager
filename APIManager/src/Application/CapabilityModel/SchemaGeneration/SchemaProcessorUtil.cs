@@ -195,7 +195,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             }
                             catch
                             {
-                                Logger.WriteWarning("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.DefineClassifier >> External reference '" + classifier.Name +
+                                Logger.WriteWarning("External reference '" + classifier.Name +
                                                     "' has illegal minOcc and/or maxOcc declarations, default is used instead!");
                                 if (this._panel != null) this._panel.WriteWarning(this._panelIndex + 1, "External reference '" + classifier.Name +
                                                                                   "' has illegal minOcc and/or maxOcc declarations, default is used instead!");

@@ -285,7 +285,7 @@ namespace SparxEA.Model
         /// <param name="sortID">Optional ordering ID, can be set to -1 if not required.</param>
         /// <returns>Newly created package.</returns>
         /// <exception cref="ArgumentException">Empty name passed.</exception>
-        internal override MEPackage CreatePackage(string name, string stereotype, int sortID)
+        internal override MEPackage CreatePackage(string name, string stereotype, int sortID = -1)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -346,7 +346,7 @@ namespace SparxEA.Model
                     return;
                 }
             }
-            Logger.WriteWarning("SparxEA.Model.EAMEIPackage.deleteClass >> Attempt to delete Class '" + thisOne.Name +
+            Logger.WriteWarning("Attempt to delete Class '" + thisOne.Name +
                                 "' from Package: '" + this._package.Name + "' failed; Class not found!");
         }
 
@@ -369,8 +369,7 @@ namespace SparxEA.Model
                     return;
                 }
             }
-            Logger.WriteWarning("SparxEA.Model.EAMEIPackage.deletePackage >> Attempt to delete '" + child.Name +
-                                "' from package: '" + this._package.Name + "' failed; child package not found!");
+            Logger.WriteWarning("Attempt to delete '" + child.Name + "' from package: '" + this._package.Name + "' failed; child package not found!");
         }
 
         /// <summary>
@@ -382,7 +381,7 @@ namespace SparxEA.Model
         {
             int _NoFormatXML        = Convert.ToInt32(false);
             int _UseDTD             = Convert.ToInt32(true);
-            int _NoPictures         = 0;
+            int _ExportDiagrams     = 1;
             int _NoPictureFormats   = -1;
 
             bool result = true;
@@ -392,7 +391,7 @@ namespace SparxEA.Model
                 EA.Project project = ((EAModelImplementation)this._model).Repository.GetProjectInterface();
                 project.ExportPackageXMIEx(this._package.PackageGUID,
                                            EnumXMIType.xmiEADefault,    // Of xmiEA251?
-                                           _NoPictures, _NoPictureFormats, _NoFormatXML, _UseDTD,
+                                           _ExportDiagrams, _NoPictureFormats, _NoFormatXML, _UseDTD,
                                            fileName,
                                            !recursive? Convert.ToInt32(EA.ExportPackageXMIFlag.epSaveToStub): 0);
             }
@@ -552,6 +551,30 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Searches the current package for the existance of a Model Profiler element of which the name contains the specified fragment (case
+        /// insensitive). The first matching component is returned (or NULL if nothing found).
+        /// If the name is NULL or empty, we will simply return the first item with correct meta-type.
+        /// </summary>
+        /// <param name="nameFragment">Optional string that must be part of the name (case insensitive).</param>
+        /// <returns>First matching profiler element or NULL if not found.</returns>
+        internal override MEProfiler FindProfiler(string nameFragment = null)
+        {
+            this._package.Elements.Refresh();   // Make sure that we're looking at the most up-to-date state.
+            if (!string.IsNullOrEmpty(nameFragment)) nameFragment = nameFragment.ToLower();
+            foreach (EA.Element element in this._package.Elements)
+            {
+                if (element.Type == "Artifact")
+                {
+                    if (string.IsNullOrEmpty(nameFragment) || element.Name.ToLower().Contains(nameFragment))
+                    {
+                        return new MEProfiler(element.ElementID);
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Returns element annotation (if present).
         /// </summary>
         /// <returns>Element annotation or empty string if nothing present.</returns>
@@ -702,7 +725,7 @@ namespace SparxEA.Model
         }
 
         /// <summary>
-        /// Import the package from the specified XML file into this package, overwriting all contents.
+        /// Import the package from the specified XML file into the current package, overwriting all contents.
         /// </summary>
         /// <param name="fileName">Absolute pathname to input path and file.</param>
         /// <returns>True when imported successsfully, false when unable to import.</returns>
@@ -714,6 +737,8 @@ namespace SparxEA.Model
             bool result = true;
             try
             {
+                Logger.WriteWarning("Performing package import from '" + fileName + "' into package '" + this.Name + ", this might take some time.");
+
                 // Delete all sub-packages, elements and diagrams in this package as a preparation for the import...
                 this._package.Packages.Refresh();
                 for (short i = (short)(this._package.Packages.Count - 1); i >= 0; this._package.Packages.DeleteAt(i--, true));
@@ -723,6 +748,8 @@ namespace SparxEA.Model
 
                 fileName = fileName.Replace('/', '\\');
                 EA.Project project = ((EAModelImplementation)this._model).Repository.GetProjectInterface();
+                // Unlike what is said in the documentation, ImportPackageXMI returns the GUID of the imported package when Ok.
+                // So we use this to check whether all is well...
                 string resultMsg = project.ImportPackageXMI(this._package.PackageGUID,
                                                             fileName,
                                                             _ImportDiagrams, _NoStripGUID);
@@ -732,11 +759,84 @@ namespace SparxEA.Model
                                       "' from XMI file '" + fileName + "':" + Environment.NewLine + resultMsg);
                     result = false;
                 }
+                else Logger.WriteWarning("Finished package import.");
             }
             catch (Exception exc)
             {
                 Logger.WriteError("SparxEA.Model.EAMEIPackage.ImportPackage >> Error importing package '" + this._name +
                                   "' from XMI file '" + fileName + "':" + Environment.NewLine + exc.Message);
+                result = false;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Import the package from the specified XML file into a new package underneath the current package. The new parent package
+        /// for the import is specified by 'parentPackageName'. If the container package does not yet exist, it is created first.
+        /// The imported package has all it's GUID's replaced by new instances so that the import does not conflict with possible
+        /// existing packages. Also, if the imported package contains any Profilers, these will be reloaded (as long as we can locate a
+        /// donor package with the same name as the newly imported package. If not, the Profilers are left alone for the user to fix).
+        /// For te Profile reload to work, the original package (which has been exported to XMI), MUST be a direct child package of 
+        /// the current package. Also, we copy Profilers FROM the existing package (if found) TO the newly imported package. So, if
+        /// the package structures have changed, not all Profilers might have been correctly copied over so this method works best
+        /// for a full package copy (export to XMI - import from XMI at other location).
+        /// Unlike the 'other' ImportPackage, which overwrites the current package, this import variant thus imports 'underneath' the
+        /// current package. Therefore, we don't make assumptions on the name of the imported package.
+        /// </summary>
+        /// <param name="fileName">Absolute pathname to input path and file.</param>
+        /// <param name="parentPackageName">Package that will act as the parent for the imported package. Will be created if not already
+        /// present.</param>
+        /// <param name="parentStereotype">The stereotype to be assigned to the parent package.</param>
+        /// <param name="newImportedPackageName">Optionally, one can specify a new name for the imported package.</param>
+        /// <returns>True when imported successsfully, false when unable to import.</returns>
+        internal override bool ImportPackage(string fileName, string parentPackageName, string parentStereotype, string newImportedPackageName)
+        {
+            int _ImportDiagrams = Convert.ToInt32(true);
+            int _StripGUID = Convert.ToInt32(true);
+
+            bool result = true;
+            try
+            {
+                Logger.WriteWarning("Performing package import from '" + fileName + "' into package '" + parentPackageName + ", this might take some time.");
+
+                this._package.Packages.Refresh();       // Make sure we're looking at the latest state.
+                EA.Package parentPkg = null;
+                // Specified parent might be the current package, makes things easier...
+                if (parentPackageName == this.Name && parentStereotype == this._package.Element.Stereotype) parentPkg = this._package;
+                else
+                {
+                    MEPackage parent = FindPackage(parentPackageName, parentStereotype);
+                    if (parent == null) parent = CreatePackage(parentPackageName, parentStereotype);
+                    parentPkg = ((EAMEIPackage)parent.Implementation)._package;
+                }
+
+                fileName = fileName.Replace('/', '\\');
+                EA.Project project = ((EAModelImplementation)this._model).Repository.GetProjectInterface();
+
+                // On the contrary of what is said in the documentation, ImportPackageXMI returns the GUID of the imported package
+                // when Ok (instead of an empty string). So we use this to find information regarding the imported package...
+                string newPackageGUID = project.ImportPackageXMI(parentPkg.PackageGUID, fileName, _ImportDiagrams, _StripGUID);
+                MEPackage importedPackage = new MEPackage(newPackageGUID);  // When this is not a GUID, we will have an exception.
+                MEPackage originalPackage = FindPackage(importedPackage.Name,
+                                                        ((EAMEIPackage)importedPackage.Implementation)._package.Element.Stereotype);
+                if (originalPackage != null)
+                {
+                    Logger.WriteInfo("SparxEA.Model.EAMEIPackage.ImportPackage (new instance) >> Found original package '" + originalPackage.Name + "'...");
+                    ReloadAllProfiles(importedPackage, originalPackage);
+                }
+
+                // Finally, check whether we must update the package name...
+                if (!string.IsNullOrEmpty(newImportedPackageName))
+                {
+                    Logger.WriteInfo("SparxEA.Model.EAMEIPackage.ImportPackage (new instance) >> Renaming imported package to '" + newImportedPackageName + "'...");
+                    importedPackage.Name = newImportedPackageName;
+                }
+                Logger.WriteWarning("Finished package import.");
+            }
+            catch (Exception exc)
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIPackage.ImportPackage (new instance) >> Error importing package from XMI file '" +
+                                  fileName + "':" + Environment.NewLine + exc.Message);
                 result = false;
             }
             return result;
@@ -834,7 +934,7 @@ namespace SparxEA.Model
                     if (!result)
                     {
                         this._isLocked = false;
-                        Logger.WriteWarning("SparxEA.Model.EAMEIPackage.Lock >> Failed to lock package structure because: '" + this._package.GetLastError() + "'!");
+                        Logger.WriteWarning("Failed to lock package structure because: '" + this._package.GetLastError() + "'!");
                     }
                     else this._isLocked = true;
                     return result;
@@ -961,7 +1061,7 @@ namespace SparxEA.Model
                     bool result = this._package.ReleaseUserLockRecursive(true, true, true);
                     if (!result)
                     {
-                        Logger.WriteWarning("SparxEA.Model.EAMEIPackage.Unlock >> Failed to unlock package structure because: '" + this._package.GetLastError() + "'!");
+                        Logger.WriteWarning("Failed to unlock package structure because: '" + this._package.GetLastError() + "'!");
                     }
                     this._isLocked = false;
                 }
@@ -983,6 +1083,41 @@ namespace SparxEA.Model
         {
             int parentID = this._package.ParentID;
             return (parentID != 0)? new EAMEIPackage((EAModelImplementation)this._model, parentID): null;
+        }
+
+        /// <summary>
+        /// Recursively iterates over all package in 'originalPackage', looking for Profiler elements. If found, the contents are copied 
+        /// over to the corresponding element in 'newPackage'.
+        /// Precondition is that newPackage and originalPackage are at the same 'level' in their respective package trees.
+        /// </summary>
+        /// <param name="newPackage">Package that we have to copy TO</param>
+        /// <param name="originalPackage">Package that we have to copy FROM</param>
+        private void ReloadAllProfiles(MEPackage newPackage, MEPackage originalPackage)
+        {
+            Logger.WriteInfo("SparxEA.Model.EAMEIPackage.ReloadAllProfiles >> looking for profiles in '" + originalPackage.Name + "'...");
+
+            // First of all, try to find a Profiler to copy...
+            MEProfiler srcProfiler = originalPackage.FindProfiler();
+            if (srcProfiler != null)
+            {
+                MEProfiler targetProfiler = newPackage.FindProfiler(srcProfiler.Name);
+                if (targetProfiler != null)
+                {
+                    Logger.WriteInfo("SparxEA.Model.EAMEIPackage.ReloadAllProfiles >> Found source- and target Profilers '" + srcProfiler.Name + "', copying...");
+                    targetProfiler.LoadProfile(srcProfiler);
+                }
+            }
+
+            // Next, go through all sub-packages recursively, loading Profilers along the way...
+            foreach (EA.Package origChildPkg in ((EAMEIPackage)originalPackage.Implementation)._package.Packages)
+            {
+                MEPackage newChildPkg = newPackage.FindPackage(origChildPkg.Name, origChildPkg.Element.Stereotype);
+                if (newChildPkg != null)
+                {
+                    Logger.WriteInfo("SparxEA.Model.EAMEIPackage.ReloadAllProfiles >> Found matching sub-package '" + newChildPkg.Name + "'...");
+                    ReloadAllProfiles(newChildPkg, new MEPackage(origChildPkg.PackageID));
+                }
+            }
         }
     }
 }

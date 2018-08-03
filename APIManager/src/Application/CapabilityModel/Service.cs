@@ -331,7 +331,7 @@ namespace Plugin.Application.CapabilityModel
                     Tuple<int, int> classVersion = this._serviceClass.Version;
                     if (classVersion.Item1 != majorVersion)
                     {
-                        Logger.WriteWarning("Plugin.Application.CapabilityModel.Service.collectContext >> Class major version '" + classVersion.Item1 +
+                        Logger.WriteWarning("Class major version '" + classVersion.Item1 +
                                             "' differs from package version '" + majorVersion + "'. Children might be out of sync!");
                         var correctVersion = new Tuple<int, int>(majorVersion, classVersion.Item2);
                         this._serviceClass.Version = correctVersion;
@@ -779,15 +779,13 @@ namespace Plugin.Application.CapabilityModel
                                      lastReleased.Item1 + "." + lastReleased.Item2 + "." + lastReleased.Item3 + "'...");
                     if (this._version.Item1 != lastReleased.Item1 || this._version.Item2 != lastReleased.Item2)
                     {
-                        Logger.WriteWarning("Plugin.Application.CapabilityModel.Service.LoadCMState >> Service '" + Name + 
-                                            "' with version '" + this._version.Item1 + "." + this._version.Item2 + 
+                        Logger.WriteWarning("Service '" + Name + "' with version '" + this._version.Item1 + "." + this._version.Item2 + 
                                             "' does not match last released version '" + lastReleased.Item1 + "." + lastReleased.Item2 + "'!");
                     }
                     else if (this.BuildNumber <= lastReleased.Item3)
                     {
-                        Logger.WriteWarning("Plugin.Application.CapabilityModel.Service.LoadCMState >> Service '" + Name +
-                                            "' has a build number '" + this.BuildNumber + "', which does not match last released number '" + 
-                                            lastReleased.Item3 + "'; service updated!");
+                        Logger.WriteWarning("Service '" + Name + "' has a build number '" + this.BuildNumber + 
+                                            "', which does not match last released number '" + lastReleased.Item3 + "'; service updated!");
                         this.BuildNumber = lastReleased.Item3 + 1;
                     }
                 }

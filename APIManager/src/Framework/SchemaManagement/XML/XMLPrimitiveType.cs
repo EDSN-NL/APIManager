@@ -97,7 +97,7 @@ namespace Framework.Util.SchemaManagement.XML
             }
             else
             {
-                Logger.WriteWarning("Framework.Util.SchemaManagement.XML.XMLPrimitiveType (facetted) >> Warning: duplicate type '" + typeName + "' in schema with namespace token '" + schema.NSToken + "' skipped.");
+                Logger.WriteWarning("Warning: duplicate type '" + typeName + "' in schema with namespace token '" + schema.NSToken + "' skipped.");
                 return;
             }
 

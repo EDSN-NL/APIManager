@@ -85,7 +85,7 @@ namespace Plugin.Application.CapabilityModel.API
                 if (!requestCap.Valid || !responseCap.Valid)
                 {
                     // Oops, something went terribly wrong during construction of the messages. Invalidate and exit!
-                    Logger.WriteWarning("Plugin.Application.CapabilityModel.API.OperationCapabilityImp >> Failed to create operation '" + operationName + "'!");
+                    Logger.WriteWarning("Failed to create operation '" + operationName + "'!");
                     this._capabilityClass = null;       // Invalidates the capability!
                 }
                 if (this._capabilityClass != null) CreateLogEntry("Initial release.");

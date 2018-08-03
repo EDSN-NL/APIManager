@@ -99,7 +99,7 @@ namespace Framework.Util.SchemaManagement.XML
                     this._attribute.MinOccurs = 0;                // Default value implies optional use of attribute!
                     if (fixedValue != string.Empty)
                     {
-                        Logger.WriteWarning("Framework.Util.SchemaManagement.XML.XMLContentAttribute >> Attribute can not have both default- and fixed values, fixed value '" + 
+                        Logger.WriteWarning("Attribute can not have both default- and fixed values, fixed value '" + 
                                             fixedValue + "' has been ignored!");
                     }
                 }

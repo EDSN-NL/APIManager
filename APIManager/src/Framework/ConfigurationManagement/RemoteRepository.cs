@@ -201,7 +201,7 @@ namespace Framework.ConfigurationManagement
                 if (exc.Message.Contains("tag already exists")) throw new CMOutOfSyncException("Existing tag '" + tagName + "' at remote!");
                 else if (exc.Message.Contains("cannot push non-fastforwardable reference"))
                 {
-                    Logger.WriteWarning("Framework.ConfigurationManagement.RemoteRepository.Push(tag,msg) >> Local repository is behind remote, pulling fresh data...");
+                    Logger.WriteWarning("Local repository is behind remote, pulling fresh data...");
                     Pull();
                     Push(branch);
                 }
@@ -228,7 +228,7 @@ namespace Framework.ConfigurationManagement
                 Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository.Push >> Caught exception: " + exc.Message);
                 if (exc.Message.Contains("cannot push non-fastforwardable reference"))
                 {
-                    Logger.WriteWarning("Framework.ConfigurationManagement.RemoteRepository.Push >> Local repository is behind remote, pulling fresh data...");
+                    Logger.WriteWarning("Local repository is behind remote, pulling fresh data...");
                     Pull();
                     Push(branch);
                 }

@@ -102,7 +102,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             // If our class type name ends with 'Type', we remove this...
                             if (associationName == string.Empty)
                             {
-                                Logger.WriteWarning("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAssociations >> Association to element '" + target.Name + "' has no name, using target name instead!");
+                                Logger.WriteWarning("Association to element '" + target.Name + "' has no name, using target name instead!");
                                 if (this._panel != null) this._panel.WriteWarning(this._panelIndex + 2, "Association to element '" + target.Name + "' has no name, using target name instead!");
                                 associationName = (target.Name.EndsWith("Type")) ? target.Name.Substring(0, target.Name.LastIndexOf("Type")) : target.Name;
                             }
@@ -302,8 +302,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                     else if (attribute.Type == ModelElementType.Facet)
                     {
                         // This is a facet-type attribute. These are currently not supported on 'regular' class attributes!
-                        Logger.WriteWarning("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Facet-type attribute '" + attribute.Name +
-                                            "' currently not supported!");
+                        Logger.WriteWarning("Facet-type attribute '" + attribute.Name + "' currently not supported!");
                         this._panel.WriteWarning(this._panelIndex + 2, "Facet-type attribute '" + attribute.Name + "' currently not supported!");
                     }
                     else
