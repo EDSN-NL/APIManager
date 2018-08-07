@@ -72,6 +72,8 @@ namespace Plugin.Application.Events.CodeList
                 return;
             }
 
+            if (!model.LockModel(declPackage)) return;      // If we can't lock the package, we can't continue.
+
             using (var dialog = new AddCodeListInput(serviceClass))
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
@@ -142,6 +144,7 @@ namespace Plugin.Application.Events.CodeList
                     }
                 }
             }
+            model.UnlockModel(declPackage);
         }
     }
 }

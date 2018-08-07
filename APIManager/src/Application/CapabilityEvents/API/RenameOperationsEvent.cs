@@ -51,7 +51,7 @@ namespace Plugin.Application.Events.API
                 Logger.WriteError("Plugin.Application.Events.API.RenameOperationsEvent.HandleEvent >> Illegal context! Aborting.");
                 return;
             }
-            else if (svcContext.Type != ServiceContext.ServiceType.SOAP)
+            else if (svcContext.Type != Service.ServiceArchetype.SOAP)
             {
                 Logger.WriteWarning("Operation only suitable for SOAP Services!");
                 return;
@@ -83,7 +83,6 @@ namespace Plugin.Application.Events.API
                     // Mark service as 'modified' for configuration management and add to diagram in different color...
                     myService.Dirty();
                     myService.Paint(svcContext.MyDiagram);
-
                     svcContext.Refresh();
                 }
                 svcContext.UnlockModel();

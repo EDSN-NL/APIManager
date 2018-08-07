@@ -47,6 +47,7 @@ namespace Plugin.Application.Events.CodeList
         {
             Logger.WriteInfo("Plugin.Application.Events.CodeList.CodeListVersionSyncEvent.handleEvent >> Processing event...");
             ContextSlt context = ContextSlt.GetContextSlt();
+            ModelSlt model = ModelSlt.GetModelSlt();
             MEClass serviceClass;
             MEPackage declPackage;
             Diagram myDiagram;
@@ -71,7 +72,7 @@ namespace Plugin.Application.Events.CodeList
             Logger.WriteInfo("Plugin.Application.Events.CodeList.CodeListVersionSyncEvent.handleEvent >> Current major version: " + currentMajor);
             using (var dialog = new ChangeMajorVersion(currentMajor))
             {
-                if (dialog.ShowDialog() == DialogResult.OK)
+                if (model.LockModel(declPackage) && dialog.ShowDialog() == DialogResult.OK)
                 {
                     Logger.WriteInfo("Plugin.Application.Events.CodeList.CodeListVersionSyncEvent.handleEvent >> Updating all CodeLists to version: '" + dialog.MajorVersion + "'...");
                     var codeListService = new CodeListService(serviceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype));
@@ -86,6 +87,7 @@ namespace Plugin.Application.Events.CodeList
                     packageName += dialog.MajorVersion;
                     declPackage.Name = packageName;
                 }
+                model.UnlockModel(declPackage);
             }
         }
     }

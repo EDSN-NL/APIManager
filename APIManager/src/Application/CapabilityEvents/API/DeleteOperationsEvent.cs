@@ -57,7 +57,7 @@ namespace Plugin.Application.Events.API
                 Logger.WriteError("Plugin.Application.Events.API.DeleteOperationsEvent.handleEvent >> Illegal context! Aborting.");
                 return;
             }
-            else if (svcContext.Type != ServiceContext.ServiceType.SOAP)
+            else if (svcContext.Type != Service.ServiceArchetype.SOAP)
             {
                 Logger.WriteWarning("Operation only suitable for SOAP Services!");
                 return;

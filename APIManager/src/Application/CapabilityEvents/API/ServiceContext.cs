@@ -6,6 +6,8 @@ using Framework.View;
 using Framework.Exceptions;
 using Framework.Util;
 using Plugin.Application.CapabilityModel;
+using Plugin.Application.CapabilityModel.API;
+using Plugin.Application.CapabilityModel.CodeList;
 
 namespace Plugin.Application.Events.API
 {
@@ -17,9 +19,6 @@ namespace Plugin.Application.Events.API
     /// </summary>
     internal class ServiceContext
     {
-        // Currently, we support three 'families' of services, REST, SOAP and Message...
-        internal enum ServiceType { Unknown, REST, SOAP, Message, CodeList }
-
         // Configuration properties used by this module...
         private const string _RootPkgName                       = "RootPkgName";
         private const string _ServiceDeclPkgStereotype          = "ServiceDeclPkgStereotype";
@@ -42,6 +41,8 @@ namespace Plugin.Application.Events.API
         private const string _ServiceArchetypeTag               = "ServiceArchetypeTag";
         private const string _ServiceCapabilityClassBaseStereotype = "ServiceCapabilityClassBaseStereotype";
 
+        private const bool _NOBUILDHIERARCHY = false;           // Used for CodeLists to suppress construction of complete class hierarchy.
+
         private MEClass         _serviceClass;                  // Identifies the service.
         private MEClass         _interfaceClass;                // Contains interface class currently selected by user (if applicable).
         private MEClass         _operationClass;                // Contains operation class currently selected by user (if applicable).
@@ -54,7 +55,8 @@ namespace Plugin.Application.Events.API
         private MEClass         _treeNodeTarget;                // Search target when browsing the tree hierarchy.
         private TreeNode<MEClass> _treeNodeResult;              // Node that is associated with treeNodeTarget.
         private TreeNode<MEClass> _hierarchy;                   // Contains the hierarchy from Service down to Message Capabilities.
-        private ServiceType     _type;                          // Defines whether we're in REST or SOAP 'mode' (or Unknown).
+        private Service.ServiceArchetype  _type;                // Defines whether we're in REST or SOAP 'mode' (or Unknown).
+        private bool            _lockContainer;                 // Indicates that 'lockModel' has a broader scope (container instead of decl.).
 
         /// <summary>
         /// Returns the collected context elements...
@@ -78,7 +80,7 @@ namespace Plugin.Application.Events.API
         /// Type = Returns the type of Service.
         /// </summary>
         internal bool Valid                             { get { return this._serviceClass != null; } }
-        internal ServiceType Type                       { get { return this._type; } }
+        internal Service.ServiceArchetype Type          { get { return this._type; } }
 
         /// <summary>
         /// Creates the context based on either selected diagram or entry in package tree. The constructor collects contextual information and
@@ -129,7 +131,7 @@ namespace Plugin.Application.Events.API
             this._interfaceClass            = null;
             this._resourceCollectionPackage = null;
             this._resourceClass             = null;
-            this._type                      = ServiceType.Unknown;
+            this._type                      = Service.ServiceArchetype.Unknown;
 
             if (isDiagram && currentDiagram != null)
             {
@@ -147,16 +149,16 @@ namespace Plugin.Application.Events.API
                     // package. Next, we check whether the declaration package contains a 'DataModel' package, which should typically be there in case
                     // of REST services...
                     this._serviceModelPackage = currentDiagram.OwningPackage;
-                    this._type = (this._serviceModelPackage.Parent.FindPackage(dataModelPkgName, dataModelPkgStereotype) != null) ? ServiceType.REST : ServiceType.SOAP;
+                    this._type = (this._serviceModelPackage.Parent.FindPackage(dataModelPkgName, dataModelPkgStereotype) != null) ? Service.ServiceArchetype.REST : Service.ServiceArchetype.SOAP;
                 }
                 else // We must be on a Resource Collection diagram...
                 {
                     this._resourceCollectionPackage = currentDiagram.OwningPackage;
                     this._serviceModelPackage = currentDiagram.OwningPackage.Parent;
-                    this._type = ServiceType.REST;
+                    this._type = Service.ServiceArchetype.REST;
                 }
                 this._declarationPackage = this._serviceModelPackage.Parent;
-                if (this._declarationPackage.HasStereotype(codeListDeclPkgStereotype)) this._type = ServiceType.CodeList;
+                if (this._declarationPackage.HasStereotype(codeListDeclPkgStereotype)) this._type = Service.ServiceArchetype.CodeList;
 
                 if (currentClass != null)
                 {
@@ -181,7 +183,7 @@ namespace Plugin.Application.Events.API
                 {
                     // We're at a CodeList Declaration package.
                     this._declarationPackage = currentPackage;
-                    this._type = ServiceType.CodeList;
+                    this._type = Service.ServiceArchetype.CodeList;
                 }
                 else if (currentPackage.HasStereotype(operationPkgStereotype))
                 {
@@ -231,15 +233,6 @@ namespace Plugin.Application.Events.API
                 throw new IllegalContextException("No valid packages in context");
             }
 
-            // If we have not been able to determine the type of service before, we perform another attempt here now we should have collected
-            // most (if not all) of our context. We check whether the Declaration package contains a DataModel package.
-            // If so, this is a REST service, otherwise, we assume it is a SOAP service...
-            // Note that this is only a preliminary assignment since we hopefully get the correct type from our Service class!
-            if (this._serviceModelPackage != null && this._type == ServiceType.Unknown)
-            {
-                this._type = (this._declarationPackage.FindPackage(dataModelPkgName, dataModelPkgStereotype) != null) ? ServiceType.REST : ServiceType.SOAP;
-            }
-
             // Now we should be able to find our Service package and class and deduct the type from there. If the service class does not have
             // an archetype, we use the preliminary value to assign one and send a warning to the user that it has to be verified...
             string serviceName = this._declarationPackage.Name.Substring(0, this._declarationPackage.Name.IndexOf("_V"));
@@ -248,11 +241,15 @@ namespace Plugin.Application.Events.API
             {
                 string svcArchetypeTag = context.GetConfigProperty(_ServiceArchetypeTag);
                 string svcArchetype = this._serviceClass.GetTag(svcArchetypeTag);
-                if (svcArchetype != string.Empty) this._type = EnumConversions<ServiceType>.StringToEnum(svcArchetype);
-                else if (this._type != ServiceType.Unknown)
+                if (svcArchetype != string.Empty) this._type = EnumConversions<Service.ServiceArchetype>.StringToEnum(svcArchetype);
+                else if (this._type == Service.ServiceArchetype.Unknown)
                 {
-                    this._serviceClass.SetTag(svcArchetypeTag, EnumConversions<ServiceType>.EnumToString(this._type));
-                    Logger.WriteWarning("Found Service class without archetype; setting archetype to '" + 
+                    if (this._declarationPackage.HasStereotype(codeListDeclPkgStereotype)) this._type = Service.ServiceArchetype.CodeList;
+                    else if (this._declarationPackage.FindPackage(dataModelPkgName, dataModelPkgStereotype) != null)
+                        this._type = Service.ServiceArchetype.REST;
+                    else this._type = Service.ServiceArchetype.SOAP;
+                    this._serviceClass.SetTag(svcArchetypeTag, EnumConversions<Service.ServiceArchetype>.EnumToString(this._type), true);
+                    Logger.WriteWarning("Found Service class without archetype; setting archetype to '" +
                                         this._type + "', please verify correctness!");
                 }
             }
@@ -297,7 +294,7 @@ namespace Plugin.Application.Events.API
                     // Typically, this is the only diagram in the package...
                     this._diagram = this._resourceClass.OwningPackage.FindDiagram();
                 }
-                else if (this._operationClass != null && this._type == ServiceType.REST)
+                else if (this._operationClass != null && this._type == Service.ServiceArchetype.REST)
                 {
                     // If we have selected a REST operation, we select the associated diagram (typically, the only one in package)...
                     this._diagram = this._operationClass.OwningPackage.FindDiagram();
@@ -317,6 +314,69 @@ namespace Plugin.Application.Events.API
             if (this._operationPackage != null) Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Selected operation package: " + this._operationPackage.Name);
             if (this._serviceModelPackage != null) Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Found service model package: " + this._serviceModelPackage.Name);
             if (this._resourceCollectionPackage != null) Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Found resource collection package: " + this._resourceCollectionPackage.Name);
+        }
+
+        /// <summary>
+        /// Creates context for a given Service Class. This constructor is invoked on an existing Service hierarchy, 'outside' the scope of a UI
+        /// event. It receives the service class as an argument (which must be part of an existing service hierarchy) and constructs the proper 
+        /// context from there. Since we start from a service class, the context will only contain those elements that we can derive from a
+        /// service class (i.e. service type, declaration- and model packages and the model diagram)
+        /// </summary>
+        /// <param name="svcClass">The Service class on which we are going to base our context.</param>
+        internal ServiceContext(MEClass svcClass)
+        {
+            Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Building context for service '" + svcClass.Name + "'...");
+
+            ContextSlt context = ContextSlt.GetContextSlt();
+            ModelSlt model = ModelSlt.GetModelSlt();
+            Capability.FlushRegistry();             // Make sure to clean-up collected classes from previous Event, could contain stale contents!
+
+            // Retrieve a bunch of configuration properties...
+            string serviceDeclPkgStereotype = context.GetConfigProperty(_ServiceDeclPkgStereotype);
+            string codeListDeclPkgStereotype = context.GetConfigProperty(_CodeListDeclPkgStereotype);
+            string serviceModelPkgName = context.GetConfigProperty(_ServiceModelPkgName);
+            string dataModelPkgName = context.GetConfigProperty(_DataModelPkgName);
+            string dataModelPkgStereotype = context.GetConfigProperty(_DataModelPkgStereotype);
+
+            // Initialize the context items...
+            this._serviceClass = svcClass;
+            this._serviceModelPackage = svcClass.OwningPackage;
+            this._declarationPackage = this._serviceModelPackage.Parent;
+            this._diagram = this._serviceModelPackage.FindDiagram(this._serviceModelPackage.Name);
+            this._type = Service.ServiceArchetype.Unknown;
+
+            // These will not be available in this context...
+            this._operationClass = null;
+            this._operationPackage = null;
+            this._interfaceClass = null;
+            this._resourceCollectionPackage = null;
+            this._resourceClass = null;
+
+            string svcArchetypeTag = context.GetConfigProperty(_ServiceArchetypeTag);
+            string svcArchetype = this._serviceClass.GetTag(svcArchetypeTag);
+            if (!string.IsNullOrEmpty(svcArchetype)) this._type = EnumConversions<Service.ServiceArchetype>.StringToEnum(svcArchetype);
+            else
+            {
+                if (this._declarationPackage.HasStereotype(codeListDeclPkgStereotype))
+                {
+                    this._type = Service.ServiceArchetype.CodeList;
+                }
+                else if (this._declarationPackage.FindPackage(dataModelPkgName, dataModelPkgStereotype) != null)
+                {
+                    this._type = Service.ServiceArchetype.REST;
+                }
+                else this._type = Service.ServiceArchetype.SOAP;
+                this._serviceClass.SetTag(svcArchetypeTag, EnumConversions<Service.ServiceArchetype>.EnumToString(this._type), true);
+                Logger.WriteWarning("Found Service class without archetype; setting archetype to '" + this._type + 
+                                    "', please verify correctness!");
+            }
+            BuildHierarchy();
+
+            Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Service type is: '" + this._type + "'.");
+            Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Found diagram: " + this._diagram.Name);
+            Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Selected service class: " + this._serviceClass.Name);
+            Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Found declaration package: " + this._declarationPackage.Name);
+            Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Found service model package: " + this._serviceModelPackage.Name);
         }
 
         /// <summary>
@@ -355,6 +415,38 @@ namespace Plugin.Application.Events.API
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// Based on the current context, the function determines the correct type of Service implementation required and creates
+        /// an instance of that type, which is subsequently returned to the caller.
+        /// </summary>
+        /// <returns>Service instance compatible with current context.</returns>
+        /// <exception cref="IllegalContextException">Thrown when attempting to create a Service on an invalid context.</exception>
+        internal Service GetServiceInstance()
+        {
+            Service myService = null;
+            ContextSlt context = ContextSlt.GetContextSlt();
+            if (!Valid) throw new IllegalContextException("Unable to create Service instance since context is invalid!");
+            
+            switch (this._type)
+            {
+                // REST Service context...
+                case Service.ServiceArchetype.REST:
+                    myService = new RESTService(this._hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
+                    break;
+
+                // CodeList Service context...
+                case Service.ServiceArchetype.CodeList:
+                    myService = new CodeListService(this._serviceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype), _NOBUILDHIERARCHY);
+                    break;
+
+                // Either SOAP or Message (the latter using the same Service type as the former)...
+                default:
+                    myService = new ApplicationService(this._hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
+                    break;
+            }
+            return myService;
         }
 
         /// <summary>
@@ -412,11 +504,15 @@ namespace Plugin.Application.Events.API
         /// <summary>
         /// Attempts to lock the current message model. If this fails, we can't continue until the user has solved this.
         /// This function is a very simple pass-through to the actual locking function, which is part of the Model singleton.
+        /// When optional parameter 'lockContainer' is set to 'true', the function locks the entire service container instead of 
+        /// just the service declaration.
         /// </summary>
+        /// <param name="lockContainer">When set to 'true', lock the container package instead of the declaration package.</param>
         /// <returns>True if locked successfully.</returns>
-        internal bool LockModel()
+        internal bool LockModel(bool lockContainer = false)
         {
-            return ModelSlt.GetModelSlt().LockModel(this._declarationPackage);
+            this._lockContainer = lockContainer;
+            return ModelSlt.GetModelSlt().LockModel(lockContainer? this._declarationPackage.Parent: this._declarationPackage);
         }
 
         /// <summary>
@@ -435,7 +531,7 @@ namespace Plugin.Application.Events.API
         /// </summary>
         internal void UnlockModel()
         {
-            ModelSlt.GetModelSlt().UnlockModel(this._declarationPackage);
+            ModelSlt.GetModelSlt().UnlockModel(this._lockContainer? this._declarationPackage.Parent: this._declarationPackage);
         }
 
         /// <summary>

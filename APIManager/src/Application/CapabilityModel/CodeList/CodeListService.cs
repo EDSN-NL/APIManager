@@ -4,6 +4,7 @@ using Framework.Logging;
 using Framework.Model;
 using Framework.Context;
 using Framework.View;
+using Framework.Util;
 using Plugin.Application.Forms;
 
 namespace Plugin.Application.CapabilityModel.CodeList
@@ -17,8 +18,6 @@ namespace Plugin.Application.CapabilityModel.CodeList
         private const string _CodeListPkgName           = "CodeListPkgName";
         private const string _CodeListPkgStereotype     = "CodeListPkgStereotype";
         private const string _CodeListClassStereotype   = "CodeListClassStereotype";
-        protected const string _ServiceArchetypeTag     = "ServiceArchetypeTag";
-        private const string _ServiceArchetypeCodeList  = "ServiceArchetypeCodeList";
 
         // Keep track of classes and associations to show in the diagram...
         private List<MEClass> _diagramClassList;
@@ -38,7 +37,8 @@ namespace Plugin.Application.CapabilityModel.CodeList
             MEPackage codeTypePackage = this._serviceDeclPackage.CreatePackage(context.GetConfigProperty(_CodeListPkgName),
                                                                                context.GetConfigProperty(_CodeListPkgStereotype), 20);
             // We set the service archetype to 'CodeList'. 
-            this._serviceClass.SetTag(context.GetConfigProperty(_ServiceArchetypeTag), context.GetConfigProperty(_ServiceArchetypeCodeList));
+            this._archetype = ServiceArchetype.CodeList;
+            this._serviceClass.SetTag(context.GetConfigProperty(_ServiceArchetypeTag), EnumConversions<ServiceArchetype>.EnumToString(this._archetype));
 
             string newNames = string.Empty;
             bool isFirst = true; // Little trick to get the right amount of ',' separators.
@@ -96,7 +96,18 @@ namespace Plugin.Application.CapabilityModel.CodeList
             {
                 try
                 {
-                    string codeListStereotype = ContextSlt.GetContextSlt().GetConfigProperty(_CodeListClassStereotype);
+                    ContextSlt context = ContextSlt.GetContextSlt();
+                    string codeListStereotype = context.GetConfigProperty(_CodeListClassStereotype);
+                    string archetypeStr = this._serviceClass.GetTag(context.GetConfigProperty(_ServiceArchetypeTag));
+                    if (string.IsNullOrEmpty(archetypeStr))
+                    {
+                        // If the service does not yet possesses a proper archetype tag, we'll add it...
+                        this._archetype = ServiceArchetype.CodeList;
+                        this._serviceClass.SetTag(context.GetConfigProperty(_ServiceArchetypeTag), 
+                                                  EnumConversions<ServiceArchetype>.EnumToString(ServiceArchetype.CodeList), true);
+                    }
+                    else this._archetype = EnumConversions<ServiceArchetype>.StringToEnum(archetypeStr);
+
                     foreach (MEAssociation association in serviceClass.TypedAssociations(MEAssociation.AssociationType.Composition))
                     {
                         // Make sure to add only the correct types of capability (just in case the class has multiple types of associations)...

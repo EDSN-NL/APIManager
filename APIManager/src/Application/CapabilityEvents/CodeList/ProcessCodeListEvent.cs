@@ -73,42 +73,46 @@ namespace Plugin.Application.Events.CodeList
                 return;
             }
 
-            // The NoBuildHierarchy indicator avoids that the entire structure is constructed (since we're only interested in one single CodeList)...
-            var codeListService = new CodeListService(serviceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype), _NOBUILDHIERARCHY);
-            var codeListCapability = new CodeListCapability(codeListService, codeListClass);
-            ProcessorManagerSlt processorMgr = ProcessorManagerSlt.GetProcessorManagerSlt();
-            CapabilityProcessor processor = null;
-            if (!codeListService.Checkout())
+            if (model.LockModel(serviceModel.Parent))
             {
-                MessageBox.Show("Unable to checkout service '" + codeListService.Name +
-                                "' from configuration management, probably caused by uncommitted changes from another service!" +
-                                Environment.NewLine + "Please commit pending changes before starting work on a new service!",
-                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            if (processorMgr.GetProcessorCount(_CodeListClassToken) > 1)
-            {
-                // Ask user which processor to use.
-                using (var picker = new CapabilityProcessorPicker(_CodeListClassToken))
+                // The NoBuildHierarchy indicator avoids that the entire structure is constructed (since we're only interested in one single CodeList)...
+                var codeListService = new CodeListService(serviceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype), _NOBUILDHIERARCHY);
+                var codeListCapability = new CodeListCapability(codeListService, codeListClass);
+                ProcessorManagerSlt processorMgr = ProcessorManagerSlt.GetProcessorManagerSlt();
+                CapabilityProcessor processor = null;
+                if (!codeListService.Checkout())
                 {
-                    if (picker.ShowDialog() == DialogResult.OK) processor = picker.SelectedProcessor;
+                    MessageBox.Show("Unable to checkout service '" + codeListService.Name +
+                                    "' from configuration management, probably caused by uncommitted changes from another service!" +
+                                    Environment.NewLine + "Please commit pending changes before starting work on a new service!",
+                                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                if (processorMgr.GetProcessorCount(_CodeListClassToken) > 1)
+                {
+                    // Ask user which processor to use.
+                    using (var picker = new CapabilityProcessorPicker(_CodeListClassToken))
+                    {
+                        if (picker.ShowDialog() == DialogResult.OK) processor = picker.SelectedProcessor;
+                    }
+                }
+                else
+                {
+                    if (processorMgr.GetProcessorCount(_CodeListClassToken) == 1)
+                        processor = processorMgr.GetProcessorByIndex(_CodeListClassToken, 0);
+                    else MessageBox.Show("No processors are currently defined for CodeList, aborting!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                if (processor != null && codeListCapability.HandleCapabilities(processor))
+                {
+                    string message = "Processing of CodeList '" + codeListCapability.Name + "' finished." + Environment.NewLine;
+                    message += "Output path: '" + codeListService.ServiceCIPath + "'." + Environment.NewLine + "Filename: '" + processor.GetCapabilityFilename() + "'.";
+                    MessageBox.Show(message, "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    codeListService.Paint(myDiagram);
                 }
             }
-            else
-            {
-                if (processorMgr.GetProcessorCount(_CodeListClassToken) ==  1)
-                    processor = processorMgr.GetProcessorByIndex(_CodeListClassToken, 0);
-                else MessageBox.Show("No processors are currently defined for CodeList, aborting!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-
-            if (processor != null && codeListCapability.HandleCapabilities(processor))
-            {
-                string message = "Processing of CodeList '" + codeListCapability.Name + "' finished." + Environment.NewLine;
-                message += "Output path: '" + codeListService.ServiceCIPath + "'." + Environment.NewLine + "Filename: '" + processor.GetCapabilityFilename() + "'.";
-                MessageBox.Show(message, "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                codeListService.Paint(myDiagram);
-            }
+            model.UnlockModel(serviceModel.Parent);
         }
     }
 }

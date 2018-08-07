@@ -82,49 +82,53 @@ namespace Plugin.Application.Events.CodeList
                 return;
             }
 
-            var codeListService = new CodeListService(serviceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype));
-            if (!codeListService.Checkout())
+            if (model.LockModel(declPackage))
             {
-                MessageBox.Show("Unable to checkout service '" + codeListService.Name +
-                                "' from configuration management; probably caused by uncommitted changes from another service!" +
-                                Environment.NewLine + "Please commit pending changes before starting work on a new service!",
-                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            // Let's ask the user which CodeLists to process...
-            using (var clPicker = new CodeListPicker())
-            {
-                clPicker.LoadNodes(serviceClass.Name, codeListService.Capabilities);
-                if (clPicker.ShowDialog() == DialogResult.OK) codeListService.LoadSelectedCapabilities(clPicker.GetCheckedNodes());
-                else
+                var codeListService = new CodeListService(serviceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype));
+                if (!codeListService.Checkout())
                 {
-                    Logger.WriteInfo("Plugin.Application.Events.CodeList.ProcessCodeListSetEvent.handleEvent >> Cancelled by user, aborting!");
+                    MessageBox.Show("Unable to checkout service '" + codeListService.Name +
+                                    "' from configuration management; probably caused by uncommitted changes from another service!" +
+                                    Environment.NewLine + "Please commit pending changes before starting work on a new service!",
+                                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
-            }
 
-            // Now select the processor to use (if more then one available)...
-            ProcessorManagerSlt processorMgr = ProcessorManagerSlt.GetProcessorManagerSlt();
-            CapabilityProcessor processor = null;
-            if (processorMgr.GetProcessorCount(_CodeListClassToken) > 1)
-            {
-                using (var picker = new CapabilityProcessorPicker(_CodeListClassToken))
+                // Let's ask the user which CodeLists to process...
+                using (var clPicker = new CodeListPicker())
                 {
-                    if (picker.ShowDialog() == DialogResult.OK) processor = picker.SelectedProcessor;
+                    clPicker.LoadNodes(serviceClass.Name, codeListService.Capabilities);
+                    if (clPicker.ShowDialog() == DialogResult.OK) codeListService.LoadSelectedCapabilities(clPicker.GetCheckedNodes());
+                    else
+                    {
+                        Logger.WriteInfo("Plugin.Application.Events.CodeList.ProcessCodeListSetEvent.handleEvent >> Cancelled by user, aborting!");
+                        return;
+                    }
+                }
+
+                // Now select the processor to use (if more then one available)...
+                ProcessorManagerSlt processorMgr = ProcessorManagerSlt.GetProcessorManagerSlt();
+                CapabilityProcessor processor = null;
+                if (processorMgr.GetProcessorCount(_CodeListClassToken) > 1)
+                {
+                    using (var picker = new CapabilityProcessorPicker(_CodeListClassToken))
+                    {
+                        if (picker.ShowDialog() == DialogResult.OK) processor = picker.SelectedProcessor;
+                    }
+                }
+                else
+                {
+                    if (processorMgr.GetProcessorCount(_CodeListClassToken) == 1)
+                        processor = processorMgr.GetProcessorByIndex(_CodeListClassToken, 0);
+                    else MessageBox.Show("No processors are currently defined for CodeList, aborting!");
+                }
+                if (processor != null)
+                {
+                    codeListService.HandleCapabilities(processor);
+                    codeListService.Paint(myDiagram);
                 }
             }
-            else
-            {
-                if (processorMgr.GetProcessorCount(_CodeListClassToken) ==  1)
-                    processor = processorMgr.GetProcessorByIndex(_CodeListClassToken, 0);
-                else MessageBox.Show("No processors are currently defined for CodeList, aborting!");
-            }
-            if (processor != null)
-            {
-                codeListService.HandleCapabilities(processor);
-                codeListService.Paint(myDiagram);
-            }
+            model.UnlockModel(declPackage);
         }
     }
 }

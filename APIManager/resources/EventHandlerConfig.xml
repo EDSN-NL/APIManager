@@ -80,8 +80,10 @@
          <EventHandler ID="Service Declaration: Copy">
            <HandlerFQN>Plugin.Application.Events.API.CopyServiceDeclarationEvent</HandlerFQN>
            <StereotypeList>
-             <!-- This event only works on packages that have the 'ServiceDeclaration' stereotype. -->
+             <!-- This event only works on packages that have the 'ServiceDeclaration' stereotype -->
+             <!-- ...or on Service elements... -->
              <StereotypeName>Enexis ECDM::ServiceDeclaration</StereotypeName>
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
            </StereotypeList>
          </EventHandler>
        </EventHandlerList>
@@ -92,6 +94,13 @@
            <HandlerFQN>Plugin.Application.Events.CodeList.AddCodeListsEvent</HandlerFQN>
            <StereotypeList>
              <!-- This event only works on packages that have the 'CodeListDeclaration' stereotype. -->
+             <StereotypeName>Enexis ECDM::CodeListDeclaration</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Copy Code List declaration">
+           <HandlerFQN>Plugin.Application.Events.API.CopyServiceDeclarationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on elements that have the 'CodeListDeclaration' stereotype. -->
              <StereotypeName>Enexis ECDM::CodeListDeclaration</StereotypeName>
            </StereotypeList>
          </EventHandler>
@@ -226,6 +235,15 @@
              <StereotypeName>Enexis ECDM::RESTResource</StereotypeName>
            </StereotypeList>
          </EventHandler>
+         <EventHandler ID="API Declaration: Copy">
+           <HandlerFQN>Plugin.Application.Events.API.CopyServiceDeclarationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on packages that have the 'ServiceDeclaration' stereotype, -->
+             <!-- ...or on Service elements... -->
+             <StereotypeName>Enexis ECDM::ServiceDeclaration</StereotypeName>
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
          <EventHandler ID="API Declaration: Create">
            <HandlerFQN>Plugin.Application.Events.API.CreateRESTServiceDeclarationEvent</HandlerFQN>
            <StereotypeList>
@@ -338,6 +356,13 @@
              <StereotypeName>Enexis ECDM::Service</StereotypeName>
            </StereotypeList>
          </EventHandler>
+         <EventHandler ID="Service: Copy">
+           <HandlerFQN>Plugin.Application.Events.API.CopyServiceDeclarationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on elements that have the 'Service' stereotype. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
        </EventHandlerList>
      </EventGroup>
      <EventGroup ID="Code Lists">
@@ -347,6 +372,13 @@
            <StereotypeList>
              <!-- This event only works on a class that has the 'Service' stereotype. -->
              <!-- Also, the diagram must be part of a CodeList Declaration, but we can not check that here. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Copy Code List">
+           <HandlerFQN>Plugin.Application.Events.API.CopyServiceDeclarationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on elements that have the 'Service' stereotype. -->
              <StereotypeName>Enexis ECDM::Service</StereotypeName>
            </StereotypeList>
          </EventHandler>
@@ -426,6 +458,13 @@
      </EventGroup>
      <EventGroup ID="REST Services">
        <EventHandlerList>
+         <EventHandler ID="API: Copy">
+           <HandlerFQN>Plugin.Application.Events.API.CopyServiceDeclarationEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on elements that have the 'Service' stereotype. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
          <EventHandler ID="Interface: Process">
            <HandlerFQN>Plugin.Application.Events.API.ProcessRESTInterfaceEvent</HandlerFQN>
            <StereotypeList>

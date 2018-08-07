@@ -55,8 +55,10 @@ namespace Plugin.Application.Events.CodeList
             }
 
             // Ask the user whether he/she really wants to delete this...
-            if (MessageBox.Show("Are you sure you want to delete Code List '" + codeListClass.Name + "'?", "Delete Code List",
-                MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+            if (model.LockModel(serviceModel.Parent) &&  MessageBox.Show("Are you sure you want to delete Code List '" + 
+                                                                         codeListClass.Name + "'?", "Delete Code List",
+                                                                         MessageBoxButtons.YesNo, 
+                                                                         MessageBoxIcon.Warning) == DialogResult.Yes)
             {
                 foreach(MEAssociation assoc in codeListClass.TypedAssociations(MEAssociation.AssociationType.Composition))
                 {
@@ -77,6 +79,7 @@ namespace Plugin.Application.Events.CodeList
                 codeListService.Dirty();
                 codeListService.Paint(myDiagram);
             }
+            model.UnlockModel(serviceModel.Parent);
         }
     }
 }

@@ -610,8 +610,9 @@ namespace Plugin.Application.CapabilityModel
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.CapabilityImp.versionSync >> Updating major version to: " + majorVersion);
                 this._capabilityClass.Version = new Tuple<int, int>(majorVersion, 0);
             }
+            CreateLogEntry("Version changed to: '" + majorVersion + ".0'.");
 
-            // Synchronize my children...
+            // Synchronize my children (if any)...
             foreach (CapabilityImp child in this) child.VersionSync();
         }
 

@@ -3,6 +3,7 @@ using Framework.Event;
 using Framework.Logging;
 using Framework.Model;
 using Framework.Context;
+using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 using Plugin.Application.Forms;
 
@@ -56,7 +57,7 @@ namespace Plugin.Application.Events.API
                 Logger.WriteError("Plugin.Application.Events.API.DeleteInterfaceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
                 return;
             }
-            else if (svcContext.Type != ServiceContext.ServiceType.SOAP)
+            else if (svcContext.Type != Service.ServiceArchetype.SOAP)
             {
                 Logger.WriteWarning("Operation only suitable for SOAP Services!");
                 return;

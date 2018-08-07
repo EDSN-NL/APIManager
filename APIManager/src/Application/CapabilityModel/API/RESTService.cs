@@ -84,7 +84,8 @@ namespace Plugin.Application.CapabilityModel.API
                 }
 
                 // We set the service archetype to 'REST'. 
-                this._serviceClass.SetTag(context.GetConfigProperty(_ServiceArchetypeTag), context.GetConfigProperty(_ServiceArchetypeREST));
+                this._archetype = ServiceArchetype.REST;
+                this._serviceClass.SetTag(context.GetConfigProperty(_ServiceArchetypeTag), EnumConversions<ServiceArchetype>.EnumToString(this._archetype), true);
 
                 string newNames = string.Empty;
                 bool isFirst = true;
@@ -129,9 +130,20 @@ namespace Plugin.Application.CapabilityModel.API
         {
             try
             {
+                ContextSlt context = ContextSlt.GetContextSlt();
                 this._tagList = new List<RESTResourceCapability>();
                 this._rootLevelTagList = new List<RESTResourceCapability>();
                 this._documentList = new List<RESTResourceCapability>();
+                string archetypeStr = this._serviceClass.GetTag(context.GetConfigProperty(_ServiceArchetypeTag));
+                if (string.IsNullOrEmpty(archetypeStr))
+                {
+                    // If the service does not yet possesses a proper archetype tag, we'll add it...
+                    this._archetype = ServiceArchetype.REST;
+                    this._serviceClass.SetTag(context.GetConfigProperty(_ServiceArchetypeTag),
+                                              EnumConversions<ServiceArchetype>.EnumToString(this._archetype), true);
+                }
+                else this._archetype = EnumConversions<ServiceArchetype>.StringToEnum(archetypeStr);
+
                 foreach (TreeNode<MEClass> node in hierarchy.Children) AddCapability(new RESTInterfaceCapability(this, node));
             }
             catch (Exception exc)

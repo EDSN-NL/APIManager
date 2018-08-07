@@ -5,7 +5,6 @@ using Framework.Logging;
 using Framework.Model;
 using Framework.Context;
 using Framework.Util;
-using Framework.View;
 using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 using Plugin.Application.Forms;
@@ -78,7 +77,7 @@ namespace Plugin.Application.Events.API
                 Logger.WriteError("Plugin.Application.Events.API.AddResourcesEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
                 return;
             }
-            else if (svcContext.Type != ServiceContext.ServiceType.REST)
+            else if (svcContext.Type != Service.ServiceArchetype.REST)
             {
                 Logger.WriteWarning("Operation only suitable for REST Services!");
                 return;

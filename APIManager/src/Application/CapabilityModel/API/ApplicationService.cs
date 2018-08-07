@@ -14,10 +14,6 @@ namespace Plugin.Application.CapabilityModel.API
         protected List<MEClass> _diagramClassList;
         protected List<MEAssociation> _diagramAssocList;
 
-        // Configuration parameters used by this module...
-        protected const string _ServiceArchetypeTag       = "ServiceArchetypeTag";
-        protected const string _ServiceArchetypeSOAP      = "ServiceArchetypeSOAP";
-
         /// <summary>
         /// 'Create new instance' constructor, creates a new API service declaration underneath the specified container package. 
         /// The name of the service is specified as 'qualifiedServiceName' (which must contain the major version as an extension, 
@@ -52,7 +48,8 @@ namespace Plugin.Application.CapabilityModel.API
             }
 
             // We set the service archetype to 'SOAP'. 
-            this._serviceClass.SetTag(context.GetConfigProperty(_ServiceArchetypeTag), context.GetConfigProperty(_ServiceArchetypeSOAP));
+            this._archetype = ServiceArchetype.SOAP;
+            this._serviceClass.SetTag(context.GetConfigProperty(_ServiceArchetypeTag), EnumConversions<ServiceArchetype>.EnumToString(this._archetype));
 
             string newNames = string.Empty;
             bool isFirst = true;
@@ -91,6 +88,17 @@ namespace Plugin.Application.CapabilityModel.API
         {
             try
             {
+                ContextSlt context = ContextSlt.GetContextSlt();
+                string archetypeStr = this._serviceClass.GetTag(context.GetConfigProperty(_ServiceArchetypeTag));
+                if (string.IsNullOrEmpty(archetypeStr))
+                {
+                    // If the service does not yet possesses a proper archetype tag, we'll add it...
+                    this._archetype = ServiceArchetype.SOAP;
+                    this._serviceClass.SetTag(context.GetConfigProperty(_ServiceArchetypeTag),
+                                              EnumConversions<ServiceArchetype>.EnumToString(this._archetype), true);
+                }
+                else this._archetype = EnumConversions<ServiceArchetype>.StringToEnum(archetypeStr);
+
                 foreach (TreeNode<MEClass> node in hierarchy.Children) AddCapability(new InterfaceCapability(this, node));
             }
             catch (Exception exc)

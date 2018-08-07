@@ -35,8 +35,9 @@ namespace Plugin.Application.Events.API
         {
             Logger.WriteInfo("Plugin.Application.Events.API.CreateServiceDeclarationEvent.HandleEvent >> Processing event...");
             ContextSlt context = ContextSlt.GetContextSlt();
+            ModelSlt model = ModelSlt.GetModelSlt();
             MEPackage containerPackage = context.CurrentPackage;
-            if (ModelSlt.GetModelSlt().LockModel(containerPackage))
+            if (model.LockModel(containerPackage))
             {
                 using (var dialog = new CreateRESTServiceDeclaration(containerPackage))
                 {
@@ -50,7 +51,7 @@ namespace Plugin.Application.Events.API
                                              "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
-                ModelSlt.GetModelSlt().UnlockModel(containerPackage);
+                model.UnlockModel(containerPackage);
             }
         }
     }

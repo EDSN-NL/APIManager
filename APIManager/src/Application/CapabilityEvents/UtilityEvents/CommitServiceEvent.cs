@@ -5,8 +5,6 @@ using Framework.Logging;
 using Framework.Context;
 using Framework.ConfigurationManagement;
 using Plugin.Application.CapabilityModel;
-using Plugin.Application.CapabilityModel.API;
-using Plugin.Application.CapabilityModel.CodeList;
 using Plugin.Application.Forms;
 using Plugin.Application.Events.API;
 
@@ -17,12 +15,7 @@ namespace Plugin.Application.Events.Util
     class CommitServiceEvent : EventImplementation
     {
         // Configuration properties used by this module...
-        private const string _ServiceDeclPkgStereotype      = "ServiceDeclPkgStereotype";
-        private const string _CodeListDeclPkgStereotype     = "CodeListDeclPkgStereotype";
-        private const string _InterfaceContractTypeTag      = "InterfaceContractTypeTag";
-        private const string _CommitIDLeader                = "CommitIDLeader";
-
-        private const bool _NOBUILDHIERARCHY = false;       // Used for CodeLists to suppress construction of complete class hierarchy.
+        private const string _CommitIDLeader = "CommitIDLeader";
 
         /// <summary>
         /// Checks whether we can process the event in the current context. Since this context is already clearly defined by the 'Service'
@@ -45,7 +38,6 @@ namespace Plugin.Application.Events.Util
             Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Message processing...");
             ContextSlt context = ContextSlt.GetContextSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
-            Service myService;
 
             if (!svcContext.Valid)
             {
@@ -55,20 +47,38 @@ namespace Plugin.Application.Events.Util
 
             try
             {
-                if (svcContext.Type == ServiceContext.ServiceType.REST)
+                if (svcContext.LockModel())
                 {
-                    Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Committing a REST Service...");
-                    myService = new RESTService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
-                }
-                else if (svcContext.Type == ServiceContext.ServiceType.CodeList)
-                {
-                    Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Committing a CodeList Service...");
-                    myService = new CodeListService(svcContext.ServiceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype), _NOBUILDHIERARCHY);
-                }
-                else    // Assume it's either SOAP or Message (which is based on SOAP)...
-                {
-                    Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Committing a SOAP/Message Service...");
-                    myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
+                    Service myService = svcContext.GetServiceInstance();
+                    if (myService.ConfigurationMgmtState == CMState.Modified)
+                    {
+                        using (var dialog = new CMChangeMessage())
+                        {
+                            if (dialog.ShowDialog() == DialogResult.OK)
+                            {
+                                try
+                                {
+                                    string commitID = context.GetConfigProperty(_CommitIDLeader) +
+                                                      myService.BusinessFunctionID + ":" +
+                                                      myService.ContainerPkg.Name + ":" +
+                                                      myService.Name + ":" +
+                                                      myService.Version.Item1 + ":" +
+                                                      myService.Version.Item2 + ":" +
+                                                      myService.BuildNumber;
+                                    Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> CommitID = '" + commitID + "'...");
+                                    myService.CMContext.CommitService(commitID + Environment.NewLine + dialog.Annotation, dialog.AutoRelease);
+                                    myService.Paint(context.CurrentDiagram);
+                                }
+                                catch (CMOutOfSyncException)
+                                {
+                                    MessageBox.Show("Unable to release service to remote repository because the build number '" + myService.BuildNumber +
+                                                    "'  has already been used before!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                }
+                            }
+                        }
+                    }
+                    else MessageBox.Show("Service must be 'Processed' before it can be committed!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    svcContext.UnlockModel();
                 }
             }
             catch
@@ -76,35 +86,6 @@ namespace Plugin.Application.Events.Util
                 Logger.WriteError("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Unable to determine proper context for commit!");
                 return;
             }
-
-            if (myService.ConfigurationMgmtState == CMState.Modified)
-            {
-                using (var dialog = new CMChangeMessage())
-                {
-                    if (dialog.ShowDialog() == DialogResult.OK)
-                    {
-                        try
-                        {
-                            string commitID = context.GetConfigProperty(_CommitIDLeader) +
-                                              myService.BusinessFunctionID + ":" +
-                                              myService.ContainerPkg.Name + ":" +
-                                              myService.Name + ":" +
-                                              myService.Version.Item1 + ":" +
-                                              myService.Version.Item2 + ":" +
-                                              myService.BuildNumber;
-                            Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> CommitID = '" + commitID + "'...");
-                            myService.CMContext.CommitService(commitID + Environment.NewLine + dialog.Annotation, dialog.AutoRelease);
-                            myService.Paint(context.CurrentDiagram);
-                        }
-                        catch (CMOutOfSyncException)
-                        {
-                            MessageBox.Show("Unable to release service to remote repository because the build number '" + myService.BuildNumber + 
-                                            "'  has already been used before!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                    }
-                }
-            }
-            else MessageBox.Show("Service must be 'Processed' before it can be committed!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }

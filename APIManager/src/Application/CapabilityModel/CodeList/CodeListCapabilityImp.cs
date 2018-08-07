@@ -329,7 +329,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
                     if (att.Name == vsnName)
                     {
                         att.FixedValue = majorVersion + ".0";
-                        CreateLogEntry("Major version changed to: '" + majorVersion + ".0'.");
+                        CreateLogEntry("Version changed to: '" + majorVersion + ".0'.");
                     }
                     else if (att.Name == urnName)
                     {

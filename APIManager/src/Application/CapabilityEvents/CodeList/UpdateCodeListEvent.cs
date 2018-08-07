@@ -56,25 +56,29 @@ namespace Plugin.Application.Events.CodeList
                 myDiagram = serviceModel.FindDiagram(serviceModel.Name);
             }
 
-            string serviceName = serviceModel.Parent.Name.Substring(0, serviceModel.Parent.Name.IndexOf("_V"));
-            MEClass serviceClass = serviceModel.FindClass(serviceName, context.GetConfigProperty(_ServiceClassStereotype));
-            if (serviceClass == null || myDiagram == null)
+            if (model.LockModel(serviceModel.Parent))
             {
-                Logger.WriteError("Plugin.Application.Events.CodeList.UpdateCodeListEvent.handleEvent >> Illegal or corrupt context, event aborted!");
-                return;
-            }
+                string serviceName = serviceModel.Parent.Name.Substring(0, serviceModel.Parent.Name.IndexOf("_V"));
+                MEClass serviceClass = serviceModel.FindClass(serviceName, context.GetConfigProperty(_ServiceClassStereotype));
+                if (serviceClass == null || myDiagram == null)
+                {
+                    Logger.WriteError("Plugin.Application.Events.CodeList.UpdateCodeListEvent.handleEvent >> Illegal or corrupt context, event aborted!");
+                    return;
+                }
 
-            // the NoBuildHierarchy indicator avoids construction of the entire CodeList set (since we're only interested in one single CodeList)...
-            var codeListService = new CodeListService(serviceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype), _NOBUILDHIERARCHY);
-            var codeListCapability = new CodeListCapability(codeListService, codeListClass);
-            if (codeListCapability.Update())    // Performs the actual update operation.
-            {
-                // Only in case something has actually been updated do we refresh the diagram and package views...
-                codeListService.Dirty();
-                codeListService.Paint(myDiagram);
-                serviceModel.Refresh();
-                myDiagram.Refresh();
+                // the NoBuildHierarchy indicator avoids construction of the entire CodeList set (since we're only interested in one single CodeList)...
+                var codeListService = new CodeListService(serviceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype), _NOBUILDHIERARCHY);
+                var codeListCapability = new CodeListCapability(codeListService, codeListClass);
+                if (codeListCapability.Update())    // Performs the actual update operation.
+                {
+                    // Only in case something has actually been updated do we refresh the diagram and package views...
+                    codeListService.Dirty();
+                    codeListService.Paint(myDiagram);
+                    serviceModel.Refresh();
+                    myDiagram.Refresh();
+                }
             }
+            model.UnlockModel(serviceModel.Parent);
         }
     }
 }

@@ -7,6 +7,7 @@ using Framework.Model;
 using Framework.Context;
 using Framework.Util;
 using Plugin.Application.Forms;
+using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 
 namespace Plugin.Application.Events.API
@@ -63,7 +64,7 @@ namespace Plugin.Application.Events.API
                 Logger.WriteError("Plugin.Application.Events.API.AddAnnotationEvent.handleEvent >> Illegal context! Aborting.");
                 return;
             }
-            else if (svcContext.Type != ServiceContext.ServiceType.SOAP)
+            else if (svcContext.Type != Service.ServiceArchetype.SOAP)
             {
                 Logger.WriteWarning("Operation only suitable for SOAP Services!");
                 return;

@@ -26,23 +26,27 @@ namespace Plugin.Application.Events.Util
         internal override void HandleEvent()
         {
             MEClass currentClass = ContextSlt.GetContextSlt().CurrentClass;
-            string message = "Process entire hierarchy from '" + currentClass.Name + "' onwards?";
-            if (MessageBox.Show(message, "Repair Scope", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            if (ModelSlt.GetModelSlt().LockModel(currentClass.OwningPackage))
             {
-                this._processedClasses = new List<string>();
-                ProcessClass(currentClass);
-                MessageBox.Show("All classes have been checked and repaired where needed.");
-            }
-            else
-            {
-                // Single class processing, first we check the status of the class by invoking the repair method with 'checkOnly = true'...
-                if (!currentClass.RepairAttributeOrder(true))
+                string message = "Process entire hierarchy from '" + currentClass.Name + "' onwards?";
+                if (MessageBox.Show(message, "Repair Scope", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    message = "Attributes of class '" + currentClass.Name + "', are out of order! Repair?";
-                    if (MessageBox.Show(message, "Repair attribute order", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
-                        currentClass.RepairAttributeOrder(false);
+                    this._processedClasses = new List<string>();
+                    ProcessClass(currentClass);
+                    MessageBox.Show("All classes have been checked and repaired where needed.");
                 }
-                else MessageBox.Show("Attributes of class '" + currentClass.Name + "' are in order, no repair necessary!");
+                else
+                {
+                    // Single class processing, first we check the status of the class by invoking the repair method with 'checkOnly = true'...
+                    if (!currentClass.RepairAttributeOrder(true))
+                    {
+                        message = "Attributes of class '" + currentClass.Name + "', are out of order! Repair?";
+                        if (MessageBox.Show(message, "Repair attribute order", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
+                            currentClass.RepairAttributeOrder(false);
+                    }
+                    else MessageBox.Show("Attributes of class '" + currentClass.Name + "' are in order, no repair necessary!");
+                }
+                ModelSlt.GetModelSlt().UnlockModel(currentClass.OwningPackage);
             }
         }
 

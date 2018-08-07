@@ -5,8 +5,6 @@ using Framework.Logging;
 using Framework.Context;
 using Framework.ConfigurationManagement;
 using Plugin.Application.CapabilityModel;
-using Plugin.Application.CapabilityModel.API;
-using Plugin.Application.CapabilityModel.CodeList;
 using Plugin.Application.Events.API;
 
 namespace Plugin.Application.Events.Util
@@ -16,13 +14,6 @@ namespace Plugin.Application.Events.Util
     /// </summary>
     class CheckoutServiceEvent : EventImplementation
     {
-        // Configuration properties used by this module...
-        private const string _ServiceDeclPkgStereotype      = "ServiceDeclPkgStereotype";
-        private const string _CodeListDeclPkgStereotype     = "CodeListDeclPkgStereotype";
-        private const string _InterfaceContractTypeTag      = "InterfaceContractTypeTag";
-
-        private const bool _NOBUILDHIERARCHY = false;       // Used for CodeLists to suppress construction of complete class hierarchy.
-
         /// <summary>
         /// Checks whether we can process the event in the current context. Since this context is already clearly defined by the 'Service'
         /// stereotype, we only return 'false' when configuration management is generally disabled.
@@ -45,7 +36,6 @@ namespace Plugin.Application.Events.Util
             Logger.WriteInfo("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Message processing...");
             ContextSlt context = ContextSlt.GetContextSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
-            Service myService;
 
             if (!svcContext.Valid)
             {
@@ -55,41 +45,30 @@ namespace Plugin.Application.Events.Util
 
             try
             {
-                if (svcContext.Type == ServiceContext.ServiceType.REST)
+                if (svcContext.LockModel())
                 {
-                    Logger.WriteInfo("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Checking-out a REST Service...");
-                    myService = new RESTService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
-                }
-                else if (svcContext.Type == ServiceContext.ServiceType.CodeList)
-                {
-                    Logger.WriteInfo("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Checking-out a CodeList Service...");
-                    myService = new CodeListService(svcContext.ServiceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype), _NOBUILDHIERARCHY);
-                }
-                else    // Assume it's either SOAP or Message (which is based on SOAP)...
-                {
-                    Logger.WriteInfo("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Checking-out a SOAP/Message Service...");
-                    myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
+                    Service myService = svcContext.GetServiceInstance();
+                    if (!myService.Checkout())
+                    {
+                        MessageBox.Show("Unable to checkout service '" + myService.Name +
+                                        "' from configuration management; probably caused by uncommitted changes on branch(es): '" +
+                                        CMContext.FindBranchesInState(CMState.Modified) + "'." + Environment.NewLine +
+                                        "Please commit pending changes before starting work on a new service!",
+                                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Successfully checked-out service '" + myService.Name + "'.",
+                                        "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        myService.Paint(svcContext.MyDiagram);
+                    }
+                    svcContext.UnlockModel();
                 }
             }
             catch (Exception exc)
             {
                 Logger.WriteError("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Caught an exception during service creation: " + Environment.NewLine + exc.Message);
                 return;
-            }
-
-            if (!myService.Checkout())
-            {
-                MessageBox.Show("Unable to checkout service '" + myService.Name +
-                                "' from configuration management; probably caused by uncommitted changes on branch(es): '" +
-                                CMContext.FindBranchesInState(CMState.Modified) + "'." + Environment.NewLine +
-                                "Please commit pending changes before starting work on a new service!",
-                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            else
-            {
-                MessageBox.Show("Successfully checked-out service '" + myService.Name + "'.",
-                                "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                myService.Paint(svcContext.MyDiagram);
             }
         }
     }

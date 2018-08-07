@@ -44,6 +44,10 @@ namespace Plugin.Application.CapabilityModel
     /// </summary>
     internal abstract class Service
     {
+        // These are the different 'flavors' of service archetypes that are currently known...
+        // Since these are transformations of the corresponding tagname, enumeration and tag MUST be in sync at all times!
+        internal enum ServiceArchetype {Unknown, SOAP, REST, Message, CodeList }
+
         // Public Configuration properties related to Service in general...
         internal const string _CommonPkgName                    = "CommonPkgName";
         internal const string _CommonPkgStereotype              = "CommonPkgStereotype";
@@ -51,10 +55,12 @@ namespace Plugin.Application.CapabilityModel
         internal const string _ServiceModelPkgName              = "ServiceModelPkgName";
         internal const string _ServiceModelPkgStereotype        = "ServiceModelPkgStereotype";
         internal const string _ServiceContainerPkgStereotype    = "ServiceContainerPkgStereotype";
+        internal const string _ServiceDeclPkgStereotype         = "ServiceDeclPkgStereotype";
         internal const string _ServiceSupportModelPathName      = "ServiceSupportModelPathName";
         internal const string _ServiceParentClassName           = "ServiceParentClassName";
         internal const string _DomainModelsRootPkgName          = "DomainModelsRootPkgName";
         internal const string _MaxOperationIDTag                = "MaxOperationIDTag";
+        internal const string _ServiceArchetypeTag              = "ServiceArchetypeTag";
 
         // Private configuration properties used by this service...
         private const string _BusinessFunctionIDTag             = "BusinessFunctionIDTag";
@@ -69,6 +75,7 @@ namespace Plugin.Application.CapabilityModel
         protected MEPackage _serviceDeclPackage;                // Service classes are part of a formal declaration package.
         protected MEPackage _containerPackage;                  // Service declarations are part of a functional container.
         protected MEPackage _modelPackage;                      // The package that holds the service model.
+        protected ServiceArchetype _archetype;                  // Defines the archetype implemented by the current (specialized) Service class.
 
         // Versioning and configuration management...
         private Tuple<int,int> _version;                        // The current version of the service.
@@ -295,6 +302,7 @@ namespace Plugin.Application.CapabilityModel
             this._repositoryPath = string.Empty;
             this._serviceBuildPath = string.Empty;
             this._representationColor = Diagram.ClassColor.Default;
+            this._archetype = ServiceArchetype.Unknown;
 
             string message;
 
@@ -303,9 +311,9 @@ namespace Plugin.Application.CapabilityModel
             if ((this._serviceClass.OwningPackage.Name != context.GetConfigProperty(_ServiceModelPkgName)) ||
                 (!this._serviceClass.OwningPackage.HasStereotype(context.GetConfigProperty(_ServiceModelPkgStereotype))))
             {
-                message = "Service '" + this._serviceClass.Name + "' created in wrong context!\n" +
+                message = "Service '" + this._serviceClass.Name + "' created in wrong context!" + Environment.NewLine +
                           "Owning package '" + this._serviceClass.OwningPackage.Name + "' is of wrong name and/or stereotype!";
-                Logger.WriteError("Plugin.Application.CapabilityModel.Service.collectContext >> " + message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.Service >> " + message);
                 throw new IllegalContextException(message);
             }
 
@@ -324,7 +332,7 @@ namespace Plugin.Application.CapabilityModel
                 // attention. Therefor, a warning message is created.
                 string fullName = this._serviceDeclPackage.Name;
                 string version = fullName.Substring(fullName.IndexOf("_V") + 2);
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.collectContext >> Got major version: " + version + " out of name " + fullName);
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.Service >> Got major version: " + version + " out of name " + fullName);
                 int majorVersion;
                 if (Int32.TryParse(version, out majorVersion))
                 {
@@ -340,7 +348,7 @@ namespace Plugin.Application.CapabilityModel
                 }
 
                 // The parent of our declaration must be the container...
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.collectContext >> Found our declaration: " + this._serviceDeclPackage.Name);
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.Service >> Found our declaration: " + this._serviceDeclPackage.Name);
                 this._containerPackage = this._serviceDeclPackage.Parent;
 
                 // Try to obtain the next-valid Operation ID...
@@ -364,7 +372,7 @@ namespace Plugin.Application.CapabilityModel
             {
                 message = "Service '" + this._serviceClass.Name + "' created in wrong context!\n" +
                           "Package '" + this._serviceClass.OwningPackage.Name + "' seems to be in wrong [part of] package tree!";
-                Logger.WriteError("Plugin.Application.CapabilityModel.Service.collectContext >> " + message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.Service >> " + message);
                 throw new IllegalContextException(message);
             }
         }
@@ -404,6 +412,43 @@ namespace Plugin.Application.CapabilityModel
                                   "' failed because: " + Environment.NewLine + exc.Message);
             }
             return result;
+        }
+
+        /// <summary>
+        /// Creates a verbatim copy of the current service at the same level and in the same container as the current service.
+        /// The new service will receive the specified 'newSvcName'.
+        /// </summary>
+        /// <param name="newName">Name to be assigned to the new service.</param>
+        /// <returns>The newly created service class or NULL on errors.</returns>
+        internal MEClass CopyService(string newName)
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.CopyService >> Copying service '" + this._serviceDeclPackage.Name + "' to '" + newName + "'...");
+            string exportFile = Path.GetTempFileName();
+            this._serviceDeclPackage.ExportPackage(exportFile);
+            MEClass newSvcClass = null;
+
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.CopyService >> Importing to new package structure...");
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string containerStereotype = context.GetConfigProperty(_ServiceContainerPkgStereotype);
+            this._containerPackage.ImportPackage(exportFile, this._containerPackage.Name, containerStereotype, newName);
+            File.Delete(exportFile);
+
+            // Now that we have created a new package structure, retrieve the newly created service class.
+            MEPackage newDeclPackage = this._containerPackage.FindPackage(newName, context.GetConfigProperty(_ServiceDeclPkgStereotype));
+            if (newDeclPackage != null)
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.CopyService >> Retrieved the new service package...");
+                MEPackage newSvcModelPackage = newDeclPackage.FindPackage(context.GetConfigProperty(_ServiceModelPkgName), 
+                                                                          context.GetConfigProperty(_ServiceModelPkgStereotype));
+                if (newSvcModelPackage != null)
+                {
+                    newSvcClass = newSvcModelPackage.FindClass(this.Name, context.GetConfigProperty(_ServiceClassStereotype));
+                    string CMStateTagName = ContextSlt.GetContextSlt().GetConfigProperty(_CMStateTag);
+                    newSvcClass.SetTag(ContextSlt.GetContextSlt().GetConfigProperty(_CMStateTag),
+                                       EnumConversions<CMState>.EnumToString(CMState.Created), true);
+                }
+            }
+            return newSvcClass;
         }
 
         /// <summary>
@@ -666,6 +711,7 @@ namespace Plugin.Application.CapabilityModel
         /// <summary>
         /// Must be invoked in order to change the version of the service and optionally all registered capabilities. Children will be
         /// synchronized in case the new major version is different from the current major version.
+        /// Also, whhen the new major version is updated, we also update te Service Declaration Package name to reflect this.
         /// The 'Service' object keeps a separate copy of the version property since updating this in the underlying repository takes time
         /// and might lead to mismatches when synchronising a complete capability tree. By keeping the version separate, we guarantee that
         /// child objects always get the correct version when using the 'Service' interface.
@@ -683,10 +729,16 @@ namespace Plugin.Application.CapabilityModel
 
             if (currentVersion.Item1 != newVersion.Item1)
             {
-                CreateLogEntry("Major version changed to: '" + MajorVersion + ".0'.");
+                CreateLogEntry("Version changed to: '" + MajorVersion + ".0'.");
+                string newPackageName = Name + "_V" + newVersion.Item1;
+                this._serviceDeclPackage.Name = newPackageName;
+
                 foreach (Capability cap in this._serviceCapabilities) cap.VersionSync();
                 InitializePath();   // Enforce a new path structure, based on the new version.
-                needCMUpdate = true;
+
+                // If te major version update is not associated with a new service, we request a CM update.
+                // For new services, this can wait.
+                if (this._configurationMgmtState != CMState.Created) needCMUpdate = true;
             }
             if (currentVersion.Item2 != newVersion.Item2) needCMUpdate = true;
 
@@ -777,7 +829,8 @@ namespace Plugin.Application.CapabilityModel
                 {
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.LoadCMState >> We have an existing release: '" + 
                                      lastReleased.Item1 + "." + lastReleased.Item2 + "." + lastReleased.Item3 + "'...");
-                    if (this._version.Item1 != lastReleased.Item1 || this._version.Item2 != lastReleased.Item2)
+                    if ((this._version.Item1 == lastReleased.Item1 && this._version.Item2 < lastReleased.Item2) ||
+                        (this._version.Item1 < lastReleased.Item1))
                     {
                         Logger.WriteWarning("Service '" + Name + "' with version '" + this._version.Item1 + "." + this._version.Item2 + 
                                             "' does not match last released version '" + lastReleased.Item1 + "." + lastReleased.Item2 + "'!");

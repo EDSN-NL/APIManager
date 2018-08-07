@@ -230,23 +230,5 @@ namespace Plugin.Application.CapabilityModel.API
                                                                                            context.GetConfigProperty(_ResponseMessageSuffix);
             this._capabilityClass.Name = newName + suffix;
         }
-
-        /// <summary>
-        /// This method is used to synchronize the major version of the CodeList with its parent service in case that version has changed.
-        /// If we detect a major update, the minor version is reset to '0'! 
-        /// The method ONLY considers the service major version, minor version of the CodeList is independent of the Service!
-        /// </summary>
-        internal override void VersionSync()
-        {
-            ContextSlt context = ContextSlt.GetContextSlt();
-            Tuple<int, int> myVersion = this._capabilityClass.Version;
-            int majorVersion = this._rootService.MajorVersion;
-
-            if (myVersion.Item1 < majorVersion)
-            {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.MessageCapabilityImp.versionSync >> Updating major version to: " + majorVersion);
-                this._capabilityClass.Version = new Tuple<int, int>(majorVersion, 0);
-            }
-        }
     }
 }

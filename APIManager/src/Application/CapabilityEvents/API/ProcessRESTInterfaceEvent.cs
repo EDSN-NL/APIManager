@@ -58,7 +58,7 @@ namespace Plugin.Application.Events.API
                 Logger.WriteError("Plugin.Application.Events.API.ProcessRESTInterfaceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
                 return;
             }
-            else if (svcContext.Type != ServiceContext.ServiceType.REST)
+            else if (svcContext.Type != Service.ServiceArchetype.REST)
             {
                 Logger.WriteWarning("Operation only suitable for REST Services!");
                 return;
@@ -70,6 +70,7 @@ namespace Plugin.Application.Events.API
             var myInterface = new RESTInterfaceCapability(svcContext.InterfaceClass);
             var allResources = new List<Capability>();
             foreach (Capability cap in myInterface.ResourceList()) allResources.Add(cap);
+            if (!svcContext.LockModel()) return;    // If we can't lock the model there's no use to continue!
             if (!myService.Checkout())
             {
                 MessageBox.Show("Unable to checkout service '" + myService.Name +
@@ -81,7 +82,7 @@ namespace Plugin.Application.Events.API
 
             using (var picker = new CapabilityPicker("Select root Resource(s) to include in the interface:", allResources, true, false))
             {
-                if (svcContext.LockModel() && picker.ShowDialog() == DialogResult.OK)
+                if (picker.ShowDialog() == DialogResult.OK)
                 {
                     List<Capability> selectedResources = picker.GetCheckedCapabilities();
                     if (selectedResources.Count == 0) return;              // Nothing selected, treat as cancel.

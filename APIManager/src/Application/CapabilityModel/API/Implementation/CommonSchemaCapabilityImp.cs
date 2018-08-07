@@ -129,24 +129,6 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This method is used to synchronize the major version of the class with its parent service in case that version has changed.
-        /// If we detect a major update, the minor version is reset to '0'! 
-        /// The method ONLY considers the service major version, minor version of the schema is independent of the Service!
-        /// </summary>
-        internal override void VersionSync()
-        {
-            ContextSlt context = ContextSlt.GetContextSlt();
-            Tuple<int, int> myVersion = this._capabilityClass.Version;
-            int majorVersion = this._rootService.MajorVersion;
-
-            if (myVersion.Item1 < majorVersion)
-            {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.CommonSchemaCapabilityImp.versionSync >> Updating major version to: " + majorVersion);
-                this._capabilityClass.Version = new Tuple<int, int>(majorVersion, 0);
-            }
-        }
-
-        /// <summary>
         /// Process the capability (i.e. generate output according to provided processor.).
         /// </summary>
         /// <param name="processor">Capability processor that must be used.</param>

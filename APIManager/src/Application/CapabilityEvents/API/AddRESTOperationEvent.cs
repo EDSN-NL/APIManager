@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using Framework.Event;
 using Framework.Logging;
 using Framework.Model;
@@ -68,7 +66,7 @@ namespace Plugin.Application.Events.API
                 Logger.WriteError("Plugin.Application.Events.API.AddRESTOperationEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
                 return;
             }
-            else if (svcContext.Type != ServiceContext.ServiceType.REST)
+            else if (svcContext.Type != Service.ServiceArchetype.REST)
             {
                 Logger.WriteWarning("Operation only suitable for REST Services!");
                 return;

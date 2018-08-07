@@ -390,7 +390,7 @@ namespace SparxEA.Model
                 fileName = fileName.Replace('/', '\\');    
                 EA.Project project = ((EAModelImplementation)this._model).Repository.GetProjectInterface();
                 project.ExportPackageXMIEx(this._package.PackageGUID,
-                                           EnumXMIType.xmiEADefault,    // Of xmiEA251?
+                                           EnumXMIType.xmiEADefault,
                                            _ExportDiagrams, _NoPictureFormats, _NoFormatXML, _UseDTD,
                                            fileName,
                                            !recursive? Convert.ToInt32(EA.ExportPackageXMIFlag.epSaveToStub): 0);
@@ -801,8 +801,12 @@ namespace SparxEA.Model
 
                 this._package.Packages.Refresh();       // Make sure we're looking at the latest state.
                 EA.Package parentPkg = null;
+
+                // Transform (possible) fully-qualified stereotype to a relative name (no profile info)...
+                string rnParentStereotype = (parentStereotype.Contains("::")) ? parentStereotype.Substring(parentStereotype.IndexOf("::") + 2) : parentStereotype;
+
                 // Specified parent might be the current package, makes things easier...
-                if (parentPackageName == this.Name && parentStereotype == this._package.Element.Stereotype) parentPkg = this._package;
+                if (parentPackageName == this.Name && rnParentStereotype == this._package.Element.Stereotype) parentPkg = this._package;
                 else
                 {
                     MEPackage parent = FindPackage(parentPackageName, parentStereotype);
@@ -826,7 +830,7 @@ namespace SparxEA.Model
                 }
 
                 // Finally, check whether we must update the package name...
-                if (!string.IsNullOrEmpty(newImportedPackageName))
+                if (!string.IsNullOrEmpty(newImportedPackageName) && importedPackage.Name != newImportedPackageName)
                 {
                     Logger.WriteInfo("SparxEA.Model.EAMEIPackage.ImportPackage (new instance) >> Renaming imported package to '" + newImportedPackageName + "'...");
                     importedPackage.Name = newImportedPackageName;

@@ -34,10 +34,11 @@ namespace Plugin.Application.Events.CodeList
         {
             Logger.WriteInfo("Plugin.Application.Events.CodeList.CreateCodeListDeclarationEvent.handleEvent >> Processing event...");
             ContextSlt context = ContextSlt.GetContextSlt();
+            ModelSlt model = ModelSlt.GetModelSlt();
             MEPackage containerPackage = context.CurrentPackage;
             using (var dialog = new CreateCodeListDeclaration(containerPackage))
             {
-                if (dialog.ShowDialog() == DialogResult.OK)
+                if (model.LockModel(containerPackage) && dialog.ShowDialog() == DialogResult.OK)
                 {
                     string codeListDeclStereotype = context.GetConfigProperty(_CodeListDeclPkgStereotype);
 
@@ -53,7 +54,8 @@ namespace Plugin.Application.Events.CodeList
                                                             "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                     }
-                }          
+                }
+                model.UnlockModel(containerPackage);
             }
         }
     }

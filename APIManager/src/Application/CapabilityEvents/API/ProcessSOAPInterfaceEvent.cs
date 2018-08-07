@@ -58,11 +58,13 @@ namespace Plugin.Application.Events.API
                 Logger.WriteError("Plugin.Application.Events.API.ProcessSOAPInterfaceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
                 return;
             }
-            else if (svcContext.Type != ServiceContext.ServiceType.SOAP)
+            else if (svcContext.Type != Service.ServiceArchetype.SOAP)
             {
                 Logger.WriteWarning("Operation only suitable for SOAP Services!");
                 return;
             }
+
+            if (!svcContext.LockModel()) return;    // If we can't lock the model, there's no use to continue.
 
             // Creating the SOAPService will construct the entire Capability hierarchy in memory. We can subsequently create any specialized Capability
             // object by using the 'MEClass' constructor, which fetches the appropriate implementation object from the registry...
@@ -81,7 +83,7 @@ namespace Plugin.Application.Events.API
 
             using (var picker = new CapabilityPicker("Select Operation(s) to include in the build:", allOperations, true, false))
             {
-                if (svcContext.LockModel() && picker.ShowDialog() == DialogResult.OK)
+                if (picker.ShowDialog() == DialogResult.OK)
                 {
                     List<Capability> selectedOperations = picker.GetCheckedCapabilities();
                     if (selectedOperations.Count == 0) return;              // Nothing selected, treat as cancel.

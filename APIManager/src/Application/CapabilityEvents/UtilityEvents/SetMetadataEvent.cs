@@ -43,13 +43,15 @@ namespace Plugin.Application.Events.Util
                 // We can be called from a class on a diagram, from a class in a package or from a package. In the latter case, the event will
                 // process all classes in that package.
                 // For a class, all outbound associations will be processed as well (with the exception of generalization).
+                ModelSlt model = ModelSlt.GetModelSlt();
                 ModelElement element = context.GetActiveElement();
-                if (element.Type == ModelElementType.Class)
+                if (element.Type == ModelElementType.Class && model.LockModel(((MEClass)element).OwningPackage))
                 {
                     ProcessClass(element as MEClass);
                     MessageBox.Show("Metadata assignment completed.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else if (element.Type == ModelElementType.Package) ProcessPackage(element as MEPackage);
+                model.UnlockModel(((MEClass)element).OwningPackage);
             }
             catch (Exception exc)
             {

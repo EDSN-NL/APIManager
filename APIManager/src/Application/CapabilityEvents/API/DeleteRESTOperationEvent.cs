@@ -3,6 +3,7 @@ using Framework.Event;
 using Framework.Logging;
 using Framework.Model;
 using Framework.Context;
+using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 using Plugin.Application.Forms;
 
@@ -11,7 +12,7 @@ namespace Plugin.Application.Events.API
     class DeleteRESTOperationEvent : EventImplementation
     {
         // Configuration properties used by this module...
-        private const string _ServiceDeclPkgStereotype              = "ServiceDeclPkgStereotype";
+        private const string _ServiceDeclPkgStereotype = "ServiceDeclPkgStereotype";
 
         /// <summary>
         /// This event can only be applied to classes of stereotype 'RESTOperation'. There is no need to check for additional state.
@@ -36,7 +37,7 @@ namespace Plugin.Application.Events.API
                 Logger.WriteError("Plugin.Application.Events.API.DeleteRESTOperationEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
                 return;
             }
-            else if (svcContext.Type != ServiceContext.ServiceType.REST)
+            else if (svcContext.Type != Service.ServiceArchetype.REST)
             {
                 Logger.WriteWarning("Operation only suitable for REST Services!");
                 return;
@@ -56,7 +57,6 @@ namespace Plugin.Application.Events.API
                     // Mark service as 'modified' for configuration management and add to diagram in different color...
                     myService.Dirty();
                     myService.Paint(svcContext.MyDiagram);
-
                     svcContext.Refresh();
                 }
                 svcContext.UnlockModel();
