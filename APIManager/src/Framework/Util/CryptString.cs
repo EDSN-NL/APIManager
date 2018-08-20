@@ -258,6 +258,46 @@ namespace Framework.Util
         }
 
         /// <summary>
+        /// Compares two secure strings for equality.
+        /// </summary>
+        /// <param name="ss1">First string to compare.</param>
+        /// <param name="ss2">Second string to compate.</param>
+        /// <returns></returns>
+        internal static bool IsEqual(SecureString ss1, SecureString ss2)
+        {
+            IntPtr bstr1 = IntPtr.Zero;
+            IntPtr bstr2 = IntPtr.Zero;
+
+            // If both are NULL, we consider this equal.
+            if (ss1 == null && ss2 == null) return true;
+            else if ((ss1 == null && ss2 != null) || (ss1 != null && ss2 == null)) return false;
+
+            try
+            {
+                bstr1 = Marshal.SecureStringToBSTR(ss1);
+                bstr2 = Marshal.SecureStringToBSTR(ss2);
+                int length1 = Marshal.ReadInt32(bstr1, -4);
+                int length2 = Marshal.ReadInt32(bstr2, -4);
+                if (length1 == length2)
+                {
+                    for (int x = 0; x < length1; ++x)
+                    {
+                        byte b1 = Marshal.ReadByte(bstr1, x);
+                        byte b2 = Marshal.ReadByte(bstr2, x);
+                        if (b1 != b2) return false;
+                    }
+                }
+                else return false;
+                return true;
+            }
+            finally
+            {
+                if (bstr2 != IntPtr.Zero) Marshal.ZeroFreeBSTR(bstr2);
+                if (bstr1 != IntPtr.Zero) Marshal.ZeroFreeBSTR(bstr1);
+            }
+        }
+
+        /// <summary>
         /// Returns an 'ordinary' string representation of the secure, encrypted string. Note that using encrypted string as an ordinary string
         /// has negative impact on security of this class.
         /// </summary>

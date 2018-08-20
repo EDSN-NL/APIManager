@@ -20,6 +20,7 @@ using Framework.Controller;
 using Framework.View;
 using SparxEA.Model;
 using Framework.Util.SchemaManagement.JSON;
+using Framework.ConfigurationManagement;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Schema;
 using Newtonsoft.Json.Linq;
@@ -30,6 +31,7 @@ using Plugin.Application.Events.API;
 using Plugin.Application.CapabilityModel;
 using Plugin.Application.Forms;
 using APIManager.SparxEA.Properties;        // Addresses the "settings" environment so we can retrieve run-time settings.
+using Atlassian.Jira;
 
 namespace Plugin.Application.Events.Util
 {
@@ -55,36 +57,13 @@ namespace Plugin.Application.Events.Util
                 MEPackage currentPackage = context.CurrentPackage;
                 Diagram currentDiagram = context.CurrentDiagram;
 
-                string exportFile = "C:/temp/" + currentPackage.Name + ".xmi";
-                currentPackage.ExportPackage(exportFile);
-                currentPackage.Parent.ImportPackage(exportFile, currentPackage.Parent.Name, "ServiceContainer", currentPackage.Name + "_COPY");
-
-                /****
-                RepositorySlt repo = RepositorySlt.GetRepositorySlt();
-                repo.SetIdentity("Wouter Meijers", "wouter.meijers@enexis.nl");
-
-                string container1 = "2402.Construction";
-                string container2 = "3010.02.01.01.01.MeasurementDeviceAdministration";
-
-                string svc11 = "ConnectionReconstruction_V1";
-                string svc12 = "WorkOrderDetails_V1";
-                string svc21 = "Meter_V1";
-                
-                
-                repo.SetRootBranch(container1 + "." + svc12);
-                repo.AddToStagingArea(container1 + "/" + svc12);
-                repo.CommitStagingArea("My commit message");
-
-                repo.SetRootBranch(container2 + "." + svc21);
-                repo.AddToStagingArea(container2 + "/" + svc21);
-                repo.CommitStagingArea("My commit message for container 2");
-
-                repo.SetRootBranch(container1 + "." + svc11);
-                repo.AddToStagingArea(container1 + "/" + svc11);
-                repo.CommitStagingArea("My commit message for container 1");
-
-                repo.Push();
-                *****/
+                TicketServerSlt ticketSrv = TicketServerSlt.GetTicketServerSlt();
+                Ticket myTicket = ticketSrv.GetTicket(currentClass.GetTag("ticketID"));
+                if (myTicket != null)
+                {
+                    MessageBox.Show(myTicket.ToString());
+                }
+                else MessageBox.Show("Ticket not found/defined/wrong state");
 
                 //MakeCommonSchema();
                 //Test7() ;

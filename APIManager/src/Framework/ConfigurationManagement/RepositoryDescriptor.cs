@@ -11,7 +11,7 @@ namespace Framework.ConfigurationManagement
 {
     /// <summary>
     /// The Repository Descriptor is a configuration item that is used to store repository settings. One such descriptor must be used for each
-    /// model repository. It combines the local model with local CM settings and a corresponding remote.
+    /// model repository. It combines the local model with local CM settings, a corresponding remote and a Jira Project.
     /// </summary>
     sealed internal class RepositoryDescriptor
     {
@@ -21,15 +21,23 @@ namespace Framework.ConfigurationManagement
         /// </summary>
         internal struct DescriptorProperties
         {
+            // Generic settings...
             internal string _name;
             internal string _description;
             internal string _localPath;
             internal bool _useCM;
+
+            // GIT settings...
             internal string _GITIgnore;
             internal Uri _remoteURL;
             internal Uri _remoteNamespace;
-            internal SecureString _password;
+            internal SecureString _remotePassword;
             internal Identity _identity;
+
+            // Jira settings...
+            internal Uri _jiraURL;
+            internal string _jiraUser;
+            internal SecureString _jiraPassword;
         }
 
         // We use this as an extra security precaution when encrypting/decrypting settings. Don't change this value or you can't retrieve
@@ -44,8 +52,13 @@ namespace Framework.ConfigurationManagement
 
         private Uri _remoteURL;                 // URL to access remote repository (root).
         private Uri _remoteNamespace;           // Relative path from remoteURL to the actual GIT repository.
-        private SecureString _password;         // Password or access token, depending on remote configuration.
+        private SecureString _remotePassword;   // Password or access token, depending on remote configuration.
         private Identity _identity;             // Identifies the current user by username and e- mail.
+
+        // Jira settings...
+        private Uri _jiraURL;                   // Location of Jira platform;
+        private string _jiraUser;               // Username for Jira.
+        private SecureString _jiraPassword;     // Password or access token for Jira.
 
         private bool _dirty;                    // Used to determine whether or not we must serialize the object.
 
@@ -55,7 +68,7 @@ namespace Framework.ConfigurationManagement
         internal string Name
         {
             get { return this._repoName?? string.Empty; }
-            set { if (value != this._repoName) { this._repoName = value; this._dirty = true; } }
+            set { if (string.IsNullOrEmpty(this._repoName) || value != this._repoName) { this._repoName = value; this._dirty = true; } }
         }
 
         /// <summary>
@@ -64,7 +77,7 @@ namespace Framework.ConfigurationManagement
         internal string Description
         {
             get { return this._description?? string.Empty; }
-            set { if (value != this._description) { this._description = value; this._dirty = true; } }
+            set { if (string.IsNullOrEmpty(this._description) || value != this._description) { this._description = value; this._dirty = true; } }
         }
 
         /// <summary>
@@ -73,7 +86,7 @@ namespace Framework.ConfigurationManagement
         internal string LocalRootPath
         {
             get { return this._localRootPath?? string.Empty; }
-            set { if (value != this._localRootPath) { this._localRootPath = value; this._dirty = true; } }
+            set { if (string.IsNullOrEmpty(this._localRootPath) || value != this._localRootPath) { this._localRootPath = value; this._dirty = true; } }
         }
 
         /// <summary>
@@ -91,7 +104,16 @@ namespace Framework.ConfigurationManagement
         internal string GITIgnoreList
         {
             get { return this._GITIgnore ?? string.Empty; }
-            set { if (value != this._GITIgnore) { this._GITIgnore = value; this._dirty = true; } }
+            set { if (string.IsNullOrEmpty(this._GITIgnore) || value != this._GITIgnore) { this._GITIgnore = value; this._dirty = true; } }
+        }
+        
+        /// <summary>
+        /// Get- or set the Jira URL.
+        /// </summary>
+        internal Uri JiraURL
+        {
+            get { return this._jiraURL; }
+            set { if (this._jiraURL == null || value != this._jiraURL) { this._jiraURL = value; this._dirty = true; } }
         }
 
         /// <summary>
@@ -100,7 +122,7 @@ namespace Framework.ConfigurationManagement
         internal Uri RemoteURL
         {
             get { return this._remoteURL; }
-            set { if (value != this._remoteURL) { this._remoteURL = value; this._dirty = true; } }
+            set { if (this._remoteURL == null || value != this._remoteURL) { this._remoteURL = value; this._dirty = true; } }
         }
 
         /// <summary>
@@ -109,26 +131,51 @@ namespace Framework.ConfigurationManagement
         internal Uri RemoteRepositoryNamespace
         {
             get { return this._remoteNamespace; }
-            set { if (value != this._remoteNamespace) { this._remoteNamespace = value; this._dirty = true; } }
+            set { if (this._remoteNamespace == null || value != this._remoteNamespace) { this._remoteNamespace = value; this._dirty = true; } }
         }
 
         /// <summary>
         /// Get or set the remote repository access password (or access token, depending on remote configuration).
         /// </summary>
-        internal SecureString Password
+        internal SecureString RepositoryPassword
         {
-            get { return this._password?? new SecureString(); }
-            set { this._password = value; }
+            get { return this._remotePassword?? new SecureString(); }
+            set { if (!CryptString.IsEqual(this._remotePassword, value)) { this._remotePassword = value; this._dirty = true; } }
+        }
+
+        /// <summary>
+        /// Get or set the Jira password (or access token, depending on remote configuration).
+        /// </summary>
+        internal SecureString JiraPassword
+        {
+            get { return this._jiraPassword ?? new SecureString(); }
+            set { if (!CryptString.IsEqual(this._jiraPassword, value)) { this._jiraPassword = value; this._dirty = true; } }
+        }
+
+        /// <summary>
+        /// Get or set the Jira user name.
+        /// </summary>
+        internal string JiraUserName
+        {
+            get { return this._jiraUser ?? string.Empty; }
+            set { if (string.IsNullOrEmpty(this._jiraUser) || this._jiraUser != value) { this._jiraUser = value; this._dirty = true; } }
         }
 
         /// <summary>
         /// Get- or set the user identity (username and e-mail).
         /// If we don't have a valid identity, we return an illegal one with "Dummy.User" and "Dummy.EMail".
         /// </summary>
-        internal Identity UserIdentity
+        internal Identity RepositoryUserID
         {
             get { return this._identity?? new Identity("Dummy.User", "Dummy.EMail"); }
-            set { if (value != this._identity) { this._identity = value; this._dirty = true; } }
+            set
+            {
+                if (this._identity == null || value.Email != this._identity.Email || value.Name != this._identity.Name)
+                {
+                    this._identity = new Identity(value.Name, value.Email);
+                    this._dirty = true;
+                }
+            }
         }
 
         /// <summary>
@@ -146,9 +193,12 @@ namespace Framework.ConfigurationManagement
                     _localPath          = this.LocalRootPath,
                     _GITIgnore          = this.GITIgnoreList,
                     _remoteURL          = this.RemoteURL,
-                    _identity           = this.UserIdentity,
-                    _password           = this.Password,
-                    _remoteNamespace    = this.RemoteRepositoryNamespace
+                    _identity           = this.RepositoryUserID,
+                    _remotePassword     = this.RepositoryPassword,
+                    _remoteNamespace    = this.RemoteRepositoryNamespace,
+                    _jiraPassword       = this.JiraPassword,
+                    _jiraURL            = this.JiraURL,
+                    _jiraUser           = this.JiraUserName
                 };
             }
             set
@@ -161,9 +211,12 @@ namespace Framework.ConfigurationManagement
                 this.LocalRootPath              = value._localPath;
                 this.GITIgnoreList              = value._GITIgnore;
                 this.RemoteURL                  = value._remoteURL;
-                this.UserIdentity               = value._identity;
-                this.Password                   = value._password;
+                this.RepositoryUserID           = value._identity;
+                this.RepositoryPassword         = value._remotePassword;
                 this.RemoteRepositoryNamespace  = value._remoteNamespace;
+                this.JiraPassword               = value._jiraPassword;
+                this.JiraURL                    = value._jiraURL;
+                this.JiraUserName               = value._jiraUser;
                 Serialize();
             }
         }
@@ -171,11 +224,11 @@ namespace Framework.ConfigurationManagement
         /// <summary>
         /// Specialized constructor that creates a new instance using the specified XML node as root. This MUST be a 'Repository' element.
         /// </summary>
-        /// <param name="rootNode">'Repository' node to be used for creation.</param>
-        internal RepositoryDescriptor(XmlNode rootNode)
+        /// <param name="node">'Repository' node to be used for creation.</param>
+        internal RepositoryDescriptor(XmlNode node)
         {
             Logger.WriteInfo("Framework.ConfigurationManagement.RepositoryDescriptor >> Build instance from XML node...");
-            DeserializeConfiguration(rootNode);
+            DeserializeConfiguration(node);
         }
 
         /// <summary>
@@ -229,25 +282,25 @@ namespace Framework.ConfigurationManagement
                 Logger.WriteInfo("Framework.ConfigurationManagement.RepositoryDescriptor.DeserializeConfiguration >> GIT Ignore list set to: " + this._GITIgnore);
             }
 
-            currentNode = configNode.SelectSingleNode("Remote/RepositoryRootURL");
+            currentNode = configNode.SelectSingleNode("GitRemote/RepositoryRootURL");
             if (currentNode != null)
             {
                 this._remoteURL = new Uri(currentNode.InnerText, UriKind.Absolute);
                 Logger.WriteInfo("Framework.ConfigurationManagement.RepositoryDescriptor.DeserializeConfiguration >> Remote URL set to: " + this._remoteURL);
             }
 
-            currentNode = configNode.SelectSingleNode("Remote/RepositoryNamespace");
+            currentNode = configNode.SelectSingleNode("GitRemote/RepositoryNamespace");
             if (currentNode != null)
             {
                 this._remoteNamespace = new Uri(currentNode.InnerText, UriKind.Relative);
                 Logger.WriteInfo("Framework.ConfigurationManagement.RepositoryDescriptor.DeserializeConfiguration >> Remote namespace set to: " + this._remoteNamespace);
             }
 
-            currentNode = configNode.SelectSingleNode("Remote/User/UserName");
+            currentNode = configNode.SelectSingleNode("GitRemote/User/UserName");
             if (currentNode != null)
             {
                 string userName = currentNode.InnerText;
-                currentNode = configNode.SelectSingleNode("Remote/User/EMail");
+                currentNode = configNode.SelectSingleNode("GitRemote/User/EMail");
                 if (currentNode != null)
                 {
                     this._identity = new Identity(userName, currentNode.InnerText);
@@ -256,11 +309,32 @@ namespace Framework.ConfigurationManagement
                 }
             }
 
-            currentNode = configNode.SelectSingleNode("Remote/User/Password");
+            currentNode = configNode.SelectSingleNode("GitRemote/User/Password");
             if (currentNode != null)
             {
-                this._password = CryptString.Decrypt(CryptString.ToSecureString(currentNode.InnerText), _Salt);
-                Logger.WriteInfo("Framework.ConfigurationManagement.RepositoryDescriptor.DeserializeConfiguration >> Password read.");
+                this._remotePassword = CryptString.Decrypt(CryptString.ToSecureString(currentNode.InnerText), _Salt);
+                Logger.WriteInfo("Framework.ConfigurationManagement.RepositoryDescriptor.DeserializeConfiguration >> Git Password read.");
+            }
+
+            currentNode = configNode.SelectSingleNode("JiraRemote/User/UserName");
+            if (currentNode != null)
+            {
+                this._jiraUser = currentNode.InnerText;
+                Logger.WriteInfo("Framework.ConfigurationManagement.RepositoryDescriptor.DeserializeConfiguration >> Jira user name set to: " + this._jiraUser);
+            }
+
+            currentNode = configNode.SelectSingleNode("JiraRemote/User/Password");
+            if (currentNode != null)
+            {
+                this._jiraPassword = CryptString.Decrypt(CryptString.ToSecureString(currentNode.InnerText), _Salt);
+                Logger.WriteInfo("Framework.ConfigurationManagement.RepositoryDescriptor.DeserializeConfiguration >> Jira Password read.");
+            }
+
+            currentNode = configNode.SelectSingleNode("JiraRemote/URL");
+            if (currentNode != null)
+            {
+                this._jiraURL = new Uri(currentNode.InnerText, UriKind.Absolute);
+                Logger.WriteInfo("Framework.ConfigurationManagement.RepositoryDescriptor.DeserializeConfiguration >> Jira URL set to: " + this._jiraURL);
             }
         }
 
@@ -270,7 +344,8 @@ namespace Framework.ConfigurationManagement
         /// </summary>
         private void Serialize()
         {
-            if (!this._dirty == true) return;       // Nothing changed, do nothing!
+            if (!this._dirty) return;       // Nothing changed, do nothing!
+            this._dirty = false;
 
             XmlDocument xmlConfig = new XmlDocument();
             XmlNode containerNode = null;
@@ -302,54 +377,71 @@ namespace Framework.ConfigurationManagement
                 containerNode.AppendChild(configNode);
 
                 XmlAttribute repoName = xmlConfig.CreateAttribute("name");
-                configNode.Attributes.Append(repoName);
                 repoName.Value = this._repoName;
+                configNode.Attributes.Append(repoName);
 
                 XmlAttribute useCMInd = xmlConfig.CreateAttribute("useCM");
+                useCMInd.Value = this._useCM ? "true" : "false";
                 configNode.Attributes.Append(useCMInd);
-                useCMInd.Value = this._useCM? "true": "false";
 
                 XmlNode rootPathNode = xmlConfig.CreateElement("RootPath");
-                configNode.AppendChild(rootPathNode);
                 rootPathNode.AppendChild(xmlConfig.CreateTextNode(this._localRootPath));
+                configNode.AppendChild(rootPathNode);
 
                 if (this._description != string.Empty)
                 {
                     XmlNode descNode = xmlConfig.CreateElement("Description");
-                    configNode.AppendChild(descNode);
                     descNode.AppendChild(xmlConfig.CreateTextNode(this._description));
+                    configNode.AppendChild(descNode);
                 }
 
                 if (this._GITIgnore != string.Empty)
                 {
                     XmlNode ignoreNode = xmlConfig.CreateElement("GITIgnore");
-                    configNode.AppendChild(ignoreNode);
                     ignoreNode.AppendChild(xmlConfig.CreateTextNode(this._GITIgnore));
+                    configNode.AppendChild(ignoreNode);
                 }
 
                 if (this._useCM)
                 {
-                    XmlNode remoteNode = xmlConfig.CreateElement("Remote");
+                    XmlNode remoteNode = xmlConfig.CreateElement("GitRemote");
                     configNode.AppendChild(remoteNode);
+
                     XmlNode userNode = xmlConfig.CreateElement("User");
                     remoteNode.AppendChild(userNode);
                     XmlNode userName = xmlConfig.CreateElement("UserName");
-                    userNode.AppendChild(userName);
                     userName.AppendChild(xmlConfig.CreateTextNode(this._identity.Name));
+                    userNode.AppendChild(userName);
                     XmlNode userMail = xmlConfig.CreateElement("EMail");
-                    userNode.AppendChild(userMail);
                     userMail.AppendChild(xmlConfig.CreateTextNode(this._identity.Email));
+                    userNode.AppendChild(userMail);
                     XmlNode userPW = xmlConfig.CreateElement("Password");
+                    userPW.AppendChild(xmlConfig.CreateTextNode(CryptString.ToPlainString(CryptString.Encrypt(this._remotePassword, _Salt))));
                     userNode.AppendChild(userPW);
-                    userPW.AppendChild(xmlConfig.CreateTextNode(CryptString.ToPlainString(CryptString.Encrypt(this._password, _Salt))));
 
                     XmlNode rootURLNode = xmlConfig.CreateElement("RepositoryRootURL");
-                    remoteNode.AppendChild(rootURLNode);
                     rootURLNode.AppendChild(xmlConfig.CreateTextNode(this._remoteURL.ToString()));
+                    remoteNode.AppendChild(rootURLNode);
 
                     XmlNode namespaceNode = xmlConfig.CreateElement("RepositoryNamespace");
-                    remoteNode.AppendChild(namespaceNode);
                     namespaceNode.AppendChild(xmlConfig.CreateTextNode(this._remoteNamespace.ToString()));
+                    remoteNode.AppendChild(namespaceNode);
+
+                    XmlNode jiraRemote = xmlConfig.CreateElement("JiraRemote");
+                    configNode.AppendChild(jiraRemote);
+
+                    XmlNode jiraURLNode = xmlConfig.CreateElement("URL");
+                    jiraURLNode.AppendChild(xmlConfig.CreateTextNode(this._jiraURL.ToString()));
+                    jiraRemote.AppendChild(jiraURLNode);
+
+                    XmlNode jiraUserNode = xmlConfig.CreateElement("User");
+                    jiraRemote.AppendChild(jiraUserNode);
+                    XmlNode jiraUserName = xmlConfig.CreateElement("UserName");
+                    jiraUserName.AppendChild(xmlConfig.CreateTextNode(this._jiraUser));
+                    jiraUserNode.AppendChild(jiraUserName);
+                    XmlNode jiraUserPW = xmlConfig.CreateElement("Password");
+                    jiraUserPW.AppendChild(xmlConfig.CreateTextNode(CryptString.ToPlainString(CryptString.Encrypt(this._jiraPassword, _Salt))));
+                    jiraUserNode.AppendChild(jiraUserPW);
                 }
 
                 using (var stringWriter = new StringWriter())
@@ -357,6 +449,7 @@ namespace Framework.ConfigurationManagement
                 {
                     xmlConfig.WriteTo(xmlTextWriter);
                     xmlTextWriter.Flush();
+                    Logger.WriteInfo("Framework.ConfigurationManagement.RepositoryDescriptor.SerializeConfiguration >> Created XML: " + Environment.NewLine + stringWriter.GetStringBuilder().ToString());
                     Settings.Default.RepositoryDescriptorList = Compression.StringZip(stringWriter.GetStringBuilder().ToString());
                     Settings.Default.Save();
                 }

@@ -336,7 +336,7 @@ namespace Framework.ConfigurationManagement
             this._enabled = repoDsc.IsCMEnabled;
             this._hasRepository = false;
             this._gitIgnorePatterns = repoDsc.GITIgnoreList;
-            this._identity = repoDsc.UserIdentity;
+            this._identity = repoDsc.RepositoryUserID;
 
             try
             {

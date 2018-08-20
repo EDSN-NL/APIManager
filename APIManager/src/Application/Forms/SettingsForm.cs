@@ -91,7 +91,7 @@ namespace Plugin.Application.Forms
 
             // Load the CM descriptor info...
             CMRepositoryDscManagerSlt dscMgr = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt();
-            foreach (RepositoryDescriptor dsc in dscMgr.DescriptorList)
+            foreach (RepositoryDescriptor dsc in dscMgr.RepositoryDescriptorList)
             {
                 ListViewItem newItem = new ListViewItem(dsc.Name);
                 newItem.SubItems.Add(dsc.Description);
@@ -278,23 +278,27 @@ namespace Plugin.Application.Forms
         private void AddRepository_Click(object sender, EventArgs e)
         {
             CMRepositoryDscManagerSlt dscMgr = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt();
-            RepositoryDescriptor.DescriptorProperties properties = new RepositoryDescriptor.DescriptorProperties();
-            properties._name                = string.Empty;
-            properties._description         = string.Empty;
-            properties._useCM               = false;
-            properties._GITIgnore           = string.Empty;
-            properties._identity            = null;
-            properties._password            = null;
-            properties._localPath           = string.Empty;
-            properties._remoteURL           = null;
-            properties._remoteNamespace     = null;
-            properties._identity            = null;
+            RepositoryDescriptor.DescriptorProperties repositoryProperties = new RepositoryDescriptor.DescriptorProperties
+            {
+                _name = string.Empty,
+                _description = string.Empty,
+                _useCM = false,
+                _GITIgnore = string.Empty,
+                _identity = null,
+                _remotePassword = null,
+                _localPath = string.Empty,
+                _remoteURL = null,
+                _remoteNamespace = null,
+                _jiraPassword = null,
+                _jiraURL = null,
+                _jiraUser = string.Empty
+            };
 
-            using (var dialog = new CMRepositorySetting(properties))
+            using (var dialog = new CMRepositorySetting(repositoryProperties))
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    if (dscMgr.AddDescriptor(dialog.Properties))
+                    if (dscMgr.AddRepositoryDescriptor(dialog.Properties))
                     {
                         ListViewItem newItem = new ListViewItem(dialog.Properties._name);
                         newItem.SubItems.Add(dialog.Properties._description);
@@ -322,7 +326,6 @@ namespace Plugin.Application.Forms
                     CMRepositoryDscManagerSlt dscMgr = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt();
                     dscMgr.DeleteDescriptor(key.Text);
                     ResponseCodeList.Items.Remove(key);
-
                 }
             }
         }

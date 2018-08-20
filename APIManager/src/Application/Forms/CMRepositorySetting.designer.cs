@@ -30,68 +30,78 @@ namespace Plugin.Application.Forms
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.Cancel = new System.Windows.Forms.Button();
             this.Ok = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
+            this.label1_1 = new System.Windows.Forms.Label();
             this.EAProjectName = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
+            this.label1_2 = new System.Windows.Forms.Label();
             this.EAProjectDescription = new System.Windows.Forms.TextBox();
             this.RootPathSelector = new System.Windows.Forms.FolderBrowserDialog();
             this.LocalConfigManagement = new System.Windows.Forms.GroupBox();
-            this.label13 = new System.Windows.Forms.Label();
+            this.label2_2 = new System.Windows.Forms.Label();
             this.GITIgnoreEntries = new System.Windows.Forms.TextBox();
             this.SelectRepoPath = new System.Windows.Forms.Button();
             this.RepoPathName = new System.Windows.Forms.TextBox();
-            this.label7 = new System.Windows.Forms.Label();
+            this.label2_1 = new System.Windows.Forms.Label();
             this.ConfigurationMgmtIndicator = new System.Windows.Forms.CheckBox();
             this.RemoteConfigManagement = new System.Windows.Forms.GroupBox();
             this.RepositoryNamespace = new System.Windows.Forms.TextBox();
-            this.label14 = new System.Windows.Forms.Label();
+            this.label3_5 = new System.Windows.Forms.Label();
             this.RepositoryBaseURL = new System.Windows.Forms.TextBox();
-            this.label12 = new System.Windows.Forms.Label();
+            this.label3_1 = new System.Windows.Forms.Label();
             this.Password = new System.Windows.Forms.TextBox();
-            this.label11 = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
+            this.label3_4 = new System.Windows.Forms.Label();
+            this.label3_2 = new System.Windows.Forms.Label();
             this.UserName = new System.Windows.Forms.TextBox();
-            this.label10 = new System.Windows.Forms.Label();
+            this.label3_3 = new System.Windows.Forms.Label();
             this.EMailAddress = new System.Windows.Forms.TextBox();
             this.GenericBox = new System.Windows.Forms.GroupBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.JIRAGroup = new System.Windows.Forms.GroupBox();
+            this.JiraPassword = new System.Windows.Forms.TextBox();
+            this.label4_3 = new System.Windows.Forms.Label();
+            this.JiraUserName = new System.Windows.Forms.TextBox();
+            this.label4_2 = new System.Windows.Forms.Label();
+            this.JiraURL = new System.Windows.Forms.TextBox();
+            this.label4_1 = new System.Windows.Forms.Label();
+            this.JiraTooltip = new System.Windows.Forms.ToolTip(this.components);
             this.LocalConfigManagement.SuspendLayout();
             this.RemoteConfigManagement.SuspendLayout();
             this.GenericBox.SuspendLayout();
+            this.JIRAGroup.SuspendLayout();
             this.SuspendLayout();
             // 
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(550, 298);
+            this.Cancel.Location = new System.Drawing.Point(552, 413);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
-            this.Cancel.TabIndex = 6;
+            this.Cancel.TabIndex = 5;
             this.Cancel.Text = "Cancel";
             this.Cancel.UseVisualStyleBackColor = true;
             // 
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(469, 298);
+            this.Ok.Location = new System.Drawing.Point(471, 413);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
-            this.Ok.TabIndex = 7;
+            this.Ok.TabIndex = 6;
             this.Ok.Text = "Ok";
             this.Ok.UseVisualStyleBackColor = true;
             this.Ok.Click += new System.EventHandler(this.Ok_Click);
             // 
-            // label1
+            // label1_1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(9, 22);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(60, 13);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "EA Project:";
+            this.label1_1.AutoSize = true;
+            this.label1_1.Location = new System.Drawing.Point(9, 22);
+            this.label1_1.Name = "label1_1";
+            this.label1_1.Size = new System.Drawing.Size(60, 13);
+            this.label1_1.TabIndex = 0;
+            this.label1_1.Text = "EA Project:";
             // 
             // EAProjectName
             // 
@@ -101,14 +111,14 @@ namespace Plugin.Application.Forms
             this.EAProjectName.TabIndex = 1;
             this.EAProjectName.Leave += new System.EventHandler(this.EAProjectName_Leave);
             // 
-            // label2
+            // label1_2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 48);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(63, 13);
-            this.label2.TabIndex = 0;
-            this.label2.Text = "Description:";
+            this.label1_2.AutoSize = true;
+            this.label1_2.Location = new System.Drawing.Point(6, 48);
+            this.label1_2.Name = "label1_2";
+            this.label1_2.Size = new System.Drawing.Size(63, 13);
+            this.label1_2.TabIndex = 0;
+            this.label1_2.Text = "Description:";
             // 
             // EAProjectDescription
             // 
@@ -119,26 +129,26 @@ namespace Plugin.Application.Forms
             // 
             // LocalConfigManagement
             // 
-            this.LocalConfigManagement.Controls.Add(this.label13);
+            this.LocalConfigManagement.Controls.Add(this.label2_2);
             this.LocalConfigManagement.Controls.Add(this.GITIgnoreEntries);
             this.LocalConfigManagement.Controls.Add(this.SelectRepoPath);
             this.LocalConfigManagement.Controls.Add(this.RepoPathName);
-            this.LocalConfigManagement.Controls.Add(this.label7);
+            this.LocalConfigManagement.Controls.Add(this.label2_1);
             this.LocalConfigManagement.Location = new System.Drawing.Point(12, 96);
             this.LocalConfigManagement.Name = "LocalConfigManagement";
             this.LocalConfigManagement.Size = new System.Drawing.Size(615, 81);
-            this.LocalConfigManagement.TabIndex = 4;
+            this.LocalConfigManagement.TabIndex = 2;
             this.LocalConfigManagement.TabStop = false;
             this.LocalConfigManagement.Text = "Local Configuration Management (Git)";
             // 
-            // label13
+            // label2_2
             // 
-            this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(6, 50);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(95, 13);
-            this.label13.TabIndex = 0;
-            this.label13.Text = "GIT Ignore entries:";
+            this.label2_2.AutoSize = true;
+            this.label2_2.Location = new System.Drawing.Point(6, 50);
+            this.label2_2.Name = "label2_2";
+            this.label2_2.Size = new System.Drawing.Size(95, 13);
+            this.label2_2.TabIndex = 0;
+            this.label2_2.Text = "GIT Ignore entries:";
             // 
             // GITIgnoreEntries
             // 
@@ -167,14 +177,14 @@ namespace Plugin.Application.Forms
             this.RepoPathName.Size = new System.Drawing.Size(464, 20);
             this.RepoPathName.TabIndex = 0;
             // 
-            // label7
+            // label2_1
             // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(15, 23);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(86, 13);
-            this.label7.TabIndex = 0;
-            this.label7.Text = "Repository Root:";
+            this.label2_1.AutoSize = true;
+            this.label2_1.Location = new System.Drawing.Point(15, 23);
+            this.label2_1.Name = "label2_1";
+            this.label2_1.Size = new System.Drawing.Size(86, 13);
+            this.label2_1.TabIndex = 0;
+            this.label2_1.Text = "Repository Root:";
             // 
             // ConfigurationMgmtIndicator
             // 
@@ -190,19 +200,19 @@ namespace Plugin.Application.Forms
             // RemoteConfigManagement
             // 
             this.RemoteConfigManagement.Controls.Add(this.RepositoryNamespace);
-            this.RemoteConfigManagement.Controls.Add(this.label14);
+            this.RemoteConfigManagement.Controls.Add(this.label3_5);
             this.RemoteConfigManagement.Controls.Add(this.RepositoryBaseURL);
-            this.RemoteConfigManagement.Controls.Add(this.label12);
+            this.RemoteConfigManagement.Controls.Add(this.label3_1);
             this.RemoteConfigManagement.Controls.Add(this.Password);
-            this.RemoteConfigManagement.Controls.Add(this.label11);
-            this.RemoteConfigManagement.Controls.Add(this.label9);
+            this.RemoteConfigManagement.Controls.Add(this.label3_4);
+            this.RemoteConfigManagement.Controls.Add(this.label3_2);
             this.RemoteConfigManagement.Controls.Add(this.UserName);
-            this.RemoteConfigManagement.Controls.Add(this.label10);
+            this.RemoteConfigManagement.Controls.Add(this.label3_3);
             this.RemoteConfigManagement.Controls.Add(this.EMailAddress);
             this.RemoteConfigManagement.Location = new System.Drawing.Point(12, 183);
             this.RemoteConfigManagement.Name = "RemoteConfigManagement";
             this.RemoteConfigManagement.Size = new System.Drawing.Size(615, 109);
-            this.RemoteConfigManagement.TabIndex = 5;
+            this.RemoteConfigManagement.TabIndex = 3;
             this.RemoteConfigManagement.TabStop = false;
             this.RemoteConfigManagement.Text = "Remote Configuration Management (GitLab)";
             // 
@@ -213,14 +223,14 @@ namespace Plugin.Application.Forms
             this.RepositoryNamespace.Size = new System.Drawing.Size(263, 20);
             this.RepositoryNamespace.TabIndex = 5;
             // 
-            // label14
+            // label3_5
             // 
-            this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(234, 77);
-            this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(99, 13);
-            this.label14.TabIndex = 0;
-            this.label14.Text = "Repo. Namespace:";
+            this.label3_5.AutoSize = true;
+            this.label3_5.Location = new System.Drawing.Point(234, 77);
+            this.label3_5.Name = "label3_5";
+            this.label3_5.Size = new System.Drawing.Size(99, 13);
+            this.label3_5.TabIndex = 0;
+            this.label3_5.Text = "Repo. Namespace:";
             // 
             // RepositoryBaseURL
             // 
@@ -229,14 +239,14 @@ namespace Plugin.Application.Forms
             this.RepositoryBaseURL.Size = new System.Drawing.Size(527, 20);
             this.RepositoryBaseURL.TabIndex = 1;
             // 
-            // label12
+            // label3_1
             // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(11, 25);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(59, 13);
-            this.label12.TabIndex = 0;
-            this.label12.Text = "Base URL:";
+            this.label3_1.AutoSize = true;
+            this.label3_1.Location = new System.Drawing.Point(11, 25);
+            this.label3_1.Name = "label3_1";
+            this.label3_1.Size = new System.Drawing.Size(59, 13);
+            this.label3_1.TabIndex = 0;
+            this.label3_1.Text = "Base URL:";
             // 
             // Password
             // 
@@ -246,23 +256,23 @@ namespace Plugin.Application.Forms
             this.Password.TabIndex = 4;
             this.Password.UseSystemPasswordChar = true;
             // 
-            // label11
+            // label3_4
             // 
-            this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(14, 77);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(56, 13);
-            this.label11.TabIndex = 0;
-            this.label11.Text = "Password:";
+            this.label3_4.AutoSize = true;
+            this.label3_4.Location = new System.Drawing.Point(14, 77);
+            this.label3_4.Name = "label3_4";
+            this.label3_4.Size = new System.Drawing.Size(56, 13);
+            this.label3_4.TabIndex = 0;
+            this.label3_4.Text = "Password:";
             // 
-            // label9
+            // label3_2
             // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(6, 51);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(63, 13);
-            this.label9.TabIndex = 0;
-            this.label9.Text = "User Name:";
+            this.label3_2.AutoSize = true;
+            this.label3_2.Location = new System.Drawing.Point(6, 51);
+            this.label3_2.Name = "label3_2";
+            this.label3_2.Size = new System.Drawing.Size(63, 13);
+            this.label3_2.TabIndex = 0;
+            this.label3_2.Text = "User Name:";
             // 
             // UserName
             // 
@@ -271,14 +281,14 @@ namespace Plugin.Application.Forms
             this.UserName.Size = new System.Drawing.Size(153, 20);
             this.UserName.TabIndex = 2;
             // 
-            // label10
+            // label3_3
             // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(254, 51);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(79, 13);
-            this.label10.TabIndex = 0;
-            this.label10.Text = "E-mail Address:";
+            this.label3_3.AutoSize = true;
+            this.label3_3.Location = new System.Drawing.Point(254, 51);
+            this.label3_3.Name = "label3_3";
+            this.label3_3.Size = new System.Drawing.Size(79, 13);
+            this.label3_3.TabIndex = 0;
+            this.label3_3.Text = "E-mail Address:";
             // 
             // EMailAddress
             // 
@@ -290,34 +300,102 @@ namespace Plugin.Application.Forms
             // GenericBox
             // 
             this.GenericBox.Controls.Add(this.EAProjectDescription);
-            this.GenericBox.Controls.Add(this.label2);
+            this.GenericBox.Controls.Add(this.label1_2);
             this.GenericBox.Controls.Add(this.ConfigurationMgmtIndicator);
-            this.GenericBox.Controls.Add(this.label1);
+            this.GenericBox.Controls.Add(this.label1_1);
             this.GenericBox.Controls.Add(this.EAProjectName);
             this.GenericBox.Location = new System.Drawing.Point(12, 12);
             this.GenericBox.Name = "GenericBox";
             this.GenericBox.Size = new System.Drawing.Size(613, 78);
-            this.GenericBox.TabIndex = 7;
+            this.GenericBox.TabIndex = 1;
             this.GenericBox.TabStop = false;
             this.GenericBox.Text = "General settings";
             // 
-            // label3
+            // label5
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 298);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(281, 13);
-            this.label3.TabIndex = 8;
-            this.label3.Text = "Please note: Repository Root must ALWAYS be specified!";
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(9, 410);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(281, 13);
+            this.label5.TabIndex = 8;
+            this.label5.Text = "Please note: Repository Root must ALWAYS be specified!";
             // 
-            // label4
+            // label6
             // 
-            this.label4.Location = new System.Drawing.Point(12, 311);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(421, 34);
-            this.label4.TabIndex = 0;
-            this.label4.Text = "Please note: changes to remote Configuration Management settings for \r\n          " +
+            this.label6.Location = new System.Drawing.Point(9, 427);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(421, 34);
+            this.label6.TabIndex = 0;
+            this.label6.Text = "Please note: changes to remote Configuration Management settings for \r\n          " +
     "           currently open project will become active only after restarting EA!";
+            // 
+            // JIRAGroup
+            // 
+            this.JIRAGroup.Controls.Add(this.JiraPassword);
+            this.JIRAGroup.Controls.Add(this.label4_3);
+            this.JIRAGroup.Controls.Add(this.JiraUserName);
+            this.JIRAGroup.Controls.Add(this.label4_2);
+            this.JIRAGroup.Controls.Add(this.JiraURL);
+            this.JIRAGroup.Controls.Add(this.label4_1);
+            this.JIRAGroup.Location = new System.Drawing.Point(12, 298);
+            this.JIRAGroup.Name = "JIRAGroup";
+            this.JIRAGroup.Size = new System.Drawing.Size(615, 109);
+            this.JIRAGroup.TabIndex = 4;
+            this.JIRAGroup.TabStop = false;
+            this.JIRAGroup.Text = "JIRA Access";
+            // 
+            // JiraPassword
+            // 
+            this.JiraPassword.Location = new System.Drawing.Point(75, 72);
+            this.JiraPassword.Name = "JiraPassword";
+            this.JiraPassword.Size = new System.Drawing.Size(153, 20);
+            this.JiraPassword.TabIndex = 3;
+            this.JiraPassword.UseSystemPasswordChar = true;
+            // 
+            // label4_3
+            // 
+            this.label4_3.AutoSize = true;
+            this.label4_3.Location = new System.Drawing.Point(13, 75);
+            this.label4_3.Name = "label4_3";
+            this.label4_3.Size = new System.Drawing.Size(56, 13);
+            this.label4_3.TabIndex = 0;
+            this.label4_3.Text = "Password:";
+            // 
+            // JiraUserName
+            // 
+            this.JiraUserName.Location = new System.Drawing.Point(75, 46);
+            this.JiraUserName.Name = "JiraUserName";
+            this.JiraUserName.Size = new System.Drawing.Size(153, 20);
+            this.JiraUserName.TabIndex = 2;
+            // 
+            // label4_2
+            // 
+            this.label4_2.AutoSize = true;
+            this.label4_2.Location = new System.Drawing.Point(6, 49);
+            this.label4_2.Name = "label4_2";
+            this.label4_2.Size = new System.Drawing.Size(63, 13);
+            this.label4_2.TabIndex = 0;
+            this.label4_2.Text = "User Name:";
+            // 
+            // JiraURL
+            // 
+            this.JiraURL.Location = new System.Drawing.Point(75, 17);
+            this.JiraURL.Name = "JiraURL";
+            this.JiraURL.Size = new System.Drawing.Size(527, 20);
+            this.JiraURL.TabIndex = 1;
+            // 
+            // label4_1
+            // 
+            this.label4_1.AutoSize = true;
+            this.label4_1.Location = new System.Drawing.Point(3, 20);
+            this.label4_1.Name = "label4_1";
+            this.label4_1.Size = new System.Drawing.Size(66, 13);
+            this.label4_1.TabIndex = 0;
+            this.label4_1.Text = "Server URL:";
+            // 
+            // JiraTooltip
+            // 
+            this.JiraTooltip.IsBalloon = true;
             // 
             // CMRepositorySetting
             // 
@@ -325,9 +403,10 @@ namespace Plugin.Application.Forms
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(637, 348);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.label3);
+            this.ClientSize = new System.Drawing.Size(637, 462);
+            this.Controls.Add(this.JIRAGroup);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.label5);
             this.Controls.Add(this.RemoteConfigManagement);
             this.Controls.Add(this.LocalConfigManagement);
             this.Controls.Add(this.Ok);
@@ -345,6 +424,8 @@ namespace Plugin.Application.Forms
             this.RemoteConfigManagement.PerformLayout();
             this.GenericBox.ResumeLayout(false);
             this.GenericBox.PerformLayout();
+            this.JIRAGroup.ResumeLayout(false);
+            this.JIRAGroup.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -354,31 +435,39 @@ namespace Plugin.Application.Forms
 
         private System.Windows.Forms.Button Cancel;
         private System.Windows.Forms.Button Ok;
-        private Label label1;
+        private Label label1_1;
         private TextBox EAProjectName;
-        private Label label2;
+        private Label label1_2;
         private TextBox EAProjectDescription;
         private FolderBrowserDialog RootPathSelector;
         private GroupBox LocalConfigManagement;
-        private Label label13;
+        private Label label2_2;
         private TextBox GITIgnoreEntries;
         private CheckBox ConfigurationMgmtIndicator;
         private Button SelectRepoPath;
         private TextBox RepoPathName;
-        private Label label7;
+        private Label label2_1;
         private GroupBox RemoteConfigManagement;
         private TextBox RepositoryNamespace;
-        private Label label14;
+        private Label label3_5;
         private TextBox RepositoryBaseURL;
-        private Label label12;
+        private Label label3_1;
         private TextBox Password;
-        private Label label11;
-        private Label label9;
+        private Label label3_4;
+        private Label label3_2;
         private TextBox UserName;
-        private Label label10;
+        private Label label3_3;
         private TextBox EMailAddress;
         private GroupBox GenericBox;
-        private Label label3;
-        private Label label4;
+        private Label label5;
+        private Label label6;
+        private GroupBox JIRAGroup;
+        private TextBox JiraPassword;
+        private Label label4_3;
+        private TextBox JiraUserName;
+        private Label label4_2;
+        private TextBox JiraURL;
+        private Label label4_1;
+        private ToolTip JiraTooltip;
     }
 }

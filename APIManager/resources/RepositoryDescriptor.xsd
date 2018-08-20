@@ -22,6 +22,7 @@
             <xs:element maxOccurs="1" minOccurs="0" name="Description" type="xs:string"/>
             <xs:element minOccurs="0" name="GITIgnore" type="xs:string"/>
             <xs:element maxOccurs="1" minOccurs="0" name="Remote" type="RemoteType"/>
+            <xs:element minOccurs="0" name="JiraConnect" type="JiraConnectType"/>
         </xs:sequence>
         <xs:attribute name="name" use="required" type="xs:normalizedString"/>
         <xs:attribute name="useCM" type="xs:boolean" use="required"/>
@@ -31,6 +32,13 @@
             <xs:element maxOccurs="1" minOccurs="1" name="UserName" type="xs:string"/>
             <xs:element maxOccurs="1" minOccurs="1" name="EMail" type="xs:string"/>
             <xs:element maxOccurs="1" minOccurs="1" name="Password" type="xs:token"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="JiraConnectType">
+        <xs:sequence>
+            <xs:element name="URL" type="xs:anyURI"/>
+            <xs:element name="ProjectName" type="xs:string"/>
+            <xs:element name="User" type="UserType"/>
         </xs:sequence>
     </xs:complexType>
 </xs:schema>

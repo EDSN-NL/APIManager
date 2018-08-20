@@ -16,12 +16,12 @@ namespace Framework.ConfigurationManagement
     sealed internal class CMRepositoryDscManagerSlt
     {
         private static readonly CMRepositoryDscManagerSlt _repositoryMgrSlt = new CMRepositoryDscManagerSlt();  // The singleton repository manager instance.
-        private SortedList<string, RepositoryDescriptor> _cmDescriptors;                                        // Our "descriptor cache".
+        private SortedList<string, RepositoryDescriptor> _cmDescriptors;                                        // Our "repository descriptor cache".
 
         /// <summary>
         /// Returns a read-only interface to the list of repository descriptors. Primary use is update of GUI for descriptor management.
         /// </summary>
-        internal IReadOnlyList<RepositoryDescriptor> DescriptorList
+        internal IReadOnlyList<RepositoryDescriptor> RepositoryDescriptorList
         {
             get { return new ReadOnlyCollection<RepositoryDescriptor>(this._cmDescriptors.Values); }
         }
@@ -38,7 +38,7 @@ namespace Framework.ConfigurationManagement
         /// </summary>
         /// <param name="properties">Properties for the new descriptor.</param>
         /// <returns>True when succesfully added, false on duplicate name.</returns>
-        internal bool AddDescriptor(RepositoryDescriptor.DescriptorProperties properties)
+        internal bool AddRepositoryDescriptor(RepositoryDescriptor.DescriptorProperties properties)
         {
             bool result = false;
             if (!this._cmDescriptors.ContainsKey(properties._name))
@@ -56,12 +56,13 @@ namespace Framework.ConfigurationManagement
         internal void DeleteAllDescriptors()
         {
             Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositoryDscManagerSlt.DeleteAllDescriptors >> Purging administration...");
+            this._cmDescriptors.Clear();
             Settings.Default.RepositoryDescriptorList = string.Empty;
             Settings.Default.Save();
         }
 
         /// <summary>
-        /// The method removes the specified descriptor from the user profile. If not found, no operations are performed.
+        /// The method removes the specified repository- and jira descriptors from the user profile. If not found, no operations are performed.
         /// </summary>
         /// <param name="repoName">Name of repository descriptor to delete.</param>
         internal void DeleteDescriptor(string repoName)
@@ -86,7 +87,6 @@ namespace Framework.ConfigurationManagement
                         Settings.Default.RepositoryDescriptorList = Compression.StringZip(stringWriter.GetStringBuilder().ToString());
                         Settings.Default.Save();
                     }
-
                     this._cmDescriptors.Remove(repoName.ToLower());
                 }
             }
@@ -94,7 +94,7 @@ namespace Framework.ConfigurationManagement
 
         /// <summary>
         /// The method updates the descriptor with the specified name with one or more new/updated properties. If the update would result in
-        /// a name clash, no action is performed and thhe function returns false.
+        /// a name clash, no action is performed and the function returns false.
         /// </summary>
         /// <param name="repoName">Original descriptor name.</param>
         /// <param name="properties">Set of properties to add/update.</param>
