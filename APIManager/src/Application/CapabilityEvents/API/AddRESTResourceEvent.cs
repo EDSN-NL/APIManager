@@ -86,8 +86,7 @@ namespace Plugin.Application.Events.API
             // Check what type of diagram has been selected, must be top-level for root-level resource collections...
             if (this._isRootLevelResource && svcContext.MyDiagram.OwningPackage != svcContext.SVCModelPackage)
             {
-                MessageBox.Show("Root-level Resources can only be added from the Service Model diagram!", 
-                                "Wrong Diagram", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Logger.WriteWarning("Root-level Resources can only be added from the Service Model diagram!");
                 return;
             }
 
@@ -96,14 +95,20 @@ namespace Plugin.Application.Events.API
             // RULE: A child Resource has EXACTLY ONE parent Resource Collection! 
             if (!this._isRootLevelResource && svcContext.MyDiagram.OwningPackage != svcContext.ResourceClass.OwningPackage)
             {
-                MessageBox.Show("Child Resources can only be added from the diagram of the owning Resource Collection!",
-                                "Wrong Diagram", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Logger.WriteWarning("Child Resources can only be added from the diagram of the owning Resource Collection!");
                 return;
             }
 
-            var myService = new RESTService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
+            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
+            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            {
+                Logger.WriteWarning("Service must be in checked-out state for resources to be added!");
+                return;
+            }
+
             Capability parent;
             IRESTResourceContainer resourceContainer;
+            var myService = new RESTService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
             if (this._isRootLevelResource)
             {
                 var itfCap = new RESTInterfaceCapability(svcContext.InterfaceClass);

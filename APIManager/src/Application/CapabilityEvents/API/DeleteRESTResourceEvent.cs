@@ -43,6 +43,13 @@ namespace Plugin.Application.Events.API
                 return;
             }
 
+            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
+            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            {
+                Logger.WriteWarning("Service must be in checked-out state for resources to be deleted!");
+                return;
+            }
+
             // Ask the user whether he/she really wants to delete the operation...
             using (var dialog = new ConfirmOperationChanges("Are you sure you want to delete Resource '" + resourceClass.Name + "'?"))
             {

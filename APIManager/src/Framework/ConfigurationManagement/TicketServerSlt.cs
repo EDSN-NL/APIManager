@@ -44,9 +44,9 @@ namespace Framework.ConfigurationManagement
                 try
                 {
                     Ticket theTicket = null;
-                     var issues = from i in this._jira.Issues.Queryable
-                                  where i.Key == ticketID && i.Status != "Done"
-                                  select i;
+                    var issues = from i in this._jira.Issues.Queryable
+                                 where i.Key == ticketID && i.Status != "Done"
+                                 select i;
                     // There SHOULD be exactly ONE ticket with the specified key. But just in case, we execute the loop and simply
                     // take the first item returned by the query...
                     foreach (Issue issue in issues)

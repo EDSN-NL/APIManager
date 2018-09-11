@@ -11,7 +11,7 @@ using Framework.ConfigurationManagement;
 namespace Plugin.Application.CapabilityModel
 {
     /// <summary>
-    /// Each Service has its own CMContext object. The context provides the interface between the service and configuration management
+    /// Configuration Management - Context provides the interface between the service and configuration management
     /// by encapsulating a service-specific local- and remote repository path.
     /// The CMContext class provides all interfacing between the service and configuration management.
     /// Note that this context class is used ONLY when configuration management is enabled.
@@ -28,10 +28,11 @@ namespace Plugin.Application.CapabilityModel
         private const string _NoRemoteBranch            = "reference was not fetched";
         private const string _NoTrackingRemoteBranch    = "no tracking information";
 
-        private CMRepositorySlt _repository;            // Repository instance (provides interface with remote as well).
+        private CMRepositorySlt _repository;            // Singleton Repository instance (provides interface with remote as well).
         private Service _trackedService;                // The Service instance for which we perform configuration management.
         private string _branchName;                     // The name of the branch that we're currently using to track our service.
         private bool _snapshotCreated;                  // Used to keep track of snapshot creation in combination with auto-release.
+        private RMTicket _ticket;                       // Our currently active ticket.
 
         /// <summary>
         /// Returns 'true' when configuration management is enabled for this session.
@@ -51,13 +52,29 @@ namespace Plugin.Application.CapabilityModel
             this._repository = CMRepositorySlt.GetRepositorySlt();
             this._trackedService = trackedService;
             this._snapshotCreated = false;
+            this._ticket = null;
+            this._branchName = null;
 
-            if (this._repository.IsCMEnabled)
+            if (CMEnabled)
             {
-                // We don't do this anymore. Instead, we always use the User and E-Mail address from the CM Repository Descriptor since
-                // this acurately identifies the user working with te CM environment at this time.
-                // this._repository.SetIdentity(trackedService.ServiceClass.Author, context.GetStringSetting(FrameworkSettings._GLEMail));
-                InitializeBranch();
+                // If the Service contains a branch name, we retrieve it here (but only when te state allows us to do this).
+                // This effectively restores the state of the CM context in case we close our modelling tool after a Checkout.
+                string CMBranchTagName = context.GetConfigProperty(_CMBranchTag);
+                CMState cmState = this._trackedService.ConfigurationMgmtState;
+
+                if (cmState != CMState.Disabled && cmState != CMState.Released)
+                {
+                    this._branchName = this._trackedService.ServiceClass.GetTag(CMBranchTagName);
+                    Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext >> Branch set to: '" +
+                                     (string.IsNullOrEmpty(this._branchName) ? "NO-BRANCH" : this._branchName) + "'.");
+                }
+                else
+                {
+                    // When configuration management is disabled or the service is in released state, clear the branch name...
+                    Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext >> Branch set to empty!");
+                    this._branchName = string.Empty;
+                    this._trackedService.ServiceClass.SetTag(CMBranchTagName, string.Empty);
+                }
             }
         }
 
@@ -112,19 +129,28 @@ namespace Plugin.Application.CapabilityModel
         /// Depending on the context and the current CM state of the service, a new service CM state is determined and written to the service.
         /// When CM is disabled, the method does not perform any operation.
         /// </summary>
-        /// <exception cref="ArgumentException">Thrown when we could not checkout the service (i.e. due to merge conflicts or syncronisation errors).</exception>
-        internal void CheckoutService()
+        /// <param name="ticket">A Service check-out must always be based on a Release Management Ticket.</param>
+        /// <exception cref="ArgumentException">Invalid ticket or we could not checkout the service (i.e. due to merge conflicts or syncronisation errors).</exception>
+        internal void CheckoutService(RMTicket ticket)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             CMState cmState = this._trackedService.ConfigurationMgmtState;
+            this._ticket = ticket;
 
             // Nothing to do if CM not active...
             if (!this._repository.IsCMEnabled) return;
 
+            if (!ticket.Valid)
+            {
+                string message = "Plugin.Application.ConfigurationManagement.CMContext.CheckoutService >> No valid ticket presented to checkout!";
+                Logger.WriteError(message);
+                throw new ArgumentException(message);
+            }
+
             try
             {
-                this._repository.ResetBranch();                     // Make sure we're on 'master'.
-                this._repository.Pull();                            // Synchronise repository (might affect our service).
+                this._repository.ResetBranch();     // Make sure we're on 'master'.
+                this._repository.Pull();            // Synchronise repository (might affect our service).
 
                 // Now that the repository is in sync with remote, check whether we lag behind with our build number...
                 Tuple<int,int,int> lastReleased = GetLastReleasedVersion();
@@ -149,10 +175,10 @@ namespace Plugin.Application.CapabilityModel
                 if (string.IsNullOrEmpty(this._branchName))
                 {
                     string operationalStatus = this._trackedService.IsDefaultOperationalStatus ? string.Empty : _trackedService.OperationalStatus;
-                    this._branchName = this._trackedService.BusinessFunctionID + "." + this._trackedService.ContainerPkg.Name + "_";
+                    this._branchName = "feature/" + ticket.ID + "/" + this._trackedService.BusinessFunctionID + "." + this._trackedService.ContainerPkg.Name + "/";
                     this._branchName += (operationalStatus == string.Empty) ? this._trackedService.Name + "_V" + this._trackedService.Version.Item1.ToString() :
                                                                               this._trackedService.Name + "_" + operationalStatus + "_V" + this._trackedService.Version.Item1.ToString();
-                    this._branchName += "P" + this._trackedService.Version.Item2 + "B" + this._trackedService.BuildNumber;
+                    this._branchName += "P" + this._trackedService.Version.Item2;
                     Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.CheckoutService >> Branch created: '" + this._branchName + "'.");
                     this._trackedService.ServiceClass.SetTag(CMBranchTagName, this._branchName, true);
                 }
@@ -342,44 +368,6 @@ namespace Plugin.Application.CapabilityModel
             File.Delete(zipFile);
             this._repository.AddToStagingArea(this._trackedService.ServiceBuildPath);   // Add compressed snapshot the the GIT Index.
             this._snapshotCreated = true;
-        }
-
-        /// <summary>
-        /// Helper function that determines the configuration management state of the service and loads the branch name accordingly.
-        /// This branch name is based on the fully qualified service name, major- and minor versions and 
-        /// build number. The branch is used only for service processing and is merged when the service is released.
-        /// When the current service CM state is disabled or released, we don't have a valid branch and thus the branch name is set 
-        /// to an empty string.
-        /// Note that the operation ONLY determines the branch name but does NOT (yet) creates the branch within the repository!
-        /// The branch is ONLY created when a service is explicitly checked-out (i.e. prepared for processing).
-        /// </summary>
-        private void InitializeBranch()
-        {
-            ContextSlt context = ContextSlt.GetContextSlt();
-            string CMBranchTagName = context.GetConfigProperty(_CMBranchTag);
-            CMState cmState = this._trackedService.ConfigurationMgmtState;
-
-            if (this._repository.IsCMEnabled && cmState != CMState.Disabled && cmState != CMState.Released)
-            {
-                this._branchName = this._trackedService.ServiceClass.GetTag(CMBranchTagName);
-                if (string.IsNullOrEmpty(this._branchName))
-                {
-                    string operationalStatus = this._trackedService.IsDefaultOperationalStatus ? string.Empty : _trackedService.OperationalStatus;
-                    this._branchName = this._trackedService.BusinessFunctionID + "." + this._trackedService.ContainerPkg.Name + "_";
-                    this._branchName += (operationalStatus == string.Empty) ? this._trackedService.Name + "_V" + this._trackedService.Version.Item1.ToString() :
-                                                                              this._trackedService.Name + "_" + operationalStatus + "_V" + this._trackedService.Version.Item1.ToString();
-                    this._branchName += "P" + this._trackedService.Version.Item2 + "B" + this._trackedService.BuildNumber;
-                    this._trackedService.ServiceClass.SetTag(CMBranchTagName, this._branchName, true);
-                    Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.InitializeBranch >> Branch set to: '" + this._branchName + "'.");
-                }
-            }
-            else
-            {
-                // When configuration management is disabled or released, clear the branch name...
-                Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.InitializeBranch >> Branch set to empty!");
-                this._branchName = string.Empty;
-                this._trackedService.ServiceClass.SetTag(CMBranchTagName, string.Empty);
-            }
         }
     }
 }

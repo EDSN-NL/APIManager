@@ -18,6 +18,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _NSTokenTag                        = "NSTokenTag";
         private const string _SOAPDefaultNSToken                = "SOAPDefaultNSToken";
         private const string _OperationIDTag                    = "OperationIDTag";
+        private const string _OperationPos                      = "OperationPos";
 
         private List<InterfaceCapability> _myInterfaces;        // The set of interfaces that share this operation.
         private MEPackage _operationPackage;                    // The package in which the operation messages live.
@@ -57,12 +58,15 @@ namespace Plugin.Application.CapabilityModel.API
                 string myStereotype = context.GetConfigProperty(_OperationClassStereotype);
                 this._myInterfaces = new List<InterfaceCapability>();
                 this._capabilityClass = modelPkg.CreateClass(operationName, myStereotype);
-                this._capabilityClass.Version = new Tuple<int, int>(myInterface.RootService.MajorVersion, 0);
+                this._capabilityClass.Version = myInterface.RootService.Version;
                 var operationCapItf = new OperationCapability(this);
 
                 // Create the operation package and common sub-package...
+                // We try to read the relative package position from configuration and if this failed, use '100' as default value.
+                int packagePos;
+                if (!int.TryParse(context.GetConfigProperty(_OperationPos), out packagePos)) packagePos = 100;
                 MEPackage declPackage = myInterface.RootService.DeclarationPkg;
-                this._operationPackage = declPackage.CreatePackage(operationName, context.GetConfigProperty(_ServiceOperationPkgStereotype), 50);
+                this._operationPackage = declPackage.CreatePackage(operationName, context.GetConfigProperty(_ServiceOperationPkgStereotype), packagePos);
                 MEPackage commonPackage = OperationPackage.CreatePackage(context.GetConfigProperty(_CommonPkgName), context.GetConfigProperty(_CommonPkgStereotype));
 
                 // Request an OperationID...
@@ -173,7 +177,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// Finally, a log message is created for the operation.
         /// </summary>
         /// <param name="thisInterface">Interface with which we want to be associated.</param>
-        /// <param name="newMinorVersion">Set to 'true' if the minor version must be incremented.</param>
+        /// <param name="newMinorVersion">Set to 'true' if the minor version must be incremented. Parameter is ignored when CM is active!</param>
         internal void AssociateInterface(InterfaceCapability thisInterface, bool newMinorVersion)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.InterfaceCapabilityImp.associateInterface >> Associating operation '" +
@@ -190,7 +194,11 @@ namespace Plugin.Application.CapabilityModel.API
                 var operationEndpoint = new EndpointDescriptor(this._capabilityClass, "1", roleName, null, true);
                 ModelSlt.GetModelSlt().CreateAssociation(interfaceEndpoint, operationEndpoint, MEAssociation.AssociationType.MessageAssociation);
 
-                if (newMinorVersion) UpdateMinorVersion();
+                // This will update the service version, followed by all child capabilities!
+                // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
+                // managed differently).
+                if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
+
                 CreateLogEntry("Associated Operation with Interface: '" + thisInterface.Name + "'.");
             }
         }
@@ -305,8 +313,11 @@ namespace Plugin.Application.CapabilityModel.API
         {
             // Create a package for the derived operation. We don't create any packages below this operation package, since requirements for 
             // extra packages depend on the functionality of the specialized operation type...
+            // We try to read the relative package position from configuration and if this failed, use '100' as default value.
+            int packagePos;
+            if (!int.TryParse(ContextSlt.GetContextSlt().GetConfigProperty(_OperationPos), out packagePos)) packagePos = 100;
             MEPackage declPackage = parent.RootService.DeclarationPkg;
-            this._operationPackage = declPackage.CreatePackage(packageName, packageStereotype, 50);
+            this._operationPackage = declPackage.CreatePackage(packageName, packageStereotype, packagePos);
             this._myInterfaces = new List<InterfaceCapability>();
             this._operationID = -1;
             this._NSToken = string.Empty;

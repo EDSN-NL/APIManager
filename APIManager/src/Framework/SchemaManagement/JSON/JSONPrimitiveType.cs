@@ -242,7 +242,7 @@ namespace Framework.Util.SchemaManagement.JSON
                  {"normalizedstring",   ""},
                  {"enumeration",        "" },
                  {"string",             ""},
-                 {"time",               "time"}};
+                 {"time",               ""}};
 
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONPrimitiveType.GetFormat >> Going to translate " + primName + " to format name.");
 

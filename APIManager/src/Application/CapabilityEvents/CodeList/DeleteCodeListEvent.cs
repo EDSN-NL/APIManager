@@ -5,6 +5,7 @@ using Framework.Logging;
 using Framework.Model;
 using Framework.Context;
 using Framework.View;
+using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.CodeList;
 
 namespace Plugin.Application.Events.CodeList
@@ -54,6 +55,15 @@ namespace Plugin.Application.Events.CodeList
                 myDiagram = serviceModel.FindDiagram(serviceModel.Name);
             }
 
+            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
+            string serviceName = serviceModel.Parent.Name.Substring(0, serviceModel.Parent.Name.IndexOf("_V"));
+            MEClass serviceClass = serviceModel.FindClass(serviceName, context.GetConfigProperty(_ServiceClassStereotype));
+            if (!Service.UpdateAllowed(serviceClass))
+            {
+                Logger.WriteWarning("Service must be in checked-out state for Code List to be deleted!");
+                return;
+            }
+
             // Ask the user whether he/she really wants to delete this...
             if (model.LockModel(serviceModel.Parent) &&  MessageBox.Show("Are you sure you want to delete Code List '" + 
                                                                          codeListClass.Name + "'?", "Delete Code List",
@@ -71,8 +81,6 @@ namespace Plugin.Application.Events.CodeList
                 myDiagram.Refresh();
 
                 // Associated service gets an updated minor version as well as a new log entry telling us why...
-                string serviceName = serviceModel.Parent.Name.Substring(0, serviceModel.Parent.Name.IndexOf("_V"));
-                MEClass serviceClass = serviceModel.FindClass(serviceName, context.GetConfigProperty(_ServiceClassStereotype));
                 var codeListService = new CodeListService(serviceClass, context.GetConfigProperty(_CodeListDeclPkgStereotype));
                 codeListService.UpdateVersion(new Tuple<int, int>(codeListService.Version.Item1, codeListService.Version.Item2 + 1));
                 codeListService.CreateLogEntry("Deleted CodeList: " + codeListClass.Name);

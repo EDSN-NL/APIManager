@@ -6,6 +6,7 @@ using Framework.Logging;
 using Framework.Model;
 using Framework.Context;
 using Framework.View;
+using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.CodeList;
 using Plugin.Application.Forms;
 
@@ -69,6 +70,13 @@ namespace Plugin.Application.Events.CodeList
             if (serviceClass == null || myDiagram == null)
             {
                 Logger.WriteError("Plugin.Application.Events.CodeList.AddCodeListsEvent.handleEvent >> Illegal or corrupt context, event aborted!");
+                return;
+            }
+
+            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
+            if (!Service.UpdateAllowed(serviceClass))
+            {
+                Logger.WriteWarning("Service must be in checked-out state for Code Lists to be added!");
                 return;
             }
 

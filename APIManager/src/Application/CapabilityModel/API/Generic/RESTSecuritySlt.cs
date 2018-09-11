@@ -1,15 +1,7 @@
-﻿using System;
-using System.IO;
-using System.Windows.Forms;
-using System.Collections.Generic;
+﻿using System.IO;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Schema;
-using Newtonsoft.Json.Linq;
-using Framework.Model;
 using Framework.Logging;
 using Framework.Context;
-using Framework.Util;
-using Plugin.Application.Forms;
 
 namespace Plugin.Application.CapabilityModel.API
 {

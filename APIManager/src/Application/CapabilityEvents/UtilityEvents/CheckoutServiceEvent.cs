@@ -3,9 +3,11 @@ using System.Windows.Forms;
 using Framework.Event;
 using Framework.Logging;
 using Framework.Context;
+using Framework.Model;
 using Framework.ConfigurationManagement;
 using Plugin.Application.CapabilityModel;
 using Plugin.Application.Events.API;
+using Plugin.Application.Forms;
 
 namespace Plugin.Application.Events.Util
 {
@@ -48,19 +50,47 @@ namespace Plugin.Application.Events.Util
                 if (svcContext.LockModel())
                 {
                     Service myService = svcContext.GetServiceInstance();
-                    if (!myService.Checkout())
+                    using (CheckoutService dialog = new CheckoutService(myService))
                     {
-                        MessageBox.Show("Unable to checkout service '" + myService.Name +
-                                        "' from configuration management; probably caused by uncommitted changes on branch(es): '" +
-                                        CMContext.FindBranchesInState(CMState.Modified) + "'." + Environment.NewLine +
-                                        "Please commit pending changes before starting work on a new service!",
-                                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                    else
-                    {
-                        MessageBox.Show("Successfully checked-out service '" + myService.Name + "'.",
-                                        "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        myService.Paint(svcContext.MyDiagram);
+                        if (dialog.ShowDialog() == DialogResult.OK)
+                        {
+                            // TODO: Get the Ticket for the checkout.
+                            // ALSO: ALL operations that modify the model MUST be locked until after a valid Checkout (when CM is enabled) --> Create global
+                            // method that we can call from the IsValidState method!!!
+                            if (dialog.UseNewVersion)
+                            {
+                                if (dialog.NewVersion.Item1 > myService.MajorVersion) 
+                                {
+                                    var newSvcContext = new ServiceContext(myService.CopyService(myService.DeclarationPkg.Name));
+                                    myService = newSvcContext.GetServiceInstance();         // Instance of copied service.
+                                    myService.UpdateVersion(dialog.NewVersion);             // Updates entire hierarchy.
+                                    myService.Paint(newSvcContext.MyDiagram);
+                                }
+                                else myService.UpdateVersion(dialog.NewVersion);
+                            }
+                            else
+                            {
+                                // Use Existing Feature Tag...
+                                MessageBox.Show("Use Feature Tag: '" + dialog.FeatureTag + "'...");
+                            }
+
+                            // Now that we have made sure that the service context is correctly changed, perform the actual checkout.
+                            // This will create the appropriate feature branch and push stuff to remote...
+                            if (!myService.Checkout(dialog.TicketID, dialog.ProjectID))
+                            {
+                                MessageBox.Show("Unable to checkout service '" + myService.Name +
+                                                "' from configuration management; probably caused by uncommitted changes on branch(es): '" +
+                                                CMContext.FindBranchesInState(CMState.Modified) + "'." + Environment.NewLine +
+                                                "Please commit pending changes before starting work on a new service!",
+                                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                            else
+                            {
+                                MessageBox.Show("Successfully checked-out service '" + myService.Name + "'.",
+                                                "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                myService.Paint(svcContext.MyDiagram);
+                            }
+                        }
                     }
                     svcContext.UnlockModel();
                 }

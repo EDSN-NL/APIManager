@@ -63,6 +63,13 @@ namespace Plugin.Application.Events.API
                 return;
             }
 
+            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
+            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            {
+                Logger.WriteWarning("Service must be in checked-out state for interfaces to be deleted!");
+                return;
+            }
+
             using (var dialog = new ConfirmOperationChanges("Are you sure you want to delete Interface '" + svcContext.InterfaceClass.Name + "'?"))
             {
                 if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)

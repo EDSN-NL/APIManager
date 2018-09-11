@@ -59,7 +59,7 @@ namespace Plugin.Application.CapabilityModel.API
                                                                                  context.GetConfigProperty(_CommonSchemaClassStereotype));
             this._capabilityClass.SetTag(context.GetConfigProperty(_NSTokenTag), context.GetConfigProperty(_CommonSchemaNSToken), true);
             this._capabilityClass.SetTag(context.GetConfigProperty(_UseAlternativeNamingTag), "false", true);
-            this._capabilityClass.Version = new Tuple<int, int>(myInterface.RootService.MajorVersion, 0);
+            this._capabilityClass.Version = myInterface.RootService.Version;
             this._alternativeNamespaceTag = string.Empty;
 
             // Create the associations with our interface...
@@ -74,7 +74,6 @@ namespace Plugin.Application.CapabilityModel.API
 
         /// <summary>
         /// The 'link to existing' constructor creates a CommonSchema capability based on an existing class.
-        ///
         /// </summary>
         /// <param name="myInterface">Parent interface instance.</param>
         /// <param name="commonSchema">The class to be used for this common schema.</param>

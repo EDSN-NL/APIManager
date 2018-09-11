@@ -47,8 +47,14 @@ namespace Plugin.Application.Events.API
             // Check if we are on the owning diagram of the resource...  
             if (svcContext.MyDiagram.OwningPackage != svcContext.ResourceClass.OwningPackage)
             {
-                MessageBox.Show("A Resource can only be edited from its owning diagram!",
-                                "Wrong Diagram", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Logger.WriteWarning("A Resource can only be edited from its owning diagram!");
+                return;
+            }
+
+            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
+            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            {
+                Logger.WriteWarning("Service must be in checked-out state for resources to be modified!");
                 return;
             }
 

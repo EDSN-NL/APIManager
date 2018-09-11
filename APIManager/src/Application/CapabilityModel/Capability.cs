@@ -596,9 +596,9 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
-        /// This method is used to synchronize the major version of the capability with its parent service in case that version has changed.
+        /// This method is used to synchronize the version of the capability with its parent service in case that version has changed.
         /// If we detect a major update, the minor version is reset to '0'! 
-        /// The method ONLY considers the service major version, minor version of the capability is independent of the Service!
+        /// The method will update both the major- and minor version of the capability.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
         internal void VersionSync()

@@ -30,6 +30,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _CollectionFormatTag           = "CollectionFormatTag";
         private const string _ResponsePkgName               = "ResponsePkgName";
         private const string _ResponseMessageSuffix         = "ResponseMessageSuffix";
+        private const string _GenericMessageClassStereotype = "GenericMessageClassStereotype";
 
         // Separator between summary text and description text
         private const string _Summary = "summary: ";
@@ -624,6 +625,7 @@ namespace Plugin.Application.CapabilityModel.API
             bool result = false;
             string qualifiedClassName = string.Empty;
             string businessComponentStereotype = context.GetConfigProperty(_BusinessComponentStereotype);
+            string messageBusinessComponentStereotype = context.GetConfigProperty(_GenericMessageClassStereotype);
 
             // First of all, we check whether we must use response pagination parameters. If so, we create a class structure in the Response package
             // of the current operation and use this to store both the pagination parameters and the actual response object. We then simply refer
@@ -632,10 +634,12 @@ namespace Plugin.Application.CapabilityModel.API
             MEClass paginationClass = GetResponsePaginationClass();
 
             // Next, Locate the associated business component. We can't check by name since it might have used an Alias name...
+            // We should accept BOTH BusinessComponents (from domain profiles) OR Message Business Information Entities (message 'specials').
             MEClass payload = null;
             foreach (MEAssociation association in documentResourceClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
             {
-                if (association.Destination.EndPoint.HasStereotype(businessComponentStereotype))
+                if (association.Destination.EndPoint.HasStereotype(businessComponentStereotype) ||
+                    association.Destination.EndPoint.HasStereotype(messageBusinessComponentStereotype))
                 {
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Found Business Component, processing...");
                     payload = association.Destination.EndPoint;

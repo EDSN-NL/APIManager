@@ -4,8 +4,6 @@ using Framework.Logging;
 using Framework.Model;
 using Framework.Util;
 using Framework.Context;
-using Plugin.Application.CapabilityModel.ASCIIDoc;
-using Plugin.Application.CapabilityModel.SchemaGeneration;
 
 namespace Plugin.Application.CapabilityModel.API
 {

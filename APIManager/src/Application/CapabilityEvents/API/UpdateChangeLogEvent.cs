@@ -70,6 +70,13 @@ namespace Plugin.Application.Events.API
                 return;
             }
 
+            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
+            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            {
+                Logger.WriteWarning("Service must be in checked-out state for change-log to be modified!");
+                return;
+            }
+
             if (svcContext.LockModel())
             {
                 // Collect all possible operations on this interface so the user can indicate what operations have been modified...

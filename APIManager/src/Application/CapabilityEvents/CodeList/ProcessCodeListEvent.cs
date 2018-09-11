@@ -80,14 +80,6 @@ namespace Plugin.Application.Events.CodeList
                 var codeListCapability = new CodeListCapability(codeListService, codeListClass);
                 ProcessorManagerSlt processorMgr = ProcessorManagerSlt.GetProcessorManagerSlt();
                 CapabilityProcessor processor = null;
-                if (!codeListService.Checkout())
-                {
-                    MessageBox.Show("Unable to checkout service '" + codeListService.Name +
-                                    "' from configuration management, probably caused by uncommitted changes from another service!" +
-                                    Environment.NewLine + "Please commit pending changes before starting work on a new service!",
-                                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
 
                 if (processorMgr.GetProcessorCount(_CodeListClassToken) > 1)
                 {

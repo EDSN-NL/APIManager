@@ -64,7 +64,7 @@ namespace Plugin.Application.CapabilityModel.API
                 string myStereotype = context.GetConfigProperty(_InterfaceContractClassStereotype);
                 string coreDataTypesPath = context.GetConfigProperty(_CoreDataTypesPathName);
                 this._capabilityClass = owner.CreateClass(interfaceName, myStereotype);
-                this._capabilityClass.Version = new Tuple<int, int>(myService.MajorVersion, 0);
+                this._capabilityClass.Version = myService.Version;
                 this._capabilityClass.SetTag(context.GetConfigProperty(_InterfaceContractTypeTag), context.GetConfigProperty(_InterfaceDefaultRESTContract));
                 this._assignedRole = RESTUtil.GetAssignedRoleName(interfaceName);
                 var interfaceCapItf = new RESTInterfaceCapability(this);
@@ -231,7 +231,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// It is the responsibility of the resource to register with the parent capability tree.
         /// </summary>
         /// <param name="resources">List of resources that must be added.</param>
-        /// <param name="newMinorVersion">True when a new minor version must be created.</param>
+        /// <param name="newMinorVersion">True when a new minor version must be created. Parameter is ignored when CM is active!</param>
         /// <returns>True if operation completed successfully, false on errors.</returns>
         internal bool AddResources(List<RESTResourceDeclaration> resources, bool newMinorVersion)
         {
@@ -260,7 +260,11 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
 
-                if (newMinorVersion) UpdateMinorVersion();
+                // This will update the service version, followed by all child capabilities!
+                // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
+                // managed differently).
+                if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
+
                 string logMessage = "Added Resource Collection(s): '" + newNames + "'";
                 RootService.CreateLogEntry(logMessage + " to Interface '" + Name + "'.");
                 CreateLogEntry(logMessage + ".");
@@ -277,7 +281,8 @@ namespace Plugin.Application.CapabilityModel.API
         /// Deletes the resource identified by the specified resource-class object. This will delete the entire resource hierarchy.
         /// </summary>
         /// <param name="resourceClass">Identifies the resource to be deleted.</param>
-        /// <param name="newMinorVersion">Set to 'true' when minor version must be updated, 'false' to keep existing version.</param>
+        /// <param name="newMinorVersion">Set to 'true' when minor version must be updated, 'false' to keep existing version. Parameter is 
+        /// ignored when CM is active!</param>
         internal void DeleteResource(MEClass resourceClass, bool newMinorVersion)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.InterfaceCapabilityImp.DeleteResource >> Going to delete resource '" + resourceClass.Name + "' from interface '" + Name + "'...");
@@ -291,7 +296,11 @@ namespace Plugin.Application.CapabilityModel.API
                 }
             }
 
-            if (newMinorVersion) UpdateMinorVersion();
+            // This will update the service version, followed by all child capabilities!
+            // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
+            // managed differently).
+            if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
+
             string logMessage = "Deleted Resource: '" + resourceClass.Name + "'";
             RootService.CreateLogEntry(logMessage + " from Interface '" + Name + "'.");
             CreateLogEntry(logMessage + ".");
@@ -303,7 +312,8 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="resourceClass">Collection to be renamed.</param>
         /// <param name="oldName">Original name of the collection.</param>
         /// <param name="newName">New name for the collection, in PascalCase.</param>
-        /// <param name="newMinorVersion">Set to 'true' when minor version must be updated, 'false' to keep existing version.</param>
+        /// <param name="newMinorVersion">Set to 'true' when minor version must be updated, 'false' to keep existing version.
+        /// Parameter is ignored when CM is active!</param>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
         internal void RenameResource(MEClass resourceClass, string oldName, string newName, bool newMinorVersion)
         {
@@ -341,8 +351,11 @@ namespace Plugin.Application.CapabilityModel.API
                 }
             }
 
-            // If we have to increment the minor version of the interface, do so BEFORE creating the log message...
-            if (newMinorVersion) UpdateMinorVersion();
+            // This will update the service version, followed by all child capabilities!
+            // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
+            // managed differently).
+            if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
+
             string logMessage = "Renamed resource: '" + oldName + "' to: '" + resourceClass.Name + "'.";
             RootService.CreateLogEntry(logMessage + " in Interface '" + Name + "'.");
             CreateLogEntry(logMessage + ".");

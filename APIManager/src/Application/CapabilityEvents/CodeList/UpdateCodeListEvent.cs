@@ -4,6 +4,7 @@ using Framework.Logging;
 using Framework.Model;
 using Framework.Context;
 using Framework.View;
+using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.CodeList;
 
 namespace Plugin.Application.Events.CodeList
@@ -56,10 +57,17 @@ namespace Plugin.Application.Events.CodeList
                 myDiagram = serviceModel.FindDiagram(serviceModel.Name);
             }
 
+            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
+            string serviceName = serviceModel.Parent.Name.Substring(0, serviceModel.Parent.Name.IndexOf("_V"));
+            MEClass serviceClass = serviceModel.FindClass(serviceName, context.GetConfigProperty(_ServiceClassStereotype));
+            if (!Service.UpdateAllowed(serviceClass))
+            {
+                Logger.WriteWarning("Service must be in checked-out state for Code List to be modified!");
+                return;
+            }
+
             if (model.LockModel(serviceModel.Parent))
             {
-                string serviceName = serviceModel.Parent.Name.Substring(0, serviceModel.Parent.Name.IndexOf("_V"));
-                MEClass serviceClass = serviceModel.FindClass(serviceName, context.GetConfigProperty(_ServiceClassStereotype));
                 if (serviceClass == null || myDiagram == null)
                 {
                     Logger.WriteError("Plugin.Application.Events.CodeList.UpdateCodeListEvent.handleEvent >> Illegal or corrupt context, event aborted!");

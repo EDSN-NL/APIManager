@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Windows.Forms;
 using System.Collections.Generic;
 using Framework.Model;
 using Framework.Logging;
@@ -177,7 +176,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// It is the responsibility of the operation to register with the parent capability.
         /// </summary>
         /// <param name="operation">New operation that must be added.</param>
-        /// <param name="newMinorVersion">True when a new minor version must be created.</param>
+        /// <param name="newMinorVersion">True when a new minor version must be created. Parameter is ignored when CM is active!</param>
         /// <returns>True if operation completed successfully, false on errors.</returns>
         internal bool AddOperation(RESTOperationDeclaration operation, bool newMinorVersion)
         {
@@ -200,7 +199,11 @@ namespace Plugin.Application.CapabilityModel.API
                     result = false;
                 }
 
-                if (newMinorVersion) UpdateMinorVersion();
+                // This will update the service version, followed by all child capabilities!
+                // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
+                // managed differently).
+                if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
+
                 string logMessage = "Added Operation: '" + operationCapability.Name + "'";
                 RootService.CreateLogEntry(logMessage + " to parent Resource '" + Name + "'.");
                 CreateLogEntry(logMessage + ".");
@@ -221,7 +224,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// It is the responsibility of the resource to register with the parent capability tree.
         /// </summary>
         /// <param name="resources">List of resources that must be added.</param>
-        /// <param name="newMinorVersion">True when a new minor version must be created.</param>
+        /// <param name="newMinorVersion">True when a new minor version must be created. Parameter is ignored when CM is active!</param>
         /// <returns>True if operation completed successfully, false on errors.</returns>
         internal bool AddResources(List<RESTResourceDeclaration> resources, bool newMinorVersion)
         {
@@ -278,7 +281,11 @@ namespace Plugin.Application.CapabilityModel.API
 
                 if (result)
                 {
-                    if (newMinorVersion) UpdateMinorVersion();
+                    // This will update the service version, followed by all child capabilities!
+                    // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
+                    // managed differently).
+                    if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
+
                     string logMessage = "Added child Resource(s): '" + newNames + "'";
                     RootService.CreateLogEntry(logMessage + " to parent Resource '" + Name + "'.");
                     CreateLogEntry(logMessage + ".");
@@ -315,7 +322,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// could not be found.
         /// </summary>
         /// <param name="operation">Operation to be deleted.</param>
-        /// <param name="newMinorVersion">True when a new minor version must be created.</param>
+        /// <param name="newMinorVersion">True when a new minor version must be created. Parameter is ignored when CM is active!</param>
         internal void DeleteOperation(MEClass operationClass, bool newMinorVersion)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.DeleteOperation >> Going to delete operation '" + 
@@ -334,7 +341,11 @@ namespace Plugin.Application.CapabilityModel.API
 
             if (foundIt)
             {
-                if (newMinorVersion) UpdateMinorVersion();
+                // This will update the service version, followed by all child capabilities!
+                // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
+                // managed differently).
+                if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
+
                 string logMessage = "Deleted Operation: '" + operationClass.Name + "'";
                 RootService.CreateLogEntry(logMessage + " from parent Resource '" + Name + "'.");
                 CreateLogEntry(logMessage + ".");
@@ -345,7 +356,8 @@ namespace Plugin.Application.CapabilityModel.API
         /// Deletes the resource identified by the specified resource-class object. This will delete the entire resource hierarchy.
         /// </summary>
         /// <param name="resourceClass">Identifies the resource to be deleted.</param>
-        /// <param name="newMinorVersion">Set to 'true' when minor version must be updated, 'false' to keep existing version.</param>
+        /// <param name="newMinorVersion">Set to 'true' when minor version must be updated, 'false' to keep existing version.
+        /// Parameter is ignored when CM is active!</param>
         internal void DeleteResource(MEClass resourceClass, bool newMinorVersion)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.DeleteResource >> Going to delete resource '" + resourceClass.Name + "' from interface '" + Name + "'...");
@@ -362,7 +374,11 @@ namespace Plugin.Application.CapabilityModel.API
 
             if (foundIt)
             {
-                if (newMinorVersion) UpdateMinorVersion();
+                // This will update the service version, followed by all child capabilities!
+                // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
+                // managed differently).
+                if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
+
                 string logMessage = "Deleted child Resource: '" + resourceClass.Name + "'";
                 RootService.CreateLogEntry(logMessage + " from parent Resource '" + Name + "'.");
                 CreateLogEntry(logMessage + ".");
@@ -375,7 +391,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// associations where appropriate.
         /// </summary>
         /// <param name="resource">Updated Resource properties.</param>
-        /// <param name="newMinorVersion">Set to true to force update of API minor version.</param>
+        /// <param name="newMinorVersion">Set to true to force update of API minor version. Parameter is ignored when CM is active!</param>
         /// <returns>True on successfull completion, false on errors.</returns>
         internal bool Edit(RESTResourceDeclaration resource, bool newMinorVersion)
         {
@@ -505,7 +521,11 @@ namespace Plugin.Application.CapabilityModel.API
                     else if (operation.Status == RESTOperationDeclaration.DeclarationStatus.Created) AddOperation(operation, false);
                 }
 
-                if (newMinorVersion) UpdateMinorVersion();
+                // This will update the service version, followed by all child capabilities!
+                // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
+                // managed differently).
+                if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
+
                 CreateLogEntry("Operation has been edited.");
             }
             return true;
@@ -576,7 +596,8 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="resourceClass">Resource to be renamed.</param>
         /// <param name="oldName">Original name of the Resource.</param>
         /// <param name="newName">New name for the Resource, in PascalCase.</param>
-        /// <param name="newMinorVersion">Set to 'true' when minor version must be updated, 'false' to keep existing version.</param>
+        /// <param name="newMinorVersion">Set to 'true' when minor version must be updated, 'false' to keep existing version.
+        /// Parameter is ignored when CM is active!</param>
         internal void RenameResource(MEClass resourceClass, string oldName, string newName, bool newMinorVersion)
         {
             /**************************************
@@ -605,7 +626,7 @@ namespace Plugin.Application.CapabilityModel.API
                     if (cap.Name == oldName)    // Perform operation rename only if there is something to rename...
                     {
                         cap.Rename(newName);
-                        if (newMinorVersion) // If we have to increment the minor version, do so BEFORE creating the log message...
+                        if (!this._rootService.UseConfigurationMgmt && newMinorVersion) // If we have to increment the minor version, do so BEFORE creating the log message...
                         {
                             var newVersion = new Tuple<int, int>(cap.CapabilityClass.Version.Item1, cap.CapabilityClass.Version.Item2 + 1);
                             cap.CapabilityClass.Version = newVersion;
@@ -615,9 +636,11 @@ namespace Plugin.Application.CapabilityModel.API
                     break;
                 }
             }
+            // This will update the service version, followed by all child capabilities!
+            // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
+            // managed differently).
+            if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
 
-            // If we have to increment the minor version, do so BEFORE creating the log message...
-            if (newMinorVersion) UpdateMinorVersion();
             string logMessage = "Renamed child Resource: '" + oldName + "' to: '" + resourceClass.Name + "'";
             RootService.CreateLogEntry(logMessage + " in parent Resource '" + Name + "'.");
             CreateLogEntry(logMessage + ".");

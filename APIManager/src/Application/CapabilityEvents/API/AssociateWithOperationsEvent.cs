@@ -43,6 +43,13 @@ namespace Plugin.Application.Events.API
                 return;
             }
 
+            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
+            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            {
+                Logger.WriteWarning("Service must be in checked-out state for operations to be associated!");
+                return;
+            }
+
             // Creating the service will build the entire object hierarchy. Subsequently, we can create Capabilities by class alone...
             var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
             var itfCap = new InterfaceCapability(svcContext.InterfaceClass);

@@ -57,13 +57,17 @@ namespace Plugin.Application.Events.Util
                 MEPackage currentPackage = context.CurrentPackage;
                 Diagram currentDiagram = context.CurrentDiagram;
 
-                TicketServerSlt ticketSrv = TicketServerSlt.GetTicketServerSlt();
-                Ticket myTicket = ticketSrv.GetTicket(currentClass.GetTag("ticketID"));
-                if (myTicket != null)
+                if (currentClass.HasStereotype("Service"))
                 {
-                    MessageBox.Show(myTicket.ToString());
+                    var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
+                    CapabilityModel.Service myService = svcContext.GetServiceInstance();
+                    string ticketID = string.Empty;
+                    if (ShowInputDialog(ref ticketID) == DialogResult.OK)
+                    {
+                        RMTicket ticket = new RMTicket(ticketID, "700123", myService);
+                        MessageBox.Show(ticket.ToString());
+                    }
                 }
-                else MessageBox.Show("Ticket not found/defined/wrong state");
 
                 //MakeCommonSchema();
                 //Test7() ;
@@ -74,6 +78,50 @@ namespace Plugin.Application.Events.Util
             {
                 Logger.WriteError("Oops, Caught exception:" + Environment.NewLine + exc.Message);
             }
+        }
+
+        /// <summary>
+        /// A simple input box to request input from user...
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private DialogResult ShowInputDialog(ref string input)
+        {
+            System.Drawing.Size size = new System.Drawing.Size(200, 70);
+            Form inputBox = new Form();
+
+            inputBox.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            inputBox.ClientSize = size;
+            inputBox.Text = "Name";
+
+            System.Windows.Forms.TextBox textBox = new TextBox();
+            textBox.Size = new System.Drawing.Size(size.Width - 10, 23);
+            textBox.Location = new System.Drawing.Point(5, 5);
+            textBox.Text = input;
+            inputBox.Controls.Add(textBox);
+
+            Button okButton = new Button();
+            okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
+            okButton.Name = "okButton";
+            okButton.Size = new System.Drawing.Size(75, 23);
+            okButton.Text = "&OK";
+            okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 39);
+            inputBox.Controls.Add(okButton);
+
+            Button cancelButton = new Button();
+            cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            cancelButton.Name = "cancelButton";
+            cancelButton.Size = new System.Drawing.Size(75, 23);
+            cancelButton.Text = "&Cancel";
+            cancelButton.Location = new System.Drawing.Point(size.Width - 80, 39);
+            inputBox.Controls.Add(cancelButton);
+
+            inputBox.AcceptButton = okButton;
+            inputBox.CancelButton = cancelButton;
+
+            DialogResult result = inputBox.ShowDialog();
+            input = textBox.Text;
+            return result;
         }
 
         void TestSwagger()

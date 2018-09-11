@@ -118,7 +118,8 @@ namespace SparxEA.Model
             if (!string.IsNullOrEmpty(stereotype))
             {
                 string stereoTypes = this._element.StereotypeEx;
-                if (!this._element.HasStereotype(stereotype))
+
+                if (!HasStereotype(stereotype))
                 {
                     stereoTypes += (stereoTypes.Length > 0) ? "," + stereotype : stereotype;
                     this._element.StereotypeEx = stereoTypes;
@@ -552,7 +553,7 @@ namespace SparxEA.Model
         {
             var parentList = new SortedList<uint, MEClass>();
             var myClass = new MEClass(this);
-            if (!string.IsNullOrEmpty(topStereotype) || !this._element.HasStereotype(topStereotype)) TraverseParents(myClass, ref parentList, 10, topStereotype);
+            if (!string.IsNullOrEmpty(topStereotype) || !HasStereotype(topStereotype)) TraverseParents(myClass, ref parentList, 10, topStereotype);
             parentList.Add(0, myClass);
             return parentList;
         }
@@ -740,7 +741,6 @@ namespace SparxEA.Model
 
         /// <summary>
         /// The method checks whether one or more stereotypes from the given list of stereotypes are owned by the Class.
-        /// Since HasStereotype supports fully-qualified stereotype names, we don't have to strip the (optional) profile names in this case.
         /// </summary>
         /// <param name="stereotypes">List of stereotypes to check.</param>
         /// <returns>True if at least one match is found, false otherwise.</returns>
@@ -754,14 +754,14 @@ namespace SparxEA.Model
         }
 
         /// <summary>
-        /// The method checks whether the given stereotype is owned by the Class. Since HasStereotype supports fully-qualified stereotype
-        /// names, we don't have to strip the (optional) profile names in this case.
+        /// The method checks whether the given stereotype is owned by the Class.
         /// </summary>
         /// <param name="stereotype">Stereotype to check.</param>
         /// <returns>True if a match is found, false otherwise.</returns>
         internal override bool HasStereotype(string stereotype)
         {
-            return this._element.HasStereotype(stereotype);
+            bool hasStereotype = this._element.HasStereotype(stereotype);
+            return hasStereotype;
         }
 
         /// <summary>
@@ -946,7 +946,6 @@ namespace SparxEA.Model
 
         /// <summary>
         /// The method checks whether the given attribute contains the given stereotype.
-        /// Since attributes only support 'non-qualified' stereotype names, we remove any possible profile prefix.
         /// </summary>
         /// <param name="attribute">Attribute to check.</param>
         /// <param name="stereotype">Stereotype to check.</param>

@@ -44,6 +44,13 @@ namespace Plugin.Application.Events.API
                 return;
             }
 
+            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
+            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            {
+                Logger.WriteWarning("Service must be in checked-out state for operations to be modified!");
+                return;
+            }
+
             // By instantiating the service, we should construct the entire capability hierarchy, which facilitates constructing
             // of 'lower level' capabilities using their Class objects...
             var myService = new RESTService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));

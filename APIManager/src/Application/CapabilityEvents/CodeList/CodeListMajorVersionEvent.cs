@@ -5,6 +5,7 @@ using Framework.Logging;
 using Framework.Model;
 using Framework.View;
 using Framework.Context;
+using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.CodeList;
 using Plugin.Application.Forms;
 
@@ -66,6 +67,13 @@ namespace Plugin.Application.Events.CodeList
                 string serviceName = declPackage.Name.Substring(0, declPackage.Name.IndexOf("_V"));
                 serviceClass = serviceModel.FindClass(serviceName, context.GetConfigProperty(_ServiceClassStereotype));
                 myDiagram = serviceModel.FindDiagram(serviceModel.Name);
+            }
+
+            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
+            if (!Service.UpdateAllowed(serviceClass))
+            {
+                Logger.WriteWarning("Service must be in checked-out state for version to be changed!");
+                return;
             }
 
             int currentMajor = serviceClass.Version.Item1;

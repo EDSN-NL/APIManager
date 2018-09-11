@@ -17,6 +17,7 @@ namespace Framework.ConfigurationManagement
         private string _summary;            // Short descriptive text.
         private string _assignee;           // The person who is assigned to this ticket.
         private DateTime _created;          // Date and time of creation.
+        private DateTime _updated;          // Date and time of most recent update.
 
         /// <summary>
         /// Getters for all properties.
@@ -30,6 +31,7 @@ namespace Framework.ConfigurationManagement
         internal string Summary                 { get { return this._summary; } }
         internal string Assignee                { get { return this._assignee; } }
         internal DateTime CreationTimestamp     { get { return this._created; } }
+        internal DateTime UpdateTimestamp       { get { return this._updated; } }
 
         /// <summary>
         /// Returns a string representation of the ticket.
@@ -38,8 +40,9 @@ namespace Framework.ConfigurationManagement
         public override string ToString()
         {
             return "Ticket '" + this._projectName + "/" + this._ticketID + "' summary info:" + Environment.NewLine +
-                   "Type: '" + this._type + "', Status: '" + this._status + "', Priority: '" + this._priority + "'" + Environment.NewLine +
-                   "Created at: '" + this._created.ToLongDateString() + "', Assigned to: '" + this._assignee + "'" + Environment.NewLine +
+                   "Type: '" + this._type + "', Status: '" + this._status + "', Priority: '" + this._priority + "'." + Environment.NewLine +
+                   "Created at: '" + this._created.ToLongDateString() + "', Updated at: '" + this._updated.ToLongDateString() + "'." + Environment.NewLine +
+                   "Assigned to: '" + this._assignee + "'" + Environment.NewLine +
                    "Summary text: " + Environment.NewLine + this._summary;
         }
 
@@ -59,6 +62,7 @@ namespace Framework.ConfigurationManagement
             this._summary = issue.Summary;
             this._assignee = issue.Assignee;
             this._created = (DateTime)issue.Created;
+            this._updated = (DateTime)issue.Updated;
         }
     }
 }

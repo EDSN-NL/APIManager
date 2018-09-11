@@ -382,6 +382,21 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Function that repairs the stereotypes of a series of model elements. The function checks whether stereotypes without a profile
+        /// name are present and adds the profile if required. Parameter is the fully-qualified stereotype.
+        /// The function processes the entire package hierarchy from the current package downwards.
+        /// </summary>
+        /// <param name="stereotype">Fully qualified stereotype to check.</param>
+        /// <param name="entireHierarchy">Optional parameter that enforces a check of current package and all child packages. 
+        /// Default is current package only.</param>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal void RepairStereotype(string stereotype, bool entireHierarchy = false)
+        {
+            if (this._imp != null) ((MEIPackage)this._imp).RepairStereotype(stereotype, entireHierarchy);
+            else throw new MissingImplementationException("MEIPackage");
+        }
+
+        /// <summary>
         /// Selects the package in the package tree and show to user.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>

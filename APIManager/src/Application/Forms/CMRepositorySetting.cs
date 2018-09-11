@@ -38,6 +38,7 @@ namespace Plugin.Application.Forms
 
             RemoteConfigManagement.Enabled          = properties._useCM;
             GITIgnoreEntries.Enabled                = properties._useCM;
+            JIRAGroup.Enabled                       = properties._useCM;
 
             JiraURL.Text                            = properties._jiraURL != null ? properties._jiraURL.AbsoluteUri : string.Empty;
             JiraUserName.Text                       = properties._jiraUser;
@@ -49,7 +50,7 @@ namespace Plugin.Application.Forms
             this._originalName = properties._name;
 
             // Initialise our tool tips...
-            JiraTooltip.SetToolTip(JIRAGroup, "Server URL must NOT include the APU-path and Username is the e-mail address of the Jira user.");
+            JiraTooltip.SetToolTip(JIRAGroup, "Server URL must NOT include the API-path and Username is the e-mail address of the Jira user.");
 
             CheckOk();
         }

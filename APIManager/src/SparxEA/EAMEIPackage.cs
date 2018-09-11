@@ -417,12 +417,15 @@ namespace SparxEA.Model
             {
                 if (element.Name == className)
                 {
-                    if (!string.IsNullOrEmpty(stereotype) && element.HasStereotype(stereotype))
+                    if (!string.IsNullOrEmpty(stereotype))
                     {
-                        MEIClass classImp = new EAMEIClass((EAModelImplementation)this._model, element.ElementID);
-                        return new MEClass(classImp);
+                        if (element.HasStereotype(stereotype))
+                        {
+                            MEIClass classImp = new EAMEIClass((EAModelImplementation)this._model, element.ElementID);
+                            return new MEClass(classImp);
+                        }
                     }
-                    else if (string.IsNullOrEmpty(stereotype))  // We found a match on name and stereotype is not specified.
+                    else // We found a match on name and stereotype is not specified.
                     {
                         MEIClass classImp = new EAMEIClass((EAModelImplementation)this._model, element.ElementID);
                         return new MEClass(classImp);
@@ -446,8 +449,10 @@ namespace SparxEA.Model
             {
                 if (element.Name == typeName)
                 {
-                    if (string.IsNullOrEmpty(stereotype)) return model.GetDataType(element.ElementID);
-                    else if (element.HasStereotype(stereotype)) return model.GetDataType(element.ElementID);
+                    if (!string.IsNullOrEmpty(stereotype))
+                    {
+                        if (element.HasStereotype(stereotype)) return model.GetDataType(element.ElementID);
+                    } else return model.GetDataType(element.ElementID);
                 }
             }
             return null;
@@ -690,7 +695,6 @@ namespace SparxEA.Model
 
         /// <summary>
         /// The method checks whether one or more stereotypes from the given list of stereotypes are owned by the Package.
-        /// Since HasStereotype supports fully-qualified stereotype names, we don't have to strip the (optional) profile names in this case.
         /// </summary>
         /// <param name="stereotypes">List of stereotypes to check.</param>
         /// <returns>True if at least one match is found, false otherwise.</returns>
@@ -973,6 +977,19 @@ namespace SparxEA.Model
         {
             ((EAModelImplementation)this._model).Repository.RefreshModelView(this._package.PackageID);
         }
+
+        /// <summary>
+        /// Function that repairs the stereotypes of a series of model elements. The function checks whether stereotypes without a profile
+        /// name are present and adds the profile if required. Parameter is the fully-qualified stereotype.
+        /// The function processes the entire package hierarchy from the current package downwards.
+        /// </summary>
+        /// <param name="stereotype">Fully qualified stereotype to check.</param>
+        /// <param name="entireHierarchy">Optional parameter that enforces a check of current package and all child packages. 
+        /// Default is current package only.</param>
+        internal override void RepairStereotype(string stereotype, bool entireHierarchy)
+        {
+            RepairRecursivePackages(this._package, stereotype, entireHierarchy);
+        }
         
         /// <summary>
         /// Updates Package annotation.
@@ -1122,6 +1139,40 @@ namespace SparxEA.Model
                     ReloadAllProfiles(newChildPkg, new MEPackage(origChildPkg.PackageID));
                 }
             }
+        }
+
+        /// <summary>
+        /// Function that repairs the stereotypes of a series of model elements. The function checks whether stereotypes without a profile
+        /// name are present and adds the profile if required. Parameters are the package and the fully-qualified stereotype.
+        /// The function calls itself recursively for all child packages and thus processes an entire package hierarchy.
+        /// </summary>
+        /// <param name="rootPkg">Package to process.</param>
+        /// <param name="stereotype">Fully qualified stereotype to check.</param>
+        /// <param name="entireHierarchy">Optional parameter that enforces a check of current package and all child packages. 
+        /// Default is current package only.</param>
+        private void RepairRecursivePackages(EA.Package package, string stereotype, bool entireHierarchy)
+        {
+            string prefix   = stereotype.Substring(0, stereotype.IndexOf("::") + 2);
+            string namePart = stereotype.Substring(stereotype.IndexOf("::") + 2);
+
+            Logger.WriteInfo("SparxEA.Model.EAMEIPackage.RepairStereotypeInPackage >> Checking package '" + package.Name + 
+                             "' for elements with stereotype '" + stereotype + "'...");
+            foreach (EA.Element el in package.Elements)
+            {
+                string stereoTypes = el.StereotypeEx;
+                // If we have the name part, the the 'HasStereotype' check fails, this implies that the profile-part is missing.
+                // We have to correct this here.
+                if (stereoTypes.Contains(namePart) && !el.HasStereotype(stereotype))
+                {
+                    int splitAt = stereoTypes.IndexOf(namePart);
+                    el.StereotypeEx = stereoTypes.Substring(0, splitAt) + prefix + stereoTypes.Substring(splitAt);
+                    Logger.WriteInfo("SparxEA.Model.EAMEIPackage.RepairStereotypeInPackage >> Element '" + package.Name + "." + el.Name + 
+                                     "' has been corrected.");
+                    el.Update();
+                    ((EAModelImplementation)this._model).Repository.AdviseElementChange(el.ElementID);
+                }
+            }
+            if (entireHierarchy) foreach (EA.Package child in package.Packages) RepairRecursivePackages(child, stereotype, entireHierarchy);
         }
     }
 }

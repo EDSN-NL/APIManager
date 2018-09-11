@@ -72,9 +72,9 @@ namespace Plugin.Application.CapabilityModel.CodeList
 
             try
             {
-                MEPackage modelPkg = myService.ModelPkg;       // Create capability in same package as service.
+                MEPackage modelPkg = myService.ModelPkg;            // Create capability in same package as service.
                 this._capabilityClass = modelPkg.CreateClass(capabilityName, myStereotype);
-                this._capabilityClass.Version = new Tuple<int,int>(myService.MajorVersion, 0);  // We take-over the major version of the service.
+                this._capabilityClass.Version = myService.Version;  // We copy the version of the service.
 
                 // Define the new CodeList capability as a composite association of my service...
                 var serviceEnd = new EndpointDescriptor(myService.ServiceClass, "1", Name, null, false);
@@ -269,18 +269,17 @@ namespace Plugin.Application.CapabilityModel.CodeList
 
                     if (result)
                     {
-                        // We also have to update the version of both capability class and the associated CodeType attribute!
-                        Tuple<int, int> version = this._capabilityClass.Version;
-                        var newVersion = new Tuple<int, int>(version.Item1, version.Item2 + 1);
-                        this._capabilityClass.Version = newVersion;
-                        string newVersionString = newVersion.Item1 + "." + newVersion.Item2;
+                        // We also have to update the version of the service, this class and the associated CodeType attribute!
+                        this._rootService.IncrementVersion();   // Calling this will also update ALL children.
+                        string newVersionString = this._capabilityClass.Version.Item1 + "." + this._capabilityClass.Version.Item2;
 
                         string vsnName = context.GetConfigProperty(_CodeListVersionAttribute);
                         string urnName = context.GetConfigProperty(_CodeListURNAttribute);
                         foreach (MEAttribute att in this._codeType.Attributes)
                         {
                             if (att.Name == vsnName) att.FixedValue = newVersionString;
-                            else if (att.Name == urnName) att.FixedValue = this._rootService.GetFQN("CodeList", this.Name, newVersion.Item2);
+                            else if (att.Name == urnName) att.FixedValue = this._rootService.GetFQN("CodeList", this.Name, 
+                                                                                                    this._capabilityClass.Version.Item2);
                         }
 
                         // At least one change, create log entry for this new version.
@@ -290,7 +289,6 @@ namespace Plugin.Application.CapabilityModel.CodeList
                         CreateLogEntry(logText);
 
                         // An update of the CodeList must also result in an update of the associated service....
-                        this._rootService.UpdateVersion(new Tuple<int, int>(this._rootService.Version.Item1, this._rootService.Version.Item2 + 1));
                         this._rootService.CreateLogEntry("Updated CodeList '" + this._capabilityClass.Name + "'.");
 
                         // To avoid issues with 'stale' data in EA classes, we remove this implementation object from the registry.
@@ -303,38 +301,33 @@ namespace Plugin.Application.CapabilityModel.CodeList
         }
 
         /// <summary>
-        /// This method is used to synchronize the major version of the CodeList with its parent service in case that version has changed.
-        /// If we detect a major update, the minor version is reset to '0'! 
-        /// The method ONLY considers the service major version, minor version of the CodeList is independent of the Service!
+        /// This method is used to synchronize the version of the CodeList with its parent service in case that version has changed.
+        /// The method simply copies the version of the Service to my CodeList.
         /// </summary>
         internal override void VersionSync()
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             if (!this._isInitialised) FinalizeInit();
-            Tuple<int, int> myVersion = this._capabilityClass.Version;
-            int majorVersion = this._rootService.MajorVersion;
 
-            if (myVersion.Item1 < majorVersion)
+            this._capabilityClass.Version = this._rootService.Version;
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.CodeList.CodeListCapabilityImp.versionSync >> Version of class '" + Name + "' set to: " +
+                             this._capabilityClass.Version.Item1 + "." + this._capabilityClass.Version.Item2 + "'.");
+            this._canonicalVersionURI = this._rootService.GetFQN("CodeList", this.Name, this._rootService.Version.Item2);
+
+            string vsnName = context.GetConfigProperty(_CodeListVersionAttribute);
+            string urnName = context.GetConfigProperty(_CodeListURNAttribute);
+            foreach (MEAttribute att in this._codeType.Attributes)
             {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.CodeList.CodeListCapabilityImp.versionSync >> Updating major version to: " + majorVersion);
-                this._capabilityClass.Version = new Tuple<int, int>(majorVersion, 0);
-                this._canonicalVersionURI = this._rootService.GetFQN("CodeList", this.Name, 0);
-
-                string vsnName = context.GetConfigProperty(_CodeListVersionAttribute);
-                string urnName = context.GetConfigProperty(_CodeListURNAttribute);
-                foreach (MEAttribute att in this._codeType.Attributes)
+                // We have to update the version of the CodeType, but also the URN since this contains the
+                // major version!
+                if (att.Name == vsnName)
                 {
-                    // We have to update the version of the CodeType, but also the URN since this contains the
-                    // major version!
-                    if (att.Name == vsnName)
-                    {
-                        att.FixedValue = majorVersion + ".0";
-                        CreateLogEntry("Version changed to: '" + majorVersion + ".0'.");
-                    }
-                    else if (att.Name == urnName)
-                    {
-                        att.FixedValue = this._canonicalVersionURI;
-                    }
+                    att.FixedValue = this._capabilityClass.Version.Item1 + "." + this._capabilityClass.Version.Item2;
+                    CreateLogEntry("Version changed to: '" + this._capabilityClass.Version.Item1 + "." + this._capabilityClass.Version.Item2 + "'.");
+                }
+                else if (att.Name == urnName)
+                {
+                    att.FixedValue = this._canonicalVersionURI;
                 }
             }
         }

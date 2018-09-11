@@ -75,8 +75,14 @@ namespace Plugin.Application.Events.API
             // Check what type of diagram has been selected, must be the owner of the resource...
             if (svcContext.MyDiagram.OwningPackage != operationParent.OwningPackage)
             {
-                MessageBox.Show("Operations can only be added from the diagram of the owning resource!",
-                                "Wrong Diagram", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Logger.WriteWarning("Operations can only be added from the diagram of the owning resource!");
+                return;
+            }
+
+            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
+            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            {
+                Logger.WriteWarning("Service must be in checked-out state for operations to be added!");
                 return;
             }
 

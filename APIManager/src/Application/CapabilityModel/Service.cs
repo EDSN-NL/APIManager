@@ -68,6 +68,7 @@ namespace Plugin.Application.CapabilityModel
         private const string _DefaultOperationalStatus          = "DefaultOperationalStatus";
         private const string _PathNameTag                       = "PathNameTag";
         private const string _CMStateTag                        = "CMStateTag";
+        private const string _ServiceModelPos                   = "ServiceModelPos";
 
         protected List<Capability> _serviceCapabilities;        // A list of all capabilities configured for this service.
         protected List<Capability> _selectedCapabilities;       // The subset of capabilities that have been selected by the user for processing.
@@ -85,6 +86,7 @@ namespace Plugin.Application.CapabilityModel
         private CMState _configurationMgmtState;                // Current configuration management state for this service.
         private Diagram.ClassColor _representationColor;        // The color in which the Service Class must be drawn on diagrams.
         private bool _useCM;                                    // Set to 'true' if Configuration Management is enabled.
+        private RMTicket _ticket;                               // The ticket used for creation/modification of the service object.
 
         // Components that can be used to construct a namespace:
         private string _operationalStatus;                      // Operational status as defined by a tag in the service, can be one
@@ -212,10 +214,37 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
+        /// Helper function that takes a Service Class and checks whether the Configuration Management state of the class allows updates
+        /// on the service metamodel. When CM is disabled, this is always allowed. Otherwise, the Service CM state must either be Created,
+        /// Checked-Out or Modified.
+        /// </summary>
+        /// <param name="serviceClass">Service to be checked.</param>
+        /// <returns>True in case the meta model is allowed to change, false otherwise.</returns>
+        internal static bool UpdateAllowed(MEClass serviceClass)
+        {
+            string CMStateTagName = ContextSlt.GetContextSlt().GetConfigProperty(_CMStateTag);
+            RepositoryDescriptor repoDsc = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor();
+            if (repoDsc == null) return false;
+            
+            if (repoDsc.IsCMEnabled)
+            {
+                string configMgmtState = serviceClass.GetTag(CMStateTagName);
+                if (string.IsNullOrEmpty(configMgmtState)) return true;
+                else
+                {
+                    CMState state = EnumConversions<CMState>.StringToEnum(configMgmtState);
+                    return (state == CMState.CheckedOut || state == CMState.Created || state == CMState.Modified);
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Creation constructor, invoked when creating a NEW service hierarchy (Service and one or more Capabilities).
         /// Services are declared in a package that must have the appropriate declaration stereotype for the purpose
         /// of the service. The stereotype of this declaration is passed to the constructor so that the service can
         /// collect the proper context.
+        /// TODO: Must accept a valid TicketID for service construction!
         /// </summary>
         /// <param name="containerPackage">The package that will hold the service declaration.</param>
         /// <param name="qualifiedServiceName">Full name of the service, including major version suffix.</param>
@@ -232,6 +261,7 @@ namespace Plugin.Application.CapabilityModel
                 this._serviceCapabilities = new List<Capability>();
                 this._selectedCapabilities = null;
                 this._representationColor = Diagram.ClassColor.Default;
+                this._ticket = null;
 
                 string serviceName = qualifiedServiceName.Substring(0, qualifiedServiceName.IndexOf("_V"));
                 string version = qualifiedServiceName.Substring(qualifiedServiceName.IndexOf("_V") + 2);
@@ -239,10 +269,13 @@ namespace Plugin.Application.CapabilityModel
                 if (!Int32.TryParse(version, out majorVersion)) majorVersion = 1;   // Defaults to 1 in case of errors.
 
                 // Create the service declaration package as well as the service model package in the container...
+                // We try to read the relative package position from configuration and if this failed, use '20' as default value.
+                int packagePos;
+                if (!int.TryParse(context.GetConfigProperty(_ServiceModelPos), out packagePos)) packagePos = 20;
                 this._containerPackage = containerPackage;
                 this._serviceDeclPackage = containerPackage.CreatePackage(qualifiedServiceName, declarationStereotype);
                 this._modelPackage = this._serviceDeclPackage.CreatePackage(context.GetConfigProperty(_ServiceModelPkgName),
-                                                                            context.GetConfigProperty(_ServiceModelPkgStereotype), 10);
+                                                                            context.GetConfigProperty(_ServiceModelPkgStereotype), packagePos);
 
                 // Next, create the service class in the model...
                 this._serviceClass = this._modelPackage.CreateClass(serviceName, context.GetConfigProperty(_ServiceClassStereotype));
@@ -303,6 +336,7 @@ namespace Plugin.Application.CapabilityModel
             this._serviceBuildPath = string.Empty;
             this._representationColor = Diagram.ClassColor.Default;
             this._archetype = ServiceArchetype.Unknown;
+            this._ticket = null;
 
             string message;
 
@@ -392,17 +426,36 @@ namespace Plugin.Application.CapabilityModel
         /// <summary>
         /// When CM is enabled, this method assures that the CM context for the service is prepared for use. This includes synchronisation
         /// with remote repository and creation of the appropriate working branch. The service CM state is updated to reflect the new state.
+        /// A Service can only be checked-out if we can present a valid ticketID, which is used to track the issue that caused the creation-
+        /// or modification of this service.
         /// </summary>
+        /// <param name="ticketID">The identifier of the ticket associated with this checkout request.</param>
+        /// <param name="projectOrderID">The identifier of the (business) project associated with the ticket.</param>
         /// <returns>True when successfully checked-out (or CM not active for the service), false on errors.</returns>
-        internal bool Checkout()
+        internal bool Checkout(string ticketID, string projectOrderID)
         {
             bool result = false;
             try
             {
                 if (this._CMContext != null && this._CMContext.CMEnabled)
                 {
+                    this._ticket = new RMTicket(ticketID, projectOrderID, this);
+                    if (!this._ticket.Valid)
+                    {
+                        Logger.WriteError("Plugin.Application.CapabilityModel.Service.Checkout >> Attempt to checkout service '" + Name + 
+                                          "' with invalid Ticket ID '" + ticketID + "'!");
+                        this._ticket = null;
+                        return false;    // We must present a valid ticket for a successfull checkout!
+                    }
+                    else if (string.IsNullOrEmpty(projectOrderID))
+                    {
+                        Logger.WriteError("Plugin.Application.CapabilityModel.Service.Checkout >> Attempt to checkout service '" + Name +
+                                          "' without a valid project ID!");
+                        this._ticket = null;
+                        return false;    // We must present a project number for a successfull checkout!
+                    }
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.Checkout >> Checking out service '" + Name + "'...");
-                    this._CMContext.CheckoutService();
+                    this._CMContext.CheckoutService(this._ticket);
                 }
                 result = true;
             }
@@ -610,6 +663,27 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
+        /// This function increments the minor version of the Service class and all children. As a side effect, the build number is reset to 0.
+        /// </summary>
+        internal void IncrementVersion()
+        {
+            this._serviceClass.Version = new Tuple<int, int>(this._serviceClass.Version.Item1, this._serviceClass.Version.Item2 + 1);
+            this._version = this._serviceClass.Version;
+            this._serviceClass.BuildNumber = 0;
+
+            CreateLogEntry("Minor version changed to: '" + this._serviceClass.Version.Item2 + "'.");
+            foreach (Capability cap in this._serviceCapabilities) cap.VersionSync();
+
+            if (this._configurationMgmtState != CMState.Disabled)
+            {
+                // When CM is enabled, we first mark the service as 'dirty' and subsequently re-initialize
+                // our CM object (by re-creating it). This will update all repository paths ans symbols.
+                Dirty();
+                this._CMContext = new CMContext(this);
+            }
+        }
+
+        /// <summary>
         /// The path name used to store Service Configuration Items depends on configuration management state. If CM is disabled, we
         /// track each service production run in a separate directory. If CM is enabled, all runs go to the same directory and version snap-shots
         /// are managed by our version management repository (typically GIT).
@@ -709,9 +783,8 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
-        /// Must be invoked in order to change the version of the service and optionally all registered capabilities. Children will be
-        /// synchronized in case the new major version is different from the current major version.
-        /// Also, whhen the new major version is updated, we also update te Service Declaration Package name to reflect this.
+        /// Must be invoked in order to change the version of the service and all registered capabilities.
+        /// Also, when the new major version is updated, we also update te Service Declaration Package name to reflect this.
         /// The 'Service' object keeps a separate copy of the version property since updating this in the underlying repository takes time
         /// and might lead to mismatches when synchronising a complete capability tree. By keeping the version separate, we guarantee that
         /// child objects always get the correct version when using the 'Service' interface.
@@ -727,16 +800,19 @@ namespace Plugin.Application.CapabilityModel
             this._serviceClass.BuildNumber = 0;
             bool needCMUpdate = false;
 
-            if (currentVersion.Item1 != newVersion.Item1)
+            if (currentVersion.Item1 != newVersion.Item1 || currentVersion.Item2 != newVersion.Item2)
             {
-                CreateLogEntry("Version changed to: '" + MajorVersion + ".0'.");
-                string newPackageName = Name + "_V" + newVersion.Item1;
-                this._serviceDeclPackage.Name = newPackageName;
+                CreateLogEntry("Version changed to: '" + newVersion.Item1 + "." + newVersion.Item2 + "'.");
+                if (currentVersion.Item1 != newVersion.Item1)
+                {
+                    string newPackageName = Name + "_V" + newVersion.Item1;
+                    this._serviceDeclPackage.Name = newPackageName;
+                }
 
                 foreach (Capability cap in this._serviceCapabilities) cap.VersionSync();
                 InitializePath();   // Enforce a new path structure, based on the new version.
 
-                // If te major version update is not associated with a new service, we request a CM update.
+                // If the major version update is not associated with a new service, we request a CM update.
                 // For new services, this can wait.
                 if (this._configurationMgmtState != CMState.Created) needCMUpdate = true;
             }

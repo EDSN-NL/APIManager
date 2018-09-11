@@ -52,7 +52,7 @@ namespace Plugin.Application.CapabilityModel.API
                 MEPackage owner = myService.ModelPkg;                                               
                 string myStereotype = context.GetConfigProperty(_InterfaceContractClassStereotype);
                 this._capabilityClass = owner.CreateClass(capabilityName, myStereotype);
-                this._capabilityClass.Version = new Tuple<int, int>(myService.MajorVersion, 0);
+                this._capabilityClass.Version = myService.Version;
                 var interfaceCapItf = new InterfaceCapability(this);
 
                 // Establish link with the service...
@@ -179,7 +179,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// It is the responsibility of the operation to register with the parent capability tree.
         /// </summary>
         /// <param name="operationNames">List of operations that must be added.</param>
-        /// <param name="newMinorVersion">True when a new minor version must be created.</param>
+        /// <param name="newMinorVersion">True when a new minor version must be created. Parameter is ignored when CM is active!</param>
         /// <returns>True if operation completed successfully, false on errors.</returns>
         internal bool AddOperations (List<string> operationNames, bool newMinorVersion)
         {
@@ -208,14 +208,11 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
 
-                if (newMinorVersion)
-                {
-                    var newVersion = new Tuple<int, int>(RootService.Version.Item1, RootService.Version.Item2 + 1);
-                    RootService.UpdateVersion(newVersion);
-                    newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-                    if (this._commonSchema != null) this._commonSchema.CapabilityClass.Version = newVersion;
-                    this._capabilityClass.Version = newVersion;
-                }
+                // This will update the service version, followed by all child capabilities!
+                // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
+                // managed differently).
+                if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
+
                 string logMessage = "Added Operation(s): '" + newNames + "'";
                 RootService.CreateLogEntry(logMessage + " to Interface '" + Name + "'.");
                 if (this._commonSchema != null) this._commonSchema.CreateLogEntry(logMessage + " to Interface '" + Name + "'.");
@@ -237,7 +234,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// Finally, an appropriate log message is generated for the Interface, associated Common Schema and Service.
         /// </summary>
         /// <param name="operationList">One or more operations to associate with this Interface.</param>
-        /// <param name="newMinorVersion">Set to 'true' if the minor version of the Interface must be bumped.</param>
+        /// <param name="newMinorVersion">Set to 'true' if the minor version of the Interface must be bumped. Parameter is ignored when CM is active!</param>
         internal void AssociateOperations (List<OperationCapability> operationList, bool newMinorVersion)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.InterfaceCapabilityImp.associateOperations >> Going to associate operations with interface '" + Name + "'...");
@@ -254,14 +251,11 @@ namespace Plugin.Application.CapabilityModel.API
                 isFirst = false;
             }
 
-            if (newMinorVersion)
-            {
-                var newVersion = new Tuple<int, int>(RootService.Version.Item1, RootService.Version.Item2 + 1);
-                RootService.UpdateVersion(newVersion);
-                newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-                if (this._commonSchema != null) this._commonSchema.CapabilityClass.Version = newVersion;
-                this._capabilityClass.Version = newVersion;
-            }
+            // This will update the service version, followed by all child capabilities!
+            // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
+            // managed differently).
+            if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
+
             string logMessage = "Associated Operation(s): '" + newNames + "'";
             RootService.CreateLogEntry(logMessage + " with Interface '" + Name + "'.");
             if (this._commonSchema != null) this._commonSchema.CreateLogEntry(logMessage + " with Interface '" + Name + "'.");
@@ -276,7 +270,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// Finally, an appropriate log message is generated for the Interface, associated Common Schema and Service.
         /// </summary>
         /// <param name="operationList">One or more operations to associate with this Interface.</param>
-        /// <param name="newMinorVersion">Set to 'true' if the minor version of the Interface must be bumped.</param>
+        /// <param name="newMinorVersion">Set to 'true' if the minor version of the Interface must be bumped. Parameter is ignored when CM is active!</param>
         internal void AssociateOperations(List<MEClass> operationList, bool newMinorVersion)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.InterfaceCapabilityImp.associateOperations (class) >> Going to associate operations with interface '" + Name + "'...");
@@ -295,14 +289,11 @@ namespace Plugin.Application.CapabilityModel.API
                 isFirst = false;
             }
 
-            if (newMinorVersion)
-            {
-                var newVersion = new Tuple<int, int>(RootService.Version.Item1, RootService.Version.Item2 + 1);
-                RootService.UpdateVersion(newVersion);
-                newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-                if (this._commonSchema != null) this._commonSchema.CapabilityClass.Version = newVersion;
-                this._capabilityClass.Version = newVersion;
-            }
+            // This will update the service version, followed by all child capabilities!
+            // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
+            // managed differently).
+            if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
+
             string logMessage = "Associated Operation(s): '" + newNames + "'";
             RootService.CreateLogEntry(logMessage + " with Interface '" + Name + "'.");
             if (this._commonSchema != null) this._commonSchema.CreateLogEntry(logMessage + " with Interface '" + Name + "'.");
@@ -342,7 +333,8 @@ namespace Plugin.Application.CapabilityModel.API
         /// to the event code, which knows the context.
         /// </summary>
         /// <param name="operationClass">Identifies the operation to be deleted.</param>
-        /// <param name="newMinorVersion">Set to 'true' when operation minor version must be updated, 'false' to keep existing version.</param>
+        /// <param name="newMinorVersion">Set to 'true' when operation minor version must be updated, 'false' to keep existing version.
+        /// Parameter is ignored when CM is active!</param>
         /// <param name="deleteResources">When set to 'true', the associated operation class with all related packages, elements, etc. are deleted 
         /// from the repository. When set to 'false' (default), the operation association is removed but all resources remain intact.</param>
         internal void DeleteOperation (MEClass operationClass, bool newMinorVersion, bool deleteResources = false)
@@ -358,12 +350,11 @@ namespace Plugin.Application.CapabilityModel.API
                 }
             }
 
-            if (newMinorVersion)
-            {
-                var newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-                if (this._commonSchema != null) this._commonSchema.CapabilityClass.Version = newVersion;
-                this._capabilityClass.Version = newVersion;
-            }
+            // This will update the service version, followed by all child capabilities!
+            // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
+            // managed differently).
+            if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
+
             CreateLogEntry("Deleted Operation: '" + operationClass.Name + "'.");
             if (this._commonSchema != null) this._commonSchema.CreateLogEntry("Deleted Operation: '" + operationClass.Name + "'.");
         }
@@ -432,7 +423,8 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="operationClass">Operation to be renamed.</param>
         /// <param name="oldName">Original name of the operation.</param>
         /// <param name="newName">New name for the operation, in PascalCase.</param>
-        /// <param name="newMinorVersion">Set to 'true' when operation minor version must be updated, 'false' to keep existing version.</param>
+        /// <param name="newMinorVersion">Set to 'true' when operation minor version must be updated, 'false' to keep existing version.
+        /// Parameter is ignored when CM is active!</param>
         internal void RenameOperation(MEClass operationClass, string oldName, string newName, bool newMinorVersion)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.InterfaceCapabilityImp.renameOperation >> Going to rename operation '" + operationClass.Name + "' to: '" + newName + "'...");
@@ -458,8 +450,8 @@ namespace Plugin.Application.CapabilityModel.API
                     if (cap.Name == oldName)    // Perform operation rename only if there is something to rename...
                     {
                         cap.Rename(newName);
-                        if (newMinorVersion) // If we have to increment the minor version of the operation, do so BEFORE creating the log message...
-                        {
+                        if (!this._rootService.UseConfigurationMgmt && newMinorVersion)  // Effectively, this version update is done only for the creation of the
+                        {                                                                // log message. It will be updated again outside this loop (see further).
                             var newVersion = new Tuple<int, int>(cap.CapabilityClass.Version.Item1, cap.CapabilityClass.Version.Item2 + 1);
                             cap.CapabilityClass.Version = newVersion;
                         }
@@ -469,16 +461,11 @@ namespace Plugin.Application.CapabilityModel.API
                 }
             }
 
-            // If we have to increment the minor version of the interface (and common schema), do so BEFORE creating the log message...
+            // If we have to increment the version of the service, do so BEFORE creating the log message...
             // We create the new version and log message irrespective of a performed rename operation since, in case of identical old- and new names,
             // we can safely assume that this is caused by the same operation, being associated with multiple interfaces and only the first interface will
             // perform the actual rename.
-            if (newMinorVersion) 
-            {
-                var newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-                if (this._commonSchema != null) this._commonSchema.CapabilityClass.Version = newVersion;
-                this._capabilityClass.Version = newVersion;
-            }
+            if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
             string logMessage = "Renamed operation: '" + oldName + "' to: '" + operationClass.Name + "'.";
             CreateLogEntry(logMessage);
             if (this._commonSchema != null) this._commonSchema.CreateLogEntry(logMessage);

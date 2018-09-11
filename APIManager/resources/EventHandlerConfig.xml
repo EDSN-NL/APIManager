@@ -277,6 +277,10 @@
              <StereotypeName>Enexis ECDM::BusinessComponent</StereotypeName>
            </StereotypeList>
          </EventHandler>
+         <EventHandler ID="Repair Stereotypes">
+           <!-- We can always select this operation when in the package tree. -->
+           <HandlerFQN>Plugin.Application.Events.Util.RepairStereotypeEvent</HandlerFQN>
+         </EventHandler>
        </EventHandlerList>
      </EventGroup>     
    </EventGroupList>

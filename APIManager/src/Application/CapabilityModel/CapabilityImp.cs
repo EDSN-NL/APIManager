@@ -595,22 +595,18 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
-        /// This method must be implemented by derived Capability implementations in order to synchronize all child classes with the
-        /// major version of the service. It is invoked whenever the major version of the service has been updated.
+        /// This method must be implemented by derived Capability implementations in order to synchronize all child classes to the
+        /// version of the service. It is invoked whenever the version of the service has been updated.
         /// It can be overloaded by capabilities that require special processing.
+        /// The operation updates both the major- and minor version of the capabilities and makes it equal to the version of the
+        /// service. This implies that ALL components of a service ALWAYS have the same version of that service.
         /// </summary>
         internal virtual void VersionSync()
         {
-            ContextSlt context = ContextSlt.GetContextSlt();
-            Tuple<int, int> myVersion = this._capabilityClass.Version;
-            int majorVersion = this._rootService.MajorVersion;
-
-            if (myVersion.Item1 < majorVersion)
-            {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.CapabilityImp.versionSync >> Updating major version to: " + majorVersion);
-                this._capabilityClass.Version = new Tuple<int, int>(majorVersion, 0);
-            }
-            CreateLogEntry("Version changed to: '" + majorVersion + ".0'.");
+            this._capabilityClass.Version = this._rootService.Version;
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.CapabilityImp.versionSync >> Version of class '" + Name + "' set to: " + 
+                             this._capabilityClass.Version.Item1 + "." + this._capabilityClass.Version.Item2 + "'.");
+            CreateLogEntry("Version changed to: '" + this._capabilityClass.Version.Item1 + "." + this._capabilityClass.Version.Item2 + "'.");
 
             // Synchronize my children (if any)...
             foreach (CapabilityImp child in this) child.VersionSync();
@@ -628,17 +624,6 @@ namespace Plugin.Application.CapabilityModel
             this._assignedRole = string.Empty;
             this._rootService = parentService;
             this._capabilityClass = null;           // As long as this is not set, the object is in invalid state!
-        }
-
-        /// <summary>
-        /// Helper function that increments the minor version of the Capability (including the associated Service).
-        /// </summary>
-        protected void UpdateMinorVersion()
-        {
-            var newVersion = new Tuple<int, int>(RootService.Version.Item1, RootService.Version.Item2 + 1);
-            RootService.UpdateVersion(newVersion);
-            newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-            this._capabilityClass.Version = newVersion;
         }
     }
 }

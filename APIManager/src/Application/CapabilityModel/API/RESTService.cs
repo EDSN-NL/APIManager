@@ -17,6 +17,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _DataModelPkgName                      = "DataModelPkgName";
         private const string _DataModelPkgStereotype                = "DataModelPkgStereotype";
         private const string _ServiceArchetypeREST                  = "ServiceArchetypeREST";
+        private const string _DataModelPos                          = "DataModelPos";
 
         private List<RESTResourceCapability> _tagList;              // The list of REST Resources that have tags defined for them.
         private List<RESTResourceCapability> _rootLevelTagList;     // The list of Root-level REST Resources that have tags defined for them.
@@ -70,8 +71,11 @@ namespace Plugin.Application.CapabilityModel.API
             try
             {
                 // REST API's use a single data model. Here we create the data model package...
+                // We try to read the relative package position from configuration and if this failed, use '50' as default value.
+                int packagePos;
+                if (!int.TryParse(context.GetConfigProperty(_DataModelPos), out packagePos)) packagePos = 50;
                 this._serviceDeclPackage.CreatePackage(context.GetConfigProperty(_DataModelPkgName),
-                                                       context.GetConfigProperty(_DataModelPkgStereotype), 15);
+                                                       context.GetConfigProperty(_DataModelPkgStereotype), packagePos);
 
                 // Create an interface and a set of top-level resource collections on that interface. The remainder of the REST service
                 // structure must be added separately by means of specialized 'edit' dialogues.
@@ -80,6 +84,7 @@ namespace Plugin.Application.CapabilityModel.API
                 {
                     // Oops, something went terribly wrong during construction of the interface. Roll-back and exit!
                     Logger.WriteWarning("Interface creation failed, rolling-back!");
+                    this._serviceDeclPackage.Parent.DeletePackage(this._serviceDeclPackage);
                     return;
                 }
 

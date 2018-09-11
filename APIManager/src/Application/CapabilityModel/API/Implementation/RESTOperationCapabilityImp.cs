@@ -119,7 +119,7 @@ namespace Plugin.Application.CapabilityModel.API
                     this._capabilityClass.SetTag(context.GetConfigProperty(_ArchetypeTag), operation.OperationType.TypeName, true);
                     this._capabilityClass.SetTag(context.GetConfigProperty(_RESTUseHeaderParametersTag), operation.UseHeaderParametersIndicator.ToString(), true);
                     this._capabilityClass.SetTag(context.GetConfigProperty(_RESTUseLinkHeaderTag), operation.UseLinkHeaderIndicator.ToString(), true);
-                    this._capabilityClass.Version = new Tuple<int, int>(parentResource.RootService.MajorVersion, 0);
+                    this._capabilityClass.Version = parentResource.RootService.Version;
                     this._assignedRole = operation.Name;
 
                     // Load MIME Types...
@@ -381,9 +381,9 @@ namespace Plugin.Application.CapabilityModel.API
         /// associations where appropriate.
         /// </summary>
         /// <param name="operation">Updated Operation properties.</param>
-        /// <param name="minorVersionUpdate">Set to true to force update of API minor version.</param>
+        /// <param name="newMinorVersion">Set to true to force update of API minor version. Parameter is ignored when CM is active!</param>
         /// <returns>True on successfull completion, false on errors.</returns>
-        internal bool Edit(RESTOperationDeclaration operation, bool minorVersionUpdate)
+        internal bool Edit(RESTOperationDeclaration operation, bool newMinorVersion)
         {
             if (operation.Status == RESTOperationDeclaration.DeclarationStatus.Edited)
             {
@@ -539,12 +539,12 @@ namespace Plugin.Application.CapabilityModel.API
                     UpdateOperationResult(result);
                     this._responseBodyDocument = operation.ResponseDocument;
                 }
-                
-                if (minorVersionUpdate)
-                {
-                    var newVersion = new Tuple<int, int>(this._capabilityClass.Version.Item1, this._capabilityClass.Version.Item2 + 1);
-                    this._capabilityClass.Version = newVersion;
-                }
+
+                // This will update the service version, followed by all child capabilities!
+                // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
+                // managed differently).
+                if (!this._rootService.UseConfigurationMgmt && newMinorVersion) RootService.IncrementVersion();
+
                 CreateLogEntry("Changes made to Operation.");
             }
             return true;

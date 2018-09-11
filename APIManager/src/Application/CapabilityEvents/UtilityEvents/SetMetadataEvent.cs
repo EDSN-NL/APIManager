@@ -45,13 +45,23 @@ namespace Plugin.Application.Events.Util
                 // For a class, all outbound associations will be processed as well (with the exception of generalization).
                 ModelSlt model = ModelSlt.GetModelSlt();
                 ModelElement element = context.GetActiveElement();
-                if (element.Type == ModelElementType.Class && model.LockModel(((MEClass)element).OwningPackage))
+                if (element.Type == ModelElementType.Class)
                 {
-                    ProcessClass(element as MEClass);
-                    MessageBox.Show("Metadata assignment completed.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    if (model.LockModel(((MEClass)element).OwningPackage))
+                    {
+                        ProcessClass(element as MEClass);
+                        model.UnlockModel(((MEClass)element).OwningPackage);
+                        MessageBox.Show("Metadata assignment completed.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
                 }
-                else if (element.Type == ModelElementType.Package) ProcessPackage(element as MEPackage);
-                model.UnlockModel(((MEClass)element).OwningPackage);
+                else if (element.Type == ModelElementType.Package)
+                {
+                    if (model.LockModel((MEPackage)element))
+                    {
+                        ProcessPackage(element as MEPackage);
+                        model.UnlockModel((MEPackage)element);
+                    }
+                }
             }
             catch (Exception exc)
             {

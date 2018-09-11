@@ -63,6 +63,13 @@ namespace Plugin.Application.Events.API
                 return;
             }
 
+            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
+            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            {
+                Logger.WriteWarning("Service must be in checked-out state for interfaces to be added!");
+                return;
+            }
+
             using (var dialog = new AddInterfaceInput(svcContext.SVCModelPackage, 
                                                       svcContext.SVCModelPackage.GetClasses(context.GetConfigProperty(_OperationClassStereotype))))
             {

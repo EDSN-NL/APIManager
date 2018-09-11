@@ -10,6 +10,9 @@ namespace Plugin.Application.CapabilityModel.API
 {
     internal class ApplicationService: Service
     {
+        // Private configuration properties used by this service...
+        private const string _CommonDefnPos = "CommonDefnPos";
+
         // Keep track of classes and associations to show in the diagram...
         protected List<MEClass> _diagramClassList;
         protected List<MEAssociation> _diagramAssocList;
@@ -33,8 +36,11 @@ namespace Plugin.Application.CapabilityModel.API
             ModelSlt model = ModelSlt.GetModelSlt();
 
             // Create a new package for the top-level 'common' definition...
+            // We try to read the relative package position from configuration and if this failed, use '50' as default value.
+            int packagePos;
+            if (!int.TryParse(context.GetConfigProperty(_CommonDefnPos), out packagePos)) packagePos = 50;
             MEPackage commonPackage = this._serviceDeclPackage.CreatePackage(context.GetConfigProperty(_CommonPkgName),
-                                                                             context.GetConfigProperty(_CommonPkgStereotype), 20);
+                                                                             context.GetConfigProperty(_CommonPkgStereotype), packagePos);
 
             // Create an interface and a set of operations on that interface. The operations in turn should 
             // create the remainder of the package structure with all contained classes and associations...
@@ -110,7 +116,7 @@ namespace Plugin.Application.CapabilityModel.API
 
         /// <summary>
         /// Removes an Interface from this Service. Removal is only allowed when there are multiple Interfaces defined for the service.
-        /// If there are any 'orphaned' operations after removing the service, there will be removed as well.
+        /// If there are any 'orphaned' operations after removing the service, these will be removed as well.
         /// Note that the provided InterfaceCapability object is INVALID on return from this method (unlesss we refused to delete the Interface)!
         /// </summary>
         /// <param name="thisInterface">Interface to be deleted.</param>
@@ -123,13 +129,9 @@ namespace Plugin.Application.CapabilityModel.API
 
             if (this._serviceCapabilities.Count > 1)
             {
-                if (newMinorVersion)
-                {
-                    var newVersion = new Tuple<int, int>(this._serviceClass.Version.Item1, this._serviceClass.Version.Item2 + 1);
-                    this._serviceClass.Version = newVersion;
-                }
+                thisInterface.Delete(); // Performs the actual delete operation of the Interface and optionally, Operations assigned solely to that Interface.
+                if (newMinorVersion) IncrementVersion();
                 CreateLogEntry("Deleted Interface: '" + thisInterface.Name + "'.");
-                thisInterface.Delete(); // Performs the actual delete operation of the Interface and optionally, Operations assigned solely with that Interface.
                 result = true;
             }
             Logger.WriteInfo("Plugin.Application.CapabilityModel.APIProcessor.ApplicationService.DeleteInterface >> Result of operation: " + result);

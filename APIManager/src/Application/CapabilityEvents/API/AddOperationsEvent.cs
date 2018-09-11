@@ -65,8 +65,15 @@ namespace Plugin.Application.Events.API
                 return;
             }
 
+            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
+            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            {
+                Logger.WriteWarning("Service must be in checked-out state for operations to be added!");
+                return;
+            }
+
             // If no interface has been selected, we simply take the first one available...
-            if (interfaceClass == null) interfaceClass = svcContext.InterfaceList[0];   
+            if (interfaceClass == null) interfaceClass = svcContext.InterfaceList[0];
 
             using (var dialog = new AddOperationInput(svcContext.DeclarationPackage))
             {
@@ -76,7 +83,6 @@ namespace Plugin.Application.Events.API
                     // in which case we will associate the interface class with the existing hierarchy.
                     var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
                     var myInterface = new InterfaceCapability(interfaceClass);
-
                     if (myInterface.AddOperations(dialog.OperationList, dialog.MinorVersionIndicator))
                     {
                         // Mark service as 'modified' for configuration management and add to diagram in different color...

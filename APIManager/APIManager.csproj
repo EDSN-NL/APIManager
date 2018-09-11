@@ -139,6 +139,7 @@
     <Compile Include="src\Application\CapabilityEvents\API\AddRESTResourceEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\CreateRESTServiceDeclarationEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\ProcessRESTInterfaceEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\RepairStereotypeEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\RevertServiceEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\CheckoutServiceEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\ReleaseServiceEvent.cs" />
@@ -180,6 +181,7 @@
     <Compile Include="src\Application\CapabilityModel\API\RESTUtil.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Interface\RESTInterfaceCapability.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Implementation\RESTInterfaceCapabilityImp.cs" />
+    <Compile Include="src\Application\CapabilityModel\RMTicket.cs" />
     <Compile Include="src\Application\CapabilityModel\SchemaGeneration\ClassCacheSlt.cs" />
     <Compile Include="src\Application\CapabilityModel\SchemaGeneration\ClassifierContext.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Interface\CommonSchemaCapability.cs" />
@@ -204,11 +206,23 @@
     <Compile Include="src\Application\CapabilityModel\CodeList\ExcelExporter.cs" />
     <Compile Include="src\Application\CapabilityModel\ProgressPanelSlt.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Interface\OperationCapability.cs" />
+    <Compile Include="src\Application\Forms\CheckoutService.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\CheckoutService.designer.cs">
+      <DependentUpon>CheckoutService.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Application\Forms\CMRevertPicker.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="src\Application\Forms\CMRevertPicker.Designer.cs">
       <DependentUpon>CMRevertPicker.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\RepairStereotypeInput.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\RepairStereotypeInput.Designer.cs">
+      <DependentUpon>RepairStereotypeInput.cs</DependentUpon>
     </Compile>
     <Compile Include="src\Framework\ConfigurationManagement\CMRepositoryDscMgrSlt.cs" />
     <Compile Include="src\Framework\ConfigurationManagement\Ticket.cs" />
@@ -585,6 +599,9 @@
     <EmbeddedResource Include="src\Application\Forms\AddInterfaceInput.resx">
       <DependentUpon>AddInterfaceInput.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\CheckoutService.resx">
+      <DependentUpon>CheckoutService.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="src\Application\Forms\CMRevertPicker.resx">
       <DependentUpon>CMRevertPicker.cs</DependentUpon>
     </EmbeddedResource>
@@ -593,6 +610,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Application\Forms\CMRepositorySetting.resx">
       <DependentUpon>CMRepositorySetting.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\RepairStereotypeInput.resx">
+      <DependentUpon>RepairStereotypeInput.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Application\Forms\RESTResponseCodeDialog.resx">
       <DependentUpon>RESTResponseCodeDialog.cs</DependentUpon>
