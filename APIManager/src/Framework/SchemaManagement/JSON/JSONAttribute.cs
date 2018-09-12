@@ -24,6 +24,7 @@ namespace Framework.Util.SchemaManagement.JSON
         private JSchema _simpleAttributeClassifier; // Simplified definition, created for use of attributes as Properties in special contexts.
         private JSONClassifier _classifier;         // The associated classifier object in case of complex types.
         private string _annotation;                 // Contains the annotation text of the attribute.
+        private string _example;                    // Optionally, the annotation could contain examples of use. We extract these separately.
 
         /// <summary>
         /// Implementation of the JSON Property interface:
@@ -41,6 +42,11 @@ namespace Framework.Util.SchemaManagement.JSON
         /// Returns the annotation text of the attribute.
         /// </summary>
         internal string Annotation    { get { return this._annotation; } }
+
+        /// <summary>
+        /// Returns the example text for the attribute (empty string if none found).
+        /// </summary>
+        internal string ExampleText { get { return this._example; } }
 
         /// <summary>
         /// Construct a new content attribute. These attributes MUST be used in the context of the associated ABIE of which they are declared as 
@@ -115,7 +121,7 @@ namespace Framework.Util.SchemaManagement.JSON
                 }
 
                 // Unfortunately, since JSchema does not implement a proper copy constructor, we have to create two entirely different attribute
-                // objects so we can differentiate between the 'rich' version (including a Title and an AdditionalItems clause) and the simple
+                // objects so we can differentiate between the 'rich' version (including a Title, AdditionalItems, Description and Example clause) and the simple
                 // version, which does not have these. We can't assign one to the other since these are all pointers!
                 var attribClassifier = new JSchema { Title = classifierName };
                 var simpleAttributeClassifier = new JSchema();
@@ -127,7 +133,7 @@ namespace Framework.Util.SchemaManagement.JSON
                     if (classifier.IsReferenceType)
                     {
                         // Complex classifier, we need to extend this instead of copy the contents...
-                        //@@@@@@@@@ ISSUE: Some fromeworks don't like the 'AllOf' construction!
+                        //@@@@@@@@@ ISSUE: Some frameworks don't like the 'AllOf' construction!
                         // We use this so we can extend the existing type definition with our own Title, Description and other Facets.
                         // There are two solutions:
                         // 1) Use a simple REF (like all other external references). But in this case, NO facets other then the REF may exist.
@@ -200,6 +206,7 @@ namespace Framework.Util.SchemaManagement.JSON
             // Build a description block for the element...
             // Since newlines don't work very well in JSON, we replace line breaks by spaces.
             this._annotation = string.Empty;
+            this._example = string.Empty;
             bool firstOne = true;
             if (annotation.Count > 0)
             {
@@ -207,9 +214,31 @@ namespace Framework.Util.SchemaManagement.JSON
                 foreach (MEDocumentation docNode in annotation)
                 {
                     this._annotation += firstOne ? docNode.BodyText : "  " + docNode.BodyText;
+
+                    // There should be only one body text with one example and all others should return an empty string.
+                    // If we found example text, this is stored in an extension property...
+                    if (docNode.ExampleText != string.Empty)
+                    {
+                        this._example = docNode.ExampleText;
+                        this._attributeClassifier.ExtensionData.Add("example", this._example);
+                    }
                     firstOne = false;
                 }
                 this._attributeClassifier.Description = this._annotation;
+            }
+
+            if (this._example == string.Empty)
+            {
+                // We did not find an example in our attribute documentation. Check documentation of the Classifier...
+                foreach (MEDocumentation docNode in this._classifier.Documentation)
+                {
+                    if (docNode.ExampleText != string.Empty)
+                    {
+                        this._example = docNode.ExampleText;
+                        this._attributeClassifier.ExtensionData.Add("example", this._example);
+                        break;
+                    }
+                }
             }
 
             // If the attribute is nillable, we must add another type qualifier. 
@@ -297,6 +326,8 @@ namespace Framework.Util.SchemaManagement.JSON
     internal class JSONSupplementaryAttribute : SupplementaryAttribute, IJSONProperty
     {
         private JSchema _classifier;    // The associated schema for the attribute classifier.
+        private string _annotation;     // Contains the annotation text of the attribute.
+        private string _example;        // Optionally, the annotation could contain examples of use. We extract these separately.
 
         /// <summary>
         /// Implementation of the JSON Property interface:
@@ -309,6 +340,16 @@ namespace Framework.Util.SchemaManagement.JSON
         public new string Name          { get { return base.Name; } }
         public new int SequenceKey      { get { return base.SequenceKey; } }
         public new bool IsMandatory     { get { return base.IsMandatory; } }
+
+        /// <summary>
+        /// Returns the annotation text of the attribute.
+        /// </summary>
+        internal string Annotation      { get { return this._annotation; } }
+
+        /// <summary>
+        /// Returns the example text for the attribute (empty string if none found).
+        /// </summary>
+        internal string ExampleText     { get { return this._example; } }
 
         /// <summary>
         /// Getters for properties of SupplementaryAttribute:
@@ -393,16 +434,24 @@ namespace Framework.Util.SchemaManagement.JSON
             }
 
             // Build documentation block. Since newlines don't work very well in JSON, we replace line breaks by spaces.
+            this._annotation = string.Empty;
+            this._example = string.Empty;
             if (annotation != null && annotation.Count > 0)
             {
-                string documentation = string.Empty;
                 bool firstOne = true;
                 foreach (MEDocumentation docNode in annotation)
                 {
-                    documentation += firstOne ? docNode.BodyText : "  " + docNode.BodyText;
+                    this._annotation += firstOne ? docNode.BodyText : "  " + docNode.BodyText;
+
+                    // There should be only one body text with one example and all others should return an empty string.
+                    if (docNode.ExampleText != string.Empty)
+                    {
+                        this._example = docNode.ExampleText;
+                        this._classifier.ExtensionData.Add("example", this._example);
+                    }
                     firstOne = false;
                 }
-                this._classifier.Description = documentation;
+                this._classifier.Description = this._annotation;
             }
         }
     }

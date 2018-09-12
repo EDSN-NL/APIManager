@@ -123,7 +123,7 @@ namespace Framework.Util.SchemaManagement.JSON
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONClassifier.CreateClassifier >> Creating classifier '" + classifierName + "' of type '" + primType + "'...");
 
             // First of all, we have to check the facetList for a possible type replacement (might happen for e.g. decimals, which 
-            //could be transformed into integers)...
+            // could be transformed into integers)...
             if (facetList != null && facetList.Count > 0)
             {
                 foreach (Facet facet in facetList)
