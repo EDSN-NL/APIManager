@@ -762,6 +762,7 @@ namespace Plugin.Application.CapabilityModel.API
             const string _Type = "Type";
             ContextSlt context = ContextSlt.GetContextSlt();
             string selectedName = string.Empty;
+            string emptyResourceName = context.GetConfigProperty(_EmptyResourceName);
             MEClass selectedClass = context.SelectClass(new List<string> { context.GetConfigProperty(_BusinessComponentStereotype),
                                                                            context.GetConfigProperty(_GenericMessageClassStereotype)});
             if (selectedClass != null)
@@ -789,7 +790,7 @@ namespace Plugin.Application.CapabilityModel.API
                 {
                     // Finally, we check whether the name ends with 'Type', if so, we remove this for the name of the resource class...
                     if (selectedName.EndsWith(_Type)) selectedName = selectedName.Substring(0, selectedName.Length - _Type.Length);
-                    if (this._name != string.Empty && this._name != selectedName)
+                    if (this._name != string.Empty && this._name != selectedName && this._name != emptyResourceName)
                         MessageBox.Show("Document resource '" + this._name + "' receives new name '" + 
                                         selectedName + "', please update operation roles accordingly!", 
                                         "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);

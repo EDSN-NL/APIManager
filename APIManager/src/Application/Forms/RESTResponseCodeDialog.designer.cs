@@ -43,6 +43,7 @@ namespace Plugin.Application.Forms
             this.ResponseCode = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.ResponseDescription = new System.Windows.Forms.TextBox();
+            this.DefaultResponse = new System.Windows.Forms.CheckBox();
             this.CategoryBox.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -189,6 +190,17 @@ namespace Plugin.Application.Forms
             this.ResponseDescription.TabIndex = 3;
             this.ResponseDescription.Leave += new System.EventHandler(this.DescriptionNameFld_Leave);
             // 
+            // DefaultResponse
+            // 
+            this.DefaultResponse.AutoSize = true;
+            this.DefaultResponse.Location = new System.Drawing.Point(186, 77);
+            this.DefaultResponse.Name = "DefaultResponse";
+            this.DefaultResponse.Size = new System.Drawing.Size(147, 17);
+            this.DefaultResponse.TabIndex = 7;
+            this.DefaultResponse.Text = "Default response override";
+            this.DefaultResponse.UseVisualStyleBackColor = true;
+            this.DefaultResponse.CheckedChanged += new System.EventHandler(this.DefaultResponse_CheckedChanged);
+            // 
             // RESTResponseCodeDialog
             // 
             this.AcceptButton = this.Ok;
@@ -196,6 +208,7 @@ namespace Plugin.Application.Forms
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
             this.ClientSize = new System.Drawing.Size(377, 161);
+            this.Controls.Add(this.DefaultResponse);
             this.Controls.Add(this.ResponseDescription);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.ResponseCode);
@@ -232,5 +245,6 @@ namespace Plugin.Application.Forms
         private ComboBox ResponseCode;
         private Label label4;
         private TextBox ResponseDescription;
+        private CheckBox DefaultResponse;
     }
 }

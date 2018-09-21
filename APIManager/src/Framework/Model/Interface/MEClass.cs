@@ -222,11 +222,12 @@ namespace Framework.Model
         /// <param name="defaultValue">An optional default value to be assignd to the attribute.</param>
         /// <param name="cardinality">Specifies lower and upper boundaries of attribute cardinality.</param>
         /// <param name="isConstant">Indicates that the attribute has a constant value. Default value must be specified in this case!</param>
+        /// <param name="annotation">Optional annotation text for the attribute.</param>
         /// <returns>Newly created attribute object.</returns>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal MEAttribute CreateAttribute(string name, MEDataType classifier, AttributeType type, string defaultValue, Tuple<int, int> cardinality, bool isConstant)
+        internal MEAttribute CreateAttribute(string name, MEDataType classifier, AttributeType type, string defaultValue, Tuple<int, int> cardinality, bool isConstant, string annotation = null)
         {
-            if (this._imp != null) return ((MEIClass)this._imp).CreateAttribute(name, classifier, type, defaultValue, cardinality, isConstant);
+            if (this._imp != null) return ((MEIClass)this._imp).CreateAttribute(name, classifier, type, defaultValue, cardinality, isConstant, annotation);
             else throw new MissingImplementationException("MEIClass");
         }
 

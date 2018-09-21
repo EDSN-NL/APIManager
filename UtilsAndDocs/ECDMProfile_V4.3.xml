@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="windows-1252"?>
 <UMLProfile profiletype="uml2">
-	<Documentation id="9B84831D-3" name="Enexis ECDM" version="4.2" notes="20170918:  Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109:  Vs 3.1:	Added support for 'nillable' elements.&#xA;20180110:  Vs 3.2:	Added 'alternativeNaming' tag to CommonSchema (SOAP backwards compatibility).&#xA;20180213: Vs 3.3:	Defines Service Archtetype and added _metatype to Service.&#xA;20180216: Vs 3.4:	Resource: removed 'isTag', added 'tagNames'.&#xA;20180308: Vs 4.0:	Implemented first draft of the Configuration Management Profile.&#xA;20180620: Vs 4.1:	Added another state to Service CM state: CheckedOut.&#xA;20180815: Vs 4.2: Added CM Ticket"/>
+	<Documentation id="9B84831D-3" name="Enexis ECDM" version="4.2" notes="20170918:  Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109:  Vs 3.1:	Added support for 'nillable' elements.&#xA;20180110:  Vs 3.2:	Added 'alternativeNaming' tag to CommonSchema (SOAP backwards compatibility).&#xA;20180213: Vs 3.3:	Defines Service Archtetype and added _metatype to Service.&#xA;20180216: Vs 3.4:	Resource: removed 'isTag', added 'tagNames'.&#xA;20180308: Vs 4.0:	Implemented first draft of the Configuration Management Profile.&#xA;20180620: Vs 4.1:	Added another state to Service CM state: CheckedOut.&#xA;20180815: Vs 4.2: Added CM Ticket&#xA;20180913: Vs.4.3: Moved Representation Term to upper metadata."/>
 	<Content>
 		<Stereotypes>
 			<Stereotype name="ASMBIE" notes="Association Message Business Information Entity." cx="0" cy="0" bgcolor="11009769" fontcolor="3947580" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAssoc" baseStereotypes="ECDMAssoc"/>
@@ -10,7 +10,7 @@
 			<Stereotype name="BDTModel" notes="The Business Data Type library is used to define reusable business-aware data type that are used as attributes in business components." cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMPkg" baseStereotypes="ECDMPkg"/>
 			<Stereotype name="BDTSimpleType" metatype="SimpleType" notes="Business Data Type, Simple Type" cx="0" cy="0" bgcolor="11009527" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="BDT" baseStereotypes="BDT"/>
 			<Stereotype name="BDTUnion" metatype="Union" notes="Business Data Type, Union" cx="0" cy="0" bgcolor="11009527" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="BDT" baseStereotypes="BDT"/>
-			<Stereotype name="BasedOn" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="3947580" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAssoc" baseStereotypes="ECDMAssoc"/>
+			<Stereotype name="BasedOn" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="-1" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAssoc" baseStereotypes="ECDMAssoc"/>
 			<Stereotype name="BusinessComponent" notes="Aggregated Business Information Entity (ABIE), reusable business component (business context)" cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMComponent" baseStereotypes="ECDMComponent"/>
 			<Stereotype name="BusinessMessage" metatype="BusinessMessage" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="3947580" bordercolor="9600621" borderwidth="1" hideicon="0" generalizes="ServiceCapability" baseStereotypes="ServiceCapability">
 				<AppliesTo>
@@ -108,12 +108,9 @@
 					<Apply type="Attribute"/>
 				</AppliesTo>
 				<TaggedValues>
-					<Tag name="objectClassQualifierName" type="string" description="" unit="" values="" default=""/>
-					<Tag name="objectClassTermName" type="string" description="" unit="" values="" default=""/>
-					<Tag name="propertyTermName" type="string" description="" unit="" values="" default=""/>
-					<Tag name="propertyQualifierName" type="string" description="" unit="" values="" default=""/>
 					<Tag name="choiceGroup" type="string" description="" unit="" values="" default=""/>
-					<Tag name="representationTermName" type="string" description="" unit="" values="" default=""/>
+					<Tag name="propertyQualifierName" type="string" description="Is a word or words which help define and differentiate the property. The&#xA;order in which the qualifiers are expressed indicate the order to be used, where the first one is to be the first order qualifier. " unit="" values="" default=""/>
+					<Tag name="propertyTermName" type="string" description="Represents a distinguishing characteristic of the property that helps in uniquely defining the property." unit="" values="" default=""/>
 				</TaggedValues>
 			</Stereotype>
 			<Stereotype name="ECDMChange" notes="This stereotype is used to mark an attribute, classifier or association as an ECDM change to an existing reference model.&#xA;Since this is an extension of the &lt;i&gt;NamedElement &lt;/i&gt;meta object, ECDMChange can be applied to most aspects of any model." cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMRoot" baseStereotypes="ECDMRoot">
@@ -146,12 +143,12 @@
 					<Apply type="DataType"/>
 				</AppliesTo>
 				<TaggedValues>
-					<Tag name="dataTypeQualifierName" type="string" description="" unit="" values="" default=""/>
+					<Tag name="dataTypeQualifierName" type="string" description="A word or words which help define and differentiate a Data Type. It further enhances the semantic meaning of the DataType. The order in which the qualifiers are expressed indicate the order to be used, where&#xA;the first one is to be the first order qualifier. " unit="" values="" default=""/>
 					<Tag name="dataTypeTermName" type="string" description="" unit="" values="" default=""/>
 					<Tag name="useSupplementaries" type="boolean" description="If set to 'true', this indicates that supplementary attributes must be generated for output schemas (but only for the element for which this attribute is set to 'true')." unit="" values="true,false" default=""/>
 				</TaggedValues>
 			</Stereotype>
-			<Stereotype name="ECDMEnumeration" notes="" cx="0" cy="0" bgcolor="16700649" fontcolor="3947580" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMMeta" baseStereotypes="ECDMMeta">
+			<Stereotype name="ECDMEnumeration" notes="" cx="0" cy="0" bgcolor="16700649" fontcolor="3947580" bordercolor="0" borderwidth="1" hideicon="0" isAbstract="true" generalizes="ECDMMeta" baseStereotypes="ECDMMeta">
 				<AppliesTo>
 					<Apply type="Enumeration"/>
 				</AppliesTo>
@@ -168,6 +165,7 @@
 					<Tag name="definition" type="string" description="Semantic meaning of the associated entity." unit="" values="" default=""/>
 					<Tag name="dictionaryEntryName" type="string" description="The official and formal entity name as registered in a dictionary of terms (glossary)." unit="" values="" default=""/>
 					<Tag name="uniqueID" type="string" description="An identifier that references the associated entity in a unique and unambiguous way." unit="" values="" default=""/>
+					<Tag name="representationTermName" type="string" description="An element of the entity name that describes the form in which the entity is represented. Typically, this represents the data type of the entity  (e.g. &quot;Numeric&quot;, &quot;Text&quot;, &quot;Code&quot;, &quot;Binary Object&quot;, &quot;Customer&quot; or &quot;Address&quot;)." unit="" values="" default=""/>
 				</TaggedValues>
 			</Stereotype>
 			<Stereotype name="ECDMPkg" notes="" cx="0" cy="0" bgcolor="16700649" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" isAbstract="true" generalizes="ECDMMeta" baseStereotypes="ECDMMeta">
@@ -181,6 +179,19 @@
 					<Tag name="copyright" type="string" description="" unit="" values="" default=""/>
 					<Tag name="owner" type="string" description="" unit="" values="" default=""/>
 					<Tag name="status" type="enumeration" description="" unit="" values="Draft,Final,Experimental,Proposed" default=""/>
+				</TaggedValues>
+			</Stereotype>
+			<Stereotype name="ECDMReleaseManagement" notes="" cx="0" cy="0" bgcolor="16700649" fontcolor="-1" bordercolor="-1" borderwidth="1" hideicon="0" isAbstract="true" generalizes="ECDMMeta" baseStereotypes="ECDMMeta">
+				<AppliesTo>
+					<Apply type="Class">
+						<Property name="isActive" value=""/>
+					</Apply>
+				</AppliesTo>
+				<TaggedValues>
+					<Tag name="ticketID" type="string" description="Identifies the ticket number in the ticket management system, which is used to register the associated work." unit="" values="" default=""/>
+					<Tag name="projectOrderID" type="string" description="Identifies the project associated with the ticket." unit="" values="" default=""/>
+					<Tag name="creationTimestamp" type="string" description="Date and time of creation (ISO 8601 format) of the associated entity in the external ticket management system." unit="" values="" default=""/>
+					<Tag name="modificationTimestamp" type="string" description="Date and time of last modification/state-change (ISO 8601 format) of the associated entity." unit="" values="" default=""/>
 				</TaggedValues>
 			</Stereotype>
 			<Stereotype name="ECDMRoot" notes="Used as placeholder for generic metadata." cx="0" cy="0" bgcolor="16700649" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" isAbstract="true">
@@ -266,6 +277,12 @@
 					<Tag name="tagNames" type="string" description="Comma separated list of all tag names assigned to this resource." unit="" values="" default=""/>
 				</TaggedValues>
 			</Stereotype>
+			<Stereotype name="Release" metatype="ReleaseType" notes="Represents a formal release of one or more services (identified through a collection of associated features incorporated in the release)." cx="0" cy="0" bgcolor="16771561" fontcolor="-1" bordercolor="6908265" borderwidth="1" hideicon="0" generalizes="ECDMReleaseManagement" baseStereotypes="ECDMReleaseManagement">
+				<TaggedValues>
+					<Tag name="version" type="int" description="Version number of the release.&#xA;When a release is 'repeated' (i.e. because of last-minute changes and/or bugs), the release number is incremented for each subsequent release." unit="" values="" default=""/>
+				</TaggedValues>
+			</Stereotype>
+			<Stereotype name="ReleaseMgmt" notes="Release Management association (associations between Tickets, Releases and Services)" cx="0" cy="0" bgcolor="11009769" fontcolor="-1" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAssoc" baseStereotypes="ECDMAssoc"/>
 			<Stereotype name="SBDH" notes="&lt;i&gt;Service Business Document Header&lt;/i&gt;, used to identify the standardised request- and response headers." cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMComponent" baseStereotypes="ECDMComponent"/>
 			<Stereotype name="Service" metatype="Service" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMComponent" baseStereotypes="ECDMComponent">
 				<AppliesTo>
@@ -290,22 +307,15 @@
 			<Stereotype name="ServiceDeclaration" notes="This is the root package that contains all the components that comprise a specific major version of a service." cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMPkg" baseStereotypes="ECDMPkg"/>
 			<Stereotype name="ServiceOperation" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="3947580" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMPkg" baseStereotypes="ECDMPkg"/>
 			<Stereotype name="Supplementary" notes="The Supplementary stereotype is used to mark an attribute as a supplementary attribute, which describe metadata of a type. These are typically translated to XSD 'Attributes'." cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAttrib" baseStereotypes="ECDMAttrib"/>
-			<Stereotype name="Ticket" metatype="TicketType" notes="" cx="0" cy="0" bgcolor="16771561" fontcolor="-1" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMMeta" baseStereotypes="ECDMMeta">
-				<AppliesTo>
-					<Apply type="Class">
-						<Property name="isActive" value=""/>
-					</Apply>
-				</AppliesTo>
+			<Stereotype name="Ticket" metatype="TicketType" notes="" cx="0" cy="0" bgcolor="16771561" fontcolor="-1" bordercolor="6908265" borderwidth="1" hideicon="0" generalizes="ECDMReleaseManagement" baseStereotypes="ECDMReleaseManagement">
 				<TaggedValues>
-					<Tag name="ticketID" type="string" description="Unique identification of the ticket in the external ticket management system." unit="" values="" default=""/>
-					<Tag name="projectOrderID" type="string" description="Unique Enexis Project order identifier." unit="" values="" default=""/>
-					<Tag name="typeCode" type="enumeration" description="" unit="" values="RootTicket,SubordinateTicket,Ticket" default=""/>
-					<Tag name="status" type="enumeration" description="" unit="" values="Open,Closed,MergeRequest" default=""/>
-					<Tag name="creationTimestamp" type="string" description="Date and time of ticket creation in external system." unit="" values="" default=""/>
-					<Tag name="modificationTimestamp" type="string" description="Date and time of most recent state change." unit="" values="" default=""/>
 					<Tag name="externalStatusCode" type="string" description="Ticket status in external ticket management system." unit="" values="" default=""/>
+					<Tag name="typeCode" type="enumeration" description="" unit="" values="RootTicket,SubordinateTicket,Ticket" default=""/>
 					<Tag name="externalPriority" type="string" description="Priority assigned to the ticket in the external ticket management system." unit="" values="" default=""/>
+					<Tag name="status" type="enumeration" description="" unit="" values="Open,Closed,MergeRequest" default=""/>
 					<Tag name="releasedVersion" type="string" description="Service version (major.minor.build) associated with the ticket." unit="" values="" default=""/>
+					<Tag name="developmentRepositoryNS" type="string" description="Namespace of the associated development branch, MUST be in the same GitLab instance (same root URL)." unit="" values="" default=""/>
+					<Tag name="developmentBranchName" type="string" description="Name of the branch used by development (required for generation of the appropriate merge request)." unit="" values="" default=""/>
 				</TaggedValues>
 			</Stereotype>
 			<Stereotype name="UnionMember" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAssoc" baseStereotypes="ECDMAssoc">

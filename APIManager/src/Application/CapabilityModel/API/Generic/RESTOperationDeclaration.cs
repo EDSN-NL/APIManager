@@ -763,6 +763,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Helper method that initialises the Operation Result list with four default responses: Default OK, Default Client Error, 
         /// Default Server Error and Generic (default) Error.
+        /// WME 20180918: We removed the default response!
         /// </summary>
         private void CreateDefaultResults()
         {
@@ -771,6 +772,8 @@ namespace Plugin.Application.CapabilityModel.API
             var defaultOk = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Success);
             var defaultResponse = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Default);
             this._resultList.Add(defaultOk.ResultCode, defaultOk);
+
+            /*************
             this._resultList.Add(defaultResponse.ResultCode, defaultResponse);
 
             // Associate the default error responses with a parameter type...
@@ -780,6 +783,7 @@ namespace Plugin.Application.CapabilityModel.API
             if (resultParam != null) defaultResponse.ResponseDocumentClass = resultParam;
             else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationDeclaration.CreateDefaultResults >> Unable to find '" + 
                                    context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_OperationResultClassName));
+            *************/
         }
     }
 }

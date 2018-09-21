@@ -289,7 +289,7 @@ namespace SparxEA.Model
                     break;
             }
             string value = !string.IsNullOrEmpty(attrib.DefaultValue)? attrib.DefaultValue: attrib.FixedValue;
-            CreateAttribute(attrib.Name, attrib.Classifier, attributeType, value, attrib.Cardinality, isConstant);
+            CreateAttribute(attrib.Name, attrib.Classifier, attributeType, value, attrib.Cardinality, isConstant, attrib.Annotation);
         }
 
         /// <summary>
@@ -300,10 +300,11 @@ namespace SparxEA.Model
         /// <param name="defaultValue">An optional default value to be assignd to the attribute.</param>
         /// <param name="cardinality">Specifies lower and upper boundary of cardinality.</param>
         /// <param name="isConstant">Indicates that the attribute has a constant value. Default value must be specified in this case!</param>
+        /// <param name="annotation">Annotation text for the attribute.</param>
         /// </summary>
         /// <returns>Newly created attribute object.</returns>
         /// <exception cref="ArgumentException">Illegal or missing name.</exception>
-        internal override MEAttribute CreateAttribute(string attribName, MEDataType classifier, AttributeType type, string defaultValue, Tuple<int, int> cardinality, bool isConstant)
+        internal override MEAttribute CreateAttribute(string attribName, MEDataType classifier, AttributeType type, string defaultValue, Tuple<int, int> cardinality, bool isConstant, string annotation)
         {
             if (string.IsNullOrEmpty(attribName))
             {
@@ -351,6 +352,10 @@ namespace SparxEA.Model
                                     "' marked constant without specified default value, skipped!");
             }
             else newAttribute.IsConst = isConstant;
+
+            // Add annotation to attribute...
+            if (!string.IsNullOrEmpty(annotation)) newAttribute.Notes = annotation;
+
             newAttribute.Update();
             ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
             return new MEAttribute(newAttribute.AttributeID);

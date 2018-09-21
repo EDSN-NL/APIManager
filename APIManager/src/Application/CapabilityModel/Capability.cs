@@ -369,7 +369,11 @@ namespace Plugin.Application.CapabilityModel
         /// <summary>
         /// Flushes the contents of the Capability Registry. Note that this has NO effect on existing implementations!
         /// </summary>
-        internal static void FlushRegistry() { _capabilityList.Clear(); }
+        internal static void FlushRegistry()
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.Capability.RegisterCapabilityImp >> Removing all registered capabilities!");
+            _capabilityList.Clear();
+        }
 
         /// <summary>
         /// Determine a hash of the Capability, which uses the hash function of the capability class.
@@ -592,7 +596,11 @@ namespace Plugin.Application.CapabilityModel
         /// <param name="thisImp">Implementation to be removed.</param>
         internal static void UnregisterCapabilityImp(CapabilityImp thisImp)
         {
-            if (_capabilityList.ContainsKey(thisImp.CapabilityID)) _capabilityList.Remove(thisImp.CapabilityID);
+            if (thisImp.CapabilityID > 0)  // If ID < 0, we have an illegal instance, no use trying to delete in that case.
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.Capability.UnregisterCapabilityImp >> Removing capability '" + thisImp.Name + "'...");
+                if (_capabilityList.ContainsKey(thisImp.CapabilityID)) _capabilityList.Remove(thisImp.CapabilityID);
+            }
         }
 
         /// <summary>
@@ -668,7 +676,7 @@ namespace Plugin.Application.CapabilityModel
                 }
                 else
                 {
-                    Logger.WriteError("Plugin.Application.CapabilityModel.Capability (MEClass) >> Capability implementation not found!");
+                    Logger.WriteError("Plugin.Application.CapabilityModel.Capability (MEClass) >> Capability implementation for '" + capabilityClass.Name + "' not found!");
                     throw new MissingImplementationException("CapabilityImp");
                 }
             }
@@ -695,11 +703,9 @@ namespace Plugin.Application.CapabilityModel
             {
                 try
                 {
-                    if (this._imp != null)
-                    {
-                        _capabilityList.Remove(this._imp.CapabilityClass.ElementID);
-                        this._imp = null;
-                    }
+                    // Do not remove the implementation from the registered capability list, since we might need it in the future,
+                    // removing the interface does not imply that we must also remove the implementations.
+                    this._imp = null;
                     this._disposed = true;
                 }
                 catch { };   // Ignore any exceptions, no use in processing them here.
@@ -717,6 +723,7 @@ namespace Plugin.Application.CapabilityModel
         protected void RegisterCapabilityImp (CapabilityImp thisImp)
         {
             _capabilityList.Add(thisImp.CapabilityClass.ElementID, thisImp);
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.Capability.RegisterCapabilityImp >> Registering capability '" + thisImp.Name + "'...");
             this._imp = thisImp;
         }
 

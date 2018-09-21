@@ -224,7 +224,8 @@ namespace Framework.Util.SchemaManagement.JSON
                     }
                     firstOne = false;
                 }
-                this._attributeClassifier.Description = this._annotation;
+                // Since a doc node could contain only the example, check for actual description text before assignment...
+                if (this._annotation != string.Empty) this._attributeClassifier.Description = this._annotation;
             }
 
             if (this._example == string.Empty)

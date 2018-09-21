@@ -139,14 +139,15 @@ namespace SparxEA.Model
         /// <param name="defaultValue">An optional default value to be assignd to the attribute.</param>
         /// <param name="cardinality">Specifies lower and upper boundary of cardinality.</param>
         /// <param name="isConstant">Indicates that the attribute has a constant value. Default value must be specified in this case!</param>
+        /// <param name="annotation">Annotation text for the attribute.</param>
         /// <returns>Newly created attribute object or null in case of errors.</returns>
-        internal override MEAttribute CreateAttribute(string name, MEDataType classifier,  AttributeType type, string defaultValue, Tuple<int, int> cardinality, bool isConstant)
+        internal override MEAttribute CreateAttribute(string name, MEDataType classifier,  AttributeType type, string defaultValue, Tuple<int, int> cardinality, bool isConstant, string annotation)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             // For enumerations, the attribute MUST be typed as either Supplementary or Facet!
             if (type == AttributeType.Supplementary || type == AttributeType.Facet)
             {
-                return this._classPart.CreateAttribute(name, classifier, type, defaultValue, cardinality, isConstant);
+                return this._classPart.CreateAttribute(name, classifier, type, defaultValue, cardinality, isConstant, annotation);
             }
             else
             {

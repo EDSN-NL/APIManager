@@ -52,7 +52,7 @@ namespace Framework.Util
             int indexOfExample = bodyText.IndexOf(exampleKey);
 
             // If we're dealing with an annotation section and this contains an Example, we extract this and store separately.
-            if (sourceURI.Contains(tagName) && indexOfExample > 0)
+            if (sourceURI.Contains(tagName) && indexOfExample >= 0)
             {
                 this._example = bodyText.Substring(indexOfExample + exampleKey.Length);
                 this._bodyText = bodyText.Substring(0, indexOfExample);

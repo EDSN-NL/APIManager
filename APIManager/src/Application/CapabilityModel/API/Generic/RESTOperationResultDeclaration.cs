@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Framework.Model;
 using Framework.Context;
 using Framework.Logging;
@@ -12,57 +9,6 @@ namespace Plugin.Application.CapabilityModel.API
 {
     internal sealed class RESTOperationResultDeclaration: IEquatable<RESTOperationResultDeclaration>
     {
-        /// <summary>
-        /// Helper class that facilitates translation between code, description and human friendly labels.
-        /// </summary>
-        internal sealed class CodeDescriptor
-        {
-            private string _code;           // Actual HTTP Code.
-            private string _description;    // Descriptive text for the code.
-
-            internal string Code            { get { return this._code; } }
-            internal string Description     { get { return this._description; } }
-            internal string Label           { get { return this._code + " - " + this._description; } }
-
-            /// <summary>
-            /// Create a new CodeDescriptor object based on Code and Description.
-            /// </summary>
-            /// <param name="code">HTTP Response Code.</param>
-            /// <param name="description">Associated description.</param>
-            internal CodeDescriptor (string code, string description)
-            {
-                this._code = code;
-                this._description = description;
-            }
-
-            /// <summary>
-            /// Helper function that returns the original Code for a given Label.
-            /// </summary>
-            /// <param name="label">Label to convert.</param>
-            /// <returns>Code that corresponds with the label.</returns>
-            static internal string LabelToCode(string label)
-            {
-                return label.Substring(0, label.IndexOf(" - "));
-            }
-
-            /// <summary>
-            /// Helper function that takes a code and translates this into a human-friendly label.
-            /// </summary>
-            /// <param name="code">Code to translate.</param>
-            /// <returns>Associated label or empty string in case of illegal codes.</returns>
-            static internal string CodeToLabel(string code)
-            {
-                var category = (RESTOperationResultCapability.ResponseCategory)(int.Parse(code[0].ToString()));
-                var result = new RESTOperationResultDeclaration(category);
-                List<CodeDescriptor> codes = result.GetResponseCodes();
-                foreach (CodeDescriptor dsc in codes)
-                {
-                    if (dsc.Code == code) return code + " - " + dsc.Description;
-                }
-                return string.Empty;
-            }
-        }
-
         // The status is used to track operations on the declaration.
         internal enum DeclarationStatus { Invalid, Created, Stable, Edited, Deleted }
 
@@ -138,18 +84,77 @@ namespace Plugin.Application.CapabilityModel.API
               {"511", "Network Authentication Required"} };
 
         // Configuration properties used by this module...
-        private const string _OperationResultPrefix             = "OperationResultPrefix";
-        private const string _DefaultResponseCode               = "DefaultResponseCode";
-        private const string _DefaultResponseDescription        = "DefaultResponseDescription";
-        private const string _DefaultSuccessCode                = "DefaultSuccessCode";
-        private const string _DefaultClientErrorCode            = "DefaultClientErrorCode";
-        private const string _DefaultServerErrorCode            = "DefaultServerErrorCode";
-        private const string _APISupportModelPathName           = "APISupportModelPathName";
-        private const string _CoreDataTypesPathName             = "CoreDataTypesPathName";
-        private const string _RESTOperationResultStereotype     = "RESTOperationResultStereotype";
-        private const string _ResultCodeAttributeName           = "ResultCodeAttributeName";
-        private const string _ResultCodeAttributeClassifier     = "ResultCodeAttributeClassifier";
-        private const string _ResourceClassStereotype           = "ResourceClassStereotype";
+        private const string _OperationResultPrefix         = "OperationResultPrefix";
+        private const string _DefaultResponseCode           = "DefaultResponseCode";
+        private const string _DefaultResponseDescription    = "DefaultResponseDescription";
+        private const string _DefaultSuccessCode            = "DefaultSuccessCode";
+        private const string _DefaultClientErrorCode        = "DefaultClientErrorCode";
+        private const string _DefaultServerErrorCode        = "DefaultServerErrorCode";
+        private const string _APISupportModelPathName       = "APISupportModelPathName";
+        private const string _CoreDataTypesPathName         = "CoreDataTypesPathName";
+        private const string _RESTOperationResultStereotype = "RESTOperationResultStereotype";
+        private const string _ResultCodeAttributeName       = "ResultCodeAttributeName";
+        private const string _ResultCodeAttributeClassifier = "ResultCodeAttributeClassifier";
+        private const string _ResourceClassStereotype       = "ResourceClassStereotype";
+
+        /// <summary>
+        /// Helper class that facilitates translation between code, description and human friendly labels.
+        /// </summary>
+        internal sealed class CodeDescriptor
+        {
+
+            private string _code;           // Actual HTTP Code.
+            private string _description;    // Descriptive text for the code.
+
+            internal string Code            { get { return this._code; } }
+            internal string Description     { get { return this._description; } }
+            internal string Label           { get { return this._code + " - " + this._description; } }
+
+            /// <summary>
+            /// Create a new CodeDescriptor object based on Code and Description.
+            /// </summary>
+            /// <param name="code">HTTP Response Code.</param>
+            /// <param name="description">Associated description.</param>
+            internal CodeDescriptor (string code, string description)
+            {
+                this._code = code;
+                this._description = description;
+            }
+
+            /// <summary>
+            /// Helper function that returns the original Code for a given Label.
+            /// </summary>
+            /// <param name="label">Label to convert.</param>
+            /// <returns>Code that corresponds with the label.</returns>
+            static internal string LabelToCode(string label)
+            {
+                ContextSlt context = ContextSlt.GetContextSlt();
+                return (label == context.GetConfigProperty(_DefaultResponseDescription))? context.GetConfigProperty(_DefaultResponseCode):
+                                                                                          label.Substring(0, label.IndexOf(" - "));
+            }
+
+            /// <summary>
+            /// Helper function that takes a code and translates this into a human-friendly label.
+            /// </summary>
+            /// <param name="code">Code to translate.</param>
+            /// <returns>Associated label or empty string in case of illegal codes.</returns>
+            static internal string CodeToLabel(string code)
+            {
+                ContextSlt context = ContextSlt.GetContextSlt();
+                if (code != context.GetConfigProperty(_DefaultResponseCode))
+                {
+                    var category = (RESTOperationResultCapability.ResponseCategory)(int.Parse(code[0].ToString()));
+                    var result = new RESTOperationResultDeclaration(category);
+                    List<CodeDescriptor> codes = result.GetResponseCodes();
+                    foreach (CodeDescriptor dsc in codes)
+                    {
+                        if (dsc.Code == code) return code + " - " + dsc.Description;
+                    }
+                    return string.Empty;
+                }
+                else return context.GetConfigProperty(_DefaultResponseDescription);
+            }
+        }
 
         private string _defaultResponseCode;        // Contains the OpenAPI default response code (typically, this is 'default').
         private RESTOperationResultCapability.ResponseCategory _category;   // Operation result category code.

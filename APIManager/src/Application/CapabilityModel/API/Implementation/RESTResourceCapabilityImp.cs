@@ -919,8 +919,8 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Initializes an existing Resource capability. 
         /// </summary>
-        /// <param name="parent">Parent can be either an Interface or a PathExpression.</param>
-        /// <param name="hierarchy">Starting from our Capability, the hierarchy contains child PathExpressions or Operations.</param>
+        /// <param name="parent">Parent can be either an Interface or an Identifier.</param>
+        /// <param name="hierarchy">Starting from our Capability, the hierarchy contains child Identifiers, Documents or Operations.</param>
         private void InitializeCapability(Capability parent, TreeNode<MEClass> hierarchy)
         {
             try
@@ -978,6 +978,7 @@ namespace Plugin.Application.CapabilityModel.API
                 // until we processed all our children...
                 // EXCEPTION: If the resource contains child DOCUMENT resources, these must be FIRST, since operations might depend on them.
                 // That is why we must use two passes, first one to get all Document Resources, second pass to get all the others...
+                // So, the order is: (1) Document resources, (2) Operations and (3) everything else.
                 var childResources = new List<RESTResourceCapability>();
                 foreach (TreeNode<MEClass> node in hierarchy.Children)
                 {

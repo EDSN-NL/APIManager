@@ -261,9 +261,7 @@ namespace Plugin.Application.Forms
         /// <summary>
         /// This event is raised when the user clicks the 'Add Response Code' button.
         /// The method facilitates creation of an additional response code (link between a HTTP response code and an
-        /// associated data type). The dialog creates two response codes by default: 
-        /// - Default OK response (HTTP code 200);
-        /// - Default Error response (OpenAPI 'default' response);
+        /// associated data type). The dialog creates the default OK response (HTTP code 200) by defauklt.
         /// Any additional response codes can be defined using this dialog.
         /// </summary>
         /// <param name="sender">Ignored.</param>
@@ -299,7 +297,7 @@ namespace Plugin.Application.Forms
 
         /// <summary>
         /// This event is raised when the user selects a response code for deletion. This is only allowed for response
-        /// codes that have been added by the user, i.e. the standard responses (HTTP 200 and 'default') can NOT be deleted.
+        /// codes that have been added by the user, i.e. the default HTTP 200 can NOT be deleted.
         /// The response code record is marked as 'deleted'.
         /// </summary>
         /// <param name="sender">Ignored.</param>
@@ -310,7 +308,7 @@ namespace Plugin.Application.Forms
             {
                 ListViewItem key = ResponseCodeList.SelectedItems[0];
                 ContextSlt context = ContextSlt.GetContextSlt();
-                if (key.Text != context.GetConfigProperty(_DefaultResponseCode) && key.Text != context.GetConfigProperty(_DefaultSuccessCode))
+                if (key.Text != context.GetConfigProperty(_DefaultSuccessCode))
                 {
                     this._operation.DeleteOperationResult(key.Text);
                     ResponseCodeList.Items.Remove(key);
@@ -345,8 +343,7 @@ namespace Plugin.Application.Forms
 
         /// <summary>
         /// This event is raised when the user selects a response code for edit. All codes can be edited, however, the user
-        /// can NOT change the name of the default response (HTTP 200) and the default response ('default'). For these, only
-        /// the associated response data type can be changed.
+        /// can NOT change the name of the default response (HTTP 200). Only the associated response data type can be changed.
         /// </summary>
         /// <param name="sender">Ignored.</param>
         /// <param name="e">Ignored.</param>
@@ -357,7 +354,7 @@ namespace Plugin.Application.Forms
                 ListViewItem key = ResponseCodeList.SelectedItems[0];
                 ContextSlt context = ContextSlt.GetContextSlt();
                 string originalKey = key.Text;
-                if (key.Text != context.GetConfigProperty(_DefaultResponseCode) && key.Text != context.GetConfigProperty(_DefaultSuccessCode))
+                if (key.Text != context.GetConfigProperty(_DefaultSuccessCode))
                 {
                     RESTOperationResultDeclaration result = this._operation.EditOperationResult(key.Text);
                     if (result != null)

@@ -54,11 +54,16 @@ namespace Plugin.Application.Forms
                 case RESTOperationResultCapability.ResponseCategory.ServerError:
                     IsServerError.Checked = true;
                     break;
+                
+                case RESTOperationResultCapability.ResponseCategory.Default:
+                    DefaultResponse.Checked = true;
+                    break;
 
-                // Safety catch: we should NOT invoke this dialog with Unknown/Default categories. If we DO try this, the
+                // Safety catch: we should NOT invoke this dialog with Unknown categories. If we DO try this, the
                 // result declaration is reset to 'Informational'....
                 default:
                     this._result = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Informational);
+                    ResponseDescription.Text = this._result.Description;
                     IsInformational.Checked = true;
                     break;
             }
@@ -72,7 +77,7 @@ namespace Plugin.Application.Forms
                 if (dsc.Code != defaultOK) ResponseCode.Items.Add(dsc.Label);
             }
             ResponseCode.SelectedItem = RESTOperationResultDeclaration.CodeDescriptor.CodeToLabel(this._result.ResultCode);
-            ResponseDescription.Text = this._result.Description;
+            ResponseDescription.Text = (result != null && !string.IsNullOrEmpty(result.Description)) ? result.Description : string.Empty;
             AssignParameterClass();
         }
 
@@ -87,10 +92,11 @@ namespace Plugin.Application.Forms
             int index = ResponseCode.SelectedIndex;
             this._result.ResultCode = RESTOperationResultDeclaration.CodeDescriptor.LabelToCode(ResponseCode.Items[index].ToString());
             ResponseDescription.Text = this._result.Description;
+            DefaultResponse.Checked = false;
         }
 
         /// <summary>
-        /// This event is raised whenever the user has modified a description. The text is copied to the Operation Result,
+        /// This event is raised when the user has modified a description. The text is copied to the Operation Result,
         /// unless it is found to be empty, in which case the box is filled again with the current description contents from the
         /// Operation Result Declaration.
         /// </summary>
@@ -111,6 +117,7 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void Category_CheckedChanged(object sender, EventArgs e)
         {
+            DefaultResponse.Checked = false;
             RESTOperationResultCapability.ResponseCategory oldCategory = this._result.Category;
             RESTOperationResultCapability.ResponseCategory newCategory = this._result.Category;
             foreach (Control control in CategoryBox.Controls)
@@ -158,6 +165,28 @@ namespace Plugin.Application.Forms
                 if (resultParam != null) this._result.ResponseDocumentClass = resultParam;
                 else Logger.WriteError("Plugin.Application.Forms.RESTResponseCodeDialog.AssiognParameterClass >> Unable to find '" +
                                        context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_OperationResultClassName));
+            }
+        }
+
+        /// <summary>
+        /// This event is raised when the user changes the value of the 'default response' checkbox.
+        /// Existing response codes are cleared and we load the default response.
+        /// When the user unselected the check box, we switch to the 'Informational' response category.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void DefaultResponse_CheckedChanged(object sender, EventArgs e)
+        {
+            if (DefaultResponse.Checked)
+            {
+                this._result = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Default);
+                if (!string.IsNullOrEmpty(ResponseDescription.Text)) this._result.Description = ResponseDescription.Text;
+                else ResponseDescription.Text = this._result.Description;
+            }
+            else
+            {
+                this._result = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Informational);
+                IsInformational.Checked = true;
             }
         }
     }

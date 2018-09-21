@@ -168,7 +168,7 @@ namespace Plugin.Application.CapabilityModel.API
                     model.CreateAssociation(parentEndpoint, operationEndpoint, MEAssociation.AssociationType.MessageAssociation);
                     InitialiseParent(parentResource);
 
-                    // Each operation will receive by default a private packages for operation specific request- and response data models.
+                    // Each operation will receive by default a private package for operation specific request- and response data models.
                     // We leave them empty but users can use these packages to create operation specific models and create Document Resources
                     // that are associated with these models.
                     // Note that we don't create an operation-specific 'Common' package, since this would be identical to the top-level
@@ -667,8 +667,8 @@ namespace Plugin.Application.CapabilityModel.API
             var myInterface = new RESTOperationCapability(this);
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdateOperationResult >> Updating result code '" + result.ResultCode + "'...");
 
-            // Default response can not be edited and invalid status should be ignored...
-            if (result.ResultCode == defaultResponse || result.Status == RESTOperationResultDeclaration.DeclarationStatus.Invalid) return;
+            // Invalid status should be ignored...
+            if (result.Status == RESTOperationResultDeclaration.DeclarationStatus.Invalid) return;
             else
             {
                 if (result.Status == RESTOperationResultDeclaration.DeclarationStatus.Created)

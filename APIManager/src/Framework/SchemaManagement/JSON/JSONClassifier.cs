@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json.Schema;
 using Newtonsoft.Json.Linq;
 using Framework.Logging;
-using Framework.Context;
 
 namespace Framework.Util.SchemaManagement.JSON
 {
@@ -176,6 +173,26 @@ namespace Framework.Util.SchemaManagement.JSON
                 foreach (JSONSupplementaryAttribute attrib in attribList)
                 {
                     if (attrib.IsValid) this._constructedClassifier.Properties.Add(attrib.Name, attrib.AttributeClassifier);
+                }
+
+                // Build a description block for the classifier...
+                // Since newlines don't work very well in JSON, we replace line breaks by spaces.
+                bool firstOne = true;
+                if (annotation.Count > 0)
+                {
+                    Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONClassifier >> Adding annotation to classifier...");
+                    string classifierDoc = string.Empty;
+                    foreach (MEDocumentation docNode in annotation)
+                    {
+                        classifierDoc += firstOne ? docNode.BodyText : "  " + docNode.BodyText;
+
+                        // There should be only one body text with one example and all others should return an empty string.
+                        // If we found example text, this is stored in an extension property...
+                        if (docNode.ExampleText != string.Empty) this._constructedClassifier.ExtensionData.Add("example", docNode.ExampleText);
+                        firstOne = false;
+                    }
+                    // Since a doc node could contain only the example, check for actual description text before assignment...
+                    if (classifierDoc != string.Empty) this._constructedClassifier.Description = classifierDoc;
                 }
             }
             else
