@@ -170,7 +170,7 @@ namespace Framework.ConfigurationManagement
             get { return this._identity?? new Identity("Dummy.User", "Dummy.EMail"); }
             set
             {
-                if (this._identity == null || value.Email != this._identity.Email || value.Name != this._identity.Name)
+                if (value != null && (this._identity == null || value.Email != this._identity.Email || value.Name != this._identity.Name))
                 {
                     this._identity = new Identity(value.Name, value.Email);
                     this._dirty = true;
