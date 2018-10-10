@@ -105,6 +105,7 @@
             this.addToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.AllOfSupport = new System.Windows.Forms.CheckBox();
             this.CodeLists.SuspendLayout();
             this.LogFile.SuspendLayout();
             this.ServiceModel.SuspendLayout();
@@ -718,6 +719,7 @@
             // 
             // JSONSpecifics
             // 
+            this.JSONSpecifics.Controls.Add(this.AllOfSupport);
             this.JSONSpecifics.Controls.Add(this.SupplementaryPrefixCode);
             this.JSONSpecifics.Controls.Add(this.SupplementaryPrefixLabel);
             this.JSONSpecifics.Location = new System.Drawing.Point(917, 280);
@@ -859,6 +861,16 @@
             this.deleteToolStripMenuItem.Text = "Edit";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.EditRepository_Click);
             // 
+            // AllOfSupport
+            // 
+            this.AllOfSupport.AutoSize = true;
+            this.AllOfSupport.Location = new System.Drawing.Point(6, 43);
+            this.AllOfSupport.Name = "AllOfSupport";
+            this.AllOfSupport.Size = new System.Drawing.Size(88, 17);
+            this.AllOfSupport.TabIndex = 2;
+            this.AllOfSupport.Text = "Support AllOf";
+            this.AllOfSupport.UseVisualStyleBackColor = true;
+            // 
             // SettingsForm
             // 
             this.AcceptButton = this.Ok;
@@ -992,5 +1004,6 @@
         private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
         private System.Windows.Forms.Button DeleteAllRepositories;
+        private System.Windows.Forms.CheckBox AllOfSupport;
     }
 }

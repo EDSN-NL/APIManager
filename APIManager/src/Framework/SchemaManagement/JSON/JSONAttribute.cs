@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Newtonsoft.Json.Schema;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 using Framework.Logging;
 using Framework.Context;
 
@@ -15,6 +14,8 @@ namespace Framework.Util.SchemaManagement.JSON
     /// schema defining the attribute classifier. For simple (non-constructed) classifiers, the schema is constructed in-line (we do not reference
     /// simple types). For constructed classifiers (including enumerated types), we use an "AllOf" JSON construct, which facilitates a reference
     /// to the classifier while still facilitating annotation with default values, array types, etc.
+    /// If AllOf is not supported by the schema recipient (AllOfSupport set to 'false'), we expand te classifier in-line so that annotation,
+    /// default values etc. can be maintained.
     /// Fixed-value attributes are ALWAYS constructed as a string enumeration with a single value. All other properties are ignored in this case
     /// (with the exception of lower-bound cardinality, we can still created an optional fixed-value attribute).
     /// </summary>
@@ -23,8 +24,8 @@ namespace Framework.Util.SchemaManagement.JSON
         private JSchema _attributeClassifier;       // Defines the classifier of the attribute within the JSON schema.
         private JSchema _simpleAttributeClassifier; // Simplified definition, created for use of attributes as Properties in special contexts.
         private JSONClassifier _classifier;         // The associated classifier object in case of complex types.
-        private string _annotation;                 // Contains the annotation text of the attribute.
-        private string _example;                    // Optionally, the annotation could contain examples of use. We extract these separately.
+        private List<Tuple<string, string>> _exampleList;   // Optionally, the example could exists of key/value pairs in which the key spcifies a property of a structured classifier.
+        private string _annotation;                 // Annotation text for the attribute (we use this for primitive in-line type definitions).
 
         /// <summary>
         /// Implementation of the JSON Property interface:
@@ -37,16 +38,7 @@ namespace Framework.Util.SchemaManagement.JSON
         public new string Name                      { get { return base.Name; } }
         public new int SequenceKey                  { get { return base.SequenceKey; } }
         public new bool IsMandatory                 { get { return base.IsMandatory; } }
-
-        /// <summary>
-        /// Returns the annotation text of the attribute.
-        /// </summary>
-        internal string Annotation    { get { return this._annotation; } }
-
-        /// <summary>
-        /// Returns the example text for the attribute (empty string if none found).
-        /// </summary>
-        internal string ExampleText { get { return this._example; } }
+        public string Annotation                    { get { return this._annotation; } }
 
         /// <summary>
         /// Construct a new content attribute. These attributes MUST be used in the context of the associated ABIE of which they are declared as 
@@ -86,34 +78,21 @@ namespace Framework.Util.SchemaManagement.JSON
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Creating attribute '" + attributeName + "' with classifier '" + classifierName +
                              "' and cardinality '" + cardinality.Item1 + "-" + cardinality.Item2 + "'.");
-
+            
             if (!string.IsNullOrEmpty(fixedValue))
             {
-                // If this is an attribute with a fixed value, we ignore most of the arguments and simply create an enumeration with a single value.
-                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Fixed value '" + fixedValue + "' specified, treat as enumeration!");
-                this._attributeClassifier = new JSchema
-                {
-                    Title = classifierName,
-                    Type = JSchemaType.String,
-                    Enum = { fixedValue }
-                };
-                this._simpleAttributeClassifier = new JSchema
-                {
-                    Type = JSchemaType.String,
-                    Enum = { fixedValue }
-                };
-                this.IsValid = true;
-
+                CreateFixedValueAttribute(attributeName, classifierName, fixedValue, annotation);
                 if (!string.IsNullOrEmpty(defaultValue))
                 {
                     Logger.WriteWarning("Attribute '" + attributeName + "' of type '" +
                                         classifierName + "' has BOTH default- and fixed value, default is ignored!");
                 }
+
             }
             else
             {
-                JSONClassifier classifier = schema.FindClassifier(classifierName);
-                if (classifier == null)
+                this._classifier = schema.FindClassifier(classifierName);
+                if (this._classifier == null)
                 {
                     Logger.WriteError("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Attribute '" + attributeName + "' has missing classifier definition for '" + classifierName + "'!");
                     this.IsValid = false;
@@ -125,37 +104,27 @@ namespace Framework.Util.SchemaManagement.JSON
                 // version, which does not have these. We can't assign one to the other since these are all pointers!
                 var attribClassifier = new JSchema { Title = classifierName };
                 var simpleAttributeClassifier = new JSchema();
-                this._classifier = classifier;
+
+                // Extract documentation and example texts, initialises the structured example text list if one is specified...
+                BuildAnnotation(ref attribClassifier, this._classifier, annotation);
 
                 // In case of 'any' type, we don't make any changes to this base type, it MUST be an empty schema in order to work properly.
-                if (classifier.BaseType.Classifier != JSchemaType.None)
+                if (this._classifier.BaseType.Classifier != JSchemaType.None)
                 {
-                    if (classifier.IsReferenceType)
-                    {
-                        // Complex classifier, we need to extend this instead of copy the contents...
-                        //@@@@@@@@@ ISSUE: Some frameworks don't like the 'AllOf' construction!
-                        // We use this so we can extend the existing type definition with our own Title, Description and other Facets.
-                        // There are two solutions:
-                        // 1) Use a simple REF (like all other external references). But in this case, NO facets other then the REF may exist.
-                        // 2) Use in-line extension (copy all components from the original). This will grow the schema significantly.
-                        // Or... use (1) for the simple cases when no facets have been defined and use (2) when we must extend the type.
-                        Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Constructed classifier, creating extension...");
-                        attribClassifier.AllOf.Add(classifier.ReferenceClassifier);
-                        simpleAttributeClassifier.AllOf.Add(classifier.ReferenceClassifier);
-                    }
+                    if (this._classifier.IsReferenceType) BuildReferenceClassifier(ref attribClassifier, ref simpleAttributeClassifier);
                     else
                     {
                         Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Simple classifier, creating inline typedef...");
-                        attribClassifier.Type = classifier.BaseType.Classifier;
-                        simpleAttributeClassifier.Type = classifier.BaseType.Classifier;
-                        if (classifier.BaseType.Format != string.Empty)
+                        attribClassifier.Type = this._classifier.BaseType.Classifier;
+                        simpleAttributeClassifier.Type = this._classifier.BaseType.Classifier;
+                        if (this._classifier.BaseType.Format != string.Empty)
                         {
-                            attribClassifier.Format = classifier.BaseType.Format;
-                            simpleAttributeClassifier.Format = classifier.BaseType.Format;
+                            attribClassifier.Format = this._classifier.BaseType.Format;
+                            simpleAttributeClassifier.Format = this._classifier.BaseType.Format;
                         }
-                        if (classifier.BaseType.IsFacetted)
+                        if (this._classifier.BaseType.IsFacetted)
                         {
-                            foreach (JSONFacet facet in classifier.BaseType.FacetList)
+                            foreach (JSONFacet facet in this._classifier.BaseType.FacetList)
                             {
                                 facet.AddFacet(ref attribClassifier);
                                 facet.AddFacet(ref simpleAttributeClassifier);
@@ -171,8 +140,12 @@ namespace Framework.Util.SchemaManagement.JSON
                     }
                 }
 
-                // If upper boundary of cardinality > 1 (or 0, which means unbounded), we have to create an array of type, instead of only the type.
-                if (cardinality.Item2 == 0 || cardinality.Item2 > 1)
+                if (cardinality.Item2 == 1)
+                {
+                    this._attributeClassifier = attribClassifier;
+                    this._simpleAttributeClassifier = simpleAttributeClassifier;
+                }
+                else // If upper boundary of cardinality > 1 (or 0, which means unbounded), we have to create an array of type, instead of only the type.
                 {
                     // If the classifier name ends with 'Type', we remove this before adding a new post-fix 'ListType'...
                     string listType = (classifierName.EndsWith("Type")) ? classifierName.Substring(0, classifierName.IndexOf("Type")) : classifierName;
@@ -195,50 +168,6 @@ namespace Framework.Util.SchemaManagement.JSON
                     }
                     this._attributeClassifier.Items.Add(attribClassifier);
                     this._simpleAttributeClassifier.Items.Add(simpleAttributeClassifier);
-                }
-                else
-                {
-                    this._attributeClassifier = attribClassifier;
-                    this._simpleAttributeClassifier = simpleAttributeClassifier;
-                }
-            }
-
-            // Build a description block for the element...
-            // Since newlines don't work very well in JSON, we replace line breaks by spaces.
-            this._annotation = string.Empty;
-            this._example = string.Empty;
-            bool firstOne = true;
-            if (annotation.Count > 0)
-            {
-                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Adding annotation to attribute...");
-                foreach (MEDocumentation docNode in annotation)
-                {
-                    this._annotation += firstOne ? docNode.BodyText : "  " + docNode.BodyText;
-
-                    // There should be only one body text with one example and all others should return an empty string.
-                    // If we found example text, this is stored in an extension property...
-                    if (docNode.ExampleText != string.Empty)
-                    {
-                        this._example = docNode.ExampleText;
-                        this._attributeClassifier.ExtensionData.Add("example", this._example);
-                    }
-                    firstOne = false;
-                }
-                // Since a doc node could contain only the example, check for actual description text before assignment...
-                if (this._annotation != string.Empty) this._attributeClassifier.Description = this._annotation;
-            }
-
-            if (this._example == string.Empty)
-            {
-                // We did not find an example in our attribute documentation. Check documentation of the Classifier...
-                foreach (MEDocumentation docNode in this._classifier.Documentation)
-                {
-                    if (docNode.ExampleText != string.Empty)
-                    {
-                        this._example = docNode.ExampleText;
-                        this._attributeClassifier.ExtensionData.Add("example", this._example);
-                        break;
-                    }
                 }
             }
 
@@ -315,6 +244,238 @@ namespace Framework.Util.SchemaManagement.JSON
             }
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute.GetClassifierAsJSONSchemaText >> Constructed schema '" + schemaString + "'.");
             return schemaString;
+        }
+
+        /// <summary>
+        /// Helper function that parses the list of annotation nodes for an attribute and extracts optional example texts.
+        /// Since newlines don't work very well in JSON, we replace line breaks by spaces.
+        /// If we find a 'structured' annotation element, all others are ignored.
+        /// As a side effect, the helper initialises the example properties of this attribute object.
+        /// </summary>
+        /// <param name="attribute">Reference to attribute that must receive the annotation.</param>
+        /// <param name="inClassifier">Capability model classifier object.</param>
+        /// <param name="annotation">Set of annotation elements for the attribute.</param>
+        private void BuildAnnotation(ref JSchema attribute, JSONClassifier inClassifier, List<MEDocumentation> annotation)
+        {
+            this._exampleList = new List<Tuple<string, string>>();
+            this._annotation = string.Empty;
+            string description = string.Empty;
+            string simpleExample = string.Empty;
+            bool firstOne = true;
+            if (annotation.Count > 0)
+            {
+                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute.BuildAnnotation >> Adding annotation to attribute...");
+                foreach (MEDocumentation docNode in annotation)
+                {
+                    // Since EOL's don't work well in JSON Schema, we replace line breaks by simple spaces.
+                    description += firstOne ? docNode.BodyText.Trim() : "  " + docNode.BodyText.Trim();
+
+                    // There should be only one body text with an example and all others should return an empty string.
+                    // If we found example text, this is stored in an extension property...
+                    if (docNode.ExampleKind == MEDocumentation.ExampleFormat.Simple && docNode.ExampleText != string.Empty)
+                    {
+                        simpleExample = docNode.ExampleText;
+                        attribute.ExtensionData.Add("example", docNode.ExampleText);
+                    }
+                    // If we find a structured example, we ignore the simple version and assume that we have a complex
+                    // classifier, which will result in an embedded object (each property will receive its own example).
+                    else if (docNode.ExampleKind == MEDocumentation.ExampleFormat.Constructed)
+                    {
+                        simpleExample = string.Empty;
+                        this._exampleList = docNode.StructuredExample;
+                    }
+                    firstOne = false;
+                }
+
+                // Since a doc node could contain only the example, check for actual description text before assignment...
+                if (description != string.Empty) attribute.Description = description;
+                this._annotation = description;
+            }
+
+            // In case we did not get any example for our attribute, check the associated classifier for examples...
+            if (simpleExample == string.Empty && this._exampleList.Count == 0)
+            {
+                foreach (MEDocumentation docNode in inClassifier.Documentation)
+                {
+                    if (docNode.ExampleText != string.Empty)
+                    {
+                        attribute.ExtensionData.Add("example", docNode.ExampleText);
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Helper function that takes a reference classifier and either creates an extension ('AllOf') or an in-line expansion.
+        /// Which path to take depends on whether we have AllOf support enabled or not. If AllOf is disabled, the in-line expansion
+        /// depends on presence of structured examples. 
+        /// A structured example has format {property-name = "example text"; property-name = "example text"; ...}.
+        /// We ONLY copy the properties that are mentioned in the example text and if there is only one, the whole classifier
+        /// is reduced to just the simple type of that one property.
+        /// </summary>
+        /// <param name="attribClassifier"></param>
+        /// <param name="simpleAttributeClassifier"></param>
+        private void BuildReferenceClassifier(ref JSchema attribClassifier, ref JSchema simpleAttributeClassifier)
+        {
+            bool useAllOf = ContextSlt.GetContextSlt().GetBoolSetting(FrameworkSettings._JSONAllOfSupport);
+            if (useAllOf)
+            {
+                // Complex classifier, if we're allowed to, we need to extend this instead of copy the contents...
+                // We use this so we can extend the existing type definition with our own Title, Description and other Facets.
+                // There are two solutions:
+                // 1) Use a simple REF (like all other external references). But in this case, NO facets other then the REF may exist.
+                // 2) Use in-line extension (copy all components from the original). This will grow the schema significantly.
+                // Or... use (1) for the simple cases when no facets have been defined and use (2) when we must extend the type.
+                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute.BuildReferenceClassifier >> Constructed classifier, creating extension...");
+                attribClassifier.AllOf.Add(this._classifier.ReferenceClassifier);
+                simpleAttributeClassifier.AllOf.Add(this._classifier.ReferenceClassifier);
+            }
+            else
+            {
+                // If we're not allowed to use AllOf, things get a bit more complicated since we now have to create an in-line object using
+                // all properties of the complex classifier.
+                // The good news is that we can use structured examples here.
+                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute.BuildReferenceClassifier >> Constructed classifier, performing in-line expansion...");
+                if (this._classifier.ReferenceClassifier.Type == JSchemaType.String)
+                {
+                    Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute.BuildReferenceClassifier >> Constructed classifier is an enumeration!");
+                    attribClassifier.Type = JSchemaType.String;
+                    simpleAttributeClassifier.Type = JSchemaType.String;
+                    foreach (var enumItem in this._classifier.ReferenceClassifier.Enum)
+                    {
+                        attribClassifier.Enum.Add(enumItem);
+                        simpleAttributeClassifier.Enum.Add(enumItem);
+                    }
+                }
+
+                List<Tuple<string, JSchema>> properties = GetPropertyList(this._classifier.ReferenceClassifier);
+                if (properties.Count > 0) // Should not happen, but check nevertheless...
+                {
+                    if (properties.Count > 1)
+                    {
+                        // When we have multiple properties, we create an object type and copy all properties.
+                        attribClassifier.Type = JSchemaType.Object;
+                        simpleAttributeClassifier.Type = JSchemaType.Object;
+                        attribClassifier.AllowAdditionalProperties = false;
+                        simpleAttributeClassifier.AllowAdditionalProperties = false;
+                        foreach (Tuple<string, JSchema> property in properties)
+                        {
+                            attribClassifier.Properties.Add(property.Item1, property.Item2);
+                            simpleAttributeClassifier.Properties.Add(property.Item1, property.Item2);
+                        }
+                    }
+                    else
+                    {
+                        // When we have only a single property, we 'reduce' the attribute classifier to the simple type of the classifier.
+                        attribClassifier.Title = properties[0].Item2.Title;
+                        attribClassifier.Type = properties[0].Item2.Type;
+                        simpleAttributeClassifier.Type = properties[0].Item2.Type;
+                        if (!string.IsNullOrEmpty(properties[0].Item2.Format))
+                        {
+                            attribClassifier.Format = properties[0].Item2.Format;
+                            simpleAttributeClassifier.Format = properties[0].Item2.Format;
+                        }
+                        if (properties[0].Item2.ExtensionData.Count > 0)
+                        {
+                            foreach (var extensionElement in properties[0].Item2.ExtensionData)
+                                attribClassifier.ExtensionData.Add(extensionElement);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Helper function that creates a fixed-value attribute. In this case, we create a simple schema of type 'string', which will receive
+        /// thisvalue.
+        /// For fixed value attributes, we ignore possible example statements but only copy annotation text.
+        /// </summary>
+        /// <param name="attributeName">The name of the attribute to be created.</param>
+        /// <param name="classifierName">The original classifier name.</param>
+        /// <param name="annotation">Optional documentation for the attribute.</param>
+        /// <param name="fixedValue">The fixed value to be assigned.</param>
+        private void CreateFixedValueAttribute(string attributeName, string classifierName, string fixedValue, List<MEDocumentation> annotation)
+        {
+            // If this is an attribute with a fixed value, we ignore most of the arguments and simply create an enumeration with a single value.
+            Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute.CreateFixedValueAttribute >> Fixed value '" + fixedValue + "' specified, treat as enumeration!");
+            this._attributeClassifier = new JSchema
+            {
+                Title = classifierName,
+                Type = JSchemaType.String,
+                Enum = { fixedValue }
+            };
+            this._simpleAttributeClassifier = new JSchema
+            {
+                Type = JSchemaType.String,
+                Enum = { fixedValue }
+            };
+            this.IsValid = true;
+
+            bool firstOne = true;
+            string description = string.Empty;
+            foreach (MEDocumentation docNode in annotation)
+            {
+                // Since EOL's don't work well in JSON Schema, we replace line breaks by simple spaces.
+                description += firstOne ? docNode.BodyText.Trim() : "  " + docNode.BodyText.Trim();
+                firstOne = false;
+            }
+            if (description != string.Empty) this._attributeClassifier.Description = description;
+        }
+
+        /// <summary>
+        /// Helper function that receives a constructed classifier and retrieves the individual properties. When we have a structured example
+        /// list (set of KV pairs property-name - property-example), we ONLY copy the properties that have an example assigned.
+        /// When no structured example is present, we simply copy all properties verbatim.
+        /// The function explicitly creates new JSchema object in order to avoid accidental references to occur (JSchema has a habit of
+        /// creating references when you don't expect it and the other way around ;-)
+        /// It does not copy any description texts (actual annotation). These might be added elsewhere.
+        /// </summary>
+        /// <param name="constructedClassifier">Constructed classifier to inspect and copy.</param>
+        /// <returns>List of all relevant properties.</returns>
+        private List<Tuple<string, JSchema>> GetPropertyList(JSchema constructedClassifier)
+        {
+            List<Tuple<string, JSchema>> propertyList = new List<Tuple<string, JSchema>>();
+            string supplementaryPrefix = ContextSlt.GetContextSlt().GetStringSetting(FrameworkSettings._SupplementaryPrefixCode);
+            if (this._exampleList.Count > 0)
+            {
+                // We have a (set of) examples for a constructed classifier, only copy the properties that exist in the example list...
+                foreach (var property in constructedClassifier.Properties)
+                {
+                    foreach (var exampleKV in this._exampleList)
+                    {
+                        string key1 = (exampleKV.Item1.StartsWith(supplementaryPrefix)) ? exampleKV.Item1 : supplementaryPrefix + exampleKV.Item1;
+                        string key2 = (property.Key.StartsWith(supplementaryPrefix)) ? property.Key : supplementaryPrefix + property.Key;
+                        if (string.Compare(key1, key2, true) == 0)
+                        {
+                            Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute.GetPropertyList >> Creating property for example '" + exampleKV.Item1 + "'...");
+                            var propertyClassifier = new JSchema
+                            {
+                                Title = property.Value.Title,
+                                Type = property.Value.Type
+                            };
+                            propertyClassifier.ExtensionData.Add("example", exampleKV.Item2);
+                            propertyList.Add(new Tuple<string, JSchema>(property.Key, propertyClassifier));
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // No structured example, simply copy all properties without example text...
+                foreach (var property in constructedClassifier.Properties)
+                {
+                    Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute.GetPropertyList >> Creating property '" + property.Value.Title + "'...");
+                    var propertyClassifier = new JSchema
+                    {
+                        Title = property.Value.Title,
+                        Type = property.Value.Type
+                    };
+                    propertyList.Add(new Tuple<string, JSchema>(property.Key, propertyClassifier));
+                }
+            }
+            return propertyList;
         }
     }
 

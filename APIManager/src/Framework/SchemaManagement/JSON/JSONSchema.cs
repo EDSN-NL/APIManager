@@ -436,10 +436,11 @@ namespace Framework.Util.SchemaManagement.JSON
                 // We MUST create classifiers first since this is the only way to guarantee that external references are resolved correctly
                 // (if we put the classes first, we run the risk that an external reference is resolved by referring to a class property instead
                 // of the associated type definition, this might be a bug in the Json.Net library).
+                bool useAllOf = ContextSlt.GetContextSlt().GetBoolSetting(FrameworkSettings._JSONAllOfSupport);
                 JObject definitions = new JObject();
                 this._schema.ExtensionData.Add("definitions", definitions);
                 foreach (string classifier in this._classifiers.Keys)
-                    if (this._classifiers[classifier].IsReferenceType) definitions.Add(classifier, this._classifiers[classifier].ReferenceClassifier);
+                    if (this._classifiers[classifier].IsReferenceType && useAllOf) definitions.Add(classifier, this._classifiers[classifier].ReferenceClassifier);
                 foreach (SortableSchemaElement key in this._classes.Keys) definitions.Add(key.Name, this._classes[key]);
             }
             catch (SystemException exc)
@@ -497,11 +498,12 @@ namespace Framework.Util.SchemaManagement.JSON
         internal string GetDefinitionsObject()
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.GetDefinitionsObject >> Retrieving 'definitions' object...");
+            bool useAllOf = ContextSlt.GetContextSlt().GetBoolSetting(FrameworkSettings._JSONAllOfSupport);
             JSchema definitionsSchema = new JSchema();
             JObject definitions = new JObject();
             definitionsSchema.ExtensionData.Add("definitions", definitions);
             foreach (string classifier in this._classifiers.Keys)
-                if (this._classifiers[classifier].IsReferenceType) definitions.Add(classifier, this._classifiers[classifier].ReferenceClassifier);
+                if (this._classifiers[classifier].IsReferenceType && useAllOf) definitions.Add(classifier, this._classifiers[classifier].ReferenceClassifier);
             foreach (SortableSchemaElement key in this._classes.Keys) definitions.Add(key.Name, this._classes[key]);
             string definitionsString = definitionsSchema.ToString();
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.GetDefinitionsObject >> Got 'definitions':" + Environment.NewLine + definitionsString);

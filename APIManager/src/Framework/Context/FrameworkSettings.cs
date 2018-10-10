@@ -49,6 +49,7 @@ namespace Framework.Context
         internal const string _DocGenUseCommon                = "DocGenUseCommon";              // ADoc generation: use separate 'common' definitions file when 'true'.
         internal const string _DocGenUseGenerateDoc           = "DocGenGenerateDoc";            // Adoc generation: enable document generation when 'true'.
         internal const string _SupplementaryPrefixCode        = "SupplementaryPrefixCode";      // JSON: string to use in schema to indicate element is a supplementary attribute.
+        internal const string _JSONAllOfSupport               = "JSONAllOfSupport";             // JSON: support the use of 'AllOf' schema construct.
 
         // These are the names of all currently defined resources:
         internal const string _CodeListHeader                 = "CodeListHeader";
@@ -110,6 +111,7 @@ namespace Framework.Context
             this._boolSettings.Add(_DocGenUseGenerateDoc, Settings.Default.DocGenGenerateDoc);
             this._boolSettings.Add(_UseAutomaticLocking, Settings.Default.UseAutomaticLocking);
             this._boolSettings.Add(_PersistentModelLocks, Settings.Default.PersistentModelLocks);
+            this._boolSettings.Add(_JSONAllOfSupport, Settings.Default.JSONAllOfSupport);
 
             this._stringSettings.Add(_LogFileName, Settings.Default.LogfileName);
             this._stringSettings.Add(_DiagramSaveType, Settings.Default.DiagramSaveType);
@@ -388,6 +390,10 @@ namespace Framework.Context
 
                     case _PersistentModelLocks:
                         Settings.Default.PersistentModelLocks = value;
+                        break;
+
+                    case _JSONAllOfSupport:
+                        Settings.Default.JSONAllOfSupport = value;
                         break;
 
                     default:

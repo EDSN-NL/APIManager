@@ -78,6 +78,7 @@ namespace Framework.Util
                     // Key and value are separated by '=' and may- or may not be surrounded by single- or double quote characters.
                     // If we retrieve a string that has not the correct format, we treat it as a simple example.
                     this._exampleFormat = ExampleFormat.Constructed;
+                    this._example = this._example.Substring(1, this._example.Length - 2);
                     string[] kvPairs = this._example.Split(';');
                     foreach (string keyValue in kvPairs)
                     {
