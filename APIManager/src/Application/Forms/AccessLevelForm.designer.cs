@@ -44,9 +44,9 @@
             this.AccessLevelGroup.Controls.Add(this.RBConfidential);
             this.AccessLevelGroup.Controls.Add(this.RBInternalUse);
             this.AccessLevelGroup.Controls.Add(this.RBPublic);
-            this.AccessLevelGroup.Location = new System.Drawing.Point(0, 45);
+            this.AccessLevelGroup.Location = new System.Drawing.Point(3, 46);
             this.AccessLevelGroup.Name = "AccessLevelGroup";
-            this.AccessLevelGroup.Size = new System.Drawing.Size(179, 96);
+            this.AccessLevelGroup.Size = new System.Drawing.Size(166, 96);
             this.AccessLevelGroup.TabIndex = 0;
             // 
             // RBSecret
@@ -99,7 +99,7 @@
             // 
             // Done
             // 
-            this.Done.Location = new System.Drawing.Point(94, 147);
+            this.Done.Location = new System.Drawing.Point(94, 148);
             this.Done.Name = "Done";
             this.Done.Size = new System.Drawing.Size(75, 31);
             this.Done.TabIndex = 1;
@@ -121,9 +121,9 @@
             // AccessLevelForm
             // 
             this.AcceptButton = this.Done;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(181, 183);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.ClientSize = new System.Drawing.Size(181, 191);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.Done);
             this.Controls.Add(this.AccessLevelGroup);

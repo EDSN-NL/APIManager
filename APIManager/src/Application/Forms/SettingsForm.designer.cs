@@ -87,6 +87,7 @@
             this.AutoLocking = new System.Windows.Forms.CheckBox();
             this.PersistentLocks = new System.Windows.Forms.CheckBox();
             this.JSONSpecifics = new System.Windows.Forms.GroupBox();
+            this.AllOfSupport = new System.Windows.Forms.CheckBox();
             this.SupplementaryPrefixCode = new System.Windows.Forms.TextBox();
             this.SupplementaryPrefixLabel = new System.Windows.Forms.Label();
             this.AttributePrefixToolTip = new System.Windows.Forms.ToolTip(this.components);
@@ -105,7 +106,6 @@
             this.addToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.AllOfSupport = new System.Windows.Forms.CheckBox();
             this.CodeLists.SuspendLayout();
             this.LogFile.SuspendLayout();
             this.ServiceModel.SuspendLayout();
@@ -167,8 +167,9 @@
             // 
             // Ok
             // 
+            this.Ok.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(966, 359);
+            this.Ok.Location = new System.Drawing.Point(967, 396);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
             this.Ok.TabIndex = 15;
@@ -178,8 +179,9 @@
             // 
             // Cancel
             // 
+            this.Cancel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(1047, 359);
+            this.Cancel.Location = new System.Drawing.Point(1048, 396);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
             this.Cancel.TabIndex = 14;
@@ -199,11 +201,12 @@
             // 
             // CodeLists
             // 
+            this.CodeLists.AutoSize = true;
             this.CodeLists.Controls.Add(this.CLAddCodeTypesToDiagram);
             this.CodeLists.Controls.Add(this.CLAddSourceEnumsToDiagram);
-            this.CodeLists.Location = new System.Drawing.Point(505, 131);
+            this.CodeLists.Location = new System.Drawing.Point(505, 145);
             this.CodeLists.Name = "CodeLists";
-            this.CodeLists.Size = new System.Drawing.Size(218, 72);
+            this.CodeLists.Size = new System.Drawing.Size(217, 78);
             this.CodeLists.TabIndex = 5;
             this.CodeLists.TabStop = false;
             this.CodeLists.Text = "Code Lists";
@@ -220,27 +223,29 @@
             // 
             // LogFile
             // 
+            this.LogFile.AutoSize = true;
             this.LogFile.Controls.Add(this.LogfileName);
             this.LogFile.Controls.Add(this.label1);
             this.LogFile.Controls.Add(this.SelectFile);
             this.LogFile.Controls.Add(this.UseLogfile);
             this.LogFile.Location = new System.Drawing.Point(12, 12);
             this.LogFile.Name = "LogFile";
-            this.LogFile.Size = new System.Drawing.Size(487, 51);
+            this.LogFile.Size = new System.Drawing.Size(487, 55);
             this.LogFile.TabIndex = 1;
             this.LogFile.TabStop = false;
             this.LogFile.Text = "Logfile";
             // 
             // ServiceModel
             // 
+            this.ServiceModel.AutoSize = true;
             this.ServiceModel.Controls.Add(this.SMAddBusinessMsgToDiagram);
             this.ServiceModel.Controls.Add(this.SMUseSecurityLevels);
             this.ServiceModel.Controls.Add(this.SMUseMsgHeaders);
             this.ServiceModel.Controls.Add(this.SMCreateCmnSchema);
             this.ServiceModel.Controls.Add(this.SMAddMessageAssemblyToDiagram);
-            this.ServiceModel.Location = new System.Drawing.Point(505, 209);
+            this.ServiceModel.Location = new System.Drawing.Point(505, 227);
             this.ServiceModel.Name = "ServiceModel";
-            this.ServiceModel.Size = new System.Drawing.Size(218, 143);
+            this.ServiceModel.Size = new System.Drawing.Size(217, 163);
             this.ServiceModel.TabIndex = 8;
             this.ServiceModel.TabStop = false;
             this.ServiceModel.Text = "Service Model";
@@ -304,9 +309,9 @@
             this.Documentation.Controls.Add(this.DEDictionaryEntryName);
             this.Documentation.Controls.Add(this.DEBusinessTermName);
             this.Documentation.Controls.Add(this.DENotes);
-            this.Documentation.Location = new System.Drawing.Point(729, 209);
+            this.Documentation.Location = new System.Drawing.Point(728, 227);
             this.Documentation.Name = "Documentation";
-            this.Documentation.Size = new System.Drawing.Size(182, 143);
+            this.Documentation.Size = new System.Drawing.Size(182, 163);
             this.Documentation.TabIndex = 9;
             this.Documentation.TabStop = false;
             this.Documentation.Text = "Documentation Export";
@@ -363,6 +368,7 @@
             // 
             // DiagramTypes
             // 
+            this.DiagramTypes.AutoSize = true;
             this.DiagramTypes.Controls.Add(this.SaveMsgDiagrams);
             this.DiagramTypes.Controls.Add(this.FormatLabel);
             this.DiagramTypes.Controls.Add(this.DiagramTGA);
@@ -375,7 +381,7 @@
             this.DiagramTypes.Controls.Add(this.DiagramBMP);
             this.DiagramTypes.Location = new System.Drawing.Point(917, 12);
             this.DiagramTypes.Name = "DiagramTypes";
-            this.DiagramTypes.Size = new System.Drawing.Size(205, 115);
+            this.DiagramTypes.Size = new System.Drawing.Size(206, 127);
             this.DiagramTypes.TabIndex = 2;
             this.DiagramTypes.TabStop = false;
             this.DiagramTypes.Text = "Save Diagrams";
@@ -497,11 +503,12 @@
             // 
             // SchemaGeneration
             // 
+            this.SchemaGeneration.AutoSize = true;
             this.SchemaGeneration.Controls.Add(this.IFCSwagger);
             this.SchemaGeneration.Controls.Add(this.IFCWSDL);
-            this.SchemaGeneration.Location = new System.Drawing.Point(729, 133);
+            this.SchemaGeneration.Location = new System.Drawing.Point(728, 144);
             this.SchemaGeneration.Name = "SchemaGeneration";
-            this.SchemaGeneration.Size = new System.Drawing.Size(182, 72);
+            this.SchemaGeneration.Size = new System.Drawing.Size(182, 77);
             this.SchemaGeneration.TabIndex = 6;
             this.SchemaGeneration.TabStop = false;
             this.SchemaGeneration.Text = "Schema Generation";
@@ -534,11 +541,12 @@
             // 
             // DocumentationGeneration
             // 
+            this.DocumentationGeneration.AutoSize = true;
             this.DocumentationGeneration.Controls.Add(this.DocGenGenerate);
             this.DocumentationGeneration.Controls.Add(this.DocGenUseCommon);
-            this.DocumentationGeneration.Location = new System.Drawing.Point(916, 209);
+            this.DocumentationGeneration.Location = new System.Drawing.Point(917, 227);
             this.DocumentationGeneration.Name = "DocumentationGeneration";
-            this.DocumentationGeneration.Size = new System.Drawing.Size(206, 65);
+            this.DocumentationGeneration.Size = new System.Drawing.Size(205, 78);
             this.DocumentationGeneration.TabIndex = 10;
             this.DocumentationGeneration.TabStop = false;
             this.DocumentationGeneration.Text = "Documentation Generation";
@@ -565,6 +573,7 @@
             // 
             // RESTAuthentication
             // 
+            this.RESTAuthentication.AutoSize = true;
             this.RESTAuthentication.Controls.Add(this.RAAPIKeyEdit);
             this.RESTAuthentication.Controls.Add(this.RAAPIKeys);
             this.RESTAuthentication.Controls.Add(this.label5);
@@ -572,9 +581,10 @@
             this.RESTAuthentication.Controls.Add(this.label4);
             this.RESTAuthentication.Controls.Add(this.RAScheme);
             this.RESTAuthentication.Controls.Add(this.label3);
+            this.RESTAuthentication.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.RESTAuthentication.Location = new System.Drawing.Point(505, 12);
             this.RESTAuthentication.Name = "RESTAuthentication";
-            this.RESTAuthentication.Size = new System.Drawing.Size(217, 113);
+            this.RESTAuthentication.Size = new System.Drawing.Size(217, 127);
             this.RESTAuthentication.TabIndex = 12;
             this.RESTAuthentication.TabStop = false;
             this.RESTAuthentication.Text = "REST Authentication";
@@ -643,13 +653,15 @@
             // 
             // RESTParameters
             // 
+            this.RESTParameters.AutoSize = true;
             this.RESTParameters.Controls.Add(this.RESTSchemes);
             this.RESTParameters.Controls.Add(this.label8);
             this.RESTParameters.Controls.Add(this.RESTHostName);
             this.RESTParameters.Controls.Add(this.label6);
-            this.RESTParameters.Location = new System.Drawing.Point(729, 14);
+            this.RESTParameters.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.RESTParameters.Location = new System.Drawing.Point(729, 12);
             this.RESTParameters.Name = "RESTParameters";
-            this.RESTParameters.Size = new System.Drawing.Size(182, 113);
+            this.RESTParameters.Size = new System.Drawing.Size(182, 127);
             this.RESTParameters.TabIndex = 13;
             this.RESTParameters.TabStop = false;
             this.RESTParameters.Text = "REST Interface Parameters";
@@ -688,11 +700,12 @@
             // 
             // Locking
             // 
+            this.Locking.AutoSize = true;
             this.Locking.Controls.Add(this.AutoLocking);
             this.Locking.Controls.Add(this.PersistentLocks);
-            this.Locking.Location = new System.Drawing.Point(917, 133);
+            this.Locking.Location = new System.Drawing.Point(917, 145);
             this.Locking.Name = "Locking";
-            this.Locking.Size = new System.Drawing.Size(205, 72);
+            this.Locking.Size = new System.Drawing.Size(206, 76);
             this.Locking.TabIndex = 7;
             this.Locking.TabStop = false;
             this.Locking.Text = "Model Access";
@@ -719,19 +732,30 @@
             // 
             // JSONSpecifics
             // 
+            this.JSONSpecifics.AutoSize = true;
             this.JSONSpecifics.Controls.Add(this.AllOfSupport);
             this.JSONSpecifics.Controls.Add(this.SupplementaryPrefixCode);
             this.JSONSpecifics.Controls.Add(this.SupplementaryPrefixLabel);
-            this.JSONSpecifics.Location = new System.Drawing.Point(917, 280);
+            this.JSONSpecifics.Location = new System.Drawing.Point(917, 311);
             this.JSONSpecifics.Name = "JSONSpecifics";
-            this.JSONSpecifics.Size = new System.Drawing.Size(205, 72);
+            this.JSONSpecifics.Size = new System.Drawing.Size(205, 79);
             this.JSONSpecifics.TabIndex = 11;
             this.JSONSpecifics.TabStop = false;
             this.JSONSpecifics.Text = "JSON Settings";
             // 
+            // AllOfSupport
+            // 
+            this.AllOfSupport.AutoSize = true;
+            this.AllOfSupport.Location = new System.Drawing.Point(6, 43);
+            this.AllOfSupport.Name = "AllOfSupport";
+            this.AllOfSupport.Size = new System.Drawing.Size(88, 17);
+            this.AllOfSupport.TabIndex = 2;
+            this.AllOfSupport.Text = "Support AllOf";
+            this.AllOfSupport.UseVisualStyleBackColor = true;
+            // 
             // SupplementaryPrefixCode
             // 
-            this.SupplementaryPrefixCode.Location = new System.Drawing.Point(111, 16);
+            this.SupplementaryPrefixCode.Location = new System.Drawing.Point(117, 16);
             this.SupplementaryPrefixCode.Name = "SupplementaryPrefixCode";
             this.SupplementaryPrefixCode.Size = new System.Drawing.Size(35, 20);
             this.SupplementaryPrefixCode.TabIndex = 1;
@@ -747,6 +771,7 @@
             // 
             // ConfigurationManagementGroup
             // 
+            this.ConfigurationManagementGroup.AutoSize = true;
             this.ConfigurationManagementGroup.Controls.Add(this.DeleteAllRepositories);
             this.ConfigurationManagementGroup.Controls.Add(this.EditRepository);
             this.ConfigurationManagementGroup.Controls.Add(this.ResponseCodeList);
@@ -754,7 +779,7 @@
             this.ConfigurationManagementGroup.Controls.Add(this.AddRepository);
             this.ConfigurationManagementGroup.Location = new System.Drawing.Point(12, 69);
             this.ConfigurationManagementGroup.Name = "ConfigurationManagementGroup";
-            this.ConfigurationManagementGroup.Size = new System.Drawing.Size(487, 180);
+            this.ConfigurationManagementGroup.Size = new System.Drawing.Size(487, 190);
             this.ConfigurationManagementGroup.TabIndex = 16;
             this.ConfigurationManagementGroup.TabStop = false;
             this.ConfigurationManagementGroup.Text = "Configuration Management";
@@ -861,23 +886,13 @@
             this.deleteToolStripMenuItem.Text = "Edit";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.EditRepository_Click);
             // 
-            // AllOfSupport
-            // 
-            this.AllOfSupport.AutoSize = true;
-            this.AllOfSupport.Location = new System.Drawing.Point(6, 43);
-            this.AllOfSupport.Name = "AllOfSupport";
-            this.AllOfSupport.Size = new System.Drawing.Size(88, 17);
-            this.AllOfSupport.TabIndex = 2;
-            this.AllOfSupport.Text = "Support AllOf";
-            this.AllOfSupport.UseVisualStyleBackColor = true;
-            // 
             // SettingsForm
             // 
             this.AcceptButton = this.Ok;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(1134, 402);
+            this.ClientSize = new System.Drawing.Size(1134, 438);
             this.Controls.Add(this.ConfigurationManagementGroup);
             this.Controls.Add(this.JSONSpecifics);
             this.Controls.Add(this.Locking);
@@ -924,6 +939,7 @@
             this.ConfigurationManagementGroup.ResumeLayout(false);
             this.CMMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 

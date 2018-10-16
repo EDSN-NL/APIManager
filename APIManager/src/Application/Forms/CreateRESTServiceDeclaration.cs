@@ -4,14 +4,19 @@ using System.Linq;
 using System.Windows.Forms;
 using Framework.Model;
 using Framework.Util;
+using Framework.ConfigurationManagement;
+using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 
 namespace Plugin.Application.Forms
 {
     internal partial class CreateRESTServiceDeclaration : Form
     {
-        private MEPackage _parent;  // Package in which we're creating the new API.
+        private MEPackage _parent;      // Package in which we're creating the new API.
         private SortedList<string, RESTResourceDeclaration> _resourceList;
+        private bool _hasTicket;        // True when a valid ticket ID has been entered.
+        private bool _hasValidName;     // True when a valid API name has been entered;
+        private bool _hasProjectID;     // True when a project ID has been entered;
 
         /// <summary>
         /// The MetaData property returns a set of user-specified metadata for the new API...
@@ -40,6 +45,16 @@ namespace Plugin.Application.Forms
         internal List<RESTResourceDeclaration> Resources { get { return new List<RESTResourceDeclaration>(this._resourceList.Values); } }
 
         /// <summary>
+        /// Returns the Jira ticket ID entered by the user.
+        /// </summary>
+        internal string TicketID { get { return TicketIDFld.Text; } }
+
+        /// <summary>
+        /// Returns the Project ID entered by the user.
+        /// </summary>
+        internal string ProjectID { get { return ProjectIDFld.Text; } }
+
+        /// <summary>
         /// Initializes the dialog, disable the Ok button until we have at least a valid name and prepare for the resource list by
         /// creating an empty list to store the resource declarations.
         /// </summary>
@@ -53,6 +68,21 @@ namespace Plugin.Application.Forms
             // Assign context menus to the appropriate controls...
             ResourceList.ContextMenuStrip = ResourceMenuStrip;
 
+            if (CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor().IsCMEnabled)
+            {
+                this._hasProjectID = false;
+                this._hasTicket = false;
+                this._hasValidName = false;
+            }
+            else
+            {
+                // No CM, disable the Administration section and pretend we have a valid ticket & projectID
+                // (this will enable the Ok button on name only).
+                TicketBox.Enabled = false;
+                this._hasTicket = true;
+                this._hasProjectID = true;
+            }
+
             Ok.Enabled = false;
         }
 
@@ -64,6 +94,7 @@ namespace Plugin.Application.Forms
         private void APIName_TextChanged(object sender, EventArgs e)
         {
             APINameFld.Text = Conversions.ToPascalCase(APINameFld.Text);
+            ErrorLine.Text = string.Empty;
             string name = APINameFld.Text.Trim();
             string errorText = string.Empty;
             bool nameValidation = true;
@@ -98,8 +129,9 @@ namespace Plugin.Application.Forms
                 }
             }
 
-            if (errorText != string.Empty) MessageBox.Show(errorText, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            Ok.Enabled = nameValidation;
+            if (errorText != string.Empty) ErrorLine.Text = errorText;
+            this._hasValidName = nameValidation;
+            CheckOK();
         }
 
         /// <summary>
@@ -110,6 +142,7 @@ namespace Plugin.Application.Forms
         private void AddResource_Click(object sender, EventArgs e)
         {
             RESTResourceDeclaration newResource = new RESTResourceDeclaration();
+            ErrorLine.Text = string.Empty;
             using (var dialog = new RESTResourceDialog(newResource))
             {
                 dialog.DisableMinorVersion();
@@ -128,7 +161,7 @@ namespace Plugin.Application.Forms
                     }
                     else
                     {
-                        MessageBox.Show("Duplicate resource name, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        ErrorLine.Text = "Duplicate resource name, please try again!";
                         newResource = null;
                     }
                 }
@@ -140,6 +173,14 @@ namespace Plugin.Application.Forms
                 newItem.SubItems.Add(newResource.Archetype.ToString());
                 ResourceList.Items.Add(newItem);
             }
+        }
+
+        /// <summary>
+        /// Simple check whether we are allowed to enable the OK button.
+        /// </summary>
+        private void CheckOK()
+        {
+            Ok.Enabled = this._hasValidName && this._hasTicket && this._hasProjectID;
         }
 
         /// <summary>
@@ -169,6 +210,7 @@ namespace Plugin.Application.Forms
         {
             if (ResourceList.SelectedItems.Count > 0)
             {
+                ErrorLine.Text = string.Empty;
                 ListViewItem myItem = ResourceList.SelectedItems[0];
                 string originalKey = myItem.Text;
                 RESTResourceDeclaration resource = this._resourceList.ContainsKey(originalKey) ? this._resourceList[originalKey] : null;
@@ -192,8 +234,7 @@ namespace Plugin.Application.Forms
                             }
                             else
                             {
-                                MessageBox.Show("Renaming resource resulted in duplicate name, please try again!",
-                                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                ErrorLine.Text = "Renaming resource resulted in duplicate name, please try again!";
                                 resource = null;
                             }
                         }
@@ -205,6 +246,40 @@ namespace Plugin.Application.Forms
                     myItem.SubItems[1].Text = resource.Archetype.ToString();
                 }
             }
+        }
+
+        /// <summary>
+        /// This event is raised when the user enters a new ticket number. We check whether the ID represents a
+        /// valid ticket (present in Jira with a status not equal to 'open').
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void TicketIDFld_Leave(object sender, EventArgs e)
+        {
+            ErrorLine.Text = string.Empty;
+            this._hasTicket = RMTicket.IsValidID(TicketIDFld.Text);
+            if (!this._hasTicket)
+            {
+                ErrorLine.Text = "Provided ID does not identify a valid open ticket, please try again!";
+            }
+            else CheckOK();
+        }
+
+        /// <summary>
+        /// This event is raised when the user entered some text in the project ID field. Since we currently have
+        /// no means to validate the project number, we ONLY check whether there are at least 3 characters in the field.
+        /// </summary>
+        /// <param name="sender">Ignored</param>
+        /// <param name="e">Ignored</param>
+        private void ProjectIDFld_Leave(object sender, EventArgs e)
+        {
+            ErrorLine.Text = string.Empty;
+            this._hasProjectID = ProjectIDFld.Text.Trim().Length >= 3;
+            if (!this._hasProjectID)
+            {
+                ErrorLine.Text = "Provided ID does not identify a valid project ID (at least 3 characters), please try again!";
+            }
+            else CheckOK();
         }
     }
 }

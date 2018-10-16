@@ -32,12 +32,12 @@
             this.Ok = new System.Windows.Forms.Button();
             this.TagList = new System.Windows.Forms.ListBox();
             this.VersionBox = new System.Windows.Forms.GroupBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.MajorVersion = new System.Windows.Forms.TextBox();
-            this.MinorVersion = new System.Windows.Forms.TextBox();
             this.BuildNumber = new System.Windows.Forms.TextBox();
+            this.MinorVersion = new System.Windows.Forms.TextBox();
+            this.MajorVersion = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
             this.VersionBox.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -86,23 +86,26 @@
             this.VersionBox.TabStop = false;
             this.VersionBox.Text = "Assign version";
             // 
-            // label1
+            // BuildNumber
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(6, 23);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(36, 13);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Major:";
+            this.BuildNumber.Location = new System.Drawing.Point(221, 19);
+            this.BuildNumber.Name = "BuildNumber";
+            this.BuildNumber.Size = new System.Drawing.Size(40, 20);
+            this.BuildNumber.TabIndex = 3;
             // 
-            // label2
+            // MinorVersion
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(94, 23);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(36, 13);
-            this.label2.TabIndex = 0;
-            this.label2.Text = "Minor:";
+            this.MinorVersion.Location = new System.Drawing.Point(136, 20);
+            this.MinorVersion.Name = "MinorVersion";
+            this.MinorVersion.Size = new System.Drawing.Size(40, 20);
+            this.MinorVersion.TabIndex = 2;
+            // 
+            // MajorVersion
+            // 
+            this.MajorVersion.Location = new System.Drawing.Point(48, 20);
+            this.MajorVersion.Name = "MajorVersion";
+            this.MajorVersion.Size = new System.Drawing.Size(40, 20);
+            this.MajorVersion.TabIndex = 1;
             // 
             // label3
             // 
@@ -113,32 +116,29 @@
             this.label3.TabIndex = 0;
             this.label3.Text = "Build:";
             // 
-            // MajorVersion
+            // label2
             // 
-            this.MajorVersion.Location = new System.Drawing.Point(48, 20);
-            this.MajorVersion.Name = "MajorVersion";
-            this.MajorVersion.Size = new System.Drawing.Size(40, 20);
-            this.MajorVersion.TabIndex = 1;
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(94, 23);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(36, 13);
+            this.label2.TabIndex = 0;
+            this.label2.Text = "Minor:";
             // 
-            // MinorVersion
+            // label1
             // 
-            this.MinorVersion.Location = new System.Drawing.Point(136, 20);
-            this.MinorVersion.Name = "MinorVersion";
-            this.MinorVersion.Size = new System.Drawing.Size(40, 20);
-            this.MinorVersion.TabIndex = 2;
-            // 
-            // BuildNumber
-            // 
-            this.BuildNumber.Location = new System.Drawing.Point(221, 19);
-            this.BuildNumber.Name = "BuildNumber";
-            this.BuildNumber.Size = new System.Drawing.Size(40, 20);
-            this.BuildNumber.TabIndex = 3;
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(6, 23);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(36, 13);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Major:";
             // 
             // CMRevertPicker
             // 
             this.AcceptButton = this.Ok;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
             this.ClientSize = new System.Drawing.Size(390, 398);
             this.Controls.Add(this.VersionBox);

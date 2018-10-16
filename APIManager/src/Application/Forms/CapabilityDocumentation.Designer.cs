@@ -170,50 +170,50 @@
             // FormatBold
             // 
             this.FormatBold.Name = "FormatBold";
-            this.FormatBold.Size = new System.Drawing.Size(179, 22);
+            this.FormatBold.Size = new System.Drawing.Size(125, 22);
             this.FormatBold.Text = "Bold";
             this.FormatBold.Click += new System.EventHandler(this.FormatBold_Click);
             // 
             // FormatItalic
             // 
             this.FormatItalic.Name = "FormatItalic";
-            this.FormatItalic.Size = new System.Drawing.Size(179, 22);
+            this.FormatItalic.Size = new System.Drawing.Size(125, 22);
             this.FormatItalic.Text = "Italic";
             this.FormatItalic.Click += new System.EventHandler(this.FormatItalic_Click);
             // 
             // FormatRegular
             // 
             this.FormatRegular.Name = "FormatRegular";
-            this.FormatRegular.Size = new System.Drawing.Size(179, 22);
+            this.FormatRegular.Size = new System.Drawing.Size(125, 22);
             this.FormatRegular.Text = "Regular";
             this.FormatRegular.Click += new System.EventHandler(this.FormatRegular_Click);
             // 
             // FormatStrikeout
             // 
             this.FormatStrikeout.Name = "FormatStrikeout";
-            this.FormatStrikeout.Size = new System.Drawing.Size(179, 22);
+            this.FormatStrikeout.Size = new System.Drawing.Size(125, 22);
             this.FormatStrikeout.Text = "Strikeout";
             this.FormatStrikeout.Click += new System.EventHandler(this.FormatStrikeout_Click);
             // 
             // FormatUnderline
             // 
             this.FormatUnderline.Name = "FormatUnderline";
-            this.FormatUnderline.Size = new System.Drawing.Size(179, 22);
+            this.FormatUnderline.Size = new System.Drawing.Size(125, 22);
             this.FormatUnderline.Text = "Underline";
             this.FormatUnderline.Click += new System.EventHandler(this.FormatUnderline_Click);
             // 
             // FormatBullet
             // 
             this.FormatBullet.Name = "FormatBullet";
-            this.FormatBullet.Size = new System.Drawing.Size(179, 22);
+            this.FormatBullet.Size = new System.Drawing.Size(125, 22);
             this.FormatBullet.Text = "Bullets";
             this.FormatBullet.Click += new System.EventHandler(this.FormatBullet_Click);
             // 
             // CapabilityDocumentation
             // 
             this.AcceptButton = this.Ok;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
             this.ClientSize = new System.Drawing.Size(608, 334);
             this.Controls.Add(this.DocumentationFld);

@@ -164,6 +164,16 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
+        /// Checks whether the specified ID identifies a valid ticket. Valid tickets exist at the server and have a status of 'open'.
+        /// </summary>
+        /// <param name="ticketID">Ticket ID to validate.</param>
+        /// <returns>True in case of valid ID, false otherwise.</returns>
+        internal static bool IsValidID(string ticketID)
+        {
+            return TicketServerSlt.GetTicketServerSlt().GetTicket(ticketID) != null;
+        }
+
+        /// <summary>
         /// Creates a new Ticket class in the timeline. This is either a root- or an 'ordinary' ticket, depending on the state of the timeline.
         /// </summary>
         private void CreateTimelineTicket()

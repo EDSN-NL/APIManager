@@ -44,6 +44,7 @@ namespace Plugin.Application.Forms
             this.DeleteResource = new System.Windows.Forms.Button();
             this.AddResource = new System.Windows.Forms.Button();
             this.ResourceMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.addToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ContactDetailsBox = new System.Windows.Forms.GroupBox();
@@ -62,17 +63,27 @@ namespace Plugin.Application.Forms
             this.label7 = new System.Windows.Forms.Label();
             this.LicenseNameFld = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
+            this.TicketBox = new System.Windows.Forms.GroupBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.ProjectIDFld = new System.Windows.Forms.TextBox();
+            this.TicketIDFld = new System.Windows.Forms.TextBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.APINamingBox = new System.Windows.Forms.GroupBox();
+            this.label10 = new System.Windows.Forms.Label();
+            this.ErrorLine = new System.Windows.Forms.TextBox();
             this.ResourcesBox.SuspendLayout();
             this.ResourceMenuStrip.SuspendLayout();
             this.ContactDetailsBox.SuspendLayout();
             this.LicenseBox.SuspendLayout();
+            this.TicketBox.SuspendLayout();
+            this.APINamingBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // PackageDeclarationLbl
             // 
             this.PackageDeclarationLbl.AutoSize = true;
             this.PackageDeclarationLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.PackageDeclarationLbl.Location = new System.Drawing.Point(36, 14);
+            this.PackageDeclarationLbl.Location = new System.Drawing.Point(24, 25);
             this.PackageDeclarationLbl.Name = "PackageDeclarationLbl";
             this.PackageDeclarationLbl.Size = new System.Drawing.Size(56, 13);
             this.PackageDeclarationLbl.TabIndex = 0;
@@ -81,7 +92,7 @@ namespace Plugin.Application.Forms
             // APINameFld
             // 
             this.APINameFld.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.APINameFld.Location = new System.Drawing.Point(98, 9);
+            this.APINameFld.Location = new System.Drawing.Point(86, 20);
             this.APINameFld.Name = "APINameFld";
             this.APINameFld.Size = new System.Drawing.Size(235, 23);
             this.APINameFld.TabIndex = 1;
@@ -90,20 +101,20 @@ namespace Plugin.Application.Forms
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(565, 368);
+            this.Cancel.Location = new System.Drawing.Point(565, 404);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
-            this.Cancel.TabIndex = 7;
+            this.Cancel.TabIndex = 6;
             this.Cancel.Text = "Cancel";
             this.Cancel.UseVisualStyleBackColor = true;
             // 
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(484, 368);
+            this.Ok.Location = new System.Drawing.Point(484, 404);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
-            this.Ok.TabIndex = 8;
+            this.Ok.TabIndex = 7;
             this.Ok.Text = "Ok";
             this.Ok.UseVisualStyleBackColor = true;
             // 
@@ -115,8 +126,8 @@ namespace Plugin.Application.Forms
             this.ResourcesBox.Controls.Add(this.AddResource);
             this.ResourcesBox.Location = new System.Drawing.Point(357, 9);
             this.ResourcesBox.Name = "ResourcesBox";
-            this.ResourcesBox.Size = new System.Drawing.Size(283, 235);
-            this.ResourcesBox.TabIndex = 6;
+            this.ResourcesBox.Size = new System.Drawing.Size(283, 271);
+            this.ResourcesBox.TabIndex = 4;
             this.ResourcesBox.TabStop = false;
             this.ResourcesBox.Text = "Associated Resources";
             // 
@@ -128,9 +139,9 @@ namespace Plugin.Application.Forms
             this.ResourceList.FullRowSelect = true;
             this.ResourceList.GridLines = true;
             this.ResourceList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-            this.ResourceList.Location = new System.Drawing.Point(7, 20);
+            this.ResourceList.Location = new System.Drawing.Point(9, 20);
             this.ResourceList.Name = "ResourceList";
-            this.ResourceList.Size = new System.Drawing.Size(265, 178);
+            this.ResourceList.Size = new System.Drawing.Size(263, 205);
             this.ResourceList.TabIndex = 0;
             this.ResourceList.UseCompatibleStateImageBehavior = false;
             this.ResourceList.View = System.Windows.Forms.View.Details;
@@ -148,7 +159,7 @@ namespace Plugin.Application.Forms
             // EditResource
             // 
             this.EditResource.Image = ((System.Drawing.Image)(resources.GetObject("EditResource.Image")));
-            this.EditResource.Location = new System.Drawing.Point(69, 204);
+            this.EditResource.Location = new System.Drawing.Point(71, 234);
             this.EditResource.Name = "EditResource";
             this.EditResource.Size = new System.Drawing.Size(25, 25);
             this.EditResource.TabIndex = 3;
@@ -158,7 +169,7 @@ namespace Plugin.Application.Forms
             // DeleteResource
             // 
             this.DeleteResource.Image = ((System.Drawing.Image)(resources.GetObject("DeleteResource.Image")));
-            this.DeleteResource.Location = new System.Drawing.Point(38, 204);
+            this.DeleteResource.Location = new System.Drawing.Point(40, 234);
             this.DeleteResource.Name = "DeleteResource";
             this.DeleteResource.Size = new System.Drawing.Size(25, 25);
             this.DeleteResource.TabIndex = 2;
@@ -168,7 +179,7 @@ namespace Plugin.Application.Forms
             // AddResource
             // 
             this.AddResource.Image = ((System.Drawing.Image)(resources.GetObject("AddResource.Image")));
-            this.AddResource.Location = new System.Drawing.Point(7, 204);
+            this.AddResource.Location = new System.Drawing.Point(9, 234);
             this.AddResource.Name = "AddResource";
             this.AddResource.Size = new System.Drawing.Size(25, 25);
             this.AddResource.TabIndex = 1;
@@ -178,10 +189,18 @@ namespace Plugin.Application.Forms
             // ResourceMenuStrip
             // 
             this.ResourceMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.addToolStripMenuItem,
             this.editToolStripMenuItem,
             this.deleteToolStripMenuItem});
             this.ResourceMenuStrip.Name = "ResourceMenuStrip";
-            this.ResourceMenuStrip.Size = new System.Drawing.Size(108, 48);
+            this.ResourceMenuStrip.Size = new System.Drawing.Size(108, 70);
+            // 
+            // addToolStripMenuItem
+            // 
+            this.addToolStripMenuItem.Name = "addToolStripMenuItem";
+            this.addToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.addToolStripMenuItem.Text = "Add";
+            this.addToolStripMenuItem.Click += new System.EventHandler(this.AddResource_Click);
             // 
             // editToolStripMenuItem
             // 
@@ -205,7 +224,7 @@ namespace Plugin.Application.Forms
             this.ContactDetailsBox.Controls.Add(this.label5);
             this.ContactDetailsBox.Controls.Add(this.label4);
             this.ContactDetailsBox.Controls.Add(this.label3);
-            this.ContactDetailsBox.Location = new System.Drawing.Point(357, 250);
+            this.ContactDetailsBox.Location = new System.Drawing.Point(357, 286);
             this.ContactDetailsBox.Name = "ContactDetailsBox";
             this.ContactDetailsBox.Size = new System.Drawing.Size(283, 112);
             this.ContactDetailsBox.TabIndex = 5;
@@ -263,7 +282,7 @@ namespace Plugin.Application.Forms
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(29, 41);
+            this.label1.Location = new System.Drawing.Point(17, 52);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(63, 13);
             this.label1.TabIndex = 0;
@@ -271,27 +290,27 @@ namespace Plugin.Application.Forms
             // 
             // APIDescriptionFld
             // 
-            this.APIDescriptionFld.Location = new System.Drawing.Point(98, 38);
+            this.APIDescriptionFld.Location = new System.Drawing.Point(86, 49);
             this.APIDescriptionFld.Multiline = true;
             this.APIDescriptionFld.Name = "APIDescriptionFld";
-            this.APIDescriptionFld.Size = new System.Drawing.Size(235, 100);
+            this.APIDescriptionFld.Size = new System.Drawing.Size(235, 60);
             this.APIDescriptionFld.TabIndex = 2;
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(4, 144);
+            this.label2.Location = new System.Drawing.Point(24, 115);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(88, 13);
+            this.label2.Size = new System.Drawing.Size(36, 13);
             this.label2.TabIndex = 0;
-            this.label2.Text = "Terms of service:";
+            this.label2.Text = "Terms";
             // 
             // APITermsOfServiceFld
             // 
-            this.APITermsOfServiceFld.Location = new System.Drawing.Point(98, 144);
+            this.APITermsOfServiceFld.Location = new System.Drawing.Point(86, 115);
             this.APITermsOfServiceFld.Multiline = true;
             this.APITermsOfServiceFld.Name = "APITermsOfServiceFld";
-            this.APITermsOfServiceFld.Size = new System.Drawing.Size(235, 100);
+            this.APITermsOfServiceFld.Size = new System.Drawing.Size(235, 60);
             this.APITermsOfServiceFld.TabIndex = 3;
             // 
             // LicenseBox
@@ -300,10 +319,10 @@ namespace Plugin.Application.Forms
             this.LicenseBox.Controls.Add(this.label7);
             this.LicenseBox.Controls.Add(this.LicenseNameFld);
             this.LicenseBox.Controls.Add(this.label6);
-            this.LicenseBox.Location = new System.Drawing.Point(12, 250);
+            this.LicenseBox.Location = new System.Drawing.Point(12, 286);
             this.LicenseBox.Name = "LicenseBox";
             this.LicenseBox.Size = new System.Drawing.Size(334, 112);
-            this.LicenseBox.TabIndex = 4;
+            this.LicenseBox.TabIndex = 3;
             this.LicenseBox.TabStop = false;
             this.LicenseBox.Text = "Licensing info";
             // 
@@ -340,24 +359,104 @@ namespace Plugin.Application.Forms
             this.label6.TabIndex = 0;
             this.label6.Text = "Name:";
             // 
+            // TicketBox
+            // 
+            this.TicketBox.Controls.Add(this.label8);
+            this.TicketBox.Controls.Add(this.ProjectIDFld);
+            this.TicketBox.Controls.Add(this.TicketIDFld);
+            this.TicketBox.Controls.Add(this.label9);
+            this.TicketBox.Location = new System.Drawing.Point(12, 9);
+            this.TicketBox.Name = "TicketBox";
+            this.TicketBox.Size = new System.Drawing.Size(334, 78);
+            this.TicketBox.TabIndex = 1;
+            this.TicketBox.TabStop = false;
+            this.TicketBox.Text = "Administration";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(26, 25);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(54, 13);
+            this.label8.TabIndex = 0;
+            this.label8.Text = "Ticket ID:";
+            // 
+            // ProjectIDFld
+            // 
+            this.ProjectIDFld.Location = new System.Drawing.Point(86, 48);
+            this.ProjectIDFld.Name = "ProjectIDFld";
+            this.ProjectIDFld.Size = new System.Drawing.Size(235, 20);
+            this.ProjectIDFld.TabIndex = 2;
+            this.ProjectIDFld.Leave += new System.EventHandler(this.ProjectIDFld_Leave);
+            // 
+            // TicketIDFld
+            // 
+            this.TicketIDFld.Location = new System.Drawing.Point(86, 22);
+            this.TicketIDFld.Name = "TicketIDFld";
+            this.TicketIDFld.Size = new System.Drawing.Size(235, 20);
+            this.TicketIDFld.TabIndex = 1;
+            this.TicketIDFld.Leave += new System.EventHandler(this.TicketIDFld_Leave);
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(25, 51);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(55, 13);
+            this.label9.TabIndex = 0;
+            this.label9.Text = "Project nr:";
+            // 
+            // APINamingBox
+            // 
+            this.APINamingBox.Controls.Add(this.label10);
+            this.APINamingBox.Controls.Add(this.APITermsOfServiceFld);
+            this.APINamingBox.Controls.Add(this.label2);
+            this.APINamingBox.Controls.Add(this.APIDescriptionFld);
+            this.APINamingBox.Controls.Add(this.label1);
+            this.APINamingBox.Controls.Add(this.APINameFld);
+            this.APINamingBox.Controls.Add(this.PackageDeclarationLbl);
+            this.APINamingBox.Location = new System.Drawing.Point(12, 93);
+            this.APINamingBox.Name = "APINamingBox";
+            this.APINamingBox.Size = new System.Drawing.Size(334, 187);
+            this.APINamingBox.TabIndex = 2;
+            this.APINamingBox.TabStop = false;
+            this.APINamingBox.Text = "API Naming";
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(24, 128);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(56, 13);
+            this.label10.TabIndex = 0;
+            this.label10.Text = "of service:";
+            // 
+            // ErrorLine
+            // 
+            this.ErrorLine.BackColor = System.Drawing.SystemColors.Control;
+            this.ErrorLine.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.ErrorLine.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ErrorLine.ForeColor = System.Drawing.Color.Red;
+            this.ErrorLine.Location = new System.Drawing.Point(12, 413);
+            this.ErrorLine.Name = "ErrorLine";
+            this.ErrorLine.Size = new System.Drawing.Size(466, 13);
+            this.ErrorLine.TabIndex = 0;
+            // 
             // CreateRESTServiceDeclaration
             // 
             this.AcceptButton = this.Ok;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(652, 411);
+            this.ClientSize = new System.Drawing.Size(652, 448);
+            this.Controls.Add(this.ErrorLine);
+            this.Controls.Add(this.APINamingBox);
+            this.Controls.Add(this.TicketBox);
             this.Controls.Add(this.LicenseBox);
-            this.Controls.Add(this.APITermsOfServiceFld);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.APIDescriptionFld);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.ContactDetailsBox);
             this.Controls.Add(this.ResourcesBox);
             this.Controls.Add(this.Ok);
             this.Controls.Add(this.Cancel);
-            this.Controls.Add(this.APINameFld);
-            this.Controls.Add(this.PackageDeclarationLbl);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -370,6 +469,10 @@ namespace Plugin.Application.Forms
             this.ContactDetailsBox.PerformLayout();
             this.LicenseBox.ResumeLayout(false);
             this.LicenseBox.PerformLayout();
+            this.TicketBox.ResumeLayout(false);
+            this.TicketBox.PerformLayout();
+            this.APINamingBox.ResumeLayout(false);
+            this.APINamingBox.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -407,5 +510,14 @@ namespace Plugin.Application.Forms
         private Label label7;
         private TextBox LicenseNameFld;
         private Label label6;
+        private GroupBox TicketBox;
+        private Label label8;
+        private TextBox ProjectIDFld;
+        private TextBox TicketIDFld;
+        private Label label9;
+        private GroupBox APINamingBox;
+        private Label label10;
+        private ToolStripMenuItem addToolStripMenuItem;
+        private TextBox ErrorLine;
     }
 }
