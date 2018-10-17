@@ -721,24 +721,24 @@ namespace Plugin.Application.CapabilityModel.API
         /// <returns>Name of selected resource or empty string in case of errors or cancel.</returns>
         internal string SetDocument(bool isResponse)
         {
-            var documentList = new List<Capability>();
             string documentName = string.Empty;
             if (this._parent == null) return string.Empty;  // Nothing (yet) to do.
-            foreach (RESTResourceCapability cap in this._parent.ResourceList(RESTResourceCapability.ResourceArchetype.Document)) documentList.Add(cap);
+            List<RESTResourceCapability> documentList = this._parent.ResourceList(RESTResourceCapability.ResourceArchetype.Document);
             if (documentList.Count > 0)
             {
                 // If we only have a single associated Document Resource, this is selected automatically. When there are multiple,
                 // we ask the user which one to use...
                 if (documentList.Count == 1)
                 {
-                    RESTResourceCapability document = documentList[0] as RESTResourceCapability;
+                    RESTResourceCapability document = documentList[0];
                     if (isResponse) this._responseDocument = document;
                     else this._requestDocument = document;
                     if (document != null) documentName = document.Name;
                 }
                 else
                 {
-                    using (CapabilityPicker dialog = new CapabilityPicker("Select Document resource", documentList, false, false))
+                    List<Capability> capList = documentList.ConvertAll(x => (Capability)x);
+                    using (CapabilityPicker dialog = new CapabilityPicker("Select Document resource", capList, false, false))
                     {
                         if (dialog.ShowDialog() == DialogResult.OK)
                         {

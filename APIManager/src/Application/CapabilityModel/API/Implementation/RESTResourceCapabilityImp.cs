@@ -651,14 +651,18 @@ namespace Plugin.Application.CapabilityModel.API
         /// is not equal to 'Unknown', the method only returns children of archetype identified by 'type'.
         /// </summary>
         /// <returns>Resource Capability enumerator.</returns>
-        internal IEnumerable<RESTResourceCapability> ResourceList(RESTResourceCapability.ResourceArchetype type)
+        internal List<RESTResourceCapability> ResourceList(RESTResourceCapability.ResourceArchetype type)
         {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.ResourceList >> Retrieving resources of type '" + type + "'...");
+            List<RESTResourceCapability> children = new List<RESTResourceCapability>();
             foreach (Capability cap in GetChildren())
             {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.ResourceList >> Inspecting '" + cap.Name + "'...");
                 if (cap is RESTResourceCapability &&
                     (type == RESTResourceCapability.ResourceArchetype.Unknown || ((RESTResourceCapability)cap).Archetype == type))
-                    yield return cap as RESTResourceCapability;
+                    children.Add((RESTResourceCapability)cap);
             }
+            return children;
         }
 
         /// <summary>

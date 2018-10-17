@@ -30,7 +30,6 @@ namespace Plugin.Application.Forms
         {
             InitializeComponent();
             this._parent = parent;
-            ErrorLine.Visible = false;
             this._hasValidName = false;
             this._hasValidOperations = false;
 
@@ -76,29 +75,29 @@ namespace Plugin.Application.Forms
         private void PackageName_TextChanged(object sender, EventArgs e)
         {
             string name = PackageNameFld.Text.Trim();
-            string errorText = string.Empty;
             this._hasValidName = true;
+            ErrorLine.Text = string.Empty;
 
             // Validate input string, must be <name>_V<n>...
             name = name.Trim();
             if (name == string.Empty)
             {
-                errorText = "Please specify a Service name!";
+                ErrorLine.Text = "Please specify a Service name!";
                 this._hasValidName = false;
             }
             else if (!char.IsUpper(name[0]))
             {
-                errorText = "Name must be in PascalCase, try again!";
+                ErrorLine.Text = "Name must be in PascalCase, try again!";
                 this._hasValidName = false;
             }
             else if (name.Any(Char.IsWhiteSpace))
             {
-                errorText = "The name may not contain whitespace, try again!";
+                ErrorLine.Text = "The name may not contain whitespace, try again!";
                 this._hasValidName = false;
             }
             else if (name.LastIndexOf("_V") <= 0)
             {
-                errorText = "Could not detect major version suffix ('_Vn'), V1 assumed!";
+                ErrorLine.Text = "Could not detect major version suffix ('_Vn'), V1 assumed!";
                 name += "_V1";
                 PackageNameFld.Text = name;
                 PackageNameFld.Update();
@@ -109,23 +108,11 @@ namespace Plugin.Application.Forms
                 // Check if this is a unique name...
                 if (!this._parent.IsUniqueName(name))
                 {
-                    errorText = "The chosen Service name is not unique, try again!";
+                    ErrorLine.Text = "The chosen Service name is not unique, try again!";
                     PackageNameFld.Clear();
                     this._hasValidName = false;
                 }
             }
-
-            if (errorText != string.Empty)
-            {
-                ErrorLine.Text = errorText;
-                ErrorLine.Visible = true;
-            }
-            else
-            {
-                ErrorLine.Clear();
-                ErrorLine.Visible = false;
-            }
-            ErrorLine.Update();
             CheckOK();
         }
 
@@ -136,13 +123,13 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void OperationNames_TextChanged(object sender, EventArgs e)
         {
-            string errorText = string.Empty;
+            ErrorLine.Text = string.Empty;
             this._hasValidOperations = true;
 
             string[] operations = OperationNames.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             if (operations.Length == 0)
             {
-                errorText = "Please specify at least one operation name!";
+                ErrorLine.Text = "Please specify at least one operation name!";
                 this._hasValidOperations = false;
             }
             else
@@ -152,24 +139,12 @@ namespace Plugin.Application.Forms
                     string validatedOperation = operation.Trim();
                     if (!char.IsUpper(validatedOperation[0]))
                     {
-                        errorText = "Operation name '" + operation + "' must be in PascalCase, please try again!";
+                        ErrorLine.Text = "Operation name '" + operation + "' must be in PascalCase, please try again!";
                         this._hasValidOperations = false;
                         break;
                     }
                 }
             }
-
-            if (!this._hasValidOperations)
-            {
-                ErrorLine.Text = errorText;
-                ErrorLine.Visible = true;
-            }
-            else
-            {
-                ErrorLine.Clear();
-                ErrorLine.Visible = false;
-            }
-            ErrorLine.Update();
             CheckOK();
         }
 

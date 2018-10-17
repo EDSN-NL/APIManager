@@ -155,6 +155,7 @@ namespace Plugin.Application.Forms
             this.ProjectIDFld.Name = "ProjectIDFld";
             this.ProjectIDFld.Size = new System.Drawing.Size(165, 20);
             this.ProjectIDFld.TabIndex = 2;
+            this.ProjectIDFld.Leave += new System.EventHandler(this.ProjectIDFld_Leave);
             // 
             // TicketIDFld
             // 
@@ -162,6 +163,7 @@ namespace Plugin.Application.Forms
             this.TicketIDFld.Name = "TicketIDFld";
             this.TicketIDFld.Size = new System.Drawing.Size(165, 20);
             this.TicketIDFld.TabIndex = 1;
+            this.TicketIDFld.Leave += new System.EventHandler(this.TicketIDFld_Leave);
             // 
             // label9
             // 

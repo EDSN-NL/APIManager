@@ -68,11 +68,11 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Facilitates iteration over the set of child resources associated with this parent resource. If the type
-        /// is not equal to 'Unknown', the method only returns children of archetype identified by 'type'.
+        /// Returns the list of all child resources of type 'type'. If 'type' is specified as 'unknown', 
+        /// the method returns all children.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        public IEnumerable<RESTResourceCapability> ResourceList(ResourceArchetype type)
+        public List<RESTResourceCapability> ResourceList(ResourceArchetype type)
         {
             if (this._imp != null) return ((RESTResourceCapabilityImp)this._imp).ResourceList(type);
             else throw new MissingImplementationException("RESTResourceCapabilityImp");
@@ -86,7 +86,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
         public IEnumerable<RESTResourceCapability> ResourceList()
         {
-            return ResourceList(ResourceArchetype.Unknown);
+            foreach (RESTResourceCapability cap in ResourceList(ResourceArchetype.Unknown)) yield return cap;
         }
 
         /// <summary>

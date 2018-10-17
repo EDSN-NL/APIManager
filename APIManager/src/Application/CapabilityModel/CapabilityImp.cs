@@ -301,7 +301,6 @@ namespace Plugin.Application.CapabilityModel
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.CapabilityImp.getChildren >> Adding: " + child.Data.Name);
                 childList.Add(child.Data.GetInterface());
             }
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.CapabilityImp.getChildren >> No children!");
             return childList;
         }
 
