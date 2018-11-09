@@ -43,10 +43,16 @@ namespace Plugin.Application.Events.API
                 {
                     if (dialog.ShowDialog() == DialogResult.OK)
                     {
-                        // We only have to invoke this constructor in order to create the entire service structure (we like to keep events simple :-)
+                        // Invoke this 'create' constructor in order to create the entire service structure...
                         var svc = new RESTService(containerPackage, dialog.MetaData, dialog.Resources,
-                                                  context.GetConfigProperty(_ServiceDeclPkgStereotype));
-                        if (svc.Valid) svc.Paint(svc.ModelPkg.FindDiagram(svc.ModelPkg.Name));
+                                                  context.GetConfigProperty(_ServiceDeclPkgStereotype), dialog.SelectedState);
+                        if (svc.Valid)
+                        {
+                            if (svc.UseConfigurationMgmt && !svc.Checkout(dialog.TicketID, dialog.ProjectID))
+                                MessageBox.Show("Unable to checkout the new service, please check configuration settings!",
+                                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            svc.Paint(svc.ModelPkg.FindDiagram(svc.ModelPkg.Name));
+                        }
                         else MessageBox.Show("Error creating Service declaration, not all components might have been created!",
                                              "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }

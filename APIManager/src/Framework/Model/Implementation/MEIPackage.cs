@@ -102,6 +102,17 @@ namespace Framework.Model
         internal abstract MEClass FindClass(string className, string classStereotype);
 
         /// <summary>
+        /// Searches the package for any class containing the specified name part and/or stereotype.
+        /// One or both parameters must be specified. If we have only the name part, the function returns all classes
+        /// that contain that name part. If only the stereotype is specified, we return all classes that match the
+        /// stereotype. If both are specified, we return all classes of the specified stereotype that match the name filter.
+        /// </summary>
+        /// <param name="nameFilter">Optional (part of) name to search for.</param>
+        /// <param name="stereotype">Optional stereotype of class.</param>
+        /// <returns>List of classes found (can be empty).</returns>
+        internal abstract List<MEClass> FindClasses(string nameFilter, string stereotype);
+
+        /// <summary>
         /// Searches the package for any diagram with given name.
         /// </summary>
         /// <param name="diagramName">Name of type to find.</param>

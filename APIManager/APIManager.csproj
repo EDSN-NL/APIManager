@@ -181,6 +181,7 @@
     <Compile Include="src\Application\CapabilityModel\API\RESTUtil.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Interface\RESTInterfaceCapability.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Implementation\RESTInterfaceCapabilityImp.cs" />
+    <Compile Include="src\Application\CapabilityModel\RMReleaseTicket.cs" />
     <Compile Include="src\Application\CapabilityModel\RMTicket.cs" />
     <Compile Include="src\Application\CapabilityModel\SchemaGeneration\ClassCacheSlt.cs" />
     <Compile Include="src\Application\CapabilityModel\SchemaGeneration\ClassifierContext.cs" />

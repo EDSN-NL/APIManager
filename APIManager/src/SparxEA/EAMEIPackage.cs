@@ -436,6 +436,84 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Searches the package for any class containing the specified name part and/or stereotype.
+        /// One or both parameters must be specified. If we have only the name part, the function returns all classes
+        /// that contain that name part. If only the stereotype is specified, we return all classes that match the
+        /// stereotype. If both are specified, we return all classes of the specified stereotype that match the name filter.
+        /// </summary>
+        /// <param name="nameFilter">Optional (part of) name to search for.</param>
+        /// <param name="stereotype">Optional stereotype of class.</param>
+        /// <returns>List of classes found (can be empty).</returns>
+        internal override List<MEClass> FindClasses(string nameFilter, string stereotype)
+        {
+            this._package.Elements.Refresh();   // Make sure that we're looking at the most up-to-date state.
+            EA.Repository repository = ((EAModelImplementation)this._model).Repository;
+            string query = string.Empty;
+            bool isLocalDB = ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local;
+            var classList = new List<MEClass>();
+
+            // We MUST specify either a class filter and/or a stereotype!
+            if (string.IsNullOrEmpty(nameFilter) && string.IsNullOrEmpty(stereotype)) return classList;
+
+            if (!string.IsNullOrEmpty(stereotype))
+            {
+                string checkType = (stereotype.Contains("::")) ? stereotype.Substring(stereotype.IndexOf("::") + 2) : stereotype;
+                if (string.IsNullOrEmpty(nameFilter))
+                {
+                    // In case of empty name filter, we return the classes that are of the specified stereotype.
+                    if (isLocalDB)
+                    {
+                        query = @"SELECT o.Object_ID AS ElementID FROM t_object o
+                                  WHERE o.Package_ID = " + this._package.PackageID + " AND o.Stereotype LIKE '*" + checkType + "'";
+                    }
+                    else
+                    {
+                        query = @"SELECT o.Object_ID AS ElementID FROM t_object o
+                                 WHERE o.Package_ID = " + this._package.PackageID + " AND o.Stereotype LIKE '%" + checkType + "'";
+                    }
+                }
+                else
+                {
+                    // We have to select on both name- and stereotype.
+                    if (isLocalDB)
+                    {
+                        query = @"SELECT o.Object_ID AS ElementID FROM t_object o
+                                 WHERE o.Package_ID = " + this._package.PackageID + 
+                                 " AND o.Name LIKE '*" + nameFilter + "' AND o.Stereotype LIKE '*" + checkType + "'";
+                    }
+                    else
+                    {
+                        query = @"SELECT o.Object_ID AS ElementID FROM t_object o
+                                 WHERE o.Parent_ID = " + this._package.PackageID + 
+                                 " AND o.Name LIKE '%" + nameFilter + "' AND o.Stereotype LIKE '%" + checkType + "'";
+                    }
+                }
+            }
+            else
+            {
+                // Only search on name filter.
+                if (isLocalDB)
+                {
+                    query = @"SELECT o.Object_ID AS ElementID FROM t_object o
+                             WHERE o.Package_ID = " + this._package.PackageID + " AND o.Name LIKE '*" + nameFilter + "'";
+                }
+                else
+                {
+                    query = @"SELECT o.Object_ID AS ElementID FROM t_object o
+                             WHERE o.Parent_ID = " + this._package.PackageID + " AND o.Name LIKE '%" + nameFilter + "'";
+                }
+            }
+
+            var queryResult = new XmlDocument();                            // Repository query will return an XML Document.
+            queryResult.LoadXml(repository.SQLQuery(query));                // Execute query and store result in XML Document.
+            XmlNodeList elements = queryResult.GetElementsByTagName("Row"); // Retrieve found identifiers.
+            var parentList = new List<MEClass>();
+
+            foreach (XmlNode node in elements) classList.Add(new MEClass(Convert.ToInt32(node["ElementID"].InnerText.Trim())));
+            return classList;
+        }
+
+        /// <summary>
         /// Searches the package for any data type with given name and optional stereotype.
         /// </summary>
         /// <param name="typeName">Name of type to find.</param>

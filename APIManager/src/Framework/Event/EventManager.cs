@@ -146,7 +146,7 @@ namespace Framework.Event
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Framework.Event.EventManager.handleEvent >> Caught an exception: " + exc.Message);
+                Logger.WriteError("Framework.Event.EventManager.handleEvent >> Caught an exception: " + exc.ToString());
             }
         }
 

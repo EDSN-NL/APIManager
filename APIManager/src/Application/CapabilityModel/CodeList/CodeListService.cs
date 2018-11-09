@@ -28,7 +28,12 @@ namespace Plugin.Application.CapabilityModel.CodeList
         /// The constructor creates all required packages, elements and associations and finally creates and shows the ServiceModel diagram.
         /// In case of errors, all work is rolled-back by deleting the declaration package together with all contained elements.
         /// </summary>
-        internal CodeListService(MEPackage containerPackage, string qualifiedServiceName, SortedList<string, CodeListDirector.DirectorContext> codeLists, string declarationStereotype): base(containerPackage, qualifiedServiceName, declarationStereotype)
+        internal CodeListService(MEPackage containerPackage, 
+                                 string qualifiedServiceName, 
+                                 SortedList<string, CodeListDirector.DirectorContext> codeLists, 
+                                 string declarationStereotype,
+                                 OperationalState initialState = _DefaultOperationalState): 
+            base(containerPackage, qualifiedServiceName, declarationStereotype, initialState)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();

@@ -45,6 +45,7 @@ namespace Plugin.Application.Forms
             AutoLocking.Checked                     = context.GetBoolSetting(FrameworkSettings._UseAutomaticLocking);
             PersistentLocks.Checked                 = context.GetBoolSetting(FrameworkSettings._PersistentModelLocks);
             AllOfSupport.Checked                    = context.GetBoolSetting(FrameworkSettings._JSONAllOfSupport);
+            GENUseMajorVersionOnly.Checked          = context.GetBoolSetting(FrameworkSettings._GENUseMajorVersionOnly);
             RAAPIKeys.Text                          = context.GetStringSetting(FrameworkSettings._RESTAuthAPIKeys);
             RESTHostName.Text                       = context.GetStringSetting(FrameworkSettings._RESTHostName);
             RESTSchemes.Text                        = context.GetStringSetting(FrameworkSettings._RESTSchemes);
@@ -140,6 +141,7 @@ namespace Plugin.Application.Forms
             context.SetBoolSetting(FrameworkSettings._UseAutomaticLocking, AutoLocking.Checked);
             context.SetBoolSetting(FrameworkSettings._PersistentModelLocks, PersistentLocks.Checked);
             context.SetBoolSetting(FrameworkSettings._JSONAllOfSupport, AllOfSupport.Checked);
+            context.SetBoolSetting(FrameworkSettings._GENUseMajorVersionOnly, GENUseMajorVersionOnly.Checked);
 
             context.SetStringSetting(FrameworkSettings._DiagramSaveType, this._imageType);
             context.SetStringSetting(FrameworkSettings._InterfaceContractType, this._interfaceType);

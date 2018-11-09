@@ -28,6 +28,14 @@ namespace Plugin.Application.CapabilityModel
     // Disabled indicates that configuration management is not used.
     internal enum CMState { Disabled, Created, Modified, Committed, Released, CheckedOut }
 
+    // A service can be created in any of three states (Deprecated can only be assigned after creation and means
+    // that the service should no longer be used):
+    // Standard - Default value for normal, production-grade services;
+    // Experimental - Used to create services for POC's or other, temporary, deployments;
+    // Draft - Used to create draft services, in need for further review. Typically used to replace Standard
+    // services eventually.
+    internal enum OperationalState { Standard, Experimental, Deprecated, Draft }
+
     /// <summary>
     /// Within the model, the 'Service' represents the deliverable API, as well as the top of the capability
     /// hierarchy. This can be a SOAP- or REST service declaration, a (set of) schema(s) or something different 
@@ -48,6 +56,9 @@ namespace Plugin.Application.CapabilityModel
         // Since these are transformations of the corresponding tagname, enumeration and tag MUST be in sync at all times!
         internal enum ServiceArchetype {Unknown, SOAP, REST, Message, CodeList }
 
+        // Represents the default operational state...
+        internal const OperationalState _DefaultOperationalState = OperationalState.Standard;
+
         // Public Configuration properties related to Service in general...
         internal const string _CommonPkgName                    = "CommonPkgName";
         internal const string _CommonPkgStereotype              = "CommonPkgStereotype";
@@ -64,8 +75,7 @@ namespace Plugin.Application.CapabilityModel
 
         // Private configuration properties used by this service...
         private const string _BusinessFunctionIDTag             = "BusinessFunctionIDTag";
-        private const string _ServiceOperationalStatusTag       = "ServiceOperationalStatusTag";
-        private const string _DefaultOperationalStatus          = "DefaultOperationalStatus";
+        private const string _ServiceOperationalStateTag        = "ServiceOperationalStatusTag";
         private const string _PathNameTag                       = "PathNameTag";
         private const string _CMStateTag                        = "CMStateTag";
         private const string _ServiceModelPos                   = "ServiceModelPos";
@@ -89,7 +99,7 @@ namespace Plugin.Application.CapabilityModel
         private RMTicket _ticket;                               // The ticket used for creation/modification of the service object.
 
         // Components that can be used to construct a namespace:
-        private string _operationalStatus;                      // Operational status as defined by a tag in the service, can be one
+        private OperationalState _operationalState;             // Operational state as defined by a tag in the service, can be one
                                                                 // of 'Standard', 'Experimental', 'Deprecated' or 'Proposed'.
         private string _businessFunctionID;                     // Current Business Function identifier associated with the service.
 
@@ -156,9 +166,21 @@ namespace Plugin.Application.CapabilityModel
         internal Tuple<int, int> Version { get { return this._version; } }
 
         /// <summary>
-        /// Returns the Service operational status (one of 'Standard', 'Experimental', 'Deprecated' or 'Proposed').
+        /// Returns the Service operational state (one of 'Standard', 'Experimental', 'Deprecated' or 'Proposed').
         /// </summary>
-        internal string OperationalStatus { get { return this._operationalStatus; } }
+        internal OperationalState OperationalState { get { return this._operationalState; } }
+
+        /// <summary>
+        /// Returns an empty string in case the Service OperationalState is 'Standard'. In all other cases, it
+        /// returns the OperationState as a Pascal-Case string.
+        /// </summary>
+        internal string NonDefaultOperationalState
+        {
+            get
+            {
+                return IsDefaultOperationalState ? string.Empty : EnumConversions<OperationalState>.EnumToString(this._operationalState);
+            }
+        }
 
         /// <summary>
         /// Returns the relative pathname (relative to the repository) to the location of all Configuration Items for this service. 
@@ -194,15 +216,9 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
-        /// Check whether our current operation status matches the default status.
+        /// Check whether our current operation state matches the default state ('Standard').
         /// </summary>
-        internal bool IsDefaultOperationalStatus
-        {
-            get
-            {
-                return string.Compare(this._operationalStatus, ContextSlt.GetContextSlt().GetConfigProperty(_DefaultOperationalStatus), true) == 0;
-            }
-        }
+        internal bool IsDefaultOperationalState { get { return this._operationalState == _DefaultOperationalState; } }
 
         /// <summary>
         /// Get or set the configuration management state of the service.
@@ -249,8 +265,9 @@ namespace Plugin.Application.CapabilityModel
         /// <param name="containerPackage">The package that will hold the service declaration.</param>
         /// <param name="qualifiedServiceName">Full name of the service, including major version suffix.</param>
         /// <param name="declarationStereotype">Defines the type of service that we're constructing.</param>
+        /// <param name="initialState">Defines the initial operational state for the service.</param>
         /// <exception cref="ConfigurationsErrorException">Error retrieving items from configuration or configuration settings invalid.</exception>
-        protected Service(MEPackage containerPackage, string qualifiedServiceName, string declarationStereotype)
+        protected Service(MEPackage containerPackage, string qualifiedServiceName, string declarationStereotype, OperationalState initialState)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.Service >> Creating service with name: '" + qualifiedServiceName + "' in package '" + containerPackage.Name + "'...");
 
@@ -262,6 +279,7 @@ namespace Plugin.Application.CapabilityModel
                 this._selectedCapabilities = null;
                 this._representationColor = Diagram.ClassColor.Default;
                 this._ticket = null;
+                this._operationalState = initialState;
 
                 string serviceName = qualifiedServiceName.Substring(0, qualifiedServiceName.IndexOf("_V"));
                 string version = qualifiedServiceName.Substring(qualifiedServiceName.IndexOf("_V") + 2);
@@ -302,6 +320,10 @@ namespace Plugin.Application.CapabilityModel
                 // Initialise the OperationID tag...
                 this._maxOperationID = 0;
                 this._serviceClass.SetTag(context.GetConfigProperty(_MaxOperationIDTag), "0", true);
+
+                // Set the initial OperationalState tag...
+                this._serviceClass.SetTag(context.GetConfigProperty(_ServiceOperationalStateTag), 
+                                          EnumConversions<OperationalState>.EnumToString(initialState));
 
                 // For the next set of initializations, order is important!
                 // Business Function ID is required for CM State and Path Names so this must go first.
@@ -351,8 +373,8 @@ namespace Plugin.Application.CapabilityModel
                 throw new IllegalContextException(message);
             }
 
-            // Retrieve the operational status...
-            this._operationalStatus = this._serviceClass.GetTag(context.GetConfigProperty(_ServiceOperationalStatusTag));
+            // Retrieve the operational state...
+            this._operationalState = EnumConversions<OperationalState>.StringToEnum(this._serviceClass.GetTag(context.GetConfigProperty(_ServiceOperationalStateTag)));
 
             // Set model package (package in which the service lives) and the declaration package (the parent of my owning package)...
             this._modelPackage = this._serviceClass.OwningPackage;
@@ -552,7 +574,7 @@ namespace Plugin.Application.CapabilityModel
         /// @CONTAINER@     = The name of the functional container in which the service is defined.
         /// @SERVICE@       = The name of the service.
         /// @CAPABILITY@    = The current capability name as provided as argument. The tag is removed if the argument is not provided (null or empty).
-        /// @OPERSTATUS@    = The operational status of the service.
+        /// @OPERSTATUS@    = The operational state of the service.
         /// @YEAR@          = The current year.
         /// @MONTH@         = The current month.
         /// </summary>
@@ -569,6 +591,7 @@ namespace Plugin.Application.CapabilityModel
             ContextSlt context = ContextSlt.GetContextSlt();
             string templateTag = tag + ":NSTemplate";
             string FQN = context.GetConfigProperty(templateTag);
+            string operationalState = EnumConversions<OperationalState>.EnumToString(this._operationalState);
 
             if (!string.IsNullOrEmpty(FQN))
             {
@@ -593,7 +616,7 @@ namespace Plugin.Application.CapabilityModel
                 }
                 else FQN = FQN.Replace(MinorVersionTag, minorVersion.ToString());
                 FQN = FQN.Replace("@MAJORVSN@", this._version.Item1.ToString());
-                FQN = FQN.Replace("@OPERSTATUS@", this._operationalStatus);
+                FQN = FQN.Replace("@OPERSTATUS@", operationalState);
                 FQN = FQN.Replace("@YEAR@", DateTime.Now.Year.ToString());
                 FQN = FQN.Replace("@MONTH@", DateTime.Now.Month.ToString());
             }
@@ -705,9 +728,8 @@ namespace Plugin.Application.CapabilityModel
                 // We might miss some levels in the structure, so construct as we go. (rootPath MUST exist)...
                 this._serviceBuildPath = this._businessFunctionID + "." + this._containerPackage.Name;
                 if (!Directory.Exists(this._repositoryPath + "/" + this._serviceBuildPath)) Directory.CreateDirectory(this._repositoryPath + "/" + this._serviceBuildPath);
-
-                if (IsDefaultOperationalStatus) this._serviceBuildPath += "/" + Name + "_V" + Version.Item1.ToString();
-                else this._serviceBuildPath += "/" + Name + "_" + OperationalStatus + "_V" + Version.Item1.ToString();
+                if (IsDefaultOperationalState) this._serviceBuildPath += "/" + Name + "_V" + Version.Item1.ToString();
+                else this._serviceBuildPath += "/" + Name + "_" + EnumConversions<OperationalState>.EnumToString(this._operationalState) + "_V" + Version.Item1.ToString();
                 if (!Directory.Exists(this._repositoryPath + "/" + this._serviceBuildPath)) Directory.CreateDirectory(this._repositoryPath + "/" + this._serviceBuildPath);
 
                 if (!this._useCM)

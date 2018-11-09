@@ -3,7 +3,6 @@ using System.Xml;
 using System.Xml.Schema;
 using System.Collections.Generic;
 using Framework.Context;
-using Framework.Logging;
 
 namespace Framework.Util
 {

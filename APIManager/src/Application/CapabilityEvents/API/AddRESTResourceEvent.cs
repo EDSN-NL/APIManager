@@ -133,7 +133,7 @@ namespace Plugin.Application.Events.API
                     {
                         // Mark service as 'modified' for configuration management and add to diagram in different color...
                         myService.Dirty();
-                        myService.Paint(svcContext.MyDiagram);
+                        myService.Paint(svcContext.ServiceDiagram);
 
                         // Collect the new classes and associations that must be shown on the diagram...
                         DiagramItemsCollector collector = new DiagramItemsCollector(svcContext.MyDiagram);

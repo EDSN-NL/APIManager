@@ -78,6 +78,11 @@ namespace Plugin.Application.Forms
             this._repositoryProperties._description   = EAProjectDescription.Text;
             this._repositoryProperties._useCM         = ConfigurationMgmtIndicator.Checked;
             this._repositoryProperties._GITIgnore     = GITIgnoreEntries.Text;
+
+            // Absolute URL's will always end with a '/', no matter whether the user has entered this.
+            this._repositoryProperties._remoteURL     = new Uri(RepositoryBaseURL.Text, UriKind.Absolute);
+            this._repositoryProperties._jiraURL       = new Uri(JiraURL.Text, UriKind.Absolute);
+
             if (!string.IsNullOrEmpty(UserName.Text) && !string.IsNullOrEmpty(EMailAddress.Text))
                 this._repositoryProperties._identity = new Identity(UserName.Text, EMailAddress.Text);
             if (!string.IsNullOrEmpty(Password.Text))
@@ -100,26 +105,8 @@ namespace Plugin.Application.Forms
                 this._repositoryProperties._remoteNamespace = new Uri(thePath, UriKind.Relative);
             }
 
-            // Check Repository base URL, should not end with separator...
-            thePath = RepositoryBaseURL.Text;
-            if (!string.IsNullOrEmpty(thePath))
-            {
-                if (thePath.EndsWith("/") || thePath.EndsWith("\\"))
-                    thePath = thePath.Substring(0, thePath.Length - 1);
-                this._repositoryProperties._remoteURL = new Uri(thePath, UriKind.Absolute);
-            }
-
             this._repositoryProperties._jiraUser = JiraUserName.Text;
             if (!string.IsNullOrEmpty(JiraPassword.Text)) this._repositoryProperties._jiraPassword = CryptString.ToSecureString(JiraPassword.Text);
-            
-            // Check Jira URL, should not end with separator...
-            thePath = JiraURL.Text;
-            if (!string.IsNullOrEmpty(thePath))
-            {
-                if (thePath.EndsWith("/") || thePath.EndsWith("\\"))
-                    thePath = thePath.Substring(0, thePath.Length - 1);
-                this._repositoryProperties._jiraURL = new Uri(thePath, UriKind.Absolute);
-            }
         }
 
         /// <summary>

@@ -21,7 +21,6 @@ namespace Plugin.Application.CapabilityModel
         // Private configuration properties used by this service...
         private const string _RMPackageName                 = "RMPackageName";
         private const string _RMPackageStereotype           = "RMPackageStereotype";
-        private const string _RMRootReleasePackagePath      = "RMRootReleasePackagePath";
         private const string _RMTicketStereotype            = "RMTicketStereotype";
         private const string _RMReleaseStereotype           = "RMReleaseStereotype";
         private const string _RMAssociationStereotype       = "RMAssociationStereotype";
@@ -61,6 +60,16 @@ namespace Plugin.Application.CapabilityModel
         internal string ID { get { return this._ticket.ID; } }
 
         /// <summary>
+        /// Returns the project name associated with the ticket or an empty string in case no valid ticket exists.
+        /// </summary>
+        internal string ProjectName { get { return this._ticket != null ? this._ticket.ProjectName : string.Empty; } }
+
+        /// <summary>
+        /// Returns the Order ID associated with the ticket.
+        /// </summary>
+        internal string ProjectOrderID { get { return this._projectOrderID; } }
+
+        /// <summary>
         /// Returns the qualified Ticket Identifier, which is a combination of ticket-project name and ticket ID, formatted as:
         /// [project-name]/[Ticket-ID]. Example: "CSTI Integration/CSTI-2345"
         /// </summary>
@@ -76,6 +85,11 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
+        /// Returns the service associated with the ticket.
+        /// </summary>
+        internal Service TrackedService { get { return this._trackedService; } }
+
+        /// <summary>
         /// Returns 'true' when this Ticket object is associated with a remote ticket.
         /// </summary>
         internal bool Valid { get { return this._ticket != null; } }
@@ -86,7 +100,7 @@ namespace Plugin.Application.CapabilityModel
         /// The constructor also creates the necessary package and diagrams when these do not yet exist.
         /// </summary>
         /// <param name="ticketID">Identifier of the ticket we want to create/connect to.</param>
-        /// <param name="projectOrderID">Project Order Identifier associated with the ticket.</param>
+        /// <param name="projectOrderID=">Project Order Identifier associated with the ticket.</param>
         /// <param name="trackedService">Service associated with the ticket.</param>
         /// <exception cref="ArgumentException">Is thrown when the specified ticketID does not yield a valid ticket or when no valid PO number has been specified.</exception>
         internal RMTicket(string ticketID, string projectOrderID, Service trackedService)

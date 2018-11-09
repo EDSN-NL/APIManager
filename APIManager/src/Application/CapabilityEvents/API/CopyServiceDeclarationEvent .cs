@@ -43,7 +43,7 @@ namespace Plugin.Application.Events.API
                     var newSvcContext = new ServiceContext(myService.CopyService(myService.DeclarationPkg.Name));
                     myService = newSvcContext.GetServiceInstance();         // Instance of copied service.
                     myService.UpdateVersion(new Tuple<int, int>(svcContext.ServiceClass.Version.Item1 + 1, 0)); // Updates entire hierarchy.
-                    myService.Paint(newSvcContext.MyDiagram);
+                    myService.Paint(newSvcContext.ServiceDiagram);
                     svcContext.UnlockModel();
                 }
             }

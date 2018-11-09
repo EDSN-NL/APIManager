@@ -97,7 +97,7 @@ namespace Plugin.Application.CapabilityModel.API
         internal override string GetBaseFileName()
         {
             Tuple<int, int> version = this.CapabilityClass.Version;
-            string postfix = Conversions.ToPascalCase(RootService.IsDefaultOperationalStatus ? string.Empty : "_" + RootService.OperationalStatus);
+            string postfix = RootService.IsDefaultOperationalState ? string.Empty : "_" + RootService.NonDefaultOperationalState;
             string baseName = this._useAlternativeNaming ? this._rootService.Name + "_" + this._assignedRole : this.Name;
             return this._rootService.UseConfigurationMgmt? (baseName + postfix): (baseName + "_v" + version.Item1 + "p" + version.Item2 + postfix);
         }

@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using Framework.Logging;
-using Framework.Context;
 
 namespace Plugin.Application.CapabilityModel.API
 {
@@ -13,6 +12,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// Parses a resource name and breaks it into lowercase words, separated by "-". It assumes that the name is in PascalCase.
         /// If the resource name starts with a '[', we consider it a keyword, in which case the name is not translated at all. We also do
         /// not check the remainder of the name!
+        /// If the name is entirely in uppercase, we translate it to full lower case without changes.
         /// </summary>
         /// <param name="resourceName">Name to be translated.</param>
         /// <returns>Assigned role name in proper 'REST format'.</returns>
@@ -28,7 +28,9 @@ namespace Plugin.Application.CapabilityModel.API
                 return "{" + GetAssignedRoleName(resourceName.Substring(1, resourceName.IndexOf('(') - 1)) + "}";
             }
 
-            string assignedRole = resourceName[0].ToString().ToLower();
+            if (IsAllUpper(resourceName)) return resourceName.ToLower();
+
+            string assignedRole = resourceName[0].ToString().ToLower(); // This will receive the translated name.
             for (int i = 1; i < resourceName.Length; i++)
             {
                 if (char.IsUpper(resourceName[i]))
@@ -60,6 +62,18 @@ namespace Plugin.Application.CapabilityModel.API
             }
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTUtil.GetAssignedRoleName >> Returning: '" + assignedRole + "'.");
             return assignedRole;
+        }
+
+        /// <summary>
+        /// Simple helper function that checks whether a given string is all uppercase. 
+        /// It returns false when detecting the first non-uppercase character, so it quits on non-alphabetic characters.
+        /// </summary>
+        /// <param name="input">String to check.</param>
+        /// <returns>True when string consist entirely of uppercase characters, false when not.</returns>
+        private static bool IsAllUpper(string input)
+        {
+            for (int i = 0; i < input.Length; i++) if (!Char.IsUpper(input[i])) return false;
+            return true;
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Plugin.Application.Forms
         private void InitializeComponent()
         {
             this.PackageDeclarationLbl = new System.Windows.Forms.Label();
-            this.PackageNameFld = new System.Windows.Forms.TextBox();
+            this.ServiceNameFld = new System.Windows.Forms.TextBox();
             this.OperationNamesLbl = new System.Windows.Forms.Label();
             this.CommaSeparatedLbl = new System.Windows.Forms.Label();
             this.OperationNames = new System.Windows.Forms.TextBox();
@@ -44,6 +44,8 @@ namespace Plugin.Application.Forms
             this.TicketIDFld = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
             this.ServiceDetailsBox = new System.Windows.Forms.GroupBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.OperationalState = new System.Windows.Forms.ComboBox();
             this.TicketBox.SuspendLayout();
             this.ServiceDetailsBox.SuspendLayout();
             this.SuspendLayout();
@@ -58,20 +60,20 @@ namespace Plugin.Application.Forms
             this.PackageDeclarationLbl.TabIndex = 0;
             this.PackageDeclarationLbl.Text = "Service Name:";
             // 
-            // PackageNameFld
+            // ServiceNameFld
             // 
-            this.PackageNameFld.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.PackageNameFld.Location = new System.Drawing.Point(104, 15);
-            this.PackageNameFld.Name = "PackageNameFld";
-            this.PackageNameFld.Size = new System.Drawing.Size(452, 23);
-            this.PackageNameFld.TabIndex = 1;
-            this.PackageNameFld.Leave += new System.EventHandler(this.PackageName_TextChanged);
+            this.ServiceNameFld.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ServiceNameFld.Location = new System.Drawing.Point(104, 15);
+            this.ServiceNameFld.Name = "ServiceNameFld";
+            this.ServiceNameFld.Size = new System.Drawing.Size(165, 20);
+            this.ServiceNameFld.TabIndex = 1;
+            this.ServiceNameFld.Leave += new System.EventHandler(this.ServiceName_TextChanged);
             // 
             // OperationNamesLbl
             // 
             this.OperationNamesLbl.AutoSize = true;
             this.OperationNamesLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.OperationNamesLbl.Location = new System.Drawing.Point(6, 48);
+            this.OperationNamesLbl.Location = new System.Drawing.Point(6, 47);
             this.OperationNamesLbl.Name = "OperationNamesLbl";
             this.OperationNamesLbl.Size = new System.Drawing.Size(92, 13);
             this.OperationNamesLbl.TabIndex = 0;
@@ -89,11 +91,11 @@ namespace Plugin.Application.Forms
             // 
             // OperationNames
             // 
-            this.OperationNames.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.OperationNames.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.OperationNames.Location = new System.Drawing.Point(104, 44);
             this.OperationNames.Name = "OperationNames";
-            this.OperationNames.Size = new System.Drawing.Size(452, 23);
-            this.OperationNames.TabIndex = 2;
+            this.OperationNames.Size = new System.Drawing.Size(452, 20);
+            this.OperationNames.TabIndex = 3;
             this.OperationNames.Leave += new System.EventHandler(this.OperationNames_TextChanged);
             // 
             // Cancel
@@ -176,10 +178,12 @@ namespace Plugin.Application.Forms
             // 
             // ServiceDetailsBox
             // 
+            this.ServiceDetailsBox.Controls.Add(this.label1);
+            this.ServiceDetailsBox.Controls.Add(this.OperationalState);
             this.ServiceDetailsBox.Controls.Add(this.PackageDeclarationLbl);
             this.ServiceDetailsBox.Controls.Add(this.OperationNamesLbl);
             this.ServiceDetailsBox.Controls.Add(this.CommaSeparatedLbl);
-            this.ServiceDetailsBox.Controls.Add(this.PackageNameFld);
+            this.ServiceDetailsBox.Controls.Add(this.ServiceNameFld);
             this.ServiceDetailsBox.Controls.Add(this.OperationNames);
             this.ServiceDetailsBox.Location = new System.Drawing.Point(12, 71);
             this.ServiceDetailsBox.Name = "ServiceDetailsBox";
@@ -187,6 +191,24 @@ namespace Plugin.Application.Forms
             this.ServiceDetailsBox.TabIndex = 2;
             this.ServiceDetailsBox.TabStop = false;
             this.ServiceDetailsBox.Text = "Service Details";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(294, 20);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(91, 13);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Initial Oper. State:";
+            // 
+            // OperationalState
+            // 
+            this.OperationalState.FormattingEnabled = true;
+            this.OperationalState.Location = new System.Drawing.Point(391, 15);
+            this.OperationalState.Name = "OperationalState";
+            this.OperationalState.Size = new System.Drawing.Size(165, 21);
+            this.OperationalState.Sorted = true;
+            this.OperationalState.TabIndex = 2;
             // 
             // CreateSOAPServiceDeclaration
             // 
@@ -217,7 +239,7 @@ namespace Plugin.Application.Forms
         #endregion
 
         private System.Windows.Forms.Label PackageDeclarationLbl;
-        private System.Windows.Forms.TextBox PackageNameFld;
+        private System.Windows.Forms.TextBox ServiceNameFld;
         private System.Windows.Forms.Label OperationNamesLbl;
         private System.Windows.Forms.Label CommaSeparatedLbl;
         private System.Windows.Forms.TextBox OperationNames;
@@ -230,5 +252,7 @@ namespace Plugin.Application.Forms
         private TextBox TicketIDFld;
         private Label label9;
         private GroupBox ServiceDetailsBox;
+        private Label label1;
+        private ComboBox OperationalState;
     }
 }

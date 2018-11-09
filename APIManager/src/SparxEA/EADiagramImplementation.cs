@@ -277,6 +277,8 @@ namespace SparxEA.View
         /// <param name="color">Color to assign to the class.</param>
         internal override void SetClassColor(MEClass thisClass, Framework.View.Diagram.ClassColor color)
         {
+            if (thisClass == null) return;      // No valid class, do nothing.
+
             int colorID = -1;
             // Color coding is 3-byte HEX in order Blue-Green-Red
             switch (color)

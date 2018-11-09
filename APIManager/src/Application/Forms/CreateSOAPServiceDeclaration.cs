@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using Framework.Model;
+using Framework.Util;
 using Framework.ConfigurationManagement;
 using Plugin.Application.CapabilityModel;
 
@@ -16,22 +17,67 @@ namespace Plugin.Application.Forms
         private bool _hasValidName;         // True when a valid API name has been entered;
         private bool _hasProjectID;         // True when a project ID has been entered;
 
-        internal string PackageName
+        /// <summary>
+        /// Name of the service as entered by the user (includes major version as well).
+        /// </summary>
+        internal string ServiceName
         {
-            get { return this.PackageNameFld.Text; }
+            get { return this.ServiceNameFld.Text; }
         }
 
+        /// <summary>
+        /// Returns the (initial) list of operations entered by the user.
+        /// </summary>
         internal List<string> OperationList
         {
-            get { return GetOperationList(); }
+            get
+            {
+                string[] operations = this.OperationNames.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                List<string> operationList = new List<string>();
+                if (operations.Length != 0) foreach (string operation in operations) operationList.Add(operation.Trim());
+                return operationList;
+            }
         }
 
+        /// <summary>
+        /// Returns the Operational State selected by the user.
+        /// </summary>
+        internal OperationalState SelectedState
+        {
+            get
+            {
+                return EnumConversions<OperationalState>.StringToEnum(OperationalState.Items[OperationalState.SelectedIndex].ToString());
+            }
+        }
+
+        /// <summary>
+        /// Returns the Jira ticket ID entered by the user.
+        /// </summary>
+        internal string TicketID { get { return TicketIDFld.Text; } }
+
+        /// <summary>
+        /// Returns the Project ID entered by the user.
+        /// </summary>
+        internal string ProjectID { get { return ProjectIDFld.Text; } }
+
+        /// <summary>
+        /// Ask user for service declaration info for a service to be created underneath the specified container package.
+        /// </summary>
+        /// <param name="parent">Container package that will contain the new service.</param>
         internal CreateSOAPServiceDeclaration(MEPackage parent)
         {
             InitializeComponent();
             this._parent = parent;
             this._hasValidName = false;
             this._hasValidOperations = false;
+
+            // Initialize the drop-down box with all Operational States, with the exception of 'Deprecated'...
+            foreach (var state in EnumConversions<OperationalState>.GetValues())
+            {
+                if (state != CapabilityModel.OperationalState.Deprecated)
+                    OperationalState.Items.Add(EnumConversions<OperationalState>.EnumToString(state));
+            }
+            OperationalState.SelectedItem = EnumConversions<OperationalState>.EnumToString(Service._DefaultOperationalState);
 
             if (CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor().IsCMEnabled)
             {
@@ -50,31 +96,13 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
-        /// Returns the operation names as a list of strings.
-        /// </summary>
-        /// <returns>List of operation names entered by the user.</returns>
-        private List<string> GetOperationList()
-        {
-            string[] operations = this.OperationNames.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            List<string> operationList = new List<string>();
-            if (operations.Length != 0)
-            {
-                foreach (string operation in operations)
-                {
-                    operationList.Add(operation.Trim());
-                }
-            }
-            return operationList;
-        }
-
-        /// <summary>
-        /// This event is raised when the user entered text in the package name field (= service name).
+        /// This event is raised when the user entered text in the service name field.
         /// </summary>
         /// <param name="sender">Ignored</param>
         /// <param name="e">Ignored</param>
-        private void PackageName_TextChanged(object sender, EventArgs e)
+        private void ServiceName_TextChanged(object sender, EventArgs e)
         {
-            string name = PackageNameFld.Text.Trim();
+            string name = ServiceNameFld.Text.Trim();
             this._hasValidName = true;
             ErrorLine.Text = string.Empty;
 
@@ -99,8 +127,8 @@ namespace Plugin.Application.Forms
             {
                 ErrorLine.Text = "Could not detect major version suffix ('_Vn'), V1 assumed!";
                 name += "_V1";
-                PackageNameFld.Text = name;
-                PackageNameFld.Update();
+                ServiceNameFld.Text = name;
+                ServiceNameFld.Update();
             }
 
             if (this._hasValidName)
@@ -109,7 +137,7 @@ namespace Plugin.Application.Forms
                 if (!this._parent.IsUniqueName(name))
                 {
                     ErrorLine.Text = "The chosen Service name is not unique, try again!";
-                    PackageNameFld.Clear();
+                    ServiceNameFld.Clear();
                     this._hasValidName = false;
                 }
             }

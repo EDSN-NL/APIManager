@@ -31,9 +31,8 @@ namespace Plugin.Application.Events.API
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
-            MEClass operationClass = svcContext.OperationClass;
 
-            if (!svcContext.Valid || svcContext.MyDiagram == null || operationClass == null)
+            if (!svcContext.Valid || svcContext.MyDiagram == null || svcContext.OperationClass == null)
             {
                 Logger.WriteError("Plugin.Application.Events.API.EditRESTOperationEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
                 return;
@@ -54,7 +53,7 @@ namespace Plugin.Application.Events.API
             // By instantiating the service, we should construct the entire capability hierarchy, which facilitates constructing
             // of 'lower level' capabilities using their Class objects...
             var myService = new RESTService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
-            var myOperation = new RESTOperationCapability(operationClass);
+            var myOperation = new RESTOperationCapability(svcContext.OperationClass);
             var myResource = new RESTResourceCapability(myOperation.Parent.CapabilityClass);
 
             using (var dialog = new RESTOperationDialog(new RESTOperationDeclaration(myOperation), new RESTResourceDeclaration(myResource)))
@@ -66,7 +65,7 @@ namespace Plugin.Application.Events.API
                     {
                         // Mark service as 'modified' for configuration management and add to diagram in different color...
                         myService.Dirty();
-                        myService.Paint(svcContext.MyDiagram);
+                        myService.Paint(svcContext.ServiceDiagram);
 
                         // Collect the (new) classes and associations that must be shown on the diagram...
                         DiagramItemsCollector collector = new DiagramItemsCollector(svcContext.MyDiagram);

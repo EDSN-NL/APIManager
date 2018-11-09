@@ -277,7 +277,7 @@ namespace Plugin.Application.CapabilityModel
         internal virtual string GetBaseFileName()
         {
             Tuple<int, int> version = this.CapabilityClass.Version;
-            string postfix = Conversions.ToPascalCase(RootService.IsDefaultOperationalStatus ? string.Empty : "_" + RootService.OperationalStatus); 
+            string postfix = Conversions.ToPascalCase(RootService.IsDefaultOperationalState ? string.Empty : "_" + RootService.NonDefaultOperationalState); 
             return (this._rootService.UseConfigurationMgmt)? this.Name + postfix:
                                                              this.Name + "_v" + version.Item1 + "p" + version.Item2 + postfix;
         }

@@ -178,10 +178,6 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                         }
                         else this._panel.WriteInfo(this._panelIndex, "Pre-processing Message: '" + capability.Name + "'...");
                         if (!this._extSchema) this._panel.IncreaseBar(1);
-
-                        _majorVersion = capability.RootService.MajorVersion.ToString();     // Major version to be used for all capabilities.
-                        _buildNumber = capability.RootService.BuildNumber.ToString();       // Build number to be used for all capabilities.
-                        _operationalStatus = capability.RootService.OperationalStatus;      // Operational status to be used for all capabilities.
                         this._lastError = null;
 
                         if (this._currentCapability == null || this._currentService == null)

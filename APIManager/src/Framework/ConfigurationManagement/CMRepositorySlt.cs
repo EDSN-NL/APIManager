@@ -17,27 +17,30 @@ namespace Framework.ConfigurationManagement
     /// </summary>
     sealed internal class CMRepositorySlt
     {
+        // Constant definitions for our most important two branches.
+        internal const string _MasterBranch = "master";      // Name of the GIT production branch...
+        internal const string _DevelopBranch = "develop";    // Name of the persistent development branch.
+
         // Configuration settings used by this module...
         private const string _CMGITConfigTokens             = "CMGITConfigTokens";
         private const string _CMRepoCreateMessage           = "CMRepoCreateMessage";
 
-        private const string _MasterBranch = "master";  // Name of the GIT master branch...
-        private const string _GITDirectory = ".git";    // Name of the default GIT repository directory.
+        private const string _GITDirectory = ".git";        // Name of the default GIT repository directory.
 
         private static readonly CMRepositorySlt _repositorySlt = new CMRepositorySlt();     // The singleton repository instance.
 
-        private string _gitIgnorePatterns;              // Set of ignore patterns for the repository.
-        private string _workingDirectory;               // Absolute path to the top of the repository.
-        private bool _enabled;                          // Set to 'true' in when CM is enabled.
-        private bool _hasRepository;                    // Set to 'true' when a local repository exists and is initialized.
-        private Repository _gitRepository;              // Represents the actual GIT repository.
-        private RemoteRepository _remote;               // The remote repository associated with our local repository.
-        private Identity _identity;                     // Represents the user that is currently working with the repository.
-        private Commit _lastCommit;                     // Identifies the last commit into the repository.
-        private Branch _currentBranch;                  // Identifies the currrently active branch in the repository.
+        private string _gitIgnorePatterns;                  // Set of ignore patterns for the repository.
+        private string _workingDirectory;                   // Absolute path to the top of the repository.
+        private bool _enabled;                              // Set to 'true' in when CM is enabled.
+        private bool _hasRepository;                        // Set to 'true' when a local repository exists and is initialized.
+        private Repository _gitRepository;                  // Represents the actual GIT repository.
+        private RemoteRepository _remote;                   // The remote repository associated with our local repository.
+        private Identity _identity;                         // Represents the user that is currently working with the repository.
+        private Commit _lastCommit;                         // Identifies the last commit into the repository.
+        private Branch _currentBranch;                      // Identifies the currrently active branch in the repository.
 
-        private string _repositoryRootPath;             // Absolute path to the root of the local GIT repository (typically workingDirectory/.git).
-        private bool _dirty;                            // Set to 'true' in case files have been added to the staging area, but not yet committed.
+        private string _repositoryRootPath;                 // Absolute path to the root of the local GIT repository (typically workingDirectory/.git).
+        private bool _dirty;                                // Set to 'true' in case files have been added to the staging area, but not yet committed.
 
         /// <summary>
         /// Returns true if Configuration Management is enabled (and properly initialized), false otherwise. 
@@ -116,33 +119,35 @@ namespace Framework.ConfigurationManagement
         }
 
         /// <summary>
-        /// Returns a list of all tags currently defined for this repository that start with the specified prefix.
-        /// If the prefix is NULL or an empty string, the function returns all tags.
+        /// Returns a list of all tags currently defined for this repository that contain the specified filter.
+        /// If the filter is NULL or an empty string, the function returns all tags.
         /// </summary>
         /// <returns>List of tag names.</returns>
-        internal List<string> GetTags(string prefix)
+        internal List<string> GetTags(string filter)
         {
-            Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.GetTags >> Looking for tags with prefix '" + prefix + "'...");
+            Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.GetTags >> Looking for tags with filter '" + filter + "'...");
             Debug.Assert(this._gitRepository != null);
             var tagList = new List<string>();
-            bool allTags = string.IsNullOrEmpty(prefix);
+            bool allTags = string.IsNullOrEmpty(filter);
             foreach (Tag t in this._gitRepository.Tags)
             {
                 if (allTags) tagList.Add(t.FriendlyName);
-                else if (t.FriendlyName.StartsWith(prefix)) tagList.Add(t.FriendlyName);
+                else if (t.FriendlyName.Contains(filter)) tagList.Add(t.FriendlyName);
             }
             return tagList;
         }
 
         /// <summary>
-        /// Merges the specified branch with the master. On return, we are on the 'master' branch!
+        /// Merges specified branch with specified target branch. On return, we are on the target branch!
         /// </summary>
         /// <param name="thisBranch">The branch that must be merged.</param>
+        /// <param name="targetBranch">The branch to which we will merge.</param>
         /// <exception cref="ArgumentException">Thrown when the branch to be merged could not be found or merge resulted in merge conflicts.</exception>
         /// <exception cref="InvalidOperationException">Thrown when Identity has not been registered yet.</exception>
-        internal void Merge(string thisBranch)
+        internal void Merge(string thisBranch, string targetBranch)
         {
-            Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.Merge >> Merging branch '" + thisBranch + "' with master...");
+            Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.Merge >> Merging branch '" + 
+                             thisBranch + "' with '" + targetBranch + "'...");
 
             if (this._identity == null)
             {
@@ -150,10 +155,16 @@ namespace Framework.ConfigurationManagement
                 throw new InvalidOperationException(errorMsg);
             }
 
-            // Since we must merge with master, make sure we're on the master...
-            Branch master = this._gitRepository.Branches[_MasterBranch];
-            if (this._currentBranch == null || this._currentBranch.FriendlyName != _MasterBranch) Commands.Checkout(this._gitRepository, master);
-            this._currentBranch = master;
+            // Since we must merge with target, make sure we're on that target...
+            Branch target = this._gitRepository.Branches[targetBranch];
+            if (target == null)
+            {
+                string message = "Framework.ConfigurationManagement.CMRepositorySlt.Merge >> Branch '" + targetBranch + "' not found!";
+                Logger.WriteError(message);
+                throw new ArgumentException(message);
+            }
+            if (this._currentBranch == null || this._currentBranch.FriendlyName != targetBranch) Commands.Checkout(this._gitRepository, target);
+            this._currentBranch = target;
 
             Branch branch = this._gitRepository.Branches[thisBranch];
             if (branch == null)
@@ -223,39 +234,40 @@ namespace Framework.ConfigurationManagement
         }
 
         /// <summary>
-        /// When a branch is specified, this branch is deleted locally (and on remote) and master is checked-out.
-        /// When no branch is specified, we simply check-out the master branch.
+        /// When a branch is specified, this branch is deleted (locally and remote) and the target branch is checked-out.
+        /// When no branch is specified (thisBranch is null or empty), we simply check-out the target branch.
         /// </summary>
-        internal void ResetBranch(string thisBranch = null)
+        /// <param name="thisBranch">The branch to be deleted.</param>
+        /// <param name="targetBranch">The branch that will be active on return.</param>
+        internal void ResetBranch(string thisBranch, string targetBranch)
         {
             Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.ResetBranch >> Delete branch '" +
-                             thisBranch + "' and checkout the master branch...");
+                             thisBranch + "' and checkout '" + targetBranch + "' branch...");
             if (!string.IsNullOrEmpty(thisBranch))
             {
                 Branch deleteBranch = this._gitRepository.Branches[thisBranch];
                 this._remote.DeleteBranch(deleteBranch);
                 this._gitRepository.Branches.Remove(thisBranch);
             }
-            Branch master = this._gitRepository.Branches[_MasterBranch];
-            if (this._currentBranch == null || this._currentBranch.FriendlyName != _MasterBranch)
+            Branch target = this._gitRepository.Branches[targetBranch];
+            if (this._currentBranch == null || this._currentBranch.FriendlyName != targetBranch)
             {
-                Commands.Checkout(this._gitRepository, master);
-                this._currentBranch = master;
+                Commands.Checkout(this._gitRepository, target);
+                this._currentBranch = target;
             }
         }
 
         /// <summary>
         /// The function activates the child-branch with given name. If the branch does not yet exist, it is created. On return, the branch has been
         /// made the active branch in the repository (checked-out).
-        /// We call this a 'child-branch', since the branch is created from the specified parent branch. To create a branch that starts at
-        /// the master, use the 'SetRootBranch' function instead.
+        /// The new branch is created from the specified parent branch.
         /// </summary>
         /// <param name="childBranch">Name of branch to activate.</param>
         /// <param name="parentBranch">Name of the branch from which we create the child.</param>
         /// <exception cref="ArgumentException">Thrown when branch creation failed.</exception>
-        internal void SetChildBranch(string childBranch, string parentBranch)
+        internal void SetBranch(string childBranch, string parentBranch)
         {
-            Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.SetChildBranch >> Going to switch to child branch '" + childBranch + "'...");
+            Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.SetBranch >> Going to switch to child branch '" + childBranch + "'...");
             if (this._currentBranch != null && this._currentBranch.FriendlyName == childBranch) return;     // We're already on the correct branch!
 
             try
@@ -276,41 +288,6 @@ namespace Framework.ConfigurationManagement
             catch (Exception exc)
             {
                 string message = "Framework.ConfigurationManagement.CMRepositorySlt.SetChildBranch >> Failed to switch to branch '" + childBranch + "' because: " + exc.Message;
-                throw new ArgumentException(message);
-            }
-        }
-
-        /// <summary>
-        /// The function activates the root-branch with given name. If the branch does not yet exist, it is created. On return, the branch has been
-        /// made the active branch in the repository (checked-out).
-        /// We call this a 'root-branch', since they are all created from the HEAD of the 'master' branch. To create a branch that starts at another
-        /// HEAD, use the 'SetChildBranch' function instead.
-        /// </summary>
-        /// <param name="thisBranch">Name of branch to activate.</param>
-        /// <exception cref="ArgumentException">Thrown when branch creation failed.</exception>
-        internal void SetRootBranch(string thisBranch)
-        {
-            Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.SetRootBranch >> Going to switch to branch '" + thisBranch + "'...");
-            if (this._currentBranch != null && this._currentBranch.FriendlyName == thisBranch) return;     // We're already on the correct branch!
-
-            try
-            {
-                // Since root-branches start at master.HEAD, make sure we're on the master...
-                Branch master = this._gitRepository.Branches[_MasterBranch];
-                if (this._currentBranch == null || this._currentBranch.FriendlyName != _MasterBranch) Commands.Checkout(this._gitRepository, master);
-
-                Branch branch = this._gitRepository.Branches[thisBranch];
-                if (branch == null)
-                {
-                    Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.SetRootBranch >> New branch!");
-                    branch = this._gitRepository.CreateBranch(thisBranch);
-                }
-                this._currentBranch = Commands.Checkout(this._gitRepository, branch);
-                this._remote.UpdateBranches();      // Instructs remote to track this new branch as well.
-            }
-            catch (Exception exc)
-            {
-                string message = "Framework.ConfigurationManagement.CMRepositorySlt.SetRootBranch >> Failed to switch to branch '" + thisBranch + "' because: " + exc.Message;
                 throw new ArgumentException(message);
             }
         }
@@ -362,7 +339,7 @@ namespace Framework.ConfigurationManagement
 
         /// <summary>
         /// Checks whether we have a local repository. If not, we create one. If there is one, we initialize a local repository object.
-        /// On return, the repository is open and initialized.
+        /// On return, the repository is open and initialized and the development branch is the active branch.
         /// </summary>
         private void OpenRepository()
         {
@@ -393,6 +370,8 @@ namespace Framework.ConfigurationManagement
                         options.AllowEmptyCommit = true;
                         this._lastCommit = this._gitRepository.Commit(context.GetConfigProperty(_CMRepoCreateMessage), authorSig, committerSig, options);
                     }
+                    // Now we either activate or create the development branch.
+                    SetBranch(_DevelopBranch, _MasterBranch);
                     this._dirty = false;
                     Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.OpenRepository >> Repository successfully created at location '" + _workingDirectory + "'.");
                 }
@@ -443,8 +422,7 @@ namespace Framework.ConfigurationManagement
 
         /// <summary>
         /// Helper function that updates the GIT configuration of our local repository to include configured settings (core properties and/or 
-        /// proxy configuration). Note that proxy settings are configured at global level (since these typically affect ALL traffic to and
-        /// from remote repositories).
+        /// proxy configuration).
         /// </summary>
         private void UpdateGITConfiguration()
         {

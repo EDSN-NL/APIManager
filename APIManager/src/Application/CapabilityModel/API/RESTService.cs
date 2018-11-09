@@ -8,7 +8,7 @@ using Framework.Util;
 
 namespace Plugin.Application.CapabilityModel.API
 {
-    internal class RESTService: ApplicationService
+    internal class RESTService: Service
     {
         // Configuration properties used by this module...
         private const string _ResourceClassStereotype               = "ResourceClassStereotype";
@@ -22,6 +22,10 @@ namespace Plugin.Application.CapabilityModel.API
         private List<RESTResourceCapability> _tagList;              // The list of REST Resources that have tags defined for them.
         private List<RESTResourceCapability> _rootLevelTagList;     // The list of Root-level REST Resources that have tags defined for them.
         private List<RESTResourceCapability> _documentList;         // The list of REST Document resources for this API.
+
+        // Keep track of classes and associations to show in the diagram...
+        private List<MEClass> _diagramClassList;
+        private List<MEAssociation> _diagramAssocList;
 
         /// <summary>
         /// Returns the list of Document Resources for this API.
@@ -59,8 +63,13 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="metaData">Set of user-defined API meta data (see above).</param>
         /// <param name="resources">List of root-level Resource collection declarations.</param>
         /// <param name="declarationStereotype">The stereotype to apply to the created API.</param>
-        internal RESTService(MEPackage containerPackage, RESTInterfaceCapability.MetaData metaData, List<RESTResourceDeclaration> resources, string declarationStereotype): 
-            base(containerPackage, metaData.qualifiedName, declarationStereotype)
+        /// <param name="initialState">Initial operational state to be assigned to the service. When not specified, we assume the default state.</param>
+        internal RESTService(MEPackage containerPackage, 
+                             RESTInterfaceCapability.MetaData metaData, 
+                             List<RESTResourceDeclaration> resources, 
+                             string declarationStereotype,
+                             OperationalState initialState = _DefaultOperationalState): 
+            base(containerPackage, metaData.qualifiedName, declarationStereotype, initialState)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();

@@ -52,6 +52,7 @@ namespace Plugin.Application.Events.API
         private MEPackage       _operationPackage;              // Contains operation package if selected by user.
         private MEPackage       _resourceCollectionPackage;     // Resource collection package is selected by user.
         private Diagram         _diagram;                       // Currently active servicemodel diagram.
+        private Diagram         _serviceDiagram;                // The diagram that contains the Service class.
         private MEClass         _treeNodeTarget;                // Search target when browsing the tree hierarchy.
         private TreeNode<MEClass> _treeNodeResult;              // Node that is associated with treeNodeTarget.
         private TreeNode<MEClass> _hierarchy;                   // Contains the hierarchy from Service down to Message Capabilities.
@@ -72,6 +73,7 @@ namespace Plugin.Application.Events.API
         internal MEPackage ResourceCollectionPackage    { get { return this._resourceCollectionPackage; } }
         internal MEPackage SVCModelPackage              { get { return this._serviceModelPackage; } }
         internal Diagram MyDiagram                      { get { return this._diagram; } }
+        internal Diagram ServiceDiagram                 { get { return this._serviceDiagram; } }
         internal TreeNode<MEClass> Hierarchy            { get { return this._hierarchy; } }
 
         /// <summary>
@@ -123,6 +125,7 @@ namespace Plugin.Application.Events.API
 
             // Initialize all context items to NULL for the time being...
             this._diagram                   = null;
+            this._serviceDiagram            = null;
             this._declarationPackage        = null;
             this._serviceClass              = null;
             this._serviceModelPackage       = null;
@@ -301,6 +304,11 @@ namespace Plugin.Application.Events.API
                 }
                 else this._diagram = this._serviceModelPackage.FindDiagram(this._serviceModelPackage.Name);
             }
+
+            // If we are on a diagram that does not contain the Service class, this._diagram refers to "some" diagram.
+            // Let's not assume anything and just search the service model package for the service diagram, in which case
+            // we are sure we have the correct diagram...
+            this._serviceDiagram = this._serviceModelPackage.FindDiagram(this._serviceModelPackage.Name);
 
             if (this._serviceClass != null) BuildHierarchy();
 

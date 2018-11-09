@@ -58,20 +58,20 @@ namespace Plugin.Application.CapabilityModel
             if (CMEnabled)
             {
                 // If the Service contains a branch name, we retrieve it here (but only when te state allows us to do this).
-                // This effectively restores the state of the CM context in case we close our modelling tool after a Checkout.
+                // This effectively allows us to restore the state of the CM context in case we close our modelling tool after a Checkout.
                 string CMBranchTagName = context.GetConfigProperty(_CMBranchTag);
                 CMState cmState = this._trackedService.ConfigurationMgmtState;
 
                 if (cmState != CMState.Disabled && cmState != CMState.Released)
                 {
                     this._branchName = this._trackedService.ServiceClass.GetTag(CMBranchTagName);
-                    Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext >> Branch set to: '" +
+                    Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext >> Service branch is: '" +
                                      (string.IsNullOrEmpty(this._branchName) ? "NO-BRANCH" : this._branchName) + "'.");
                 }
                 else
                 {
                     // When configuration management is disabled or the service is in released state, clear the branch name...
-                    Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext >> Branch set to empty!");
+                    Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext >> Service branch is empty!");
                     this._branchName = string.Empty;
                     this._trackedService.ServiceClass.SetTag(CMBranchTagName, string.Empty);
                 }
@@ -79,7 +79,8 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
-        /// Commits all files that are in the service build path to the repository at the HEAD of the current branch. 
+        /// Commits all files that are in the service build path to the repository at the HEAD of the current branch, which must be
+        /// forked from the Development branch. 
         /// First of all, we instruct the repository to add all files in the current build path to the staging area. If there is nothing
         /// to commit, we issue a warning message to the log to indicate that no operation has been performed.
         /// The files will be pushed to the remote repository on the current path, but without a tag.
@@ -102,7 +103,7 @@ namespace Plugin.Application.CapabilityModel
                 }
 
                 Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.CommitService >> Committing service with message '" + message + "'...");
-                this._repository.SetRootBranch(this._branchName);
+                this._repository.SetBranch(this._branchName, CMRepositorySlt._DevelopBranch);
                 this._repository.AddToStagingArea(this._trackedService.ServiceBuildPath);
                 this._repository.CommitStagingArea(message);
                 this._trackedService.ConfigurationMgmtState = CMState.Committed;
@@ -122,8 +123,9 @@ namespace Plugin.Application.CapabilityModel
 
         /// <summary>
         /// This method must be called when we want to start working with a service. The current branch for the service is determined and if this is found to 
-        /// be new, a new branch is created in the repository. The new/existing branch is then checked-out so work on the service will commence on that branch. 
-        /// Before doing all this, we perform a 'pull' on the remote (from master) to assure that we are in sync. 
+        /// be new, a new branch is created in the repository (as a fork from the development branch). The new/existing branch is then checked-out so work on 
+        /// the service will commence on that branch. 
+        /// Before doing all this, we perform a 'pull' on the remote (from development) to assure that we are in sync. 
         /// If the pull resulted in a 'reference not fetched' exception, this indicates that we have a new local branch that does not yet exist at remote. We
         /// create the branch at remote to assure other developers are aware of it.
         /// Depending on the context and the current CM state of the service, a new service CM state is determined and written to the service.
@@ -149,8 +151,8 @@ namespace Plugin.Application.CapabilityModel
 
             try
             {
-                this._repository.ResetBranch();     // Make sure we're on 'master'.
-                this._repository.Pull();            // Synchronise repository (might affect our service).
+                this._repository.ResetBranch(null, CMRepositorySlt._DevelopBranch); // Make sure we're on the development branch
+                this._repository.Pull();                                            // Synchronise repository (might affect our service).
 
                 // Now that the repository is in sync with remote, check whether we lag behind with our build number...
                 Tuple<int,int,int> lastReleased = GetLastReleasedVersion();
@@ -174,10 +176,10 @@ namespace Plugin.Application.CapabilityModel
                 this._branchName = this._trackedService.ServiceClass.GetTag(CMBranchTagName);
                 if (string.IsNullOrEmpty(this._branchName))
                 {
-                    string operationalStatus = this._trackedService.IsDefaultOperationalStatus ? string.Empty : _trackedService.OperationalStatus;
+                    string operationalState = this._trackedService.NonDefaultOperationalState; // Returns eiter empty string or non-default value as a string.
                     this._branchName = "feature/" + ticket.ID + "/" + this._trackedService.BusinessFunctionID + "." + this._trackedService.ContainerPkg.Name + "/";
-                    this._branchName += (operationalStatus == string.Empty) ? this._trackedService.Name + "_V" + this._trackedService.Version.Item1.ToString() :
-                                                                              this._trackedService.Name + "_" + operationalStatus + "_V" + this._trackedService.Version.Item1.ToString();
+                    this._branchName += (operationalState == string.Empty) ? this._trackedService.Name + "_V" + this._trackedService.Version.Item1.ToString() :
+                                                                             this._trackedService.Name + "_" + operationalState + "_V" + this._trackedService.Version.Item1.ToString();
                     this._branchName += "P" + this._trackedService.Version.Item2;
                     Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.CheckoutService >> Branch created: '" + this._branchName + "'.");
                     this._trackedService.ServiceClass.SetTag(CMBranchTagName, this._branchName, true);
@@ -186,8 +188,7 @@ namespace Plugin.Application.CapabilityModel
                 {
                     Logger.WriteWarning("Cached branch lags behind last release, please verify consistency!");
                 }
-
-                this._repository.SetRootBranch(this._branchName);
+                this._repository.SetBranch(this._branchName, CMRepositorySlt._DevelopBranch);
             }
             catch (Exception exc)
             {
@@ -252,20 +253,18 @@ namespace Plugin.Application.CapabilityModel
             Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.GetLastReleasedVersion >> Looking for released versions...");
 
             Debug.Assert(this._repository != null);
-            string tagName = this._trackedService.BusinessFunctionID + "." + this._trackedService.ContainerPkg.Name + "." + this._trackedService.Name;
-            if (!this._trackedService.IsDefaultOperationalStatus) tagName += this._trackedService.OperationalStatus;
-            tagName += "_V";
-
             try
             {
-                List<string> myTags = this._repository.GetTags(tagName);
+                List<string> myTags = GetReleaseTags();
                 if (myTags.Count > 0)
                 {
-                    string recentTag = myTags[myTags.Count - 1].Substring(tagName.Length);
+                    // We assume here that the tags are returned in 'age order', with the oldest one first. Not sure this is correct.
+                    string recentTag = myTags[myTags.Count - 1];
                     Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.GetLastReleasedVersion >> Got tag '" + recentTag + "'...");
-                    int indexMinor = recentTag.IndexOf('P');
-                    int indexBuild = recentTag.IndexOf('B');
-                    string major = recentTag.Substring(0, indexMinor);
+                    int indexMajor = recentTag.LastIndexOf("_V");
+                    int indexMinor = recentTag.LastIndexOf('P');
+                    int indexBuild = recentTag.LastIndexOf('B');
+                    string major = recentTag.Substring(indexMajor, indexMinor - indexMajor - 2);
                     string minor = recentTag.Substring(indexMinor + 1, indexBuild - indexMinor - 1);
                     string build = recentTag.Substring(indexBuild + 1);
                     Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.GetLastReleasedVersion >> Returning major: " +
@@ -296,16 +295,16 @@ namespace Plugin.Application.CapabilityModel
         /// <returns>List of all release tags (or empty list when no releases have been registered yet.</returns>
         internal List<string> GetReleaseTags()
         {
-            string tagName = this._trackedService.BusinessFunctionID + "." + this._trackedService.ContainerPkg.Name + "." + this._trackedService.Name;
-            if (!this._trackedService.IsDefaultOperationalStatus) tagName += this._trackedService.OperationalStatus;
-            tagName += "_V";
-            return this._repository.GetTags(tagName);
+            string operationalState = this._trackedService.NonDefaultOperationalState;
+            string filter = this._trackedService.BusinessFunctionID + "." + this._trackedService.ContainerPkg.Name + "/";
+            filter += (operationalState == string.Empty) ? this._trackedService.Name : this._trackedService.Name + "_" + operationalState;
+            return this._repository.GetTags(filter);
         }
 
         /// <summary>
         /// Pushes all Service Configuration Items for the local service to the appropriate branch on the remote repository. 
         /// Each release is accompanied by a Tag that provide additional info regarding the release. 
-        /// The Tag is named according to the release: Fully-Qualified-Service-Name-[OperationalState-]VxPyBz.
+        /// The Tag is named according to the release: Fully-Qualified-Service-Name-[_OperationalState_]VxPyBz.
         /// Example: 3010.01.03.01.MyContainer.MyService_V1P1B4 --> Version 1.1 Build 4 of 'MyService'.
         /// Note that for each release, the build number is incremented. This also assures that the tag names remain unique within the repository.
         /// </summary>
@@ -313,15 +312,17 @@ namespace Plugin.Application.CapabilityModel
         /// <exception cref="InvalidOperationException">Thrown when the service is not in the correct state to be released.</exception>
         internal void ReleaseService(string message)
         {
+            // Moet worden aangepast aan regels uit CIM design preso!!
+
             if (!this._repository.IsCMEnabled) return;
 
             Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.ReleaseService >> Releasing Service to remote with message '" + message + "'...");
             if (this._trackedService.ConfigurationMgmtState == CMState.Committed)
             {
                 int buildNr = this._trackedService.BuildNumber;
-                string tagName = this._trackedService.BusinessFunctionID + "." + this._trackedService.ContainerPkg.Name + "." + this._trackedService.Name + "_";
-                if (!this._trackedService.IsDefaultOperationalStatus) tagName += this._trackedService.OperationalStatus + "-";
-                tagName += "V" + this._trackedService.Version.Item1 + "P" + this._trackedService.Version.Item2 + "B" + buildNr;
+                string tagName = this._trackedService.BusinessFunctionID + "." + this._trackedService.ContainerPkg.Name + "." + this._trackedService.Name;
+                if (!this._trackedService.IsDefaultOperationalState) tagName += "_" + this._trackedService.NonDefaultOperationalState;
+                tagName += "_V" + this._trackedService.Version.Item1 + "P" + this._trackedService.Version.Item2 + "B" + buildNr;
 
                 if (!this._snapshotCreated)
                 {
@@ -332,12 +333,12 @@ namespace Plugin.Application.CapabilityModel
 
                 Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.ReleaseService >> Merging and Pushing to remote with tag '" +
                                  tagName + "' and message '" + message + "'...");
-                this._repository.Merge(this._branchName);
+                this._repository.Merge(this._branchName, CMRepositorySlt._MasterBranch);
                 this._repository.Push(tagName, message);
 
-                // Since the service is now released, we can safely increment the build number and reset the branch name...
+                // Since the service is now released, we can safely increment the build number, reset the branch name and checkout master...
                 Logger.WriteInfo("Framework.ConfigurationManagement.CMContext.ReleaseService >> Branch set to empty!");
-                this._repository.ResetBranch(this._branchName);
+                this._repository.ResetBranch(this._branchName, CMRepositorySlt._MasterBranch);
                 this._branchName = string.Empty;
                 this._trackedService.ServiceClass.SetTag(ContextSlt.GetContextSlt().GetConfigProperty(_CMBranchTag), string.Empty);
                 this._trackedService.ConfigurationMgmtState = CMState.Released;
@@ -368,6 +369,26 @@ namespace Plugin.Application.CapabilityModel
             File.Delete(zipFile);
             this._repository.AddToStagingArea(this._trackedService.ServiceBuildPath);   // Add compressed snapshot the the GIT Index.
             this._snapshotCreated = true;
+        }
+
+        /// <summary>
+        /// Helper function that create a valid feature tag name based on current service state.
+        /// </summary>
+        /// <param name="noVersion">When set to 'true', the returned tag does NOT include version info.</param>
+        /// <returns>Tagname or empty string in case of missing ticket.</returns>
+        private string GetFeatureTagName()
+        {
+            string tagName = string.Empty;
+
+            if (this._ticket != null)       // Can't create a tag without a ticket!
+            {
+                string operationalState = this._trackedService.NonDefaultOperationalState; // Returns eiter empty string or non-default value as a string.
+                tagName = "feature/" + this._ticket.ID + "/" + this._trackedService.BusinessFunctionID + "." + this._trackedService.ContainerPkg.Name + "/";
+                tagName += (operationalState == string.Empty) ? this._trackedService.Name : this._trackedService.Name + "_" + operationalState;
+                tagName += "_V" + this._trackedService.Version.Item1 + "P" + this._trackedService.Version.Item2 + "B" + this._trackedService.BuildNumber;
+            }
+            Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.GetTagName >> Constructed tag '" + tagName + "'...");
+            return tagName;
         }
     }
 }

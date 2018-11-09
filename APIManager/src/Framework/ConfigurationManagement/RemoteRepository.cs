@@ -58,7 +58,7 @@ namespace Framework.ConfigurationManagement
             this._repositoryNamespace = repoDsc.RemoteRepositoryNamespace.OriginalString;
             this._myIdentity = repoDsc.RepositoryUserID;
             this._password = repoDsc.RepositoryPassword;
-            this._repositoryURL = this._repositoryBaseURL + "/" + this._repositoryNamespace;
+            this._repositoryURL = this._repositoryBaseURL + this._repositoryNamespace;
 
             Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository >> Repository URL set to: '" + this._repositoryURL + "'...");
 
@@ -124,7 +124,7 @@ namespace Framework.ConfigurationManagement
                     Username = repoDsc.RepositoryUserID.Name,
                     Password = CryptString.ToPlainString(repoDsc.RepositoryPassword)
                 };
-                string repositoryURL = repoDsc.RemoteURL.AbsoluteUri + "/" + repoDsc.RemoteRepositoryNamespace.OriginalString;
+                string repositoryURL = repoDsc.RemoteURL.AbsoluteUri + repoDsc.RemoteRepositoryNamespace.OriginalString;
 
                 Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository.Clone >> Cloning '" + repositoryURL +
                                  "' to local path '" + localRepositoryRootPath + "'...");

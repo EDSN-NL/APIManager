@@ -103,7 +103,7 @@ namespace Plugin.Application.CapabilityModel.API
             ContextSlt context = ContextSlt.GetContextSlt();
             bool result = true;
             this._currentCapability = capability;
-            this._currentService = capability.RootService as ApplicationService;
+            this._currentService = capability.RootService as RESTService;
 
             if (this._currentCapability == null || this._currentService == null)
             {

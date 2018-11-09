@@ -55,6 +55,17 @@ namespace Plugin.Application.Forms
         internal string ProjectID { get { return ProjectIDFld.Text; } }
 
         /// <summary>
+        /// Returns the Operational State selected by the user.
+        /// </summary>
+        internal OperationalState SelectedState
+        {
+            get
+            {
+                return EnumConversions<OperationalState>.StringToEnum(OperationalState.Items[OperationalState.SelectedIndex].ToString());
+            }
+        }
+
+        /// <summary>
         /// Initializes the dialog, disable the Ok button until we have at least a valid name and prepare for the resource list by
         /// creating an empty list to store the resource declarations.
         /// </summary>
@@ -82,6 +93,14 @@ namespace Plugin.Application.Forms
                 this._hasTicket = true;
                 this._hasProjectID = true;
             }
+
+            // Initialize the drop-down box with all Operational States, with the exception of 'Deprecated'...
+            foreach (var state in EnumConversions<OperationalState>.GetValues())
+            {
+                if (state != CapabilityModel.OperationalState.Deprecated)
+                    OperationalState.Items.Add(EnumConversions<OperationalState>.EnumToString(state));
+            }
+            OperationalState.SelectedItem = EnumConversions<OperationalState>.EnumToString(Service._DefaultOperationalState);
 
             Ok.Enabled = false;
         }

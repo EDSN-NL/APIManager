@@ -63,7 +63,7 @@ namespace Plugin.Application.Events.API
 
                     // Mark service as 'modified' for configuration management and add to diagram in different color...
                     myService.Dirty();
-                    myService.Paint(svcContext.MyDiagram);
+                    myService.Paint(svcContext.ServiceDiagram);
                     svcContext.Refresh();
                 }
                 svcContext.UnlockModel();

@@ -1,17 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.IO;
-using System.Text;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Schema;
-using Newtonsoft.Json.Linq;
 using Framework.Logging;
 using Framework.Model;
 using Framework.Util;
 using Framework.Context;
-using Plugin.Application.CapabilityModel.ASCIIDoc;
-using Plugin.Application.CapabilityModel.SchemaGeneration;
 
 namespace Plugin.Application.CapabilityModel.API
 {
@@ -46,7 +39,7 @@ namespace Plugin.Application.CapabilityModel.API
             wr.WritePropertyName("swagger"); wr.WriteValue("2.0");
             wr.WritePropertyName("info"); wr.WriteStartObject();
             {
-                wr.WritePropertyName("title"); wr.WriteValue(itf.Name);
+                wr.WritePropertyName("title"); wr.WriteValue(RESTUtil.GetAssignedRoleName(itf.Name));
                 wr.WritePropertyName("description");
                 {
                     // Since multi-line strings don't work here, we replace line breaks by two spaces.
@@ -56,7 +49,9 @@ namespace Plugin.Application.CapabilityModel.API
                 WriteTermsOfService(wr, itf);
                 WriteContactInfo(wr, itf);
                 WriteLicenseInfo(wr, itf);
-                wr.WritePropertyName("version"); wr.WriteValue(itf.VersionString);
+                wr.WritePropertyName("version");
+                if (context.GetBoolSetting(FrameworkSettings._GENUseMajorVersionOnly)) wr.WriteValue("v" + itf.RootService.MajorVersion.ToString());
+                else                                                                   wr.WriteValue(itf.VersionString);
             } wr.WriteEndObject();
             wr.WritePropertyName("host"); wr.WriteValue(context.GetStringSetting(FrameworkSettings._RESTHostName));
             wr.WritePropertyName("basePath");

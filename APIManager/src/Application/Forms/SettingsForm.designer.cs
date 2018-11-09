@@ -106,6 +106,8 @@
             this.addToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.OpenAPIGeneration = new System.Windows.Forms.GroupBox();
+            this.GENUseMajorVersionOnly = new System.Windows.Forms.CheckBox();
             this.CodeLists.SuspendLayout();
             this.LogFile.SuspendLayout();
             this.ServiceModel.SuspendLayout();
@@ -119,6 +121,7 @@
             this.JSONSpecifics.SuspendLayout();
             this.ConfigurationManagementGroup.SuspendLayout();
             this.CMMenuStrip.SuspendLayout();
+            this.OpenAPIGeneration.SuspendLayout();
             this.SuspendLayout();
             // 
             // UseLogfile
@@ -379,7 +382,7 @@
             this.DiagramTypes.Controls.Add(this.DiagramJPG);
             this.DiagramTypes.Controls.Add(this.DiagramGIF);
             this.DiagramTypes.Controls.Add(this.DiagramBMP);
-            this.DiagramTypes.Location = new System.Drawing.Point(917, 12);
+            this.DiagramTypes.Location = new System.Drawing.Point(12, 265);
             this.DiagramTypes.Name = "DiagramTypes";
             this.DiagramTypes.Size = new System.Drawing.Size(206, 127);
             this.DiagramTypes.TabIndex = 2;
@@ -886,6 +889,26 @@
             this.deleteToolStripMenuItem.Text = "Edit";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.EditRepository_Click);
             // 
+            // OpenAPIGeneration
+            // 
+            this.OpenAPIGeneration.Controls.Add(this.GENUseMajorVersionOnly);
+            this.OpenAPIGeneration.Location = new System.Drawing.Point(917, 12);
+            this.OpenAPIGeneration.Name = "OpenAPIGeneration";
+            this.OpenAPIGeneration.Size = new System.Drawing.Size(206, 127);
+            this.OpenAPIGeneration.TabIndex = 17;
+            this.OpenAPIGeneration.TabStop = false;
+            this.OpenAPIGeneration.Text = "OpenAPI Generation";
+            // 
+            // GENUseMajorVersionOnly
+            // 
+            this.GENUseMajorVersionOnly.AutoSize = true;
+            this.GENUseMajorVersionOnly.Location = new System.Drawing.Point(6, 24);
+            this.GENUseMajorVersionOnly.Name = "GENUseMajorVersionOnly";
+            this.GENUseMajorVersionOnly.Size = new System.Drawing.Size(132, 17);
+            this.GENUseMajorVersionOnly.TabIndex = 0;
+            this.GENUseMajorVersionOnly.Text = "Use major version only";
+            this.GENUseMajorVersionOnly.UseVisualStyleBackColor = true;
+            // 
             // SettingsForm
             // 
             this.AcceptButton = this.Ok;
@@ -893,6 +916,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
             this.ClientSize = new System.Drawing.Size(1134, 438);
+            this.Controls.Add(this.OpenAPIGeneration);
             this.Controls.Add(this.ConfigurationManagementGroup);
             this.Controls.Add(this.JSONSpecifics);
             this.Controls.Add(this.Locking);
@@ -938,6 +962,8 @@
             this.JSONSpecifics.PerformLayout();
             this.ConfigurationManagementGroup.ResumeLayout(false);
             this.CMMenuStrip.ResumeLayout(false);
+            this.OpenAPIGeneration.ResumeLayout(false);
+            this.OpenAPIGeneration.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1021,5 +1047,7 @@
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
         private System.Windows.Forms.Button DeleteAllRepositories;
         private System.Windows.Forms.CheckBox AllOfSupport;
+        private System.Windows.Forms.GroupBox OpenAPIGeneration;
+        private System.Windows.Forms.CheckBox GENUseMajorVersionOnly;
     }
 }

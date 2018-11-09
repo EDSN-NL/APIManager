@@ -394,5 +394,17 @@ namespace APIManager.SparxEA.Properties {
                 this["JSONAllOfSupport"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool GENUseMajorVersionOnly {
+            get {
+                return ((bool)(this["GENUseMajorVersionOnly"]));
+            }
+            set {
+                this["GENUseMajorVersionOnly"] = value;
+            }
+        }
     }
 }

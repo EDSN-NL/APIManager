@@ -29,9 +29,6 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
 
         // Static properties that are used across a series of schema generation operations...
         private ClassCacheSlt _cache;                               // Cache singleton, used to administer processed entities across builds.
-        private static string _majorVersion = string.Empty;         // Major version to be used for all capabilities.
-        private static string _buildNumber = string.Empty;          // Build number to be used for all capabilities.
-        private static string _operationalStatus = string.Empty;    // Service operational status to be used by all capabilities.
 
         /// <summary>
         /// Processes all associations in the given class (as long as these are of type 'Association'). For each association, the 

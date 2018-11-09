@@ -71,6 +71,8 @@ namespace Plugin.Application.Forms
             this.APINamingBox = new System.Windows.Forms.GroupBox();
             this.label10 = new System.Windows.Forms.Label();
             this.ErrorLine = new System.Windows.Forms.TextBox();
+            this.OperationalState = new System.Windows.Forms.ComboBox();
+            this.label11 = new System.Windows.Forms.Label();
             this.ResourcesBox.SuspendLayout();
             this.ResourceMenuStrip.SuspendLayout();
             this.ContactDetailsBox.SuspendLayout();
@@ -101,7 +103,7 @@ namespace Plugin.Application.Forms
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(565, 404);
+            this.Cancel.Location = new System.Drawing.Point(565, 432);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
             this.Cancel.TabIndex = 6;
@@ -111,7 +113,7 @@ namespace Plugin.Application.Forms
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(484, 404);
+            this.Ok.Location = new System.Drawing.Point(484, 432);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
             this.Ok.TabIndex = 7;
@@ -126,7 +128,7 @@ namespace Plugin.Application.Forms
             this.ResourcesBox.Controls.Add(this.AddResource);
             this.ResourcesBox.Location = new System.Drawing.Point(357, 9);
             this.ResourcesBox.Name = "ResourcesBox";
-            this.ResourcesBox.Size = new System.Drawing.Size(283, 271);
+            this.ResourcesBox.Size = new System.Drawing.Size(283, 299);
             this.ResourcesBox.TabIndex = 4;
             this.ResourcesBox.TabStop = false;
             this.ResourcesBox.Text = "Associated Resources";
@@ -141,7 +143,7 @@ namespace Plugin.Application.Forms
             this.ResourceList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
             this.ResourceList.Location = new System.Drawing.Point(9, 20);
             this.ResourceList.Name = "ResourceList";
-            this.ResourceList.Size = new System.Drawing.Size(263, 205);
+            this.ResourceList.Size = new System.Drawing.Size(263, 233);
             this.ResourceList.TabIndex = 0;
             this.ResourceList.UseCompatibleStateImageBehavior = false;
             this.ResourceList.View = System.Windows.Forms.View.Details;
@@ -159,7 +161,7 @@ namespace Plugin.Application.Forms
             // EditResource
             // 
             this.EditResource.Image = ((System.Drawing.Image)(resources.GetObject("EditResource.Image")));
-            this.EditResource.Location = new System.Drawing.Point(71, 234);
+            this.EditResource.Location = new System.Drawing.Point(71, 262);
             this.EditResource.Name = "EditResource";
             this.EditResource.Size = new System.Drawing.Size(25, 25);
             this.EditResource.TabIndex = 3;
@@ -169,7 +171,7 @@ namespace Plugin.Application.Forms
             // DeleteResource
             // 
             this.DeleteResource.Image = ((System.Drawing.Image)(resources.GetObject("DeleteResource.Image")));
-            this.DeleteResource.Location = new System.Drawing.Point(40, 234);
+            this.DeleteResource.Location = new System.Drawing.Point(40, 262);
             this.DeleteResource.Name = "DeleteResource";
             this.DeleteResource.Size = new System.Drawing.Size(25, 25);
             this.DeleteResource.TabIndex = 2;
@@ -179,7 +181,7 @@ namespace Plugin.Application.Forms
             // AddResource
             // 
             this.AddResource.Image = ((System.Drawing.Image)(resources.GetObject("AddResource.Image")));
-            this.AddResource.Location = new System.Drawing.Point(9, 234);
+            this.AddResource.Location = new System.Drawing.Point(9, 262);
             this.AddResource.Name = "AddResource";
             this.AddResource.Size = new System.Drawing.Size(25, 25);
             this.AddResource.TabIndex = 1;
@@ -224,7 +226,7 @@ namespace Plugin.Application.Forms
             this.ContactDetailsBox.Controls.Add(this.label5);
             this.ContactDetailsBox.Controls.Add(this.label4);
             this.ContactDetailsBox.Controls.Add(this.label3);
-            this.ContactDetailsBox.Location = new System.Drawing.Point(357, 286);
+            this.ContactDetailsBox.Location = new System.Drawing.Point(357, 314);
             this.ContactDetailsBox.Name = "ContactDetailsBox";
             this.ContactDetailsBox.Size = new System.Drawing.Size(283, 112);
             this.ContactDetailsBox.TabIndex = 5;
@@ -319,7 +321,7 @@ namespace Plugin.Application.Forms
             this.LicenseBox.Controls.Add(this.label7);
             this.LicenseBox.Controls.Add(this.LicenseNameFld);
             this.LicenseBox.Controls.Add(this.label6);
-            this.LicenseBox.Location = new System.Drawing.Point(12, 286);
+            this.LicenseBox.Location = new System.Drawing.Point(12, 314);
             this.LicenseBox.Name = "LicenseBox";
             this.LicenseBox.Size = new System.Drawing.Size(334, 112);
             this.LicenseBox.TabIndex = 3;
@@ -361,13 +363,15 @@ namespace Plugin.Application.Forms
             // 
             // TicketBox
             // 
+            this.TicketBox.Controls.Add(this.label11);
+            this.TicketBox.Controls.Add(this.OperationalState);
             this.TicketBox.Controls.Add(this.label8);
             this.TicketBox.Controls.Add(this.ProjectIDFld);
             this.TicketBox.Controls.Add(this.TicketIDFld);
             this.TicketBox.Controls.Add(this.label9);
             this.TicketBox.Location = new System.Drawing.Point(12, 9);
             this.TicketBox.Name = "TicketBox";
-            this.TicketBox.Size = new System.Drawing.Size(334, 78);
+            this.TicketBox.Size = new System.Drawing.Size(334, 106);
             this.TicketBox.TabIndex = 1;
             this.TicketBox.TabStop = false;
             this.TicketBox.Text = "Administration";
@@ -415,7 +419,7 @@ namespace Plugin.Application.Forms
             this.APINamingBox.Controls.Add(this.label1);
             this.APINamingBox.Controls.Add(this.APINameFld);
             this.APINamingBox.Controls.Add(this.PackageDeclarationLbl);
-            this.APINamingBox.Location = new System.Drawing.Point(12, 93);
+            this.APINamingBox.Location = new System.Drawing.Point(12, 121);
             this.APINamingBox.Name = "APINamingBox";
             this.APINamingBox.Size = new System.Drawing.Size(334, 187);
             this.APINamingBox.TabIndex = 2;
@@ -437,10 +441,27 @@ namespace Plugin.Application.Forms
             this.ErrorLine.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.ErrorLine.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ErrorLine.ForeColor = System.Drawing.Color.Red;
-            this.ErrorLine.Location = new System.Drawing.Point(12, 413);
+            this.ErrorLine.Location = new System.Drawing.Point(12, 432);
             this.ErrorLine.Name = "ErrorLine";
             this.ErrorLine.Size = new System.Drawing.Size(466, 13);
             this.ErrorLine.TabIndex = 0;
+            // 
+            // OperationalState
+            // 
+            this.OperationalState.FormattingEnabled = true;
+            this.OperationalState.Location = new System.Drawing.Point(156, 74);
+            this.OperationalState.Name = "OperationalState";
+            this.OperationalState.Size = new System.Drawing.Size(165, 21);
+            this.OperationalState.TabIndex = 3;
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(31, 77);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(119, 13);
+            this.label11.TabIndex = 0;
+            this.label11.Text = "Initial Operational State:";
             // 
             // CreateRESTServiceDeclaration
             // 
@@ -448,7 +469,7 @@ namespace Plugin.Application.Forms
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(652, 448);
+            this.ClientSize = new System.Drawing.Size(652, 473);
             this.Controls.Add(this.ErrorLine);
             this.Controls.Add(this.APINamingBox);
             this.Controls.Add(this.TicketBox);
@@ -519,5 +540,7 @@ namespace Plugin.Application.Forms
         private Label label10;
         private ToolStripMenuItem addToolStripMenuItem;
         private TextBox ErrorLine;
+        private ComboBox OperationalState;
+        private Label label11;
     }
 }

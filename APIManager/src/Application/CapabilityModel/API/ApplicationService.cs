@@ -14,8 +14,8 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _CommonDefnPos = "CommonDefnPos";
 
         // Keep track of classes and associations to show in the diagram...
-        protected List<MEClass> _diagramClassList;
-        protected List<MEAssociation> _diagramAssocList;
+        private List<MEClass> _diagramClassList;
+        private List<MEAssociation> _diagramAssocList;
 
         /// <summary>
         /// 'Create new instance' constructor, creates a new API service declaration underneath the specified container package. 
@@ -30,7 +30,17 @@ namespace Plugin.Application.CapabilityModel.API
         /// 6) The Service Model diagram with all necessary components.
         /// The Service declaration package and Service class are created by the parent constructor.
         /// </summary>
-        internal ApplicationService(MEPackage containerPackage, string qualifiedServiceName, List<string> operationNames, string declarationStereotype): base(containerPackage, qualifiedServiceName, declarationStereotype)
+        /// <param name="containerPackage">Name of the container that will hold the service declaration.</param>
+        /// <param name="declarationStereotype">Stereotype to be used for the service declaration package.</param>
+        /// <param name="initialState">Operational state in which the service will be created, when not specified, the default will apply.</param>
+        /// <param name="operationNames">List of initial operation names for the service.</param>
+        /// <param name="qualifiedServiceName">Qualified name of the service (includes major version).</param>
+        internal ApplicationService(MEPackage containerPackage, 
+                                    string qualifiedServiceName, 
+                                    List<string> operationNames, 
+                                    string declarationStereotype, 
+                                    OperationalState initialState = _DefaultOperationalState): 
+            base(containerPackage, qualifiedServiceName, declarationStereotype, initialState)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
@@ -136,30 +146,6 @@ namespace Plugin.Application.CapabilityModel.API
             }
             Logger.WriteInfo("Plugin.Application.CapabilityModel.APIProcessor.ApplicationService.DeleteInterface >> Result of operation: " + result);
             return result;
-        }
-
-        /// <summary>
-        /// Protected constructor that is used by specialized service types. It only passes arguments to the base class, but does not perform
-        /// any actual initialization, this is left to the specialized constructor.
-        /// </summary>
-        /// <param name="containerPackage">The container package in which we are declaring this service.</param>
-        /// <param name="qualifiedServiceName">Qualified name of the service.</param>
-        /// <param name="declarationStereotype">Stereotype of the service declaration package.</param>
-        protected ApplicationService(MEPackage containerPackage, string qualifiedServiceName, string declarationStereotype) : base(containerPackage, qualifiedServiceName, declarationStereotype)
-        {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.APIProcessor.ApplicationService (derived, new) >> Pass-through constructor invoked.");
-        }
-
-        /// <summary>
-        /// Protected constructor that is used by specialized service types that need to create a in-memory representation of an existing
-        /// structure. The constructor only passes arguments to the base class and does not perform any further initialization, this is
-        /// left to the specialized class.
-        /// </summary>
-        /// <param name="serviceClass">The class that represents the service.</param>
-        /// <param name="declarationStereotype"></param>
-        protected ApplicationService(MEClass serviceClass, string declarationStereotype) : base(serviceClass, declarationStereotype)
-        {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.APIProcessor.ApplicationService (derived, existing) >> Pass-through constructor invoked.");
         }
 
         /// <summary>

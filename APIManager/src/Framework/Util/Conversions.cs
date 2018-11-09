@@ -45,7 +45,6 @@ namespace Framework.Util
     /// <typeparam name="TEnum">Enumerated type associated with this conversion.</typeparam>
     internal static class EnumConversions<TEnum>
     {
-
         /// <summary>
         /// Returns the string representation of the specified enumerated type value.
         /// </summary>
@@ -87,6 +86,15 @@ namespace Framework.Util
             {
                 throw new IllegalEnumException("Enumerated value '" + enumValue + "' is illegal for enumeration '" + typeof(TEnum) + "'!");
             }
+        }
+
+        /// <summary>
+        /// Returns an array of all values in the enumeration.
+        /// </summary>
+        /// <returns>Array with all possible enumeration values.</returns>
+        internal static IEnumerable<TEnum> GetValues()
+        {
+            return (TEnum[])Enum.GetValues(typeof(TEnum));
         }
     }
 }
