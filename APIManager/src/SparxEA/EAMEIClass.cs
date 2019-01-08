@@ -446,7 +446,7 @@ namespace SparxEA.Model
         /// <summary>
         /// Searches all associations on the current class for a child class with specified name and stereotype and returns the
         /// association role that belongs to this child.
-        /// Note that the function only searches for the PRIMARY stereotype and ignores any generealized stereotypes!
+        /// Note that the function only searches for the PRIMARY stereotype and ignores any generalized stereotypes!
         /// </summary>
         /// <param name="childName">Name of child class to locate.</param>
         /// <param name="childStereotype">Child primary stereotype.</param>
@@ -465,10 +465,40 @@ namespace SparxEA.Model
 
             var queryResult = new XmlDocument();                            // Repository query will return an XML Document.
             queryResult.LoadXml(repository.SQLQuery(query));                // Execute query and store result in XML Document.
-            XmlNodeList elements = queryResult.GetElementsByTagName("Row"); // Retrieve parent class name and package in which class resides.
-            var parentList = new List<MEClass>();
+            XmlNodeList elements = queryResult.GetElementsByTagName("Row");
 
             return (elements.Count > 0) ? elements[0]["DestRole"].InnerText.Trim() : string.Empty;
+        }
+
+        /// <summary>
+        /// Searches all associations on the current class for any child class with specified name and stereotype and returns the
+        /// list of matching classes.
+        /// Note that the function only searches for the PRIMARY stereotype and ignores any generalized stereotypes!
+        /// </summary>
+        /// <param name="childName">Name of child class to locate.</param>
+        /// <param name="childStereotype">Child primary stereotype.</param>
+        /// <returns>List of matching classes or empty list when none found.</returns>
+        internal override List<MEClass> FindAssociatedClasses(string childName, string childStereotype)
+        {
+            EA.Repository repository = ((EAModelImplementation)this._model).Repository;
+            bool isLocalDB = ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local;
+            string likeClause = isLocalDB ? "LIKE '*" : "LIKE '%";  // EAP files use different syntax for 'like'!
+            string checkType = (childStereotype.Contains("::")) ? childStereotype.Substring(childStereotype.IndexOf("::") + 2) : childStereotype;
+            string query = @"SELECT o2.Object_ID AS DestObject FROM
+                            ((t_connector c INNER JOIN t_object o ON c.Start_Object_ID = o.Object_ID)
+                            LEFT JOIN t_object o2 ON c.End_Object_ID = o2.Object_ID)
+                            WHERE o.Object_ID = " + this._elementID + " AND o2.Name = '" + childName +
+                            "' AND o2.Stereotype " + likeClause + checkType + "'";
+
+            var queryResult = new XmlDocument();                            // Repository query will return an XML Document.
+            queryResult.LoadXml(repository.SQLQuery(query));                // Execute query and store result in XML Document.
+            var matches = new List<MEClass>();
+            foreach (XmlNode node in queryResult.GetElementsByTagName("Row"))
+            {
+                int objectID = 0;
+                if (int.TryParse(node["DestObject"].InnerText.Trim(), out objectID)) matches.Add(new MEClass(objectID));
+            }
+            return matches;
         }
 
         /// <summary>

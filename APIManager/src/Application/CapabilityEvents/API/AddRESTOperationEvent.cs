@@ -92,7 +92,7 @@ namespace Plugin.Application.Events.API
             var myResource = new RESTResourceCapability(operationParent);
             var newOperationDecl = new RESTOperationDeclaration(myResource, string.Empty, new HTTPOperation(HTTPOperation.Type.Unknown));
 
-            using (var dialog = new RESTOperationDialog(newOperationDecl, new RESTResourceDeclaration(myResource)))
+            using (var dialog = new RESTOperationDialog(myService, newOperationDecl, new RESTResourceDeclaration(myResource)))
             {
                 if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
                 {

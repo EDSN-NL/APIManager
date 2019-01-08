@@ -57,16 +57,22 @@ namespace Plugin.Application.Events.Util
                 MEPackage currentPackage = context.CurrentPackage;
                 Diagram currentDiagram = context.CurrentDiagram;
 
+                var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
+                CapabilityModel.Service myService = svcContext.GetServiceInstance();
+
                 if (currentClass.HasStereotype("Service"))
                 {
-                    var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
-                    CapabilityModel.Service myService = svcContext.GetServiceInstance();
                     string ticketID = string.Empty;
                     if (ShowInputDialog(ref ticketID) == DialogResult.OK)
                     {
-                        RMTicket ticket = new RMTicket(ticketID, "700123", myService);
+                        RMServiceTicket ticket = new RMServiceTicket(ticketID, "700123", myService);
                         MessageBox.Show(ticket.ToString());
                     }
+                }
+                else if (currentClass.HasStereotype("Ticket"))
+                {
+                    RMServiceTicket ticket = new RMServiceTicket(currentClass, myService);
+                    RMReleaseTicket relTicket = new RMReleaseTicket(ticket);
                 }
 
                 //MakeCommonSchema();
@@ -76,7 +82,7 @@ namespace Plugin.Application.Events.Util
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Oops, Caught exception:" + Environment.NewLine + exc.Message);
+                Logger.WriteError("Oops, Caught exception:" + Environment.NewLine + exc.ToString());
             }
         }
 

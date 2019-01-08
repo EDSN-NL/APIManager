@@ -168,6 +168,19 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Searches all associations on the current class for any child class with specified name and stereotype and returns the
+        /// list of matching classes.
+        /// Note that the function only searches for the PRIMARY stereotype and ignores any generalized stereotypes!
+        /// </summary>
+        /// <param name="childName">Name of child class to locate.</param>
+        /// <param name="childStereotype">Child primary stereotype.</param>
+        /// <returns>List of matching classes or empty list when none found.</returns>
+        internal override List<MEClass> FindAssociatedClasses(string name, string stereotype)
+        {
+            return this._classPart.FindAssociatedClasses(name, stereotype);
+        }
+
+        /// <summary>
         /// Composite classes are associated with a diagram that shows the class composition. This method facilitates retrieval of 
         /// an associated diagram. The function returns NULL in case no diagram is associated.
         /// </summary>

@@ -30,27 +30,27 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Returns true when the request body is an array of elements.
+        /// Returns cardinality of request body document (only valid in case such a body has been defined).
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal bool HasMultipleRequests
+        internal Cardinality RequestCardinality
         {
             get
             {
-                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).HasMultipleRequests;
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).RequestCardinality;
                 else throw new MissingImplementationException("RESTOperationCapabilityImp");
             }
         }
 
         /// <summary>
-        /// Returns true when the default OK response has multiple body elements.
+        /// Returns cardinality of response body document (only valid in case such a body has been defined).
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal bool HasMultipleResponses
+        internal Cardinality ResponseCardinality
         {
             get
             {
-                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).HasMultipleResponses;
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).ResponseCardinality;
                 else throw new MissingImplementationException("RESTOperationCapabilityImp");
             }
         }

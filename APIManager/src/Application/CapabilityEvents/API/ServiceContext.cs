@@ -40,6 +40,10 @@ namespace Plugin.Application.Events.API
         private const string _DataModelPkgStereotype            = "DataModelPkgStereotype";
         private const string _ServiceArchetypeTag               = "ServiceArchetypeTag";
         private const string _ServiceCapabilityClassBaseStereotype = "ServiceCapabilityClassBaseStereotype";
+        private const string _RMPackageStereotype               = "RMPackageStereotype";
+        private const string _RMPackageName                     = "RMPackageName";
+        private const string _RMReleasePackageParentPath        = "RMReleasePackageParentPath";
+        private const string _RMReleasePackageParentName        = "RMReleasePackageParentName";
 
         private const bool _NOBUILDHIERARCHY = false;           // Used for CodeLists to suppress construction of complete class hierarchy.
 
@@ -51,6 +55,7 @@ namespace Plugin.Application.Events.API
         private MEPackage       _serviceModelPackage;           // Package containing the service model.
         private MEPackage       _operationPackage;              // Contains operation package if selected by user.
         private MEPackage       _resourceCollectionPackage;     // Resource collection package is selected by user.
+        private MEPackage       _releaseHistoryPackage;         // Release history package is selected by user.
         private Diagram         _diagram;                       // Currently active servicemodel diagram.
         private Diagram         _serviceDiagram;                // The diagram that contains the Service class.
         private MEClass         _treeNodeTarget;                // Search target when browsing the tree hierarchy.
@@ -71,6 +76,7 @@ namespace Plugin.Application.Events.API
         internal MEPackage DeclarationPackage           { get { return this._declarationPackage; } }
         internal MEPackage OperationPackage             { get { return this._operationPackage; } }
         internal MEPackage ResourceCollectionPackage    { get { return this._resourceCollectionPackage; } }
+        internal MEPackage ReleaseHistoryPackage        { get { return this._releaseHistoryPackage; } }
         internal MEPackage SVCModelPackage              { get { return this._serviceModelPackage; } }
         internal Diagram MyDiagram                      { get { return this._diagram; } }
         internal Diagram ServiceDiagram                 { get { return this._serviceDiagram; } }
@@ -78,10 +84,10 @@ namespace Plugin.Application.Events.API
 
         /// <summary>
         /// Getters for additional properties:
-        /// Valid = Context is assumed to be valid if the service class has been properly initialized.
+        /// Valid = Context is assumed to be valid if the service class has been properly initialized or we have a release history package.
         /// Type = Returns the type of Service.
         /// </summary>
-        internal bool Valid                             { get { return this._serviceClass != null; } }
+        internal bool Valid                             { get { return this._serviceClass != null || this._releaseHistoryPackage != null; } }
         internal Service.ServiceArchetype Type          { get { return this._type; } }
 
         /// <summary>
@@ -117,6 +123,8 @@ namespace Plugin.Application.Events.API
             string rootPackageName                  = context.GetConfigProperty(_RootPkgName);
             string dataModelPkgName                 = context.GetConfigProperty(_DataModelPkgName);
             string dataModelPkgStereotype           = context.GetConfigProperty(_DataModelPkgStereotype);
+            string releaseMgmtPkgStereotype         = context.GetConfigProperty(_RMPackageStereotype);
+            string releaseMgmtPkgName               = context.GetConfigProperty(_RMPackageName);
 
             // Check what the Repository knows about our context...
             MEClass currentClass            = context.CurrentClass;
@@ -133,6 +141,7 @@ namespace Plugin.Application.Events.API
             this._operationPackage          = null;
             this._interfaceClass            = null;
             this._resourceCollectionPackage = null;
+            this._releaseHistoryPackage     = null;
             this._resourceClass             = null;
             this._type                      = Service.ServiceArchetype.Unknown;
 
@@ -174,7 +183,7 @@ namespace Plugin.Application.Events.API
                     else if (currentClass.HasStereotype(resourceClassStereotype))           this._resourceClass = currentClass;
                 }
             }
-            else if (currentPackage != null) //In package browser.
+            else if (currentPackage != null) //In package browser or menu bar..
             {
                 // In this case, we CAN NOT trust 'current class', nor 'current diagram' since we have only selected a package for sure.
                 if (currentPackage.HasStereotype(serviceDeclPkgStereotype))
@@ -196,10 +205,24 @@ namespace Plugin.Application.Events.API
                 }
                 else if (currentPackage.HasStereotype(resourceCollectionPkgStereotype))
                 {
-                    // We're at a resource collection package, which is a child of the service model...
+                    // We're at a resource collection package, which is a child of the service model.
                     this._resourceCollectionPackage = currentPackage;
                     this._serviceModelPackage = currentPackage.Parent;
                     this._declarationPackage = this._serviceModelPackage.Parent;
+                }
+                else if (currentPackage.HasStereotype(releaseMgmtPkgStereotype) && currentPackage.Name == releaseMgmtPkgName)
+                {
+                    // We're at a release history package, which is either a child of the service model or a child of the Domain Model..
+                    string releasePackageParentPath = context.GetConfigProperty(_RMReleasePackageParentPath);
+                    string releasePackageParentName = context.GetConfigProperty(_RMReleasePackageParentName);
+                    MEPackage releasePackageParent = model.FindPackage(releasePackageParentPath, releasePackageParentName);
+                    this._releaseHistoryPackage = currentPackage;
+                    if (releasePackageParent == null || releasePackageParent != currentPackage.Parent)
+                    {
+                        // Here we assume we're in a Service package structure...
+                        this._releaseHistoryPackage = currentPackage;
+                        this._declarationPackage = currentPackage.Parent;
+                    }
                 }
                 else if (currentPackage.Parent.HasStereotype(serviceDeclPkgStereotype))
                 {
@@ -216,7 +239,7 @@ namespace Plugin.Application.Events.API
                     if (package.Name != rootPackageName) this._declarationPackage = package;
                 }
 
-                if (this._declarationPackage != null)
+                if (this._declarationPackage != null && this._serviceModelPackage == null)
                 {
                     this._serviceModelPackage = this._declarationPackage.FindPackage(serviceModelPkgName);
                 }
@@ -229,11 +252,20 @@ namespace Plugin.Application.Events.API
                 }
             }
 
-            // If we have not been able to detect these two packages, the context is REALLY wrong.
+            // If we have not been able to detect these packages, the context is REALLY wrong.
             if (this._declarationPackage == null || this._serviceModelPackage == null)
             {
-                Logger.WriteError("Plugin.Application.Events.API.ServiceContext >> Illegal context, throwing exception!");
-                throw new IllegalContextException("No valid packages in context");
+                if (this._releaseHistoryPackage == null)
+                {
+                    Logger.WriteError("Plugin.Application.Events.API.ServiceContext >> Illegal context, throwing exception!");
+                    throw new IllegalContextException("No valid packages in context");
+                }
+                else
+                {
+                    Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Top-level Release History, only partial context available!");
+                    if (this._diagram == null) this._diagram = this._releaseHistoryPackage.FindDiagram();
+                    return;
+                }
             }
 
             // Now we should be able to find our Service package and class and deduct the type from there. If the service class does not have

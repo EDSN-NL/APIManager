@@ -364,7 +364,7 @@ namespace Plugin.Application.CapabilityModel.API
             if (this._parent is RESTResourceCapability) parentResource = this._parent as RESTResourceCapability;
 
             var newOperation = new RESTOperationDeclaration(parentResource, string.Empty, new HTTPOperation(HTTPOperation.Type.Unknown));
-            using (var dialog = new RESTOperationDialog(newOperation, this))
+            using (var dialog = new RESTOperationDialog(this._parent.RootService, newOperation, this))
             {
                 dialog.DisableMinorVersion();
                 if (dialog.ShowDialog() == DialogResult.OK)
@@ -502,7 +502,7 @@ namespace Plugin.Application.CapabilityModel.API
             HTTPOperation originalOperation = this._operationList[originalKey].OperationType;
             if (operation != null)
             {
-                using (var dialog = new RESTOperationDialog(operation, this))
+                using (var dialog = new RESTOperationDialog(this._parent.RootService, operation, this))
                 {
                     dialog.DisableMinorVersion();
                     if (dialog.ShowDialog() == DialogResult.OK)

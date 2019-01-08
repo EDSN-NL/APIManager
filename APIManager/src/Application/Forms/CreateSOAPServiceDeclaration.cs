@@ -185,7 +185,7 @@ namespace Plugin.Application.Forms
         private void TicketIDFld_Leave(object sender, EventArgs e)
         {
             ErrorLine.Text = string.Empty;
-            this._hasTicket = RMTicket.IsValidID(TicketIDFld.Text);
+            this._hasTicket = RMServiceTicket.IsValidID(TicketIDFld.Text);
             if (!this._hasTicket)
             {
                 ErrorLine.Text = "Provided ID does not identify a valid open ticket, please try again!";

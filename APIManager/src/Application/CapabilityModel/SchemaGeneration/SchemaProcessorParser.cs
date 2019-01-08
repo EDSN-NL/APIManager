@@ -410,7 +410,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         /// </summary>
         /// <param name="currentClass">The current Class to be parsed.</param>
         /// <param name="classKeyToken">This is a unique identification of this class in the current processing context and is used to detect which 
-        /// classes have been processed already.</param>
+        /// classes have been processed already. Typically, the token is equal to te FQN of the class.</param>
         /// <param name="scope">Defines in which schema and documentation context we're going to put this class.</param>
         /// <returns>Fully qualified class name (token:name) or empty string in case of errors.</returns>
         private string ProcessClass(MEClass currentClass, string classKeyToken, Tuple<ClassifierContext.ScopeCode, ClassifierContext.DocScopeCode> scope)

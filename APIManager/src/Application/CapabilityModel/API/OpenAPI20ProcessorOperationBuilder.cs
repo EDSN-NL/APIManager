@@ -158,8 +158,7 @@ namespace Plugin.Application.CapabilityModel.API
                 if (operationResult.ResponseBodyClass != null)
                 {
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Found a body parameter...");
-                    var cardinality = new Tuple<int, int>(1, operationResult.HasMultipleResponses ? 0 : 1);
-                    result = WriteResponseBodyParameter(operationResult.ResponseBodyClass, cardinality);
+                    result = WriteResponseBodyParameter(operationResult.ResponseBodyClass, operationResult.ResponseCardinality);
                 }
 
                 if (this._currentOperation.UseHeaderParameters || 
@@ -309,11 +308,12 @@ namespace Plugin.Application.CapabilityModel.API
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteDefaultResponse >> Processing response class '" + responseClass.Name + "'...");
             this._panel.WriteInfo(this._panelIndex + 3, "Processing Default Response Body '" + responseClass.Name + "'...");
+            string token = ContextSlt.GetContextSlt().GetConfigProperty(_SchemaTokenName) + ":" + responseClass.Name;
 
             // We must only parse this class once in order to get a valid definition in the 'definitions' section.
             if (this._defaultResponseClassifier == string.Empty)
             {
-                this._defaultResponseClassifier = this._schema.ProcessClass(responseClass, responseClass.Name);
+                this._defaultResponseClassifier = this._schema.ProcessClass(responseClass, token);
                 // Since we 'might' use alias names in classes, the returned name 'might' be different from the offered name. To make sure 
                 // we're referring to the correct name, we take the returned FQN and remove the token part. Remainder is the 'formal' type name.
                 if (this._defaultResponseClassifier != string.Empty)
@@ -544,8 +544,10 @@ namespace Plugin.Application.CapabilityModel.API
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestBodyParameter >> Processing body class '" + documentResourceClass.Name + "'...");
             this._panel.WriteInfo(this._panelIndex + 3, "Processing Request Message Body '" + documentResourceClass.Name + "'...");
             bool result = false;
+            ContextSlt context = ContextSlt.GetContextSlt();
             string qualifiedClassName = string.Empty;
-            string businessComponentStereotype = ContextSlt.GetContextSlt().GetConfigProperty(_BusinessComponentStereotype);
+            string businessComponentStereotype = context.GetConfigProperty(_BusinessComponentStereotype);
+            string token = context.GetConfigProperty(_SchemaTokenName) + ":" + documentResourceClass.Name;
             MEClass schemaClass = null;
 
             // Locate the associated Business Component...
@@ -557,7 +559,7 @@ namespace Plugin.Application.CapabilityModel.API
                     // and thus the Document Resource class is named after the Alias. We MUST use that name for all references to the Business
                     // Component and thus we use the Document Resource class name to be sure we have the correct name...
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestBodyParameter >> Found Business Component, processing...");
-                    qualifiedClassName = this._schema.ProcessClass(association.Destination.EndPoint, documentResourceClass.Name);
+                    qualifiedClassName = this._schema.ProcessClass(association.Destination.EndPoint, token);
                     schemaClass = association.Destination.EndPoint;
                     break;
                 }
@@ -617,7 +619,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="documentResourceClass">The DocumentResource class that contains the association with our schema root.</param>
         /// <param name="cardinality">The cardinality of the Document Resource association. If upper limit > 1, we must create an array.</param>
         /// <returns>True when processed ok, false on errors.</returns>
-        private bool WriteResponseBodyParameter(MEClass documentResourceClass, Tuple<int,int> cardinality)
+        private bool WriteResponseBodyParameter(MEClass documentResourceClass, Cardinality cardinality)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Processing document class '" + documentResourceClass.Name + "'...");
             this._panel.WriteInfo(this._panelIndex + 3, "Processing Response Message Body '" + documentResourceClass.Name + "'...");
@@ -632,6 +634,7 @@ namespace Plugin.Application.CapabilityModel.API
             // to this class in the OpenAPI definition response parameter. Reason: not all frameworks support a 'response object' in the response
             // parameter...
             MEClass paginationClass = GetResponsePaginationClass();
+            string token = context.GetConfigProperty(_SchemaTokenName) + ":" + paginationClass.Name;
 
             // Next, Locate the associated business component. We can't check by name since it might have used an Alias name...
             // We should accept BOTH BusinessComponents (from domain profiles) OR Message Business Information Entities (message 'specials').
@@ -653,21 +656,22 @@ namespace Plugin.Application.CapabilityModel.API
                 // Pagination is required. The call to GetResponsePaginationClass has either cleaned-up the existing pagination class, or has
                 // created a new one. We must establish an association with the payload...
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Pagination, created class and association...");
-                string assocCard = cardinality.Item1.ToString();
-                if (cardinality.Item2 == 0) assocCard += "..*";
-                else if (cardinality.Item2 != cardinality.Item1) assocCard += ".." + cardinality.Item2.ToString();
+                string assocCard = cardinality.LowerBoundary.ToString();
+                if (cardinality.UpperBoundary == 0) assocCard += "..*";
+                else if (cardinality.UpperBoundary != cardinality.LowerBoundary) assocCard += ".." + cardinality.UpperBoundary.ToString();
                 string roleName = !string.IsNullOrEmpty(payload.AliasName) ? payload.AliasName : payload.Name;
-                if ((cardinality.Item2 == 0 || cardinality.Item2 > 1) && !roleName.EndsWith("List")) roleName += "List";
+                if ((cardinality.UpperBoundary == 0 || cardinality.UpperBoundary > 1) && !roleName.EndsWith("List")) roleName += "List";
                 var source = new EndpointDescriptor(paginationClass, "1", paginationClass.Name, null, false);
                 var target = new EndpointDescriptor(payload, assocCard, roleName, null, true);
                 paginationClass.CreateAssociation(source, target, MEAssociation.AssociationType.MessageAssociation);
-                qualifiedClassName = this._schema.ProcessClass(paginationClass, paginationClass.Name);
-                cardinality = new Tuple<int, int>(1, 1);    // Response is mandatory object and actual cardinality with payload has been solved otherwise.
+                qualifiedClassName = this._schema.ProcessClass(paginationClass, token);
+                cardinality = new Cardinality(1, 1);    // Response is mandatory object and actual cardinality with payload has been solved otherwise.
             }
             else
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> No pagination, simple reference...");
-                qualifiedClassName = this._schema.ProcessClass(payload, documentResourceClass.Name);
+                token = context.GetConfigProperty(_SchemaTokenName) + ":" + documentResourceClass.Name;
+                qualifiedClassName = this._schema.ProcessClass(payload, token);
             }
 
             if (qualifiedClassName != string.Empty)
@@ -792,22 +796,22 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="className">Name of the body class that must be referenced.</param>
         /// <param name="cardinality">Cardinality of the association.</param>
-        private void WriteResponseBodyReference(string className, Tuple<int, int> cardinality)
+        private void WriteResponseBodyReference(string className, Cardinality cardinality)
         {
-            if (cardinality.Item2 == 0 || cardinality.Item2 > 1)
+            if (cardinality.IsList)
             {
                 this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("array");
                 this._JSONWriter.WritePropertyName("items"); this._JSONWriter.WriteStartObject();
                 {
                     this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
                 } this._JSONWriter.WriteEndObject();
-                if (cardinality.Item1 > 1)
+                if (cardinality.LowerBoundary > 1)
                 {
-                    this._JSONWriter.WritePropertyName("minItems"); this._JSONWriter.WriteValue(cardinality.Item1);
+                    this._JSONWriter.WritePropertyName("minItems"); this._JSONWriter.WriteValue(cardinality.LowerBoundary);
                 }
-                if (cardinality.Item2 != 0)
+                if (cardinality.UpperBoundary != 0)
                 {
-                    this._JSONWriter.WritePropertyName("maxItems"); this._JSONWriter.WriteValue(cardinality.Item2);
+                    this._JSONWriter.WritePropertyName("maxItems"); this._JSONWriter.WriteValue(cardinality.UpperBoundary);
                 }
             }
             else this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");

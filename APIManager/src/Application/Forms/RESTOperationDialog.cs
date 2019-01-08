@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 using Framework.Util;
 using Framework.Logging;
 using Framework.Context;
+using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 
 namespace Plugin.Application.Forms
@@ -20,6 +22,7 @@ namespace Plugin.Application.Forms
         private bool _dirty;                            // 'True' when stuff has changed.
         private bool _initializing;                     // Set to 'true' during construction to suppress unwanted events.
         private RESTResourceDeclaration _parent;        // Parent resource of this operation.
+        private RESTResponseCodeCollectionMgr _responseManager;     // Response code collection manager.
 
         /// <summary>
         /// Returns 'true' when Operation Minor Version must be updated.
@@ -47,8 +50,11 @@ namespace Plugin.Application.Forms
         /// Creates a new dialog that facilitates creation of a series of resources. Each resource is represented in the dialog
         /// as a tuple of resource name and archetype.
         /// </summary>
+        /// <param name="myService">The service that owns the operation.</param>
+        /// <param name="operation">Either an empty descriptor (in case of new operation), or operation properties in case
+        /// we're editing an existing operation.</param>
         /// <param name="parent">The capability that will act as the parent for the new resource(s).</param>
-        internal RESTOperationDialog(RESTOperationDeclaration operation, RESTResourceDeclaration parent)
+        internal RESTOperationDialog(Service myService, RESTOperationDeclaration operation, RESTResourceDeclaration parent)
         {
             InitializeComponent();
             this._initializing = true;
@@ -60,18 +66,40 @@ namespace Plugin.Application.Forms
             this._dirty = false;
             this._parent = parent;
             var unknownOperation = new HTTPOperation();
+            this._responseManager = new RESTResponseCodeCollectionMgr(myService);
 
             SummaryText.Text = operation.Summary;
             Description.Text = operation.Description;
 
             // Show the associated default request- and response documents (if present)...
-            if (operation.RequestDocument != null)  RequestTypeName.Text  = operation.RequestDocument.Name;
-            if (operation.ResponseDocument != null) ResponseTypeName.Text = operation.ResponseDocument.Name;
+            if (operation.RequestDocument != null)
+            {
+                RequestTypeName.Text = operation.RequestDocument.Name;
+                RequestMultiple.Checked = operation.RequestCardinality.IsList;
+                RequestOptional.Checked = operation.RequestCardinality.IsOptional;
+            }
+            else
+            {
+                RequestMultiple.Checked = false;
+                RequestOptional.Checked = false;
+                operation.ResponseCardinality = new Cardinality(1, 0);
+            }
 
-            // Set indicators according to current settings...
+            if (operation.ResponseDocument != null)
+            {
+                ResponseTypeName.Text = operation.ResponseDocument.Name;
+                ResponseMultiple.Checked = operation.ResponseCardinality.IsList;
+                ResponseOptional.Checked = operation.ResponseCardinality.IsOptional;
+            }
+            else
+            {
+                ResponseMultiple.Checked = false;
+                ResponseOptional.Checked = false;
+                operation.RequestCardinality = new Cardinality(1, 0);
+            }
+
+            // Set remaining indicators according to current settings...
             HasPagination.Checked       = operation.PaginationIndicator;
-            RequestMultiple.Checked     = operation.RequestBodyCardinalityIndicator;
-            ResponseMultiple.Checked    = operation.ResponseBodyCardinalityIndicator;
             OverrideSecurity.Checked    = operation.PublicAccessIndicator;
             UseHeaderParameters.Checked = operation.UseHeaderParametersIndicator;
             UseLinkHeaders.Checked      = operation.UseLinkHeaderIndicator;
@@ -261,7 +289,7 @@ namespace Plugin.Application.Forms
         /// <summary>
         /// This event is raised when the user clicks the 'Add Response Code' button.
         /// The method facilitates creation of an additional response code (link between a HTTP response code and an
-        /// associated data type). The dialog creates the default OK response (HTTP code 200) by defauklt.
+        /// associated data type). The dialog creates the default OK response (HTTP code 200) by default.
         /// Any additional response codes can be defined using this dialog.
         /// </summary>
         /// <param name="sender">Ignored.</param>
@@ -379,15 +407,21 @@ namespace Plugin.Application.Forms
             if (this._initializing) return;   // Ignore event during initialization.
             this._operation.PaginationIndicator = HasPagination.Checked;
             this._operation.PublicAccessIndicator = OverrideSecurity.Checked;
-            this._operation.RequestBodyCardinalityIndicator = RequestMultiple.Checked;
-            this._operation.ResponseBodyCardinalityIndicator = ResponseMultiple.Checked;
+            if (this._operation.RequestDocument != null)
+            {
+                this._operation.RequestCardinality = new Cardinality(RequestOptional.Checked ? 0 : 1, RequestMultiple.Checked ? 0 : 1);
+            }
+            if (this._operation.ResponseDocument != null)
+            {
+                this._operation.ResponseCardinality = new Cardinality(ResponseOptional.Checked ? 0 : 1, ResponseMultiple.Checked ? 0 : 1);
+            }
             this._operation.UseHeaderParametersIndicator = UseHeaderParameters.Checked;
             this._operation.UseLinkHeaderIndicator = UseLinkHeaders.Checked;
             this._dirty = true;
 
             Logger.WriteInfo("Plugin.Application.Forms.RESTOperationDialog.IndicatorCheckedChanged >> Collected indicators: " + 
-                             "MultipleRequestIndicator =" + this._operation.RequestBodyCardinalityIndicator + Environment.NewLine +
-                             "MultipleResponseIndicator =" + this._operation.ResponseBodyCardinalityIndicator + Environment.NewLine +
+                             "RequestCardinality =" + this._operation.RequestCardinality.ToString() + Environment.NewLine +
+                             "ResponseCardinality =" + this._operation.ResponseCardinality.ToString() + Environment.NewLine +
                              "PaginationIndicator = " + this._operation.PaginationIndicator + Environment.NewLine +
                              "LinkHeaderIndicator = " + this._operation.UseLinkHeaderIndicator + Environment.NewLine +
                              "UseHeaderParametersIndicator = " + this._operation.UseHeaderParametersIndicator + Environment.NewLine +
@@ -508,6 +542,37 @@ namespace Plugin.Application.Forms
         {
             ResponseTypeName.Text = this._operation.SetDocument(RESTOperationDeclaration._ResponseIndicator);
             if (ResponseTypeName.Text != string.Empty) this._dirty = true;
+        }
+
+        /// <summary>
+        /// This event is raised when the user clicks the 'use collection' button. We return a (selected) collection
+        /// from the collection manager and copy all result codes that do not yet exist in our current list.
+        /// </summary>
+        /// <param name="sender">Ignored</param>
+        /// <param name="e">Ignored</param>
+        private void UseCollection_Click(object sender, EventArgs e)
+        {
+            foreach (RESTOperationResultDeclaration result in this._responseManager.GetCollectionContents())
+            {
+                if (ResponseCodeList.FindItemWithText(result.ResultCode) == null)
+                {
+                    ListViewItem newItem = new ListViewItem(result.ResultCode);
+                    newItem.SubItems.Add(result.Description);
+                    ResponseCodeList.Items.Add(newItem);
+                    this._dirty = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// This event is raised when the user clicks the 'edit collections' button. This brings up a subsequent dialog,
+        /// which facilitates create- delete- or edit of response code collections.
+        /// </summary>
+        /// <param name="sender">Ignored</param>
+        /// <param name="e">Ignored</param>
+        private void EditCollections_Click(object sender, EventArgs e)
+        {
+            this._responseManager.ManageCollection();
         }
     }
 }

@@ -484,7 +484,7 @@ namespace SparxEA.Model
                     else
                     {
                         query = @"SELECT o.Object_ID AS ElementID FROM t_object o
-                                 WHERE o.Parent_ID = " + this._package.PackageID + 
+                                 WHERE o.Package_ID = " + this._package.PackageID + 
                                  " AND o.Name LIKE '%" + nameFilter + "' AND o.Stereotype LIKE '%" + checkType + "'";
                     }
                 }
@@ -500,7 +500,7 @@ namespace SparxEA.Model
                 else
                 {
                     query = @"SELECT o.Object_ID AS ElementID FROM t_object o
-                             WHERE o.Parent_ID = " + this._package.PackageID + " AND o.Name LIKE '%" + nameFilter + "'";
+                             WHERE o.Package_ID = " + this._package.PackageID + " AND o.Name LIKE '%" + nameFilter + "'";
                 }
             }
 

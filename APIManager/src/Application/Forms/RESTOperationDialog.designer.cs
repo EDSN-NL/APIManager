@@ -51,6 +51,8 @@ namespace Plugin.Application.Forms
             this.HasPagination = new System.Windows.Forms.CheckBox();
             this.OverrideSecurity = new System.Windows.Forms.CheckBox();
             this.ResponseCodeGroup = new System.Windows.Forms.GroupBox();
+            this.UseCollection = new System.Windows.Forms.Button();
+            this.EditCollections = new System.Windows.Forms.Button();
             this.EditResponseCode = new System.Windows.Forms.Button();
             this.DeleteResponseCode = new System.Windows.Forms.Button();
             this.AddResponseCode = new System.Windows.Forms.Button();
@@ -58,11 +60,15 @@ namespace Plugin.Application.Forms
             this.Code = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.ResponseDesc = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.FilterParametersMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.addToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ResponseCodeMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.addToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.useCollectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.manageCollectionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MimeBox = new System.Windows.Forms.GroupBox();
             this.ConsumesMIME = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
@@ -73,11 +79,13 @@ namespace Plugin.Application.Forms
             this.SummaryText = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.RequestParamBox = new System.Windows.Forms.GroupBox();
+            this.RequestOptional = new System.Windows.Forms.CheckBox();
             this.RequestMultiple = new System.Windows.Forms.CheckBox();
             this.RemoveRequest = new System.Windows.Forms.Button();
             this.RequestTypeName = new System.Windows.Forms.TextBox();
             this.SelectRequest = new System.Windows.Forms.Button();
             this.ResponseParamBox = new System.Windows.Forms.GroupBox();
+            this.ResponseOptional = new System.Windows.Forms.CheckBox();
             this.ResponseMultiple = new System.Windows.Forms.CheckBox();
             this.RemoveResponse = new System.Windows.Forms.Button();
             this.SelectResponse = new System.Windows.Forms.Button();
@@ -231,6 +239,7 @@ namespace Plugin.Application.Forms
             this.FilterParameterList.MultiSelect = false;
             this.FilterParameterList.Name = "FilterParameterList";
             this.FilterParameterList.Size = new System.Drawing.Size(265, 121);
+            this.FilterParameterList.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.FilterParameterList.TabIndex = 0;
             this.FilterParameterList.UseCompatibleStateImageBehavior = false;
             this.FilterParameterList.View = System.Windows.Forms.View.Details;
@@ -279,6 +288,8 @@ namespace Plugin.Application.Forms
             // 
             // ResponseCodeGroup
             // 
+            this.ResponseCodeGroup.Controls.Add(this.UseCollection);
+            this.ResponseCodeGroup.Controls.Add(this.EditCollections);
             this.ResponseCodeGroup.Controls.Add(this.EditResponseCode);
             this.ResponseCodeGroup.Controls.Add(this.DeleteResponseCode);
             this.ResponseCodeGroup.Controls.Add(this.AddResponseCode);
@@ -289,6 +300,27 @@ namespace Plugin.Application.Forms
             this.ResponseCodeGroup.TabIndex = 8;
             this.ResponseCodeGroup.TabStop = false;
             this.ResponseCodeGroup.Text = "Response codes";
+            // 
+            // UseCollection
+            // 
+            this.UseCollection.Image = ((System.Drawing.Image)(resources.GetObject("UseCollection.Image")));
+            this.UseCollection.Location = new System.Drawing.Point(105, 146);
+            this.UseCollection.Name = "UseCollection";
+            this.UseCollection.Size = new System.Drawing.Size(25, 25);
+            this.UseCollection.TabIndex = 5;
+            this.UseCollection.UseVisualStyleBackColor = true;
+            this.UseCollection.Click += new System.EventHandler(this.UseCollection_Click);
+            // 
+            // EditCollections
+            // 
+            this.EditCollections.Image = ((System.Drawing.Image)(resources.GetObject("EditCollections.Image")));
+            this.EditCollections.Location = new System.Drawing.Point(136, 146);
+            this.EditCollections.Name = "EditCollections";
+            this.EditCollections.Size = new System.Drawing.Size(25, 25);
+            this.EditCollections.TabIndex = 4;
+            this.EditCollections.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.EditCollections.UseVisualStyleBackColor = true;
+            this.EditCollections.Click += new System.EventHandler(this.EditCollections_Click);
             // 
             // EditResponseCode
             // 
@@ -332,6 +364,7 @@ namespace Plugin.Application.Forms
             this.ResponseCodeList.MultiSelect = false;
             this.ResponseCodeList.Name = "ResponseCodeList";
             this.ResponseCodeList.Size = new System.Drawing.Size(265, 121);
+            this.ResponseCodeList.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.ResponseCodeList.TabIndex = 0;
             this.ResponseCodeList.UseCompatibleStateImageBehavior = false;
             this.ResponseCodeList.View = System.Windows.Forms.View.Details;
@@ -349,10 +382,18 @@ namespace Plugin.Application.Forms
             // FilterParametersMenuStrip
             // 
             this.FilterParametersMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.addToolStripMenuItem1,
             this.deleteToolStripMenuItem,
             this.editToolStripMenuItem});
             this.FilterParametersMenuStrip.Name = "FilterParametersMenuStrip";
-            this.FilterParametersMenuStrip.Size = new System.Drawing.Size(108, 48);
+            this.FilterParametersMenuStrip.Size = new System.Drawing.Size(108, 70);
+            this.FilterParametersMenuStrip.Click += new System.EventHandler(this.AddFilter_Click);
+            // 
+            // addToolStripMenuItem1
+            // 
+            this.addToolStripMenuItem1.Name = "addToolStripMenuItem1";
+            this.addToolStripMenuItem1.Size = new System.Drawing.Size(107, 22);
+            this.addToolStripMenuItem1.Text = "Add";
             // 
             // deleteToolStripMenuItem
             // 
@@ -371,24 +412,48 @@ namespace Plugin.Application.Forms
             // ResponseCodeMenuStrip
             // 
             this.ResponseCodeMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.addToolStripMenuItem,
             this.deleteToolStripMenuItem1,
-            this.editToolStripMenuItem1});
+            this.editToolStripMenuItem1,
+            this.useCollectionToolStripMenuItem,
+            this.manageCollectionsToolStripMenuItem});
             this.ResponseCodeMenuStrip.Name = "ResponseCodeMenuStrip";
-            this.ResponseCodeMenuStrip.Size = new System.Drawing.Size(108, 48);
+            this.ResponseCodeMenuStrip.Size = new System.Drawing.Size(180, 114);
+            this.ResponseCodeMenuStrip.Click += new System.EventHandler(this.EditCollections_Click);
+            // 
+            // addToolStripMenuItem
+            // 
+            this.addToolStripMenuItem.Name = "addToolStripMenuItem";
+            this.addToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.addToolStripMenuItem.Text = "Add";
+            this.addToolStripMenuItem.Click += new System.EventHandler(this.AddResponseCode_Click);
             // 
             // deleteToolStripMenuItem1
             // 
             this.deleteToolStripMenuItem1.Name = "deleteToolStripMenuItem1";
-            this.deleteToolStripMenuItem1.Size = new System.Drawing.Size(107, 22);
+            this.deleteToolStripMenuItem1.Size = new System.Drawing.Size(179, 22);
             this.deleteToolStripMenuItem1.Text = "Delete";
             this.deleteToolStripMenuItem1.Click += new System.EventHandler(this.DeleteResponseCode_Click);
             // 
             // editToolStripMenuItem1
             // 
             this.editToolStripMenuItem1.Name = "editToolStripMenuItem1";
-            this.editToolStripMenuItem1.Size = new System.Drawing.Size(107, 22);
+            this.editToolStripMenuItem1.Size = new System.Drawing.Size(179, 22);
             this.editToolStripMenuItem1.Text = "Edit";
             this.editToolStripMenuItem1.Click += new System.EventHandler(this.EditResponseCode_Click);
+            // 
+            // useCollectionToolStripMenuItem
+            // 
+            this.useCollectionToolStripMenuItem.Name = "useCollectionToolStripMenuItem";
+            this.useCollectionToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.useCollectionToolStripMenuItem.Text = "Use Collection";
+            this.useCollectionToolStripMenuItem.Click += new System.EventHandler(this.UseCollection_Click);
+            // 
+            // manageCollectionsToolStripMenuItem
+            // 
+            this.manageCollectionsToolStripMenuItem.Name = "manageCollectionsToolStripMenuItem";
+            this.manageCollectionsToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.manageCollectionsToolStripMenuItem.Text = "Manage Collections";
             // 
             // MimeBox
             // 
@@ -477,21 +542,33 @@ namespace Plugin.Application.Forms
             // 
             // RequestParamBox
             // 
+            this.RequestParamBox.Controls.Add(this.RequestOptional);
             this.RequestParamBox.Controls.Add(this.RequestMultiple);
             this.RequestParamBox.Controls.Add(this.RemoveRequest);
             this.RequestParamBox.Controls.Add(this.RequestTypeName);
             this.RequestParamBox.Controls.Add(this.SelectRequest);
             this.RequestParamBox.Location = new System.Drawing.Point(306, 4);
             this.RequestParamBox.Name = "RequestParamBox";
-            this.RequestParamBox.Size = new System.Drawing.Size(282, 48);
+            this.RequestParamBox.Size = new System.Drawing.Size(282, 59);
             this.RequestParamBox.TabIndex = 2;
             this.RequestParamBox.TabStop = false;
             this.RequestParamBox.Text = "Request";
             // 
+            // RequestOptional
+            // 
+            this.RequestOptional.AutoSize = true;
+            this.RequestOptional.Location = new System.Drawing.Point(214, 36);
+            this.RequestOptional.Name = "RequestOptional";
+            this.RequestOptional.Size = new System.Drawing.Size(65, 17);
+            this.RequestOptional.TabIndex = 4;
+            this.RequestOptional.Text = "Optional";
+            this.RequestOptional.UseVisualStyleBackColor = true;
+            this.RequestOptional.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
+            // 
             // RequestMultiple
             // 
             this.RequestMultiple.AutoSize = true;
-            this.RequestMultiple.Location = new System.Drawing.Point(214, 21);
+            this.RequestMultiple.Location = new System.Drawing.Point(214, 15);
             this.RequestMultiple.Name = "RequestMultiple";
             this.RequestMultiple.Size = new System.Drawing.Size(62, 17);
             this.RequestMultiple.TabIndex = 3;
@@ -502,7 +579,7 @@ namespace Plugin.Application.Forms
             // RemoveRequest
             // 
             this.RemoveRequest.Image = ((System.Drawing.Image)(resources.GetObject("RemoveRequest.Image")));
-            this.RemoveRequest.Location = new System.Drawing.Point(39, 15);
+            this.RemoveRequest.Location = new System.Drawing.Point(39, 19);
             this.RemoveRequest.Name = "RemoveRequest";
             this.RemoveRequest.Size = new System.Drawing.Size(25, 25);
             this.RemoveRequest.TabIndex = 2;
@@ -511,7 +588,7 @@ namespace Plugin.Application.Forms
             // 
             // RequestTypeName
             // 
-            this.RequestTypeName.Location = new System.Drawing.Point(70, 18);
+            this.RequestTypeName.Location = new System.Drawing.Point(70, 21);
             this.RequestTypeName.Name = "RequestTypeName";
             this.RequestTypeName.ReadOnly = true;
             this.RequestTypeName.Size = new System.Drawing.Size(138, 20);
@@ -520,7 +597,7 @@ namespace Plugin.Application.Forms
             // SelectRequest
             // 
             this.SelectRequest.Image = ((System.Drawing.Image)(resources.GetObject("SelectRequest.Image")));
-            this.SelectRequest.Location = new System.Drawing.Point(8, 16);
+            this.SelectRequest.Location = new System.Drawing.Point(8, 19);
             this.SelectRequest.Name = "SelectRequest";
             this.SelectRequest.Size = new System.Drawing.Size(25, 25);
             this.SelectRequest.TabIndex = 1;
@@ -529,21 +606,33 @@ namespace Plugin.Application.Forms
             // 
             // ResponseParamBox
             // 
+            this.ResponseParamBox.Controls.Add(this.ResponseOptional);
             this.ResponseParamBox.Controls.Add(this.ResponseMultiple);
             this.ResponseParamBox.Controls.Add(this.RemoveResponse);
             this.ResponseParamBox.Controls.Add(this.SelectResponse);
             this.ResponseParamBox.Controls.Add(this.ResponseTypeName);
-            this.ResponseParamBox.Location = new System.Drawing.Point(306, 54);
+            this.ResponseParamBox.Location = new System.Drawing.Point(306, 69);
             this.ResponseParamBox.Name = "ResponseParamBox";
-            this.ResponseParamBox.Size = new System.Drawing.Size(282, 48);
+            this.ResponseParamBox.Size = new System.Drawing.Size(282, 59);
             this.ResponseParamBox.TabIndex = 3;
             this.ResponseParamBox.TabStop = false;
             this.ResponseParamBox.Text = "Response";
             // 
+            // ResponseOptional
+            // 
+            this.ResponseOptional.AutoSize = true;
+            this.ResponseOptional.Location = new System.Drawing.Point(214, 35);
+            this.ResponseOptional.Name = "ResponseOptional";
+            this.ResponseOptional.Size = new System.Drawing.Size(65, 17);
+            this.ResponseOptional.TabIndex = 4;
+            this.ResponseOptional.Text = "Optional";
+            this.ResponseOptional.UseVisualStyleBackColor = true;
+            this.ResponseOptional.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
+            // 
             // ResponseMultiple
             // 
             this.ResponseMultiple.AutoSize = true;
-            this.ResponseMultiple.Location = new System.Drawing.Point(214, 21);
+            this.ResponseMultiple.Location = new System.Drawing.Point(214, 12);
             this.ResponseMultiple.Name = "ResponseMultiple";
             this.ResponseMultiple.Size = new System.Drawing.Size(62, 17);
             this.ResponseMultiple.TabIndex = 3;
@@ -554,7 +643,7 @@ namespace Plugin.Application.Forms
             // RemoveResponse
             // 
             this.RemoveResponse.Image = ((System.Drawing.Image)(resources.GetObject("RemoveResponse.Image")));
-            this.RemoveResponse.Location = new System.Drawing.Point(39, 17);
+            this.RemoveResponse.Location = new System.Drawing.Point(39, 19);
             this.RemoveResponse.Name = "RemoveResponse";
             this.RemoveResponse.Size = new System.Drawing.Size(25, 25);
             this.RemoveResponse.TabIndex = 2;
@@ -564,7 +653,7 @@ namespace Plugin.Application.Forms
             // SelectResponse
             // 
             this.SelectResponse.Image = ((System.Drawing.Image)(resources.GetObject("SelectResponse.Image")));
-            this.SelectResponse.Location = new System.Drawing.Point(8, 17);
+            this.SelectResponse.Location = new System.Drawing.Point(8, 19);
             this.SelectResponse.Name = "SelectResponse";
             this.SelectResponse.Size = new System.Drawing.Size(25, 25);
             this.SelectResponse.TabIndex = 1;
@@ -573,7 +662,7 @@ namespace Plugin.Application.Forms
             // 
             // ResponseTypeName
             // 
-            this.ResponseTypeName.Location = new System.Drawing.Point(70, 19);
+            this.ResponseTypeName.Location = new System.Drawing.Point(70, 20);
             this.ResponseTypeName.Name = "ResponseTypeName";
             this.ResponseTypeName.ReadOnly = true;
             this.ResponseTypeName.Size = new System.Drawing.Size(138, 20);
@@ -702,5 +791,13 @@ namespace Plugin.Application.Forms
         private CheckBox ResponseMultiple;
         private CheckBox UseHeaderParameters;
         private CheckBox UseLinkHeaders;
+        private CheckBox RequestOptional;
+        private CheckBox ResponseOptional;
+        private Button UseCollection;
+        private Button EditCollections;
+        private ToolStripMenuItem addToolStripMenuItem;
+        private ToolStripMenuItem useCollectionToolStripMenuItem;
+        private ToolStripMenuItem addToolStripMenuItem1;
+        private ToolStripMenuItem manageCollectionsToolStripMenuItem;
     }
 }

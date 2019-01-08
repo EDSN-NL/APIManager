@@ -140,13 +140,18 @@ namespace Framework.ConfigurationManagement
 
         /// <summary>
         /// Returns the repository descriptor that matches the name of the currently opened project.
-        /// When no such descriptor exists, the function returns NULL.
+        /// When no such descriptor exists, the function issues a warning message and returns NULL.
         /// </summary>
         /// <returns>Descriptor or NULL when nothing found.</returns>
         internal RepositoryDescriptor GetCurrentDescriptor()
         {
             string key = ModelSlt.GetModelSlt().GetModelName().ToLower();
-            return this._cmDescriptors.ContainsKey(key) ? this._cmDescriptors[key] : null;
+            if (this._cmDescriptors.ContainsKey(key)) return this._cmDescriptors[key];
+            else
+            {
+                Logger.WriteWarning("We could not find a Repository Descriptor for the current project, please configure one using 'Settings/Configuration Management'!");
+            }
+            return null;
         }
 
         /// <summary>

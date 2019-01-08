@@ -281,6 +281,21 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Searches all associations on the current class for any child class with specified name and stereotype and returns the
+        /// list of matching classes.
+        /// Note that the function only searches for the PRIMARY stereotype and ignores any generealized stereotypes!
+        /// </summary>
+        /// <param name="childName">Name of child class to locate.</param>
+        /// <param name="childStereotype">Child primary stereotype.</param>
+        /// <returns>List of matching classes or empty list when none found.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal List<MEClass> FindAssociatedClasses(string childName, string childStereotype)
+        {
+            if (this._imp != null) return ((MEIClass)this._imp).FindAssociatedClasses(childName, childStereotype);
+            else throw new MissingImplementationException("MEIClass");
+        }
+
+        /// <summary>
         /// Returns a list of associations of the given type that have the current class as a 'source', e.g. that
         /// 'depart' from the class.
         /// </summary>

@@ -46,8 +46,8 @@ namespace Plugin.Application.CapabilityModel.API
         private DeclarationStatus _initialStatus;                   // Original status of this declaration record.
         private RESTResourceCapability _requestDocument;            // Resource document to be used for request.
         private RESTResourceCapability _responseDocument;           // Resource document to be used for the default 'Ok' response.
-        private bool _hasMultipleRequestParameters;                 // Request message definition has cardinality > 1.
-        private bool _hasMultipleResponseParameters;                // Request message definition has cardinality > 1.
+        private Cardinality _requestCardinality;                    // Request cardinality.
+        private Cardinality _responseCardinality;                   // Response cardinality.
         private bool _hasPagination;                                // Operation must implement default pagination mechanism.
         private bool _publicAccess;                                 // Security must be overruled for this operation.
         private bool _useHeaderParameters;                          // Operation uses configured Header Parameters.
@@ -179,32 +179,32 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Get or set the request 'cardinality > 1' indicator.
+        /// Get or set the request Cardinality.
         /// </summary>
-        internal bool RequestBodyCardinalityIndicator
+        internal Cardinality RequestCardinality
         {
-            get { return this._hasMultipleRequestParameters; }
+            get { return this._requestCardinality; }
             set
             {
-                if (this._hasMultipleRequestParameters != value)
+                if (this._requestCardinality != value)
                 {
-                    this._hasMultipleRequestParameters = value;
+                    this._requestCardinality = value;
                     if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 }
             }
         }
 
         /// <summary>
-        /// Get or set the response 'cardinality > 1' indicator.
+        /// Get or set the response Cardinality.
         /// </summary>
-        internal bool ResponseBodyCardinalityIndicator
+        internal Cardinality ResponseCardinality
         {
-            get { return this._hasMultipleResponseParameters; }
+            get { return this._responseCardinality; }
             set
             {
-                if (this._hasMultipleResponseParameters != value)
+                if (this._responseCardinality != value)
                 {
-                    this._hasMultipleResponseParameters = value;
+                    this._responseCardinality = value;
                     if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 }
             }
@@ -358,8 +358,8 @@ namespace Plugin.Application.CapabilityModel.API
             this._initialStatus = this.Status;
             this._requestDocument = null;
             this._responseDocument = null;
-            this._hasMultipleRequestParameters = false;
-            this._hasMultipleResponseParameters = false;
+            this._requestCardinality = new Cardinality();   // Default is 0..1
+            this._responseCardinality = new Cardinality();  // Default is 0..1
             this._hasPagination = false;
             this._publicAccess = false;
             this._producedMIMEList = new List<string>();
@@ -441,8 +441,8 @@ namespace Plugin.Application.CapabilityModel.API
             // Load information regarding request- and response bodies...
             this._requestDocument = operation.RequestBodyDocument;
             this._responseDocument = operation.ResponseBodyDocument;
-            this._hasMultipleResponseParameters = operation.HasMultipleResponses;
-            this._hasMultipleRequestParameters = operation.HasMultipleRequests;
+            this._requestCardinality = operation.RequestCardinality;
+            this._responseCardinality = operation.ResponseCardinality;
             ContextSlt context = ContextSlt.GetContextSlt();
             string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
             string paginationClassName = context.GetConfigProperty(_RequestPaginationClassName);

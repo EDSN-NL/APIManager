@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Framework.Model;
 using Framework.Util;
+using Framework.Logging;
 using Framework.ConfigurationManagement;
 using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
@@ -79,7 +80,13 @@ namespace Plugin.Application.Forms
             // Assign context menus to the appropriate controls...
             ResourceList.ContextMenuStrip = ResourceMenuStrip;
 
-            if (CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor().IsCMEnabled)
+            var repoDescriptor = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor();
+            if (repoDescriptor == null)
+            {
+                // We did not find a (proper) entry for the current project, could be an error?
+                Logger.WriteWarning("We could not find a (proper) Configuration Management record for the current project, please check Settings Form for errors!");
+            }
+            if (repoDescriptor != null && repoDescriptor.IsCMEnabled)
             {
                 this._hasProjectID = false;
                 this._hasTicket = false;
@@ -276,7 +283,7 @@ namespace Plugin.Application.Forms
         private void TicketIDFld_Leave(object sender, EventArgs e)
         {
             ErrorLine.Text = string.Empty;
-            this._hasTicket = RMTicket.IsValidID(TicketIDFld.Text);
+            this._hasTicket = RMServiceTicket.IsValidID(TicketIDFld.Text);
             if (!this._hasTicket)
             {
                 ErrorLine.Text = "Provided ID does not identify a valid open ticket, please try again!";

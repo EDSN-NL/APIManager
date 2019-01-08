@@ -162,7 +162,7 @@ namespace Plugin.Application.CapabilityModel.API
         private string _originalCode;               // In case of Edit: if we replace the code by a new one, this contains the original code.
         private string _description;                // Descriptive text to go with the response.
         private MEClass _responseDocumentClass;     // In case of response schemas, this class represents the Document Resource that is associated with that schema.
-        private bool _hasMultipleResponses;         // True if response has cardinality > 1.
+        private Cardinality _responseCardinality;   // Cardinality of response document (only if _responseDocumentClass has been defined).
         private DeclarationStatus _status;          // Status of this declaration record.
         private DeclarationStatus _initialStatus;   // Original status of this declaration record.
 
@@ -181,16 +181,16 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Returns or loads the 'has multiple result objects' indicator.
+        /// Get of set the cardinality of the response object (only valid in case a response document has been defined).
         /// </summary>
-        internal bool HasMultipleResponses
+        internal Cardinality ResponseCardinality
         {
-            get { return this._hasMultipleResponses; }
+            get { return this._responseCardinality; }
             set
             {
-                if (this._hasMultipleResponses != value)
+                if (this._responseCardinality != value)
                 {
-                    this._hasMultipleResponses = value;
+                    this._responseCardinality = value;
                     if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
                     else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 }
@@ -326,7 +326,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._status = DeclarationStatus.Stable;
             this._initialStatus = DeclarationStatus.Stable;
             this._responseDocumentClass = resultCap.ResponseBodyClass;
-            this._hasMultipleResponses = false;
+            this._responseCardinality = new Cardinality();
             this._resultCode = this._originalCode = resultCap.ResultCode;
 
             // If we have a response type, we locate the association and inspect its target cardinality...
@@ -338,8 +338,7 @@ namespace Plugin.Application.CapabilityModel.API
                     if (association.Destination.EndPoint.HasStereotype(resourceStereotype) &&
                         association.Destination.EndPoint.Name == this._responseDocumentClass.Name)
                     {
-                        Tuple<int, int> card = association.GetCardinality(MEAssociation.AssociationEnd.Destination);
-                        this._hasMultipleResponses = (card.Item2 == 0 || card.Item2 > 1);
+                        this._responseCardinality = new Cardinality(association.GetCardinality(MEAssociation.AssociationEnd.Destination));
                         break;
                     }
                 }
@@ -421,6 +420,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._category = (RESTOperationResultCapability.ResponseCategory)(int.Parse(code[0].ToString()));
             this._defaultResponseCode = ContextSlt.GetContextSlt().GetConfigProperty(_DefaultResponseCode);
             this._status = this._initialStatus = DeclarationStatus.Stable;
+            this._responseCardinality = new Cardinality();
         }
 
         /// <summary>

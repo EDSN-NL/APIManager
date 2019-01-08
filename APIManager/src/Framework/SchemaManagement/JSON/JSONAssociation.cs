@@ -67,6 +67,11 @@ namespace Framework.Util.SchemaManagement.JSON
             JSchema classSchema = searchSchema.FindClass(classifierName);
             if (classSchema == null)
             {
+                /**********************
+                 * In plaats van deze melding moeten we deze referentie even "parkeren" en aan het eind alsnog oplossen. Wordt i.h.a. namelijk
+                 * veroorzaakt door loops in het model waarbij de target nog niet is geprocessed op het moment dat de loop wordt resolved.
+                 * 
+                 * *********************/
                 Logger.WriteError("Framework.Util.SchemaManagement.JSON.JSONAssociation >> Class '" + classifierName + "' not found in schema '" + searchSchema.Name + "'!");
                 this.IsValid = false;
                 return;

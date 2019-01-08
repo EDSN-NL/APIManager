@@ -32,7 +32,7 @@ namespace Plugin.Application.CapabilityModel
         private Service _trackedService;                // The Service instance for which we perform configuration management.
         private string _branchName;                     // The name of the branch that we're currently using to track our service.
         private bool _snapshotCreated;                  // Used to keep track of snapshot creation in combination with auto-release.
-        private RMTicket _ticket;                       // Our currently active ticket.
+        private RMServiceTicket _ticket;                       // Our currently active ticket.
 
         /// <summary>
         /// Returns 'true' when configuration management is enabled for this session.
@@ -133,7 +133,7 @@ namespace Plugin.Application.CapabilityModel
         /// </summary>
         /// <param name="ticket">A Service check-out must always be based on a Release Management Ticket.</param>
         /// <exception cref="ArgumentException">Invalid ticket or we could not checkout the service (i.e. due to merge conflicts or syncronisation errors).</exception>
-        internal void CheckoutService(RMTicket ticket)
+        internal void CheckoutService(RMServiceTicket ticket)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             CMState cmState = this._trackedService.ConfigurationMgmtState;

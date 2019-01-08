@@ -79,34 +79,47 @@ namespace Plugin.Application.Forms
             this._repositoryProperties._useCM         = ConfigurationMgmtIndicator.Checked;
             this._repositoryProperties._GITIgnore     = GITIgnoreEntries.Text;
 
-            // Absolute URL's will always end with a '/', no matter whether the user has entered this.
-            this._repositoryProperties._remoteURL     = new Uri(RepositoryBaseURL.Text, UriKind.Absolute);
-            this._repositoryProperties._jiraURL       = new Uri(JiraURL.Text, UriKind.Absolute);
-
-            if (!string.IsNullOrEmpty(UserName.Text) && !string.IsNullOrEmpty(EMailAddress.Text))
-                this._repositoryProperties._identity = new Identity(UserName.Text, EMailAddress.Text);
-            if (!string.IsNullOrEmpty(Password.Text))
-                this._repositoryProperties._remotePassword = CryptString.ToSecureString(Password.Text);
-
             // Check repository root path, should not end with separator (should not happen since user can not type the path, just to be save...)
             string thePath = RepoPathName.Text;
             if (thePath.EndsWith("/") || thePath.EndsWith("\\"))
                 thePath = thePath.Substring(0, thePath.Length - 1);
             this._repositoryProperties._localPath = thePath;
 
-            // Check Repository namespace, should not start- or end with separator...
-            thePath = RepositoryNamespace.Text;
-            if (!string.IsNullOrEmpty(thePath))
+            if (ConfigurationMgmtIndicator.Checked)
             {
-                if (thePath.EndsWith("/") || thePath.EndsWith("\\"))
-                    thePath = thePath.Substring(0, thePath.Length - 1);
-                if (thePath.StartsWith("/") || thePath.StartsWith("\\"))
-                    thePath = thePath.Substring(1, thePath.Length - 1);
-                this._repositoryProperties._remoteNamespace = new Uri(thePath, UriKind.Relative);
-            }
+                // Absolute URL's will always end with a '/', no matter whether the user has entered this.
+                this._repositoryProperties._remoteURL = new Uri(RepositoryBaseURL.Text, UriKind.Absolute);
+                this._repositoryProperties._jiraURL = new Uri(JiraURL.Text, UriKind.Absolute);
 
-            this._repositoryProperties._jiraUser = JiraUserName.Text;
-            if (!string.IsNullOrEmpty(JiraPassword.Text)) this._repositoryProperties._jiraPassword = CryptString.ToSecureString(JiraPassword.Text);
+                if (!string.IsNullOrEmpty(UserName.Text) && !string.IsNullOrEmpty(EMailAddress.Text))
+                    this._repositoryProperties._identity = new Identity(UserName.Text, EMailAddress.Text);
+                if (!string.IsNullOrEmpty(Password.Text))
+                    this._repositoryProperties._remotePassword = CryptString.ToSecureString(Password.Text);
+
+                // Check Repository namespace, should not start- or end with separator...
+                thePath = RepositoryNamespace.Text;
+                if (!string.IsNullOrEmpty(thePath))
+                {
+                    if (thePath.EndsWith("/") || thePath.EndsWith("\\"))
+                        thePath = thePath.Substring(0, thePath.Length - 1);
+                    if (thePath.StartsWith("/") || thePath.StartsWith("\\"))
+                        thePath = thePath.Substring(1, thePath.Length - 1);
+                    this._repositoryProperties._remoteNamespace = new Uri(thePath, UriKind.Relative);
+                }
+
+                this._repositoryProperties._jiraUser = JiraUserName.Text;
+                if (!string.IsNullOrEmpty(JiraPassword.Text)) this._repositoryProperties._jiraPassword = CryptString.ToSecureString(JiraPassword.Text);
+            }
+            else // NO Configuration management, clear all unused properties...
+            {
+                this._repositoryProperties._remoteURL       = null;
+                this._repositoryProperties._jiraURL         = null;
+                this._repositoryProperties._identity        = null;
+                this._repositoryProperties._remotePassword  = null;
+                this._repositoryProperties._remoteNamespace = null;
+                this._repositoryProperties._jiraUser        = null;
+                this._repositoryProperties._jiraPassword    = null;
+            }
         }
 
         /// <summary>

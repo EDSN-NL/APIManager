@@ -30,7 +30,7 @@ namespace Framework.Model
         {
             get
             {
-                if (this._modelImp != null) return this._modelImp.GetRepositoryType();
+                if (this._modelImp != null)  return this._modelImp.GetRepositoryType();
                 else throw new MissingImplementationException("ModelImplementation");
             }
             set

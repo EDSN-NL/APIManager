@@ -78,12 +78,22 @@ namespace Framework.Model
         /// <summary>
         /// Searches all associations on the current class for a child class with specified name and stereotype and returns the
         /// association role that belongs to this child.
-        /// Note that the function only searches for the PRIMARY stereotype and ignores any generealized stereotypes!
+        /// Note that the function only searches for the PRIMARY stereotype and ignores any generalized stereotypes!
         /// </summary>
         /// <param name="childName">Name of child class to locate.</param>
         /// <param name="childStereotype">Child primary stereotype.</param>
         /// <returns>Role name or empty string if not found.</returns>
         internal abstract string FindAssociatedClassRole(string childName, string childStereotype);
+
+        /// <summary>
+        /// Searches all associations on the current class for any child class with specified name and stereotype and returns the
+        /// list of matching classes.
+        /// Note that the function only searches for the PRIMARY stereotype and ignores any generalized stereotypes!
+        /// </summary>
+        /// <param name="childName">Name of child class to locate.</param>
+        /// <param name="childStereotype">Child primary stereotype.</param>
+        /// <returns>List of matching classes or empty list when none found.</returns>
+        internal abstract List<MEClass> FindAssociatedClasses(string childName, string childStereotype);
 
         /// <summary>
         /// Composite classes are associated with a diagram that shows the class composition. This method facilitates retrieval of 

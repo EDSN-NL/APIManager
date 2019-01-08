@@ -71,10 +71,10 @@ namespace APIManager.SparxEA
         /// Poll its members to retrieve model data and user interface status information.</param>
         public override void EA_FileOpen(EA.Repository repository)
         {
-            const string DBTypeTag = "DBType=";
+            const string DBTypeTag = "dbtype=";
             ModelSlt model = ModelSlt.GetModelSlt(); 
             Logger.WriteInfo("SparxEA.Controller.EAController.EA_FileOpen >> Project file is being opened, determine repository type...");
-            string connectionString = repository.ConnectionString;
+            string connectionString = repository.ConnectionString.ToLower();
 
             if (connectionString.Contains("eap")) model.ModelRepositoryType = ModelSlt.RepositoryType.Local;
             else

@@ -36,8 +36,8 @@ namespace Plugin.Application.CapabilityModel.API
         private List<string> _consumedMIMETypes;                // List of non-standard MIME types consumed by the operation.
         private RESTResourceCapability _requestBodyDocument;    // If the operation has a request body, this is the associated Document Resource.
         private RESTResourceCapability _responseBodyDocument;   // If the operation has a response body, this is the associated Document Resource.
-        private bool _hasMultipleResponses;                     // True if the default Ok response has multiple response documents.
-        private bool _hasMultipleRequests;                      // True if the request body has multiple elements.
+        private Cardinality _requestCardinality;                // Cardinality of request body document. Only valid if requestBodyDocument is specified.
+        private Cardinality _responseCardinality;               // Cardinality of response body document. Only valid if responseBodyDocument is specified.
         private bool _useHeaderParameters;                      // Set to 'true' when operation muse use configured Header Parameters.
         private bool _useLinkHeaders;                           // Set to 'true' when the response must contain a definition for Link Headers.
         private bool _hasPagination;                            // Set to 'true' when the operation uses pagination.
@@ -52,7 +52,8 @@ namespace Plugin.Application.CapabilityModel.API
         /// ParentResource = The resource that 'owns' this operation.
         /// RequestBodyDocument = If the operation has a request body, this returns the associated Document Resource.
         /// ResponseBodyDocument = If the operation has a default Ok response body, this gets/sets the associated Document Resource.
-        /// HasMultipleResponses = True if the default OK response has multiple response body elements.
+        /// RequestCardinality = Cardinality of request document (valid only if RequestBodyDocument is not NULL).
+        /// ResponseCardinality = Cardinality of response document (valid only if ResponseBodyDocument is not NULL).
         /// HasPagination = True of the operation has pagination support.
         /// </summary>
         internal HTTPOperation HTTPOperationType                { get { return this._operationType; } }
@@ -67,8 +68,8 @@ namespace Plugin.Application.CapabilityModel.API
             get { return this._responseBodyDocument; }
             set { this._responseBodyDocument = value; }
         }
-        internal bool HasMultipleRequests                       { get { return this._hasMultipleRequests; } }
-        internal bool HasMultipleResponses                      { get { return this._hasMultipleResponses; } }
+        internal Cardinality RequestCardinality                 { get { return this._requestCardinality; } }
+        internal Cardinality ResponseCardinality                { get { return this._responseCardinality; } }
         internal bool HasPagination                             { get { return this._hasPagination; } }
 
         /// <summary>
@@ -187,7 +188,7 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         string roleName = RESTUtil.GetAssignedRoleName(this._requestBodyDocument.CapabilityClass.Name);
                         if (roleName.EndsWith("Type")) roleName = roleName.Substring(0, roleName.IndexOf("Type"));
-                        string cardinality = operation.RequestBodyCardinalityIndicator ? "1..*" : "1";
+                        string cardinality = operation.RequestCardinality.ToString();
                         var componentEndpoint = new EndpointDescriptor(this._requestBodyDocument.CapabilityClass, cardinality, roleName, null, true);
                         model.CreateAssociation(operationEndpoint, componentEndpoint, MEAssociation.AssociationType.MessageAssociation);
                     }
@@ -200,7 +201,7 @@ namespace Plugin.Application.CapabilityModel.API
                         {
                             // If we need a response body, this must be linked to the default success result capability.
                             // We assign the associated document class with the result parameter so it will be linked to the result class.
-                            result.HasMultipleResponses = operation.ResponseBodyCardinalityIndicator;
+                            result.ResponseCardinality = operation.ResponseCardinality;
                             result.ResponseDocumentClass = this._responseBodyDocument.CapabilityClass;
                         }
                         RESTOperationResultCapability newResult = new RESTOperationResultCapability(myInterface, result);
@@ -258,6 +259,8 @@ namespace Plugin.Application.CapabilityModel.API
                 ContextSlt context = ContextSlt.GetContextSlt();
                 this._parent = parentResource;
                 this._capabilityClass = hierarchy.Data;
+                this._requestCardinality = new Cardinality();
+                this._responseCardinality = new Cardinality();
                 this._assignedRole = parentResource.FindChildClassRole(this._capabilityClass.Name, context.GetConfigProperty(_RESTOperationClassStereotype));
                 string operationArchetype = this._capabilityClass.GetTag(context.GetConfigProperty(_ArchetypeTag));
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (existing) >> Operation is of archetype: '" + operationArchetype + "'...");
@@ -298,7 +301,7 @@ namespace Plugin.Application.CapabilityModel.API
                             this._capabilityClass = null;
                             return;
                         }
-                        if (resultCap.ResultCode == defaultSuccess) this._hasMultipleResponses = resultCap.HasMultipleResponses;
+                        if (resultCap.ResultCode == defaultSuccess) this._responseCardinality = resultCap.ResponseCardinality;
                     }
                     else if (node.Data.HasStereotype(resourceStereotype))
                     {
@@ -324,8 +327,7 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         if (this._requestBodyDocument != null && association.Destination.EndPoint.Name == this._requestBodyDocument.Name)
                         {
-                            Tuple<int, int> card = association.GetCardinality(MEAssociation.AssociationEnd.Destination);
-                            this._hasMultipleRequests = (card.Item2 == 0 || card.Item2 > 1);
+                            this._requestCardinality = new Cardinality(association.GetCardinality(MEAssociation.AssociationEnd.Destination));
                         }
                     }
                     else if (association.Destination.EndPoint.Name == paginationClassName)
@@ -496,11 +498,25 @@ namespace Plugin.Application.CapabilityModel.API
                     if (operation.RequestDocument != null)
                     {
                         this._requestBodyDocument = operation.RequestDocument;
+                        this._requestCardinality = operation.RequestCardinality;
                         string roleName = RESTUtil.GetAssignedRoleName(this._requestBodyDocument.CapabilityClass.Name);
                         if (roleName.EndsWith("Type")) roleName = roleName.Substring(0, roleName.IndexOf("Type"));
-                        string cardinality = operation.RequestBodyCardinalityIndicator ? "1..*" : "1";
+                        string cardinality = operation.RequestCardinality.ToString();
                         var componentEndpoint = new EndpointDescriptor(this._requestBodyDocument.CapabilityClass, cardinality, roleName, null, true);
                         model.CreateAssociation(operationEndpoint, componentEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                    }
+                }
+                else if (this._requestCardinality != operation.RequestCardinality && this._requestBodyDocument != null)
+                {
+                    // Request cardinality has changed, update existing association...
+                    foreach (MEAssociation assoc in this._capabilityClass.AssociationList)
+                    {
+                        if (assoc.Destination.EndPoint == this._requestBodyDocument.CapabilityClass)
+                        {
+                            this._requestCardinality = operation.RequestCardinality;
+                            assoc.SetCardinality(this._requestCardinality.CardTuple, MEAssociation.AssociationEnd.Destination);
+                            break;
+                        }
                     }
                 }
                 
@@ -530,9 +546,9 @@ namespace Plugin.Application.CapabilityModel.API
                             result.ResponseDocumentClass = newResponseClass;
                             result.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
                         }
-                        if (result.HasMultipleResponses != operation.ResponseBodyCardinalityIndicator)
+                        if (result.ResponseCardinality != operation.ResponseCardinality)
                         {
-                            result.HasMultipleResponses = operation.ResponseBodyCardinalityIndicator;
+                            result.ResponseCardinality = operation.ResponseCardinality;
                             result.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
                         }
                     }

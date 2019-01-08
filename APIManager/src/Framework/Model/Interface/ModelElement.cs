@@ -30,6 +30,10 @@ namespace Framework.Model
     /// </summary>
     internal abstract class ModelElement: IDisposable, IEquatable<ModelElement>
     {
+        // Two constants one might use in the 'SetTag' operation to clearly state intent for creation of new tag properties.
+        internal const bool CreateNewTag   = true;
+        internal const bool NoCreateNewTag = false;
+
         protected ModelElementImplementation _imp = null;   // The associated implementation object; does all the 'real' work.
         private bool _disposed;                             // Mark myself as invalid after call to dispose!
 
@@ -168,7 +172,7 @@ namespace Framework.Model
         /// <param name="tagValue">The (new) value of the tag.</param>
         /// <param name="createIfNotExist">When set to to 'true', the tag is created if it could not be found.</param>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal void SetTag(string tagName, string tagValue, bool createIfNotExist = false)
+        internal void SetTag(string tagName, string tagValue, bool createIfNotExist = NoCreateNewTag)
         {
             if (this._imp != null) this._imp.SetTag(tagName, tagValue, createIfNotExist);
             else throw new MissingImplementationException("ModelElementImplementation");

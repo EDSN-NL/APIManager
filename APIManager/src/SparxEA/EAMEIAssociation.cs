@@ -476,7 +476,7 @@ namespace SparxEA.Model
             }
 
             string newCard = card.Item1.ToString();
-            if (card.Item1 != card.Item2) newCard += ".." + (card.Item2 == 0 ? "*" : card.Item2.ToString());
+            if (card.Item1 != card.Item2 || card.Item2 == 0) newCard += ".." + (card.Item2 == 0 ? "*" : card.Item2.ToString());
 
             if (endpoint == MEAssociation.AssociationEnd.Source)
             {

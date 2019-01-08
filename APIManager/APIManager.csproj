@@ -158,6 +158,8 @@
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\SetMetadataEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\RepairAttributeOrderEvent.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Generic\HTTPOperation.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTResponseCodeCollectionMgr.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTResponseCodeCollection.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Generic\RESTSecuritySlt.cs" />
     <Compile Include="src\Application\CapabilityModel\API\OpenAPI20ProcessorOperationBuilder.cs" />
     <Compile Include="src\Application\CapabilityModel\API\OpenAPI20ProcessorHdrBuilder.cs" />
@@ -181,8 +183,9 @@
     <Compile Include="src\Application\CapabilityModel\API\RESTUtil.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Interface\RESTInterfaceCapability.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Implementation\RESTInterfaceCapabilityImp.cs" />
-    <Compile Include="src\Application\CapabilityModel\RMReleaseTicket.cs" />
-    <Compile Include="src\Application\CapabilityModel\RMTicket.cs" />
+    <Compile Include="src\Application\CapabilityModel\ReleaseManagement\RMReleaseTicket.cs" />
+    <Compile Include="src\Application\CapabilityModel\ReleaseManagement\RMTicket.cs" />
+    <Compile Include="src\Application\CapabilityModel\ReleaseManagement\RMServiceTicket.cs" />
     <Compile Include="src\Application\CapabilityModel\SchemaGeneration\ClassCacheSlt.cs" />
     <Compile Include="src\Application\CapabilityModel\SchemaGeneration\ClassifierContext.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Interface\CommonSchemaCapability.cs" />
@@ -207,6 +210,12 @@
     <Compile Include="src\Application\CapabilityModel\CodeList\ExcelExporter.cs" />
     <Compile Include="src\Application\CapabilityModel\ProgressPanelSlt.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Interface\OperationCapability.cs" />
+    <Compile Include="src\Application\Forms\RESTOperationResultCodeCollectionPicker.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTOperationResultCodeCollectionPicker.Designer.cs">
+      <DependentUpon>RESTOperationResultCodeCollectionPicker.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Application\Forms\CheckoutService.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -224,6 +233,18 @@
     </Compile>
     <Compile Include="src\Application\Forms\RepairStereotypeInput.Designer.cs">
       <DependentUpon>RepairStereotypeInput.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTResponseCodeCollectionSetEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTResponseCodeCollectionSetEdit.designer.cs">
+      <DependentUpon>RESTResponseCodeCollectionSetEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTResponseCodeCollectionEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTResponseCodeCollectionEdit.designer.cs">
+      <DependentUpon>RESTResponseCodeCollectionEdit.cs</DependentUpon>
     </Compile>
     <Compile Include="src\Framework\ConfigurationManagement\CMRepositoryDscMgrSlt.cs" />
     <Compile Include="src\Framework\ConfigurationManagement\Ticket.cs" />
@@ -317,6 +338,7 @@
     <Compile Include="src\Framework\SchemaManagement\SchemaAttribute.cs" />
     <Compile Include="src\Framework\SchemaManagement\Facet.cs" />
     <Compile Include="src\Framework\SchemaManagement\PrimitiveType.cs" />
+    <Compile Include="src\Framework\Util\Cardinality.cs" />
     <Compile Include="src\Framework\Util\CryptString.cs" />
     <Compile Include="src\Framework\Util\Compression.cs" />
     <Compile Include="src\Framework\ConfigurationManagement\CMOutOfSyncException.cs" />
@@ -600,6 +622,9 @@
     <EmbeddedResource Include="src\Application\Forms\AddInterfaceInput.resx">
       <DependentUpon>AddInterfaceInput.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\RESTOperationResultCodeCollectionPicker.resx">
+      <DependentUpon>RESTOperationResultCodeCollectionPicker.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="src\Application\Forms\CheckoutService.resx">
       <DependentUpon>CheckoutService.cs</DependentUpon>
     </EmbeddedResource>
@@ -614,6 +639,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Application\Forms\RepairStereotypeInput.resx">
       <DependentUpon>RepairStereotypeInput.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\RESTResponseCodeCollectionSetEdit.resx">
+      <DependentUpon>RESTResponseCodeCollectionSetEdit.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\RESTResponseCodeCollectionEdit.resx">
+      <DependentUpon>RESTResponseCodeCollectionEdit.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Application\Forms\RESTResponseCodeDialog.resx">
       <DependentUpon>RESTResponseCodeDialog.cs</DependentUpon>

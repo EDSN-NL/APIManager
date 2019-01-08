@@ -92,11 +92,12 @@ namespace Plugin.Application.CapabilityModel
         private Tuple<int,int> _version;                        // The current version of the service.
         private string _repositoryPath;                         // Absolute path to the root of our local repository.
         private string _serviceBuildPath;                       // Relative path to the location of service artifacts within the local repository.
+        // CMSTATE MOET NAAR CMCONTEXT, GEEN ONDERDEEL VAN DE SERVICE (ALLEEN INDIRECT)
         private CMContext _CMContext;                           // Configuration management context for this service.
         private CMState _configurationMgmtState;                // Current configuration management state for this service.
         private Diagram.ClassColor _representationColor;        // The color in which the Service Class must be drawn on diagrams.
         private bool _useCM;                                    // Set to 'true' if Configuration Management is enabled.
-        private RMTicket _ticket;                               // The ticket used for creation/modification of the service object.
+        private RMServiceTicket _ticket;                        // The ticket used for creation/modification of the service object.
 
         // Components that can be used to construct a namespace:
         private OperationalState _operationalState;             // Operational state as defined by a tag in the service, can be one
@@ -456,12 +457,14 @@ namespace Plugin.Application.CapabilityModel
         /// <returns>True when successfully checked-out (or CM not active for the service), false on errors.</returns>
         internal bool Checkout(string ticketID, string projectOrderID)
         {
+            // DEZE MOET ANDERS: ONTVANG EEN SERVICE TICKET ALS PARAMETER!
+            // TICKET OOK OPSLAAN IN CMCONTEXT EN NIET IN DE SERVICE!
             bool result = false;
             try
             {
                 if (this._CMContext != null && this._CMContext.CMEnabled)
                 {
-                    this._ticket = new RMTicket(ticketID, projectOrderID, this);
+                    this._ticket = new RMServiceTicket(ticketID, projectOrderID, this);
                     if (!this._ticket.Valid)
                     {
                         Logger.WriteError("Plugin.Application.CapabilityModel.Service.Checkout >> Attempt to checkout service '" + Name + 

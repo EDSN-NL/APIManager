@@ -56,7 +56,7 @@ namespace Plugin.Application.Events.API
             var myOperation = new RESTOperationCapability(svcContext.OperationClass);
             var myResource = new RESTResourceCapability(myOperation.Parent.CapabilityClass);
 
-            using (var dialog = new RESTOperationDialog(new RESTOperationDeclaration(myOperation), new RESTResourceDeclaration(myResource)))
+            using (var dialog = new RESTOperationDialog(myService, new RESTOperationDeclaration(myOperation), new RESTResourceDeclaration(myResource)))
             {
                 if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
                 {

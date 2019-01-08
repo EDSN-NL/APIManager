@@ -41,14 +41,14 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Returns 'true' in case cardinality of response body > 1. Undefined when no response body is available.
+        /// Returns the cardinality of a response document. Only valid in case such a document has been defined.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal bool HasMultipleResponses
+        internal Cardinality ResponseCardinality
         {
             get
             {
-                if (this._imp != null) return ((RESTOperationResultCapabilityImp)this._imp).HasMultipleResponses;
+                if (this._imp != null) return ((RESTOperationResultCapabilityImp)this._imp).ResponseCardinality;
                 else throw new MissingImplementationException("RESTOperationResultCapabilityImp");
             }
         }
