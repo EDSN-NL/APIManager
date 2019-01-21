@@ -316,8 +316,6 @@
 					<Tag name="externalPriority" type="string" description="Priority assigned to the ticket in the external ticket management system." unit="" values="" default=""/>
 					<Tag name="status" type="enumeration" description="" unit="" values="Open,Closed" default=""/>
 					<Tag name="releasedVersion" type="string" description="Service version (major.minor.build) associated with the ticket." unit="" values="" default=""/>
-					<Tag name="developmentRepositoryNS" type="string" description="Namespace of the associated development branch, MUST be in the same GitLab instance (same root URL)." unit="" values="" default=""/>
-					<Tag name="developmentBranchName" type="string" description="Name of the branch used by development (required for generation of the appropriate merge request)." unit="" values="" default=""/>
 				</TaggedValues>
 			</Stereotype>
 			<Stereotype name="UnionMember" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAssoc" baseStereotypes="ECDMAssoc">
