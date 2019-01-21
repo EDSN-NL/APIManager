@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="windows-1252"?>
 <UMLProfile profiletype="uml2">
-	<Documentation id="9B84831D-3" name="Enexis ECDM" version="4.5" notes="20170918:  Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109:  Vs 3.1:	Added support for 'nillable' elements.&#xA;20180110:  Vs 3.2:	Added 'alternativeNaming' tag to CommonSchema (SOAP backwards compatibility).&#xA;20180213: Vs 3.3:	Defines Service Archtetype and added _metatype to Service.&#xA;20180216: Vs 3.4:	Resource: removed 'isTag', added 'tagNames'.&#xA;20180308: Vs 4.0:	Implemented first draft of the Configuration Management Profile.&#xA;20180620: Vs 4.1:	Added another state to Service CM state: CheckedOut.&#xA;20180815: Vs 4.2: Added CM Ticket&#xA;20180913: Vs.4.3: Moved Representation Term to upper metadata.&#xA;20181220: Vs 4.4: Added the RESTResponseCodeCollection.&#xA;20190114: Vs 4.5: Added Service.CMTicketID"/>
+	<Documentation id="9B84831D-3" name="Enexis ECDM" version="4.5" notes="20170918:  Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109:  Vs 3.1:	Added support for 'nillable' elements.&#xA;20180110:  Vs 3.2:	Added 'alternativeNaming' tag to CommonSchema (SOAP backwards compatibility).&#xA;20180213: Vs 3.3:	Defines Service Archtetype and added _metatype to Service.&#xA;20180216: Vs 3.4:	Resource: removed 'isTag', added 'tagNames'.&#xA;20180308: Vs 4.0:	Implemented first draft of the Configuration Management Profile.&#xA;20180620: Vs 4.1:	Added another state to Service CM state: CheckedOut.&#xA;20180815: Vs 4.2: Added CM Ticket&#xA;20180913: Vs.4.3: Moved Representation Term to upper metadata.&#xA;20181220: Vs 4.4: Added the RESTResponseCodeCollection.&#xA;20190114: Vs 4.5: Added Service.ticketFQN"/>
 	<Content>
 		<Stereotypes>
 			<Stereotype name="ASMBIE" notes="Association Message Business Information Entity." cx="0" cy="0" bgcolor="11009769" fontcolor="3947580" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAssoc" baseStereotypes="ECDMAssoc"/>
@@ -296,7 +296,7 @@
 					<Tag name="maxOperationID" type="int" description="Each Operation that is added to a Service receives a unique sequence number or operationID. In order to keep track of these ID's, the Service maintains the latest index used so far as 'maxOperationID'. OperationID's are never reclaimed, so when an Operation is removed, it's ID won't be re-used." unit="" values="" default=""/>
 					<Tag name="CMState" type="enumeration" description="" unit="" values="Committed,Created,Disabled,Modified,Released,CheckedOut" default="Disabled"/>
 					<Tag name="CMBranch" type="string" description="Contains the name of the Configuration Management Branch on which the service is tracked." unit="" values="" default=""/>
-					<Tag name="CMTicketID" type="string" description="Contains the ID of the currently open ticket for this Service (if any)." unit="" values="" default=""/>
+					<Tag name="ticketFQN" type="string" description="Contains the Fully Qualified Name of the currently open ticket for this Service (if any)." unit="" values="" default=""/>
 				</TaggedValues>
 			</Stereotype>
 			<Stereotype name="ServiceActor" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="-1" bordercolor="-1" borderwidth="1" hideicon="0" generalizes="ECDMMeta" baseStereotypes="ECDMMeta">
@@ -314,7 +314,7 @@
 					<Tag name="externalStatusCode" type="string" description="Ticket status in external ticket management system." unit="" values="" default=""/>
 					<Tag name="typeCode" type="enumeration" description="" unit="" values="RootTicket,SubordinateTicket,Ticket" default=""/>
 					<Tag name="externalPriority" type="string" description="Priority assigned to the ticket in the external ticket management system." unit="" values="" default=""/>
-					<Tag name="status" type="enumeration" description="" unit="" values="Open,Closed,MergeRequest" default=""/>
+					<Tag name="status" type="enumeration" description="" unit="" values="Open,Closed" default=""/>
 					<Tag name="releasedVersion" type="string" description="Service version (major.minor.build) associated with the ticket." unit="" values="" default=""/>
 					<Tag name="developmentRepositoryNS" type="string" description="Namespace of the associated development branch, MUST be in the same GitLab instance (same root URL)." unit="" values="" default=""/>
 					<Tag name="developmentBranchName" type="string" description="Name of the branch used by development (required for generation of the appropriate merge request)." unit="" values="" default=""/>
