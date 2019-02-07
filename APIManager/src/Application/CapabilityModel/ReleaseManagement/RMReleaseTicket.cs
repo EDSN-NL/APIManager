@@ -25,9 +25,29 @@ namespace Plugin.Application.CapabilityModel
         private const string _RMTicketRole                  = "RMTicketRole";
         private const string _RMServiceRole                 = "RMServiceRole";
         private const string _RMReleaseVersionNumberTag     = "RMReleaseVersionNumberTag";
+        private const string _RMReleaseIDPrefix             = "RMReleaseIDPrefix";
+        private const string _RMCreationTimestampTag        = "RMCreationTimestampTag";
+        private const string _RMModificationTimestampTag    = "RMModificationTimestampTag";
 
         private int _releaseVersion;                        // Multiple releases based on the same ticket increment this number.
         private RMServiceTicket _serviceTicket;             // Associated service ticket for this release.
+
+        /// <summary>
+        /// Returns the release version number for this ticket.
+        /// </summary>
+        internal int ReleaseVersion { get { return this._releaseVersion; } }
+
+        /// <summary>
+        /// Returns the release identifier string for this release. Format of this identifier is:
+        /// [prefix]/[Ticket-ID].[Release-Version]. Example: "release/CSTI-2345.01"
+        /// </summary>
+        internal string ReleaseID
+        {
+            get
+            {
+                return ContextSlt.GetContextSlt().GetConfigProperty(_RMReleaseIDPrefix) + "/" + ID + "." + this._releaseVersion.ToString("00");
+            }
+        }
 
         /// <summary>
         /// Returns the qualified Ticket Identifier, which is a combination of ticket-project name, ticket ID and release version, formatted as:
@@ -84,6 +104,9 @@ namespace Plugin.Application.CapabilityModel
                 throw new ArgumentException(message);
             }
             this._serviceTicket = serviceTicket;
+
+            // We now set the modification date/time of the release ticket to the current date and time...
+            this.TicketClass.SetTag(context.GetConfigProperty(_RMModificationTimestampTag), DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
         }
 
         /// <summary>
@@ -164,6 +187,9 @@ namespace Plugin.Application.CapabilityModel
                 releaseAssoc.AddStereotype(assocStereotype, MEAssociation.AssociationEnd.Association);
                 ticketAssoc.AddStereotype(assocStereotype, MEAssociation.AssociationEnd.Association);
 
+                // We now set the modification date/time of the release ticket to the current date and time...
+                this.TicketClass.SetTag(context.GetConfigProperty(_RMModificationTimestampTag), DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+
                 // Update the diagram to show the new ticket association....
                 var diagramAssocList = new List<MEAssociation>();
                 var diagramClassList = new List<MEClass>();
@@ -173,6 +199,13 @@ namespace Plugin.Application.CapabilityModel
                 this.TicketDiagram.AddClassList(diagramClassList);
                 this.TicketDiagram.AddAssociationList(diagramAssocList);
                 this.TicketDiagram.Redraw();
+            }
+            
+            if (!IsExistingTicket)
+            {
+                // For new tickets, we set both the creation- and modification timestamps to the current date and time...
+                TicketClass.SetTag(context.GetConfigProperty(_RMModificationTimestampTag), DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+                TicketClass.SetTag(context.GetConfigProperty(_RMCreationTimestampTag), DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
             }
         }
 
@@ -211,7 +244,7 @@ namespace Plugin.Application.CapabilityModel
 
         /// <summary>
         /// Creates a new instance of an UML Release Ticket Class in the specified package and diagram. We don't need to load all tags since this
-        /// will be coordinated by te base class.
+        /// will be coordinated by the base class.
         /// </summary>
         /// <param name="ticketPackage">Package that should contain the new ticket.</param>
         /// <param name="ticketDiagram">Diagram that should show the new ticket.</param>
@@ -287,6 +320,7 @@ namespace Plugin.Application.CapabilityModel
             base.UpdateTicket();   // First of all, we copy the generic properties
 
             TicketClass.SetTag(ContextSlt.GetContextSlt().GetConfigProperty(_RMReleaseVersionNumberTag), this._releaseVersion.ToString());
+            TicketClass.SetTag(ContextSlt.GetContextSlt().GetConfigProperty(_RMModificationTimestampTag), DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
         }
 
         /// <summary>

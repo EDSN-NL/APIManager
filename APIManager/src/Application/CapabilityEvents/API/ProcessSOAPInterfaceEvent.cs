@@ -52,19 +52,38 @@ namespace Plugin.Application.Events.API
             Logger.WriteInfo("Plugin.Application.Events.API.ProcessSOAPInterfaceEvent.HandleEvent >> Message processing...");
             ContextSlt context = ContextSlt.GetContextSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
+            string errorMsg = string.Empty;
+            bool isError = false;
 
+            // Perform a series of precondition tests...
             if (!svcContext.Valid)
             {
-                Logger.WriteError("Plugin.Application.Events.API.ProcessSOAPInterfaceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
-                return;
+                errorMsg = "Illegal or corrupt context, operation aborted!";
+                isError = true;
             }
-            else if (svcContext.Type != Service.ServiceArchetype.SOAP)
+            else if (svcContext.Type != Service.ServiceArchetype.SOAP) errorMsg = "Operation only suitable for SOAP Services!";
+            else if (!Service.UpdateAllowed(svcContext.ServiceClass)) errorMsg = "Service must be in checked-out state for processing to be allowed!";
+            else if (!svcContext.LockModel())
             {
-                Logger.WriteWarning("Operation only suitable for SOAP Services!");
-                return;
+                errorMsg = "Unable to lock the model!";
+                isError = true;
             }
 
-            if (!svcContext.LockModel()) return;    // If we can't lock the model, there's no use to continue.
+            if (errorMsg != string.Empty)
+            {
+                if (isError)
+                {
+                    Logger.WriteError("Plugin.Application.Events.API.ProcessSOAPInterfaceEvent.HandleEvent >> " + errorMsg);
+                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    Logger.WriteWarning(errorMsg);
+                    MessageBox.Show(errorMsg, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                svcContext.UnlockModel();
+                return;
+            }
 
             // Creating the SOAPService will construct the entire Capability hierarchy in memory. We can subsequently create any specialized Capability
             // object by using the 'MEClass' constructor, which fetches the appropriate implementation object from the registry...

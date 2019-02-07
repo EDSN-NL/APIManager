@@ -46,6 +46,7 @@ namespace SparxEA.View
                 this._diagramID = diagramID;
                 this._globalID = string.Empty;
                 this._owningPackage = null;
+                InValidate();
             }
         }
 
@@ -74,6 +75,7 @@ namespace SparxEA.View
                 this._diagramID = -1;
                 this._globalID = string.Empty;
                 this._owningPackage = null;
+                InValidate();
             }
         }
 
@@ -319,14 +321,23 @@ namespace SparxEA.View
 
             for (short i = 0; i < this._diagram.DiagramObjects.Count; i++)
             {
-                EA.DiagramObject diagramObject = ((EA.DiagramObject)this._diagram.DiagramObjects.GetAt(i));
-                if (diagramObject.ElementID == thisClass.ElementID)
+                try
                 {
-                    Logger.WriteInfo("SparxEA.View.EADiagramImplementation.SetClassColor >> Found class '" + 
-                                     thisClass.Name + "', changing color to '" + color + "'...");
-                    diagramObject.BackgroundColor = colorID;
-                    diagramObject.Update();
-                    break;
+                    EA.DiagramObject diagramObject = ((EA.DiagramObject)this._diagram.DiagramObjects.GetAt(i));
+                    if (diagramObject.ElementID == thisClass.ElementID)
+                    {
+                        Logger.WriteInfo("SparxEA.View.EADiagramImplementation.SetClassColor >> Found class '" +
+                                         thisClass.Name + "', changing color to '" + color + "'...");
+                        diagramObject.BackgroundColor = colorID;
+                        diagramObject.Update();
+                        break;
+                    }
+                }
+                catch (System.Runtime.InteropServices.COMException exc)
+                {
+                    // If we delete stuff from an existing diagram and then search for a class, we might get COM errors 'cause the element cache
+                    // is not up-to-date with the actual diagram contents. We simply ignore these (but write a message to the log, just in case)...
+                    Logger.WriteInfo("SparxEA.View.EADiagramImplementation.SetClassColor >> Got a COMException:" + Environment.NewLine + exc.ToString());
                 }
             }
         }

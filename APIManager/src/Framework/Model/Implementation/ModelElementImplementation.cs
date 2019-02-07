@@ -123,7 +123,7 @@ namespace Framework.Model
             }
             catch (Exception exc)
             {
-                Logger.WriteError("SparxEA.Model.ModelElementImplementation.getDocumentation >> Caught an exception: " + exc.Message);
+                Logger.WriteError("SparxEA.Model.ModelElementImplementation.getDocumentation >> Caught an exception: " + exc.ToString());
             }
             return null;
         }
@@ -154,7 +154,7 @@ namespace Framework.Model
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Framework.Model.ModelElementImplementation.removeReference >> Caught exception: " + exc.Message);
+                Logger.WriteError("Framework.Model.ModelElementImplementation.removeReference >> Caught exception: " + exc.ToString());
             }
         }
 

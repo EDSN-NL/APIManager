@@ -226,7 +226,7 @@ namespace APIManager.SparxEA
                 }
                 catch (Exception exc)
                 {
-                    Logger.WriteError("SparxEA.Controller.EAController.EA_GetMenuState >> Caught an exception: " + exc.Message);
+                    Logger.WriteError("SparxEA.Controller.EAController.EA_GetMenuState >> Caught an exception: " + exc.ToString());
                 }
             }
             isEnabled = state;
@@ -286,7 +286,7 @@ namespace APIManager.SparxEA
             }
             catch (Exception exc)
             {
-                Logger.WriteError("SparxEA.Controller.EAController.EA_MenuClick >> Caught an exception: " + exc.Message);
+                Logger.WriteError("SparxEA.Controller.EAController.EA_MenuClick >> Caught an exception: " + exc.ToString());
             }
         }
 
@@ -445,7 +445,7 @@ namespace APIManager.SparxEA
             }
             catch (Exception exc)
             {
-                Logger.WriteError("SparxEA.Controller.EAController.getMenuItems >> Caught an exception: " + exc.Message);
+                Logger.WriteError("SparxEA.Controller.EAController.getMenuItems >> Caught an exception: " + exc.ToString());
             }
             return null;
         }

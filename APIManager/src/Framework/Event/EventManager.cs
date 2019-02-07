@@ -199,7 +199,7 @@ namespace Framework.Event
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Framework.Event.EventManager.isValidState >> Caught an exception: " + exc.Message);
+                Logger.WriteError("Framework.Event.EventManager.isValidState >> Caught an exception: " + exc.ToString());
                 result = false;
             }
             return result;
@@ -231,7 +231,7 @@ namespace Framework.Event
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Framework.Event.EventManager.createEvent >> Caught an exception: " + exc.Message);
+                Logger.WriteError("Framework.Event.EventManager.createEvent >> Caught an exception: " + exc.ToString());
             }
             return handlerEvent;
         }

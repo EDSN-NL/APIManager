@@ -45,7 +45,7 @@ namespace Plugin.Application.Forms
                 }
                 catch (Exception exc)
                 {
-                    Logger.WriteError("Plugin.Application.Forms.CapabilityDocumentation.FileOpen_Click >> Error opening file because: " + Environment.NewLine + exc.Message);
+                    Logger.WriteError("Plugin.Application.Forms.CapabilityDocumentation.FileOpen_Click >> Error opening file because: " + Environment.NewLine + exc.ToString());
                 }
             }
         }

@@ -2,6 +2,7 @@
 using System.Configuration;
 using System.Security;
 using System.Diagnostics;
+using System.Web;
 using LibGit2Sharp;
 using Framework.Context;
 using Framework.Logging;
@@ -16,11 +17,13 @@ namespace Framework.ConfigurationManagement
     /// </summary>
     sealed internal class RemoteRepository
     {
-        private const string _RemoteName = "origin";                // The default name we use for our remote GIT repository.
+        // some constants...
+        private const string _RemoteName                            = "origin";
+        private const string _TagExists                             = "tag already exists";
+        private const string _NonFastForwardableRef                 = "cannot push non-fastforwardable reference";
 
         // Configuration settings used by this module...
-        private const string _CMAPIVersion                          = "CMAPIVersion";
-        private const string _CMRemoteGITExtension                  = "CMRemoteGITExtension";
+        private const string _CMGitLabAPIURLSuffix                  = "CMGitLabAPIURLSuffix";
 
         // These are a set of configuration properties, read from the applicable repository descriptor.
         private SecureString _password;                             // Configured remote user password.
@@ -64,8 +67,8 @@ namespace Framework.ConfigurationManagement
 
             if (string.IsNullOrEmpty(this._repositoryBaseURL) || string.IsNullOrEmpty(this._repositoryNamespace))
             {
-                string message = "Framework.ConfigurationManagement.RemoteRepository >> Configuration items are not properly initialized!";
-                Logger.WriteError(message);
+                string message = "Configuration items are not properly initialized!";
+                Logger.WriteError("Framework.ConfigurationManagement.RemoteRepository >> " + message);
                 throw new ConfigurationErrorsException(message);
             }
 
@@ -135,10 +138,10 @@ namespace Framework.ConfigurationManagement
             catch (Exception exc)
             {
                 if (exc.InnerException is ConfigurationErrorsException) throw;
-                string message = "Framework.ConfigurationManagement.RemoteRepository.Clone >> Unable to clone remote repository to local path '" + 
+                string message = "Unable to clone remote repository to local path '" + 
                                  localRepositoryRootPath + "' because: " + Environment.NewLine + exc.Message;
-                Logger.WriteError(message);
-                throw new ArgumentException(message);
+                Logger.WriteError("Framework.ConfigurationManagement.RemoteRepository.Clone >> " + message);
+                throw new ArgumentException(message, exc);
             }
         }
 
@@ -155,9 +158,34 @@ namespace Framework.ConfigurationManagement
         }
 
         /// <summary>
+        /// Deletes the specified tag from remote.
+        /// </summary>
+        /// <param name="tag">The tag that must be deleted.</param>
+        internal void DeleteTag(LibGit2Sharp.Tag tag)
+        {
+            Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository.DeleteTag >> Deleting tag '" + tag.FriendlyName + "' from remote...");
+            var pushOpts = new PushOptions();
+            pushOpts.CredentialsProvider = (url, user, cred) => _remoteCredentials;
+            this._repository.Network.Push(this._myRemote, pushRefSpec: ":" + tag.CanonicalName, pushOptions: pushOpts);
+        }
+
+        /// <summary>
+        /// Fetch all tags from remote.
+        /// </summary>
+        internal void FetchTags()
+        {
+            Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository.FetchTags >> Going to fetch tags from remote...");
+
+            var fetchOptions = new FetchOptions();
+            fetchOptions.CredentialsProvider = (url, user, cred) => _remoteCredentials;
+            Signature authorSig = new Signature(this._myIdentity, DateTime.Now);
+            Commands.Fetch(this._repository, this._myRemote.Name, new[]{"refs/tags/*:refs/tags/*"}, fetchOptions, "Retrieve tags from remote");
+        }
+
+        /// <summary>
         /// Pull all changed data from the tracked branches on my remote repository and merge on my current branch.
         /// </summary>
-        /// <exception cref="ArgumentException">Thrown when the pull resulted in merge conflicts.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the pull resulted in merge conflicts.</exception>
         internal void Pull()
         {
             Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository.Pull >> Going to pull from remote...");
@@ -169,9 +197,9 @@ namespace Framework.ConfigurationManagement
             MergeResult result = Commands.Pull(this._repository, authorSig, pullOptions);
             if (result.Status == MergeStatus.Conflicts)
             {
-                string message = "Framework.ConfigurationManagement.RemoteRepository.Pull >> Unable to pull from remote due to merge conflicts!";
-                Logger.WriteError(message);
-                throw new ArgumentException(message);
+                string message = "Unable to pull from remote due to merge conflicts!";
+                Logger.WriteError("Framework.ConfigurationManagement.RemoteRepository.Pull >> " + message);
+                throw new InvalidOperationException(message);
             }
         }
 
@@ -182,15 +210,17 @@ namespace Framework.ConfigurationManagement
         /// <exception cref="CMOutOfSyncException">Exception is trown on duplicate tags, which typically implies that build numbers are out of sync.</exception>
         internal void Push(LibGit2Sharp.Branch branch, string tagName, string message)
         {
+            PushOptions pushOptions = null;
+            LibGit2Sharp.Tag tag = null;
             try
             {
                 Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository.Push >> Going to push changes on branch '" +
                                   branch.FriendlyName + "' to remote, using tag '" + tagName + "'...");
 
                 // Create an annotated tag for the most recent commit...
-                LibGit2Sharp.Tag tag = this._repository.ApplyTag(tagName, new Signature(this._myIdentity, DateTime.Now), message);
+                tag = this._repository.ApplyTag(tagName, new Signature(this._myIdentity, DateTime.Now), message);
 
-                var pushOptions = new PushOptions();
+                pushOptions = new PushOptions();
                 pushOptions.CredentialsProvider = (url, user, cred) => _remoteCredentials;
                 this._repository.Network.Push(branch, pushOptions);
                 this._repository.Network.Push(this._myRemote, tag.CanonicalName, pushOptions);
@@ -198,12 +228,13 @@ namespace Framework.ConfigurationManagement
             catch (Exception exc)
             {
                 Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository.Push(tag,msg) >> Caught exception: " + exc.Message);
-                if (exc.Message.Contains("tag already exists")) throw new CMOutOfSyncException("Existing tag '" + tagName + "' at remote!");
-                else if (exc.Message.Contains("cannot push non-fastforwardable reference"))
+                if (exc.Message.Contains(_TagExists)) throw new CMOutOfSyncException("Existing tag '" + tagName + "' at remote!");
+                else if (exc.Message.Contains(_NonFastForwardableRef))
                 {
-                    Logger.WriteWarning("Local repository is behind remote, pulling fresh data...");
+                    Logger.WriteWarning("Local repository is behind remote, pulling fresh data and retrying...");
                     Pull();
-                    Push(branch);
+                    this._repository.Network.Push(branch, pushOptions);
+                    this._repository.Network.Push(this._myRemote, tag.CanonicalName, pushOptions);
                 }
                 else throw;
             }
@@ -226,9 +257,9 @@ namespace Framework.ConfigurationManagement
             catch (Exception exc)
             {
                 Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository.Push >> Caught exception: " + exc.Message);
-                if (exc.Message.Contains("cannot push non-fastforwardable reference"))
+                if (exc.Message.Contains(_NonFastForwardableRef))
                 {
-                    Logger.WriteWarning("Local repository is behind remote, pulling fresh data...");
+                    Logger.WriteWarning("Local repository is behind remote, pulling fresh data and retrying...");
                     Pull();
                     Push(branch);
                 }

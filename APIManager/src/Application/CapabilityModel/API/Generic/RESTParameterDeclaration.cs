@@ -464,7 +464,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.RestParameterDeclaration.Serialize >> Serialization failed because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.RestParameterDeclaration.Serialize >> Serialization failed because: " + exc.ToString());
             }
             return string.Empty;
         }
@@ -501,7 +501,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.RestParameterDeclaration.Deserialize >> Deserialization failed because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.RestParameterDeclaration.Deserialize >> Deserialization failed because: " + exc.ToString());
             }
             return null;
         }

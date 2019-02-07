@@ -46,10 +46,10 @@ namespace Plugin.Application.Events.API
                         // Invoke the Application Service 'create' constructor in order to create the entire service structure...
                         var svc = new ApplicationService(containerPackage, dialog.ServiceName, dialog.OperationList,
                                                          context.GetConfigProperty(_ServiceDeclPkgStereotype),
-                                                         dialog.SelectedState);
+                                                         dialog.SelectedState, dialog.RemoteTicket, dialog.ProjectID);
                         if (svc.Valid)
                         {
-                            if (svc.UseConfigurationMgmt && !svc.Checkout(dialog.TicketID, dialog.ProjectID))
+                            if (svc.UseConfigurationMgmt && !svc.Checkout(svc.Ticket))
                                 MessageBox.Show("Unable to checkout the new service, please check configuration settings!",
                                                 "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             svc.Paint(svc.ModelPkg.FindDiagram(svc.ModelPkg.Name));

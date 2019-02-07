@@ -252,7 +252,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.processCapability >> Caught exception: " + exc);
+                Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.processCapability >> Caught exception: " + exc.ToString());
                 result = false;
             }
             return result;
@@ -367,7 +367,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
             }
             catch (Exception exc)
             {
-                string msg = "Caught exception while building schema:" + Environment.NewLine + exc.Message;
+                string msg = "Caught exception while building schema:" + Environment.NewLine + exc.ToString();
                 Logger.WriteError("CPlugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.BuildSchema >> " + msg);
                 return false;
             }

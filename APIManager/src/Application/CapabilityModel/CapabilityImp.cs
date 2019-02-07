@@ -250,7 +250,7 @@ namespace Plugin.Application.CapabilityModel
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.CapabilityImp.findChildClass >> Caught exception: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.CapabilityImp.findChildClass >> Caught exception: " + exc.ToString());
             }
             return null;
         }
@@ -376,7 +376,7 @@ namespace Plugin.Application.CapabilityModel
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.CapabilityImp.handleCapabilities >> Exception caught during pre-processing: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.CapabilityImp.handleCapabilities >> Exception caught during pre-processing: " + exc.ToString());
                 HandleCapabilities(processor, ProcessingStage.Cancel);
                 result = false;
             }

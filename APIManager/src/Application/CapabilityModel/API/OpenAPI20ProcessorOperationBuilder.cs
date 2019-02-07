@@ -290,7 +290,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.GetResponsePaginationClass >> Caught an exception: '" + exc.Message + "'!");
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.GetResponsePaginationClass >> Caught an exception: '" + exc.ToString());
                 responseClass = null;
             }
             return responseClass;
@@ -634,7 +634,6 @@ namespace Plugin.Application.CapabilityModel.API
             // to this class in the OpenAPI definition response parameter. Reason: not all frameworks support a 'response object' in the response
             // parameter...
             MEClass paginationClass = GetResponsePaginationClass();
-            string token = context.GetConfigProperty(_SchemaTokenName) + ":" + paginationClass.Name;
 
             // Next, Locate the associated business component. We can't check by name since it might have used an Alias name...
             // We should accept BOTH BusinessComponents (from domain profiles) OR Message Business Information Entities (message 'specials').
@@ -664,14 +663,13 @@ namespace Plugin.Application.CapabilityModel.API
                 var source = new EndpointDescriptor(paginationClass, "1", paginationClass.Name, null, false);
                 var target = new EndpointDescriptor(payload, assocCard, roleName, null, true);
                 paginationClass.CreateAssociation(source, target, MEAssociation.AssociationType.MessageAssociation);
-                qualifiedClassName = this._schema.ProcessClass(paginationClass, token);
+                qualifiedClassName = this._schema.ProcessClass(paginationClass, context.GetConfigProperty(_SchemaTokenName) + ":" + paginationClass.Name);
                 cardinality = new Cardinality(1, 1);    // Response is mandatory object and actual cardinality with payload has been solved otherwise.
             }
             else
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> No pagination, simple reference...");
-                token = context.GetConfigProperty(_SchemaTokenName) + ":" + documentResourceClass.Name;
-                qualifiedClassName = this._schema.ProcessClass(payload, token);
+                qualifiedClassName = this._schema.ProcessClass(payload, context.GetConfigProperty(_SchemaTokenName) + ":" + documentResourceClass.Name);
             }
 
             if (qualifiedClassName != string.Empty)

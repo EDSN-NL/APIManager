@@ -32,29 +32,37 @@ namespace Plugin.Application.Events.API
             ModelSlt model = ModelSlt.GetModelSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
             MEClass resourceClass = svcContext.ResourceClass;
+            string errorMsg = string.Empty;
+            bool isError = false;
 
+            // Perform a series of precondition tests...
             if (!svcContext.Valid || svcContext.MyDiagram == null || resourceClass == null)
             {
-                Logger.WriteError("Plugin.Application.Events.API.EditRESTResourceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
-                return;
+                errorMsg = "Illegal or corrupt context, operation aborted!";
+                isError = true;
             }
-            else if (svcContext.Type != Service.ServiceArchetype.REST)
+            else if (svcContext.Type != Service.ServiceArchetype.REST) errorMsg = "Operation only suitable for REST Services!";
+            else if (!Service.UpdateAllowed(svcContext.ServiceClass)) errorMsg = "Service must be in checked-out state for resources to be modified!";
+            else if (svcContext.MyDiagram.OwningPackage != svcContext.ResourceClass.OwningPackage) errorMsg = "A Resource can only be edited from its owning diagram!";
+            else if (!svcContext.LockModel())
             {
-                Logger.WriteWarning("Operation only suitable for REST Services!");
-                return;
-            }
-            
-            // Check if we are on the owning diagram of the resource...  
-            if (svcContext.MyDiagram.OwningPackage != svcContext.ResourceClass.OwningPackage)
-            {
-                Logger.WriteWarning("A Resource can only be edited from its owning diagram!");
-                return;
+                errorMsg = "Unable to lock the model!";
+                isError = true;
             }
 
-            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
-            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            if (errorMsg != string.Empty)
             {
-                Logger.WriteWarning("Service must be in checked-out state for resources to be modified!");
+                if (isError)
+                {
+                    Logger.WriteError("Plugin.Application.Events.API.EditRESTResourceEvent.HandleEvent >> " + errorMsg);
+                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    Logger.WriteWarning(errorMsg);
+                    MessageBox.Show(errorMsg, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                svcContext.UnlockModel();
                 return;
             }
 

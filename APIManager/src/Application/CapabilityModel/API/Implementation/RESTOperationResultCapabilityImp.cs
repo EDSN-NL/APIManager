@@ -163,7 +163,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.OperationResultCapabilityImp (existing) >> Error creating capability because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.OperationResultCapabilityImp (existing) >> Error creating capability because: " + exc.ToString());
                 this._capabilityClass = null;   // Assures that instance is declared invalid.
             }
         }

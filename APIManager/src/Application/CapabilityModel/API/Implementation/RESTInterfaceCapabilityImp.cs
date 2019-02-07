@@ -173,7 +173,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTInterfaceCapabilityImp (create) >> Error creating capability because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTInterfaceCapabilityImp (create) >> Error creating capability because: " + exc.ToString());
                 this._capabilityClass = null;   // Assures that instance is declared invalid.
             }
         }
@@ -218,7 +218,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTInterfaceCapabilityImp (existing) >> Error creating capability because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTInterfaceCapabilityImp (existing) >> Error creating capability because: " + exc.ToString());
                 this._capabilityClass = null;   // Assures that instance is declared invalid.
             }
         }
@@ -271,7 +271,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTInterfaceCapabilityImp.AddResources >> Exception caught: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTInterfaceCapabilityImp.AddResources >> Exception caught: " + exc.ToString());
                 result = false;
             }
             return result;

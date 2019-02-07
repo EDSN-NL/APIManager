@@ -55,49 +55,69 @@ namespace Plugin.Application.Events.API
             ContextSlt context = ContextSlt.GetContextSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
 
+
+
+            string errorMsg = string.Empty;
+            bool isError = false;
+
+            // Perform a series of precondition tests...
             if (!svcContext.Valid)
             {
-                Logger.WriteError("Plugin.Application.Events.API.ProcessMessageEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
-                return;
+                errorMsg = "Illegal or corrupt context, operation aborted!";
+                isError = true;
             }
-            else if (svcContext.Type != Service.ServiceArchetype.SOAP)
+            else if (svcContext.Type != Service.ServiceArchetype.SOAP) errorMsg = "Operation only suitable for SOAP Services!";
+            else if (!Service.UpdateAllowed(svcContext.ServiceClass)) errorMsg = "Service must be in checked-out state for messages to be processed!";
+            else if (!svcContext.LockModel())
             {
-                Logger.WriteWarning("Operation only suitable for SOAP Services!");
-                return;
+                errorMsg = "Unable to lock the model!";
+                isError = true;
             }
 
-            if (svcContext.LockModel())
+            if (errorMsg != string.Empty)
             {
-                // Creating the ApplicationService will construct the entire Capability hierarchy in memory. We can subsequently create any specialized Capability
-                // object by using the 'MEClass' constructor, which fetches the appropriate implementation object from the registry...
-                var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
-                var myMessage = new MessageCapability(context.CurrentClass);
-
-                ProcessorManagerSlt processorMgr = ProcessorManagerSlt.GetProcessorManagerSlt();
-                CapabilityProcessor processor = null;
-
-                if (processorMgr.GetProcessorCount(_MessageClassToken) > 1)
+                if (isError)
                 {
-                    // Ask user which processor to use.
-                    using (var picker = new CapabilityProcessorPicker(_MessageClassToken))
-                    {
-                        if (picker.ShowDialog() == DialogResult.OK) processor = picker.SelectedProcessor;
-                    }
+                    Logger.WriteError("Plugin.Application.Events.API.ProcessMessageEvent.HandleEvent >> " + errorMsg);
+                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 else
                 {
-                    if (processorMgr.GetProcessorCount(_MessageClassToken) == 1)
-                        processor = processorMgr.GetProcessorByIndex(_MessageClassToken, 0);
-                    else MessageBox.Show("No processors are currently defined for Messaging, aborting!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Logger.WriteWarning(errorMsg);
+                    MessageBox.Show(errorMsg, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
-                if (processor != null) myMessage.HandleCapabilities(processor);
-
-                // Mark service as 'modified' for configuration management and add to diagram in different color...
-                myService.Dirty();
-                myService.Paint(svcContext.MyDiagram);
-
                 svcContext.UnlockModel();
+                return;
             }
+
+            // Creating the ApplicationService will construct the entire Capability hierarchy in memory. We can subsequently create any specialized Capability
+            // object by using the 'MEClass' constructor, which fetches the appropriate implementation object from the registry...
+            var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
+            var myMessage = new MessageCapability(context.CurrentClass);
+
+            ProcessorManagerSlt processorMgr = ProcessorManagerSlt.GetProcessorManagerSlt();
+            CapabilityProcessor processor = null;
+
+            if (processorMgr.GetProcessorCount(_MessageClassToken) > 1)
+            {
+                // Ask user which processor to use.
+                using (var picker = new CapabilityProcessorPicker(_MessageClassToken))
+                {
+                    if (picker.ShowDialog() == DialogResult.OK) processor = picker.SelectedProcessor;
+                }
+            }
+            else
+            {
+                if (processorMgr.GetProcessorCount(_MessageClassToken) == 1)
+                    processor = processorMgr.GetProcessorByIndex(_MessageClassToken, 0);
+                else MessageBox.Show("No processors are currently defined for Messaging, aborting!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            if (processor != null) myMessage.HandleCapabilities(processor);
+
+            // Mark service as 'modified' for configuration management and add to diagram in different color...
+            myService.Dirty();
+            myService.Paint(svcContext.MyDiagram);
+            svcContext.UnlockModel();
         }
     }
 }

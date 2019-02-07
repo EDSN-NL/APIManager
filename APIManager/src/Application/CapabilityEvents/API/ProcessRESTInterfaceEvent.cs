@@ -52,15 +52,36 @@ namespace Plugin.Application.Events.API
             Logger.WriteInfo("Plugin.Application.Events.API.ProcessRESTInterfaceEvent.HandleEvent >> Message processing...");
             ContextSlt context = ContextSlt.GetContextSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
+            string errorMsg = string.Empty;
+            bool isError = false;               // In case errorMsg is not empty, 'true' = error, 'false' = warning.
 
+            // Perform a series of precondition tests...
             if (!svcContext.Valid)
             {
-                Logger.WriteError("Plugin.Application.Events.API.ProcessRESTInterfaceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
-                return;
+                errorMsg = "Illegal or corrupt context, operation aborted!";
+                isError = true;
             }
-            else if (svcContext.Type != Service.ServiceArchetype.REST)
+            else if (svcContext.Type != Service.ServiceArchetype.REST) errorMsg = "Operation only suitable for REST Services!";
+            else if (!Service.UpdateAllowed(svcContext.ServiceClass)) errorMsg = "Service must be in checked-out state for processing to be allowed!";
+            else if (!svcContext.LockModel())
             {
-                Logger.WriteWarning("Operation only suitable for REST Services!");
+                errorMsg = "Unable to lock the model!";
+                isError = true;
+            }
+
+            if (errorMsg != string.Empty)
+            {
+                if (isError)
+                {
+                    Logger.WriteError("Plugin.Application.Events.API.ProcessRESTInterfaceEvent.HandleEvent >> " + errorMsg);
+                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    Logger.WriteWarning(errorMsg);
+                    MessageBox.Show(errorMsg, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                svcContext.UnlockModel();
                 return;
             }
 
@@ -70,7 +91,6 @@ namespace Plugin.Application.Events.API
             var myInterface = new RESTInterfaceCapability(svcContext.InterfaceClass);
             var allResources = new List<Capability>();
             foreach (Capability cap in myInterface.ResourceList()) allResources.Add(cap);
-            if (!svcContext.LockModel()) return;    // If we can't lock the model there's no use to continue!
 
             using (var picker = new CapabilityPicker("Select root Resource(s) to include in the interface:", allResources, true, false))
             {

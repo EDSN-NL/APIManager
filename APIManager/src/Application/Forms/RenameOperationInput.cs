@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Windows.Forms;
 using Framework.Model;
+using Framework.ConfigurationManagement;
 
 namespace Plugin.Application.Forms
 {
@@ -24,6 +24,7 @@ namespace Plugin.Application.Forms
             this._oldName = oldName;
             NewMinorVersion.Checked = false;
             ErrorLine.Visible = false;
+            if (CMRepositorySlt.GetRepositorySlt().IsCMEnabled) NewMinorVersion.Visible = false;
         }
 
         private void OperationName_TextChanged(object sender, EventArgs e)

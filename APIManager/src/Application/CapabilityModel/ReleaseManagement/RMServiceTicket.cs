@@ -5,6 +5,7 @@ using Framework.Context;
 using Framework.Logging;
 using Framework.Model;
 using Framework.Util;
+using Framework.ConfigurationManagement;
 
 namespace Plugin.Application.CapabilityModel
 {
@@ -14,7 +15,7 @@ namespace Plugin.Application.CapabilityModel
     /// </summary>
     sealed internal class RMServiceTicket: RMTicket
     {
-        internal enum Status   { Unknown, Open, Closed, MergeRequest }
+        internal enum Status   { Unknown, Open, Closed }
         internal enum TypeCode { Unknown, Ticket, RootTicket, SubordinateTicket }
 
         // Private configuration properties used by this service...
@@ -26,10 +27,11 @@ namespace Plugin.Application.CapabilityModel
         private const string _RMServiceRole                 = "RMServiceRole";
         private const string _RMAssociationStereotype       = "RMAssociationStereotype";
         private const string _RMTypeCodeTag                 = "RMTypeCodeTag";
-        private const string _RMStatusTag                   = "RMStatusTag";
         private const string _RMExternalPriorityTag         = "RMExternalPriorityTag";
         private const string _RMExternalStatusCodeTag       = "RMExternalStatusCodeTag";
         private const string _RMReleasedVersionTag          = "RMReleasedVersionTag";
+        private const string _RMCreationTimestampTag        = "RMCreationTimestampTag";
+        private const string _RMModificationTimestampTag    = "RMModificationTimestampTag";
 
         private Service _trackedService;                    // The service associated with this RMTicket instance.
         private Status _status;                             // Current status of my ticket.
@@ -41,21 +43,9 @@ namespace Plugin.Application.CapabilityModel
         internal Service TrackedService { get { return this._trackedService; } }
 
         /// <summary>
-        /// Get- or set the ticket status.
+        /// Get the ticket status (either open or closed).
         /// </summary>
-        internal Status TicketStatus
-        {
-            get { return this._status; }
-            set
-            {
-                if (this._status != value)
-                {
-                    this._status = value;
-                    TicketClass.SetTag(ContextSlt.GetContextSlt().GetConfigProperty(_RMStatusTag),
-                                       EnumConversions<Status>.EnumToString(this._status), MEClass.CreateNewTag);
-                }
-            }
-        }
+        internal Status TicketStatus { get { return this._status; } }
 
         /// <summary>
         /// Read the type of our ticket.
@@ -80,7 +70,8 @@ namespace Plugin.Application.CapabilityModel
                 Logger.WriteError(message);
                 throw new ArgumentException(message);
             }
-            this._status = EnumConversions<Status>.StringToEnum(ticketClass.GetTag(context.GetConfigProperty(_RMStatusTag)));
+            this._trackedService = trackedService;
+            this._status = Ticket.Closed ? Status.Closed : Status.Open;
             this._typeCode = EnumConversions<TypeCode>.StringToEnum(ticketClass.GetTag(context.GetConfigProperty(_RMTypeCodeTag)));
 
             // Check whether we can find the provided Service...
@@ -101,7 +92,6 @@ namespace Plugin.Application.CapabilityModel
                 Logger.WriteError(message);
                 throw new ArgumentException(message);
             }
-            this._trackedService = trackedService;
         }
 
         /// <summary>
@@ -115,18 +105,78 @@ namespace Plugin.Application.CapabilityModel
         /// <exception cref="ArgumentException">Is thrown when the specified ticketID does not yield a valid ticket or when no valid PO number has been specified.</exception>
         internal RMServiceTicket(string ticketID, string projectOrderID, Service trackedService): base(ticketID, projectOrderID)
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket >> Creating instance for Ticket '" + ticketID + 
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket >> Creating instance for Ticket '" + ticketID +
                              "' and Service '" + trackedService.Name + "'...");
-            this._trackedService = trackedService;
             ContextSlt context = ContextSlt.GetContextSlt();
+            this._trackedService = trackedService;
 
             // This will either receive an existing ticket of force creation of a new one...
             LoadTicketClass(trackedService.DeclarationPkg, ContextSlt.GetContextSlt().GetConfigProperty(_RMTicketStereotype));
             if (IsExistingTicket)
             {
                 // In case of loading an existing ticket, make sure to read our in-memory properties...
-                this._status = EnumConversions<Status>.StringToEnum(this.TicketClass.GetTag(context.GetConfigProperty(_RMStatusTag)));
+                this._status = Ticket.Closed ? Status.Closed : Status.Open;
                 this._typeCode = EnumConversions<TypeCode>.StringToEnum(this.TicketClass.GetTag(context.GetConfigProperty(_RMTypeCodeTag)));
+            }
+        }
+
+        /// <summary>
+        /// The constructor receives a remote Ticket as an argument and checks whether the ticket already exists for the specified service. 
+        /// If not, it is created as a new ticket instance. If the ticket is already there, we simply collect the meta data.
+        /// The constructor also creates the necessary package and diagrams when these do not yet exist.
+        /// </summary>
+        /// <param name="remoteTicket">Ticket instance from remote ticket server.</param>
+        /// <param name="projectOrderID=">Project Order Identifier associated with the ticket.</param>
+        /// <param name="trackedService">Service associated with the ticket.</param>
+        /// <exception cref="ArgumentException">Is thrown when the specified ticketID does not yield a valid ticket or when no valid PO number has been specified.</exception>
+        internal RMServiceTicket(Ticket remoteTicket, string projectOrderID, Service trackedService) : base(remoteTicket, projectOrderID)
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket >> Creating instance for Ticket '" + remoteTicket.ID +
+                             "' and Service '" + trackedService.Name + "'...");
+            ContextSlt context = ContextSlt.GetContextSlt();
+            this._trackedService = trackedService;
+
+            // This will either receive an existing ticket of force creation of a new one...
+            LoadTicketClass(trackedService.DeclarationPkg, ContextSlt.GetContextSlt().GetConfigProperty(_RMTicketStereotype));
+            if (IsExistingTicket)
+            {
+                // In case of loading an existing ticket, make sure to read our in-memory properties...
+                this._status = Ticket.Closed ? Status.Closed : Status.Open;
+                this._typeCode = EnumConversions<TypeCode>.StringToEnum(this.TicketClass.GetTag(context.GetConfigProperty(_RMTypeCodeTag)));
+            }
+        }
+
+        /// <summary>
+        /// Copy constructor that creates a clone of the specified ticket for another service. If the specified tracked-service is identical to the
+        /// service in the ticket to be copied, the constructor throws an argument exception!
+        /// </summary>
+        /// <param name="copyTicket">The ticket to be copied.</param>
+        /// <param name="trackedService">the Service for which we are administering the ticket, must be different from the service in 'copyTicket'.</param>
+        /// <exception cref="ArgumentException">Is thrown when the specified ticketID does not yield a valid ticket or when no valid PO number has been specified.</exception>
+        internal RMServiceTicket(RMServiceTicket copyTicket, Service trackedService) : base(copyTicket.TicketClass)
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket >> Copy constructor for Ticket '" + copyTicket.ID +
+                             "' and Service '" + trackedService.Name + "'...");
+
+            if (trackedService.ServiceGUID != this.TrackedService.ServiceGUID)
+            {
+                ContextSlt context = ContextSlt.GetContextSlt();
+                this._trackedService = trackedService;
+
+                // This will either receive an existing ticket of force creation of a new one...
+                LoadTicketClass(trackedService.DeclarationPkg, ContextSlt.GetContextSlt().GetConfigProperty(_RMTicketStereotype));
+                if (IsExistingTicket)
+                {
+                    // In case of loading an existing ticket, make sure to read our in-memory properties...
+                    this._status = Ticket.Closed ? Status.Closed : Status.Open;
+                    this._typeCode = EnumConversions<TypeCode>.StringToEnum(this.TicketClass.GetTag(context.GetConfigProperty(_RMTypeCodeTag)));
+                }
+            }
+            else
+            {
+                string msg = "Copy constructor attempts to duplicate ticket '" + copyTicket.GetQualifiedID() + "' for service '" + trackedService.Name + "'!";
+                Logger.WriteError("Plugin.Application.CapabilityModel.RMServiceTicket >> " + msg);
+                throw new ArgumentException(msg);
             }
         }
 
@@ -169,7 +219,7 @@ namespace Plugin.Application.CapabilityModel
             // Create the ticket...
             MEClass ticketClass = ticketPackage.CreateClass(GetQualifiedID(), ticketClassStereotype);
             diagramClassList.Add(ticketClass);
-            this._status = Status.Open;
+            this._status = Ticket.Closed ? Status.Closed : Status.Open;
 
             // Now, check whether we found a parent to connect to...
             if (myParent != null)
@@ -212,6 +262,26 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
+        /// Copies relevant attributes from the (Jira) ticket to our UML ticket class.
+        /// </summary>
+        internal override void UpdateTicket()
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket.UpdateTicket >> Syncing ticket data...");
+            ContextSlt context = ContextSlt.GetContextSlt();
+            base.UpdateTicket();   // First of all, we copy the generic properties.
+            string version = this._trackedService.Version.Item1 + "." + 
+                             this._trackedService.Version.Item2 + "." + 
+                             this._trackedService.BuildNumber;
+
+            TicketClass.SetTag(context.GetConfigProperty(_RMExternalPriorityTag), Ticket.Priority);
+            TicketClass.SetTag(context.GetConfigProperty(_RMExternalStatusCodeTag), Ticket.Status);
+            TicketClass.SetTag(context.GetConfigProperty(_RMTypeCodeTag), EnumConversions<TypeCode>.EnumToString(this._typeCode), MEClass.CreateNewTag);
+            TicketClass.SetTag(context.GetConfigProperty(_RMReleasedVersionTag), version, MEClass.CreateNewTag);
+            TicketClass.SetTag(context.GetConfigProperty(_RMCreationTimestampTag), Ticket.CreationTimestamp.ToString());
+            TicketClass.SetTag(context.GetConfigProperty(_RMModificationTimestampTag), Ticket.UpdateTimestamp.ToString());
+        }
+
+        /// <summary>
         /// Find the end of the ticket timeline, which must be the only ticket in our ticket package that does not have a child 
         /// relationship (e.g. the end of the chain).
         /// To find this, we iterate through all tickets in the package and check outgoing timeline associations.
@@ -246,25 +316,6 @@ namespace Plugin.Application.CapabilityModel
                 }
             }
             return tail;
-        }
-
-        /// <summary>
-        /// Copies relevant attributes from the (Jira) ticket to our UML ticket class.
-        /// </summary>
-        internal override void UpdateTicket()
-        {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket.UpdateTicket >> Syncing ticket data...");
-            ContextSlt context = ContextSlt.GetContextSlt();
-            base.UpdateTicket();   // First of all, we copy the generic properties.
-            string version = this._trackedService.Version.Item1 + "." + 
-                             this._trackedService.Version.Item2 + "." + 
-                             this._trackedService.BuildNumber;
-
-            TicketClass.SetTag(context.GetConfigProperty(_RMExternalPriorityTag), Ticket.Priority);
-            TicketClass.SetTag(context.GetConfigProperty(_RMExternalStatusCodeTag), Ticket.Status);
-            TicketClass.SetTag(context.GetConfigProperty(_RMTypeCodeTag), EnumConversions<TypeCode>.EnumToString(this._typeCode), MEClass.CreateNewTag);
-            TicketClass.SetTag(context.GetConfigProperty(_RMStatusTag), EnumConversions<Status>.EnumToString(this._status), MEClass.CreateNewTag);
-            TicketClass.SetTag(context.GetConfigProperty(_RMReleasedVersionTag), version, MEClass.CreateNewTag);
         }
     }
 }

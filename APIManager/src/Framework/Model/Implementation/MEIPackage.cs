@@ -94,6 +94,18 @@ namespace Framework.Model
         internal abstract MEPackage FindPackage(string childName, string packageStereotype);
 
         /// <summary>
+        /// Searches the package for any child packages containing the specified name part and/or stereotype.
+        /// One or both parameters must be specified. If we have only the name part, the function returns all packages
+        /// that contain that name part. If only the stereotype is specified, we return all packages that match the
+        /// stereotype. If both are specified, we return all packages of the specified stereotype that match the name filter.
+        /// The search is only at the level of the current package, that is, we don't search multiple levels down!
+        /// </summary>
+        /// <param name="nameFilter">Optional (part of) name to search for.</param>
+        /// <param name="stereotype">Optional stereotype of class.</param>
+        /// <returns>List of packages found (can be empty).</returns>
+        internal abstract List<MEPackage> FindPackages(string nameFilter, string stereotype);
+
+        /// <summary>
         /// Searches the package for any class with given name and optional stereotype.
         /// </summary>
         /// <param name="className">Name of class (or class-derived) object to find.</param>

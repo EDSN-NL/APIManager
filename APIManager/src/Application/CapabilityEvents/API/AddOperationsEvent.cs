@@ -53,22 +53,36 @@ namespace Plugin.Application.Events.API
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
             MEClass interfaceClass = svcContext.InterfaceClass;
             string interfaceContractClassStereotype = context.GetConfigProperty(_InterfaceContractClassStereotype);
+            string errorMsg = string.Empty;
+            bool isError = false;
 
+            // Perform a series of precondition tests...
             if (!svcContext.Valid || svcContext.MyDiagram == null)
             {
-                Logger.WriteError("Plugin.Application.Events.API.AddOperationsEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
-                return;
+                errorMsg = "Illegal or corrupt context, operation aborted!";
+                isError = true;
             }
-            else if (svcContext.Type != Service.ServiceArchetype.SOAP)
+            else if (svcContext.Type != Service.ServiceArchetype.SOAP) errorMsg = "Operation only suitable for SOAP Services!";
+            else if (!Service.UpdateAllowed(svcContext.ServiceClass)) errorMsg = "Service must be in checked-out state for operations to be added!";
+            else if (!svcContext.LockModel())
             {
-                Logger.WriteWarning("Operation only suitable for SOAP Services!");
-                return;
+                errorMsg = "Unable to lock the model!";
+                isError = true;
             }
 
-            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
-            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            if (errorMsg != string.Empty)
             {
-                Logger.WriteWarning("Service must be in checked-out state for operations to be added!");
+                if (isError)
+                {
+                    Logger.WriteError("Plugin.Application.Events.API.AddOperationsEvent.HandleEvent >> " + errorMsg);
+                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    Logger.WriteWarning(errorMsg);
+                    MessageBox.Show(errorMsg, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                svcContext.UnlockModel();
                 return;
             }
 
@@ -77,7 +91,7 @@ namespace Plugin.Application.Events.API
 
             using (var dialog = new AddOperationInput(svcContext.DeclarationPackage))
             {
-                if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
+                if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     // Creating the service will build the entire object hierarchy. Subsequently, we can create Capabilities by class alone,
                     // in which case we will associate the interface class with the existing hierarchy.

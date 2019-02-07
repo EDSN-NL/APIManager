@@ -65,7 +65,7 @@ namespace Plugin.Application.Events.Util
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.Events.Util.SetMetadataEvent.handleEvent >> Caught an exception: '" + exc.Message + "'.");
+                Logger.WriteError("Plugin.Application.Events.Util.SetMetadataEvent.handleEvent >> Caught an exception: '" + exc.ToString() + "'.");
             }
         }
 

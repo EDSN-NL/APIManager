@@ -202,7 +202,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.ExcelExporter.processCapability >> Caught exception: " + exc);
+                Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.ExcelExporter.processCapability >> Caught exception: " + exc.ToString());
                 result = false;
             }
             return result;
@@ -270,7 +270,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.ExcelExporter.processService >> Caught exception: " + exc);
+                Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.ExcelExporter.processService >> Caught exception: " + exc.ToString());
                 result = false;
             }
             return result;
@@ -304,7 +304,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
             catch (Exception exc)
             {
                 Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.CapabilityProcessor.saveProcessedCapability >> Error writing to '" +
-                                  pathName + "/" + fileName + "' because:" + Environment.NewLine + exc.Message);
+                                  pathName + "/" + fileName + "' because:" + Environment.NewLine + exc.ToString());
                 panel.WriteError(0, "Error writing to '" + pathName + "/" + fileName + "' because:" + Environment.NewLine + exc.Message);
             }
             return result;
@@ -335,7 +335,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
             catch (Exception exc)
             {
                 Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.CapabilityProcessor.saveProcessedService >> Error writing to '" +
-                                  pathName + "/" + fileName + "' because:" + Environment.NewLine + exc.Message);
+                                  pathName + "/" + fileName + "' because:" + Environment.NewLine + exc.ToString());
                 panel.WriteError(0, "Error writing to '" + pathName + "/" + fileName + "' because:" + Environment.NewLine + exc.Message);
             }
             return result;

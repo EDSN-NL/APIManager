@@ -346,8 +346,8 @@ namespace SparxEA.Model
                     return;
                 }
             }
-            Logger.WriteWarning("Attempt to delete Class '" + thisOne.Name +
-                                "' from Package: '" + this._package.Name + "' failed; Class not found!");
+            Logger.WriteWarning("Attempt to delete Class '" + thisOne.Name + "' from Package: '" + this._package.Name + 
+                                "' failed; Class not found!");
         }
 
         /// <summary>
@@ -398,7 +398,7 @@ namespace SparxEA.Model
             catch (Exception exc)
             {
                 Logger.WriteError("SparxEA.Model.EAMEIPackage.ExportPackage >> Error exporting package '" + this._name + 
-                                  "' to XMI file '" + fileName + "':" + Environment.NewLine + exc.Message);
+                                  "' to XMI file '" + fileName + "':" + Environment.NewLine + exc.ToString());
                 result = false;
             }
             return result;
@@ -440,6 +440,7 @@ namespace SparxEA.Model
         /// One or both parameters must be specified. If we have only the name part, the function returns all classes
         /// that contain that name part. If only the stereotype is specified, we return all classes that match the
         /// stereotype. If both are specified, we return all classes of the specified stereotype that match the name filter.
+        /// The list is ordered ascending by class name.
         /// </summary>
         /// <param name="nameFilter">Optional (part of) name to search for.</param>
         /// <param name="stereotype">Optional stereotype of class.</param>
@@ -449,7 +450,7 @@ namespace SparxEA.Model
             this._package.Elements.Refresh();   // Make sure that we're looking at the most up-to-date state.
             EA.Repository repository = ((EAModelImplementation)this._model).Repository;
             string query = string.Empty;
-            bool isLocalDB = ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local;
+            char likeToken = ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local ? '*' : '%';
             var classList = new List<MEClass>();
 
             // We MUST specify either a class filter and/or a stereotype!
@@ -461,47 +462,22 @@ namespace SparxEA.Model
                 if (string.IsNullOrEmpty(nameFilter))
                 {
                     // In case of empty name filter, we return the classes that are of the specified stereotype.
-                    if (isLocalDB)
-                    {
-                        query = @"SELECT o.Object_ID AS ElementID FROM t_object o
-                                  WHERE o.Package_ID = " + this._package.PackageID + " AND o.Stereotype LIKE '*" + checkType + "'";
-                    }
-                    else
-                    {
-                        query = @"SELECT o.Object_ID AS ElementID FROM t_object o
-                                 WHERE o.Package_ID = " + this._package.PackageID + " AND o.Stereotype LIKE '%" + checkType + "'";
-                    }
+                    query = "SELECT o.Object_ID AS ElementID FROM t_object o WHERE o.Package_ID = " + this._package.PackageID + 
+                            " AND o.Stereotype LIKE '" + likeToken + checkType + likeToken + "' ORDER BY o.Name";
                 }
                 else
                 {
                     // We have to select on both name- and stereotype.
-                    if (isLocalDB)
-                    {
-                        query = @"SELECT o.Object_ID AS ElementID FROM t_object o
-                                 WHERE o.Package_ID = " + this._package.PackageID + 
-                                 " AND o.Name LIKE '*" + nameFilter + "' AND o.Stereotype LIKE '*" + checkType + "'";
-                    }
-                    else
-                    {
-                        query = @"SELECT o.Object_ID AS ElementID FROM t_object o
-                                 WHERE o.Package_ID = " + this._package.PackageID + 
-                                 " AND o.Name LIKE '%" + nameFilter + "' AND o.Stereotype LIKE '%" + checkType + "'";
-                    }
+                    query = "SELECT o.Object_ID AS ElementID FROM t_object o WHERE o.Package_ID = " + this._package.PackageID +
+                            " AND o.Name LIKE '" + likeToken + nameFilter + likeToken + "' AND o.Stereotype LIKE '" + 
+                            likeToken + checkType + likeToken + "' ORDER BY o.Name";
                 }
             }
             else
             {
                 // Only search on name filter.
-                if (isLocalDB)
-                {
-                    query = @"SELECT o.Object_ID AS ElementID FROM t_object o
-                             WHERE o.Package_ID = " + this._package.PackageID + " AND o.Name LIKE '*" + nameFilter + "'";
-                }
-                else
-                {
-                    query = @"SELECT o.Object_ID AS ElementID FROM t_object o
-                             WHERE o.Package_ID = " + this._package.PackageID + " AND o.Name LIKE '%" + nameFilter + "'";
-                }
+                query = "SELECT o.Object_ID AS ElementID FROM t_object o WHERE o.Package_ID = " + this._package.PackageID + 
+                        " AND o.Name LIKE '" + likeToken + nameFilter + likeToken + "' ORDER BY o.Name";
             }
 
             var queryResult = new XmlDocument();                            // Repository query will return an XML Document.
@@ -565,7 +541,7 @@ namespace SparxEA.Model
         {
             EA.Repository repository = ((EAModelImplementation)this._model).Repository;
             string query = string.Empty;
-            bool isLocalDB = ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local;
+            char likeToken = ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local ? '*' : '%';
 
             // We MUST specify either a package name and/or a stereotype!
             if (childName == string.Empty && string.IsNullOrEmpty(stereotype)) return null;
@@ -576,47 +552,21 @@ namespace SparxEA.Model
                 if (childName == string.Empty)
                 {
                     // In case of empty package name, we return the first package that has the specified stereotype.
-                    if (isLocalDB)
-                    {
-                        // Access uses different syntax from 'real' SQL databases. LIKE clause looks different and we can NOT compare
-                        // indices with different data types. Therefor, instead of p.Package_ID = Val(o.PDATA1) we compare GUID's,
-                        // which officially should not work but in practice does.
-                        query = @"SELECT p.Package_ID AS PackageID FROM 
-                             t_package p INNER JOIN t_object o ON p.ea_guid = o.ea_guid
-                             WHERE p.Parent_ID = " + this._package.PackageID + " AND o.Stereotype LIKE '*" + checkType + "'";
-                    }
-                    else
-                    {
-                        query = @"SELECT p.Package_ID AS PackageID FROM 
-                             t_package p INNER JOIN t_object o ON p.Package_ID = o.PDATA1
-                             WHERE p.Parent_ID = " + this._package.PackageID + " AND o.Stereotype LIKE '%" + checkType + "'";
-                    }
+                    query = "SELECT p.Package_ID AS PackageID FROM t_package p INNER JOIN t_object o ON p.ea_guid = o.ea_guid " +
+                            "WHERE p.Parent_ID = " + this._package.PackageID + " AND o.Stereotype LIKE '" + 
+                            likeToken + checkType + likeToken + "'";
                 }
                 else
                 {
-                    if (isLocalDB)
-                    {
-                        // Access uses different syntax from 'real' SQL databases. LIKE clause looks different and we can NOT compare
-                        // indices with different data types. Therefor, instead of p.Package_ID = Val(o.PDATA1) we compare GUID's,
-                        // which officially should not work but in practice does.
-                        query = @"SELECT p.Package_ID AS PackageID FROM 
-                             t_package p INNER JOIN t_object o ON p.ea_guid = o.ea_guid
-                             WHERE p.Parent_ID = " + this._package.PackageID + " AND p.Name = '" + childName +
-                                 "' AND o.Stereotype LIKE '*" + checkType + "'";
-                    }
-                    else
-                    {
-                        query = @"SELECT p.Package_ID AS PackageID FROM 
-                             t_package p INNER JOIN t_object o ON p.Package_ID = o.PDATA1
-                             WHERE p.Parent_ID = " + this._package.PackageID + " AND p.Name = '" + childName +
-                                 "' AND o.Stereotype LIKE '%" + checkType + "'";
-                    }
+                    query = "SELECT p.Package_ID AS PackageID FROM t_package p INNER JOIN t_object o ON p.ea_guid = o.ea_guid " +
+                            "WHERE p.Parent_ID = " + this._package.PackageID + " AND p.Name = '" + childName + 
+                            "' AND o.Stereotype LIKE '" + likeToken + checkType + likeToken + "'";
                 }
             }
             else
             {
-                query = @"SELECT p.Package_ID AS PackageID FROM t_package p
-                         WHERE p.Parent_ID = " + this._package.PackageID + " AND p.Name = '" + childName + "'";
+                query = "SELECT p.Package_ID AS PackageID FROM t_package p WHERE p.Parent_ID = " + 
+                         this._package.PackageID + " AND p.Name = '" + childName + "'";
             }
 
             var queryResult = new XmlDocument();                            // Repository query will return an XML Document.
@@ -631,6 +581,62 @@ namespace SparxEA.Model
                 return new MEPackage(packageID);
             }
             return null;
+        }
+
+        /// <summary>
+        /// Searches the package for any child packages containing the specified name part and/or stereotype.
+        /// One or both parameters must be specified. If we have only the name part, the function returns all packages
+        /// that contain that name part. If only the stereotype is specified, we return all packages that match the
+        /// stereotype. If both are specified, we return all packages of the specified stereotype that match the name filter.
+        /// The search is only at the level of the current package, that is, we don't search multiple levels down!
+        /// The result set is ordered ascending by package name.
+        /// </summary>
+        /// <param name="nameFilter">Optional (part of) name to search for.</param>
+        /// <param name="stereotype">Optional stereotype of class.</param>
+        /// <returns>List of packages found (can be empty).</returns>
+        internal override List<MEPackage> FindPackages(string nameFilter, string stereotype)
+        {
+            this._package.Elements.Refresh();   // Make sure that we're looking at the most up-to-date state.
+            EA.Repository repository = ((EAModelImplementation)this._model).Repository;
+            string query = string.Empty;
+            var packageList = new List<MEPackage>();
+            char likeToken = ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local ? '*' : '%';
+
+            // We MUST specify either a package filter and/or a stereotype!
+            if (string.IsNullOrEmpty(nameFilter) && string.IsNullOrEmpty(stereotype)) return packageList;
+
+            if (!string.IsNullOrEmpty(stereotype))
+            {
+                string checkType = (stereotype.Contains("::")) ? stereotype.Substring(stereotype.IndexOf("::") + 2) : stereotype;
+                if (string.IsNullOrEmpty(nameFilter))
+                {
+                    // In case of empty name filter, we return the packages that are of the specified stereotype.
+                    query = "SELECT p.Package_ID AS PackageID FROM t_package p INNER JOIN t_object o ON p.ea_guid = o.ea_guid " +
+                            "WHERE p.Parent_ID = " + this._package.PackageID + " AND o.Stereotype LIKE '" + likeToken + checkType + likeToken + 
+                            "' ORDER BY p.Name";
+                }
+                else
+                {
+                    // We have to select on both name- and stereotype.
+                    query = "SELECT p.Package_ID AS PackageID FROM t_package p INNER JOIN t_object o ON p.ea_guid = o.ea_guid " +
+                            "WHERE p.Parent_ID = " + this._package.PackageID + " AND p.Name LIKE '" + likeToken + nameFilter + likeToken +
+                            "' AND o.Stereotype LIKE '" + likeToken + checkType + likeToken + "' ORDER BY p.Name";
+                }
+            }
+            else
+            {
+                // Only search on name filter.
+                query = "SELECT p.Package_ID AS PackageID FROM t_package p WHERE p.Parent_ID = " + this._package.PackageID +
+                        " AND p.Name LIKE '" + likeToken + nameFilter + likeToken + "' ORDER BY p.Name";
+            }
+
+            var queryResult = new XmlDocument();                            // Repository query will return an XML Document.
+            queryResult.LoadXml(repository.SQLQuery(query));                // Execute query and store result in XML Document.
+            XmlNodeList elements = queryResult.GetElementsByTagName("Row"); // Retrieve found identifiers.
+            var parentList = new List<MEClass>();
+
+            foreach (XmlNode node in elements) packageList.Add(new MEPackage(Convert.ToInt32(node["PackageID"].InnerText.Trim())));
+            return packageList;
         }
 
         /// <summary>
@@ -816,7 +822,7 @@ namespace SparxEA.Model
             int _ImportDiagrams = Convert.ToInt32(true);
             int _NoStripGUID    = Convert.ToInt32(false);
 
-            bool result = true;
+            bool result = false;
             try
             {
                 Logger.WriteWarning("Performing package import from '" + fileName + "' into package '" + this.Name + ", this might take some time.");
@@ -832,22 +838,22 @@ namespace SparxEA.Model
                 EA.Project project = ((EAModelImplementation)this._model).Repository.GetProjectInterface();
                 // Unlike what is said in the documentation, ImportPackageXMI returns the GUID of the imported package when Ok.
                 // So we use this to check whether all is well...
-                string resultMsg = project.ImportPackageXMI(this._package.PackageGUID,
-                                                            fileName,
-                                                            _ImportDiagrams, _NoStripGUID);
+                string resultMsg = project.ImportPackageXMI(this._package.PackageGUID, fileName, _ImportDiagrams, _NoStripGUID);
                 if (resultMsg != this._package.PackageGUID)
                 {
                     Logger.WriteError("SparxEA.Model.EAMEIPackage.ImportPackage >> Error importing package '" + this._name +
                                       "' from XMI file '" + fileName + "':" + Environment.NewLine + resultMsg);
-                    result = false;
                 }
-                else Logger.WriteWarning("Finished package import.");
+                else
+                {
+                    Logger.WriteWarning("Finished package import.");
+                    result = true;
+                }
             }
             catch (Exception exc)
             {
                 Logger.WriteError("SparxEA.Model.EAMEIPackage.ImportPackage >> Error importing package '" + this._name +
-                                  "' from XMI file '" + fileName + "':" + Environment.NewLine + exc.Message);
-                result = false;
+                                  "' from XMI file '" + fileName + "':" + Environment.NewLine + exc.ToString());
             }
             return result;
         }
@@ -922,7 +928,7 @@ namespace SparxEA.Model
             catch (Exception exc)
             {
                 Logger.WriteError("SparxEA.Model.EAMEIPackage.ImportPackage (new instance) >> Error importing package from XMI file '" +
-                                  fileName + "':" + Environment.NewLine + exc.Message);
+                                  fileName + "':" + Environment.NewLine + exc.ToString());
                 result = false;
             }
             return result;
@@ -980,7 +986,7 @@ namespace SparxEA.Model
             }
             catch (Exception exc)
             {
-                Logger.WriteInfo("SparxEA.Model.EAMEIPackage.IsLocked >> Exception, assume not locked: " + exc.Message);
+                Logger.WriteInfo("SparxEA.Model.EAMEIPackage.IsLocked >> Exception, assume not locked: " + exc.ToString());
             }
             Logger.WriteInfo("SparxEA.Model.EAMEIPackage.IsLocked >> Result of check: '" + status + "'.");
             return status;
@@ -1041,7 +1047,7 @@ namespace SparxEA.Model
             }
             catch (Exception exc)
             {
-                Logger.WriteError("SparxEA.Model.EAMEIPackage.Lock >> Failed to lock package structure because: '" + exc.Message + "'!");
+                Logger.WriteError("SparxEA.Model.EAMEIPackage.Lock >> Failed to lock package structure because: '" + exc.ToString() + "'!");
             }
             this._isLocked = false;
             return false;
@@ -1167,7 +1173,7 @@ namespace SparxEA.Model
             }
             catch (Exception exc)
             {
-                Logger.WriteError("SparxEA.Model.EAMEIPackage.Unlock >> Failed to unlock package structure because: '" + exc.Message + "'!");
+                Logger.WriteError("SparxEA.Model.EAMEIPackage.Unlock >> Failed to unlock package structure because: '" + exc.ToString() + "'!");
             }
         }
 

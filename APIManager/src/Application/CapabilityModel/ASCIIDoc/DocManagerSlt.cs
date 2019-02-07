@@ -149,7 +149,7 @@ namespace Plugin.Application.CapabilityModel.ASCIIDoc
             catch (Exception exc)
             {
                 Logger.WriteError("Plugin.Application.CapabilityModel.ASCIIDoc.DocManagerSlt.Save >> Error writing to '" +
-                                  absolutePath + "\\" + baseFileName + extension + "' because:\n" + exc.Message);
+                                  absolutePath + "\\" + baseFileName + extension + "' because:\n" + exc.ToString());
             }
             finally
             {

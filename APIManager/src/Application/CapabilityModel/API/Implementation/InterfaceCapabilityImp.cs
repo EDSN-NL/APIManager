@@ -109,7 +109,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.InterfaceCapabilityImp (new) >> Error creating capability because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.InterfaceCapabilityImp (new) >> Error creating capability because: " + exc.ToString());
                 this._capabilityClass = null;   // Assures that instance is declared invalid.
             }
         }
@@ -168,7 +168,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.InterfaceCapabilityImp (existing) >> Error creating capability because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.InterfaceCapabilityImp (existing) >> Error creating capability because: " + exc.ToString());
                 this._capabilityClass = null;   // Assures that instance is declared invalid.
             }
         }
@@ -220,7 +220,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.InterfaceCapabilityImp.addOperations >> Exception caught: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.InterfaceCapabilityImp.addOperations >> Exception caught: " + exc.ToString());
                 result = false;
             }
             return result;

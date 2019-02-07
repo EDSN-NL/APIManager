@@ -93,7 +93,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp (interface, declaration) >> Error creating resource collection because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp (interface, declaration) >> Error creating resource collection because: " + exc.ToString());
                 this._capabilityClass = null;   // Assures that instance is declared invalid.
             }
         }
@@ -121,7 +121,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp (resource, declaration) >> Error creating resource collection because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp (resource, declaration) >> Error creating resource collection because: " + exc.ToString());
                 this._capabilityClass = null;   // Assures that instance is declared invalid.
             }
         }
@@ -210,7 +210,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AddOperation >> Exception caught: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AddOperation >> Exception caught: " + exc.ToString());
                 result = false;
             }
             return result;
@@ -293,7 +293,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AddResources >> Exception caught: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AddResources >> Exception caught: " + exc.ToString());
                 result = false;
             }
             return result;
@@ -1063,7 +1063,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Error creating capability because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Error creating capability because: " + exc.ToString());
                 this._capabilityClass = null;   // Assures that instance is declared invalid.
             }
         }

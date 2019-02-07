@@ -14,9 +14,6 @@ namespace Plugin.Application.Events.Util
     /// </summary>
     class ReleaseServiceEvent : EventImplementation
     {
-        // Configuration properties used by this module...
-        private const string _CommitIDLeader = "CommitIDLeader";
-
         /// <summary>
         /// Checks whether we can process the event in the current context. Since this context is already clearly defined by the 'Service'
         /// stereotype, we only return 'false' when configuration management is generally disabled.
@@ -38,54 +35,50 @@ namespace Plugin.Application.Events.Util
             Logger.WriteInfo("Plugin.Application.Events.API.ReleaseServiceEvent.HandleEvent >> Message processing...");
             ContextSlt context = ContextSlt.GetContextSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
+            string errorMsg = string.Empty;
+            Service myService = null;
 
-            if (!svcContext.Valid)
+            // Perform a series of precondition tests...
+            if (!svcContext.Valid) errorMsg = "Illegal or corrupt context, operation aborted!";
+            else if (!svcContext.LockModel()) errorMsg = "Unable to lock the model!";
+
+            if (errorMsg != string.Empty)
             {
-                Logger.WriteError("Plugin.Application.Events.API.ReleaseServiceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
+                Logger.WriteError("Plugin.Application.Events.API.ReleaseServiceEvent.HandleEvent >> " + errorMsg);
+                MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                svcContext.UnlockModel();
                 return;
             }
 
             try
             {
-                if (svcContext.LockModel())
+                myService = svcContext.GetServiceInstance();
+                if (myService.IsValidCMState(CMContext.CMState.Released))
                 {
-                    Service myService = svcContext.GetServiceInstance();
-                    if (myService.ConfigurationMgmtState == CMState.Committed)
+                    if (myService.ConfigurationMgmtState != CMContext.CMState.Released)
                     {
-                        using (var dialog = new CMChangeMessage(false))
+                        using (var dialog = new CMReleaseMessage())
                         {
                             if (dialog.ShowDialog() == DialogResult.OK)
                             {
-                                try
-                                {
-                                    string releaseID = context.GetConfigProperty(_CommitIDLeader) +
-                                                       myService.BusinessFunctionID + ":" +
-                                                       myService.ContainerPkg.Name + ":" +
-                                                       myService.Name + ":" +
-                                                       myService.Version.Item1 + ":" +
-                                                       myService.Version.Item2 + ":" +
-                                                       myService.BuildNumber;
-                                    Logger.WriteInfo("Plugin.Application.Events.API.ReleaseServiceEvent.HandleEvent >> ReleaseID = '" + releaseID + "'...");
-                                    myService.CMContext.ReleaseService(releaseID + Environment.NewLine + dialog.Annotation);
-                                    myService.Paint(context.CurrentDiagram);
-                                }
-                                catch (CMOutOfSyncException)
-                                {
-                                    MessageBox.Show("Unable to release service to remote repository because the build number '" + myService.BuildNumber +
-                                                    "'  has already been used before!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                }
+                                myService.Release(dialog.Annotation);
+                                MessageBox.Show("Successfully released service '" + myService.Name + "'.",
+                                                "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             }
                         }
                     }
-                    else MessageBox.Show("Service must be 'Committed' before it can be released!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    svcContext.UnlockModel();
+                    else MessageBox.Show("Service is already released!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
+                else MessageBox.Show("Service must be committed before it can be released!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            catch
+            catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.Events.API.ReleaseServiceEvent.HandleEvent >> Unable to determine proper context for commit!");
-                return;
+                string msg = "Unable to release service '" + myService.Name + "' because: " + Environment.NewLine + exc.Message;
+                MessageBox.Show(msg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Logger.WriteError("Plugin.Application.Events.API.ReleaseServiceEvent.HandleEvent >> " + msg + Environment.NewLine + exc.ToString());
             }
+            myService.Paint(context.CurrentDiagram);
+            svcContext.UnlockModel();
         }
     }
 }

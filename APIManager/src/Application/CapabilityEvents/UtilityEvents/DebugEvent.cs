@@ -3,7 +3,10 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Web;
+using System.Configuration;
 using System.Security;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
@@ -26,7 +29,7 @@ using Newtonsoft.Json.Schema;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema.Infrastructure.Collections;
 using LibGit2Sharp;
-using Plugin.Application.CapabilityModel.API;
+
 using Plugin.Application.Events.API;
 using Plugin.Application.CapabilityModel;
 using Plugin.Application.Forms;
@@ -57,9 +60,22 @@ namespace Plugin.Application.Events.Util
                 MEPackage currentPackage = context.CurrentPackage;
                 Diagram currentDiagram = context.CurrentDiagram;
 
-                var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
-                CapabilityModel.Service myService = svcContext.GetServiceInstance();
+                //var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
+                //CapabilityModel.Service myService = svcContext.GetServiceInstance();
 
+                string zipped = Compression.StringZip("De kat krabt de krullen van de trap!");
+                string unzipped = Compression.StringUnzip(zipped);
+
+                string myZippedFile = Compression.FileZip("C:/Temp/InfrastructureProject.xmi", false);
+                Compression.FileUnzip("C:/Temp/InfrastructureProject.gz");
+
+
+
+                //CMRepositorySlt repo = CMRepositorySlt.GetRepositorySlt();
+                //repo.CheckoutTag("feature/CSTI-483/3010.99.TestContainer/Personen_V1P8B3");
+                //repo.SynchroniseTags();
+
+                /**************
                 if (currentClass.HasStereotype("Service"))
                 {
                     string ticketID = string.Empty;
@@ -74,6 +90,7 @@ namespace Plugin.Application.Events.Util
                     RMServiceTicket ticket = new RMServiceTicket(currentClass, myService);
                     RMReleaseTicket relTicket = new RMReleaseTicket(ticket);
                 }
+                *****************/
 
                 //MakeCommonSchema();
                 //Test7() ;
@@ -84,6 +101,28 @@ namespace Plugin.Application.Events.Util
             {
                 Logger.WriteError("Oops, Caught exception:" + Environment.NewLine + exc.ToString());
             }
+        }
+
+
+        private void LeaveDotsAndSlashesEscaped()
+        {
+            var getSyntaxMethod =
+                typeof(UriParser).GetMethod("GetSyntax", BindingFlags.Static | BindingFlags.NonPublic);
+            if (getSyntaxMethod == null)
+            {
+                throw new MissingMethodException("UriParser", "GetSyntax");
+            }
+
+            object uriParser = getSyntaxMethod.Invoke(null, new object[] { "http" });
+
+            var setUpdatableFlagsMethod =
+                uriParser.GetType().GetMethod("SetUpdatableFlags", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (setUpdatableFlagsMethod == null)
+            {
+                throw new MissingMethodException("UriParser", "SetUpdatableFlags");
+            }
+
+            setUpdatableFlagsMethod.Invoke(uriParser, new object[] { 0 });
         }
 
         /// <summary>

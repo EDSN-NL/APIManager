@@ -444,6 +444,20 @@
              <StereotypeName>Enexis ECDM::Service</StereotypeName>
            </StereotypeList>
          </EventHandler>
+         <EventHandler ID="Service: Delete Tags">
+           <HandlerFQN>Plugin.Application.Events.Util.RemoveTagsEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on 'Service' classes. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Service: Enable CM">
+           <HandlerFQN>Plugin.Application.Events.Util.EnableCMEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on 'Service' classes. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
          <EventHandler ID="Service: Release">
            <HandlerFQN>Plugin.Application.Events.Util.ReleaseServiceEvent</HandlerFQN>
            <StereotypeList>
@@ -453,6 +467,13 @@
          </EventHandler>
          <EventHandler ID="Service: Revert">
            <HandlerFQN>Plugin.Application.Events.Util.RevertServiceEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on 'Service' classes. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Synchronise Tags">
+           <HandlerFQN>Plugin.Application.Events.Util.SynchroniseTagsEvent</HandlerFQN>
            <StereotypeList>
              <!-- This event only works on 'Service' classes. -->
              <StereotypeName>Enexis ECDM::Service</StereotypeName>

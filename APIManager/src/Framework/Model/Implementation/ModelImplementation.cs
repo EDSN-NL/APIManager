@@ -89,7 +89,7 @@ namespace Framework.Model
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Framework.Model.ModelImplementation.flush >> Flushing failed because: " + exc.Message);
+                Logger.WriteError("Framework.Model.ModelImplementation.flush >> Flushing failed because: " + exc.ToString());
             }
         }
 

@@ -10,6 +10,7 @@ namespace Framework.View
         protected string _globalID;     // Globally unique ID of the diagram (across repositories).
         protected MEPackage _owningPackage;     // The package in which the diagram lives.
         protected ModelImplementation _model;   // Reference to the associated model implementation.
+        protected bool _isValid;        // Set to false in case the associated diagram is known to be invalid/deleted.
 
         private int _referenceCount;    // Keeps track of the number of interfaces using this particular implementation.
 
@@ -17,6 +18,7 @@ namespace Framework.View
         internal int DiagramID            {get { return this._diagramID; }}
         internal string GlobalID          {get { return this._globalID; }}
         internal MEPackage OwningPackage  {get { return new MEPackage(this._owningPackage); }}
+        internal bool Valid               { get { return this._isValid; } }
 
         /// <summary>
         /// Add a list of associations to the diagram. Note that the diagram is NOT refreshed, facilitating a number of updates to 
@@ -118,6 +120,17 @@ namespace Framework.View
             this._referenceCount = 0;
             this._model = model;
             this._owningPackage = null;
+            this._isValid = true;
+        }
+
+        /// <summary>
+        /// Set the 'isValid' indicator to 'false' in order to mark the implementation as invalid. Please note that this has no further side
+        /// effects on the class and the use of the indicator is context specific. Currently, an implementation can be made invalid, but
+        /// this can never be turned around (in other words: it will remain invalid for ever)!
+        /// </summary>
+        protected void InValidate()
+        {
+            this._isValid = false;
         }
     }
 }

@@ -292,7 +292,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.APIProcessor.ProcessCapability >> Caught exception: " + exc);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.APIProcessor.ProcessCapability >> Caught exception: " + exc.ToString());
                 result = false;
             }
             return result;
@@ -404,9 +404,9 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                string message = "Caught exception when retrieving schema for key '" + itfTypeKey + "'!" + Environment.NewLine + exc.Message;
+                string message = "Caught exception when retrieving schema for key '" + itfTypeKey + "'!" + Environment.NewLine + exc.ToString();
                 Logger.WriteError("Plugin.Application.CapabilityModel.API.APIProcessor.GetSchema >> " + message);
-                throw new MissingFieldException(message);
+                throw new MissingFieldException(message, exc);
             }
         }
     }

@@ -1,29 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using Framework.Logging;
 
 namespace Plugin.Application.Forms
 {
     internal partial class CMRevertPicker : Form
     {
+        private string _featureTag;     // The tag selected by the user.
+
         /// <summary>
         /// Returns the tag thas has been selected by the user.
         /// </summary>
-        internal string SelectedTag { get { return (string)TagList.SelectedItem; } }
+        internal string SelectedTag { get { return this._featureTag; } }
 
         /// <summary>
-        /// Returns the user-assigned version associated with the selected tag as a triplet (major, minor, build).
+        /// Returns 'true' when the user wants to create a new version based on a selected feature tag.
         /// </summary>
-        internal Tuple<int,int,int> AssignedVersion
-        {
-            get
-            {
-                int majorNr = Int32.Parse(MajorVersion.Text);
-                int minorNr = Int32.Parse(MinorVersion.Text);
-                int buildNr = Int32.Parse(BuildNumber.Text);
-                return new Tuple<int, int, int>(majorNr, minorNr, buildNr);
-            }
-        }
+        internal bool CreateNewFeatureTagVersion { get { return DoCreateNewVersion.Checked; } }
 
         /// <summary>
         /// Dialog constructor.
@@ -32,43 +26,38 @@ namespace Plugin.Application.Forms
         {
             InitializeComponent();
 
-            foreach (string s in tagList) TagList.Items.Add(s);
-            TagList.SelectedIndex = 0;
+            // Load Feature Tags tree-view
+            this._featureTag = string.Empty;
+            foreach (string tag in tagList)
+            {
+                // Split the tag in its separate components, which are separated by '/' characters:
+                // 'feature/<ticket-id>/<buss-function.container/<service>_V<major>P<minor>B<build>'
+                // For the tree, we will only use <ticket-id> and <service>+<version>.
+                string[] tagElements = tag.Split('/');
+                if (tagElements.Length == 4)    // To comply with our standard, a tag must contain exactly 4 fields.
+                {
+                    string key = tagElements[1];
+                    TreeNode myNode;
+                    if (!FeatureTags.Nodes.ContainsKey(key)) myNode = FeatureTags.Nodes.Add(key, key);
+                    else myNode = FeatureTags.Nodes[key];
+                    TreeNode childNode = new TreeNode(tagElements[3]);
+                    childNode.Tag = tag;
+                    myNode.Nodes.Add(childNode);
+                }
+                else Logger.WriteWarning("Ignored non-standard tag '" + tag + "'!");
+            }
         }
 
         /// <summary>
-        /// Returns the version number (major, minor, build) corresponding to the currently selected tag.
+        /// This event is raised when the user selects a (new) item in the tag list. If we selected a leaf node, the associated
+        /// tag is assigned to the featureTag property so it can be retrieved.
         /// </summary>
-        /// <returns>Triplet major, minor, build.</returns>
-        private Tuple<int,int,int> GetVersionFromTag()
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void FeatureTags_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            string selectedTag = SelectedTag;
-
-            int indexMajor = selectedTag.IndexOf("_V");
-            int indexMinor = selectedTag.IndexOf('P');
-            int indexBuild = selectedTag.IndexOf('B');
-            string major = selectedTag.Substring(indexMajor + 2, indexMinor - indexMajor - 2);
-            string minor = selectedTag.Substring(indexMinor + 1, indexBuild - indexMinor - 1);
-            string build = selectedTag.Substring(indexBuild + 1);
-
-            int majorNr = Int32.Parse(major);
-            int minorNr = Int32.Parse(minor);
-            int buildNr = Int32.Parse(build);
-            return new Tuple<int, int, int>(majorNr, minorNr, buildNr);
-        }
-
-        /// <summary>
-        /// This event is raised when the user selects a (new) item in the tag list. It retrieves the version components from
-        /// the tag and uses these to initialise the version boxes. The user can subsequently overwrite these.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void TagList_SelectedValueChanged(object sender, EventArgs e)
-        {
-            Tuple<int, int, int> version = GetVersionFromTag();
-            MajorVersion.Text = version.Item1.ToString();
-            MinorVersion.Text = version.Item2.ToString();
-            BuildNumber.Text = version.Item3.ToString();
+            TreeNode node = FeatureTags.SelectedNode;
+            if (node.Level != 0) this._featureTag = node.Tag as string;
         }
     }
 }

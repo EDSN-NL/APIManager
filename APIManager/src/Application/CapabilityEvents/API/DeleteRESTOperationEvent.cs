@@ -31,29 +31,43 @@ namespace Plugin.Application.Events.API
             ModelSlt model = ModelSlt.GetModelSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
             MEClass operationClass = svcContext.OperationClass;
+            string errorMsg = string.Empty;
+            bool isError = false;
 
+            // Perform a series of precondition tests...
             if (!svcContext.Valid || operationClass == null)
             {
-                Logger.WriteError("Plugin.Application.Events.API.DeleteRESTOperationEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
-                return;
+                errorMsg = "Illegal or corrupt context, operation aborted!";
+                isError = true;
             }
-            else if (svcContext.Type != Service.ServiceArchetype.REST)
+            else if (svcContext.Type != Service.ServiceArchetype.REST) errorMsg = "Operation only suitable for REST Services!";
+            else if (!Service.UpdateAllowed(svcContext.ServiceClass)) errorMsg = "Service must be in checked-out state for operations to be deleted!";
+            else if (!svcContext.LockModel())
             {
-                Logger.WriteWarning("Operation only suitable for REST Services!");
-                return;
+                errorMsg = "Unable to lock the model!";
+                isError = true;
             }
 
-            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
-            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            if (errorMsg != string.Empty)
             {
-                Logger.WriteWarning("Service must be in checked-out state for operations to be deleted!");
+                if (isError)
+                {
+                    Logger.WriteError("Plugin.Application.Events.API.DeleteOperationEvent.HandleEvent >> " + errorMsg);
+                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    Logger.WriteWarning(errorMsg);
+                    MessageBox.Show(errorMsg, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                svcContext.UnlockModel();
                 return;
             }
 
             // Ask the user whether he/she really wants to delete the operation...
             using (var dialog = new ConfirmOperationChanges("Are you sure you want to delete Operation '" + operationClass.Name + "'?"))
             {
-                if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
+                if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     // By instantiating the service, we construct the entire capability hierarchy, which facilitates constructing
                     // of 'lower level' capabilities using their Class objects...
@@ -66,8 +80,8 @@ namespace Plugin.Application.Events.API
                     myService.Paint(svcContext.ServiceDiagram);
                     svcContext.Refresh();
                 }
-                svcContext.UnlockModel();
             }
+            svcContext.UnlockModel();
         }
     }
 }

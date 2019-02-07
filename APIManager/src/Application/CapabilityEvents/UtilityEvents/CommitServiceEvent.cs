@@ -14,9 +14,6 @@ namespace Plugin.Application.Events.Util
     /// </summary>
     class CommitServiceEvent : EventImplementation
     {
-        // Configuration properties used by this module...
-        private const string _CommitIDLeader = "CommitIDLeader";
-
         /// <summary>
         /// Checks whether we can process the event in the current context. Since this context is already clearly defined by the 'Service'
         /// stereotype, we only return 'false' when configuration management is generally disabled.
@@ -38,54 +35,55 @@ namespace Plugin.Application.Events.Util
             Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Message processing...");
             ContextSlt context = ContextSlt.GetContextSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
+            string errorMsg = string.Empty;
+            Service myService = null;
 
-            if (!svcContext.Valid)
+            // Perform some precondition tests...
+            if (!svcContext.Valid) errorMsg = "Illegal or corrupt context, operation aborted!";
+            else if (!svcContext.LockModel()) errorMsg = "Unable to lock the model!";
+
+            if (errorMsg != string.Empty)
             {
-                Logger.WriteError("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
+                Logger.WriteError("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> " + errorMsg);
+                MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                svcContext.UnlockModel();
                 return;
             }
 
             try
             {
-                if (svcContext.LockModel())
+                myService = svcContext.GetServiceInstance();
+                if (myService.IsValidCMState(CMContext.CMState.Committed))
                 {
-                    Service myService = svcContext.GetServiceInstance();
-                    if (myService.ConfigurationMgmtState == CMState.Modified)
+                    if (myService.ConfigurationMgmtState != CMContext.CMState.Committed)
                     {
-                        using (var dialog = new CMChangeMessage())
+                        using (var dialog = new CMCommitMessage())
                         {
                             if (dialog.ShowDialog() == DialogResult.OK)
                             {
-                                try
+                                if (myService.Commit(dialog.Annotation, dialog.AutoRelease))
                                 {
-                                    string commitID = context.GetConfigProperty(_CommitIDLeader) +
-                                                      myService.BusinessFunctionID + ":" +
-                                                      myService.ContainerPkg.Name + ":" +
-                                                      myService.Name + ":" +
-                                                      myService.Version.Item1 + ":" +
-                                                      myService.Version.Item2 + ":" +
-                                                      myService.BuildNumber;
-                                    Logger.WriteInfo("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> CommitID = '" + commitID + "'...");
-                                    myService.CMContext.CommitService(commitID + Environment.NewLine + dialog.Annotation, dialog.AutoRelease);
-                                    myService.Paint(context.CurrentDiagram);
+                                    MessageBox.Show("Successfully committed service '" + myService.Name + "'.",
+                                                    "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                                 }
-                                catch (CMOutOfSyncException)
-                                {
-                                    MessageBox.Show("Unable to release service to remote repository because the build number '" + myService.BuildNumber +
-                                                    "'  has already been used before!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                }
+                                else MessageBox.Show("Service '" + myService.Name + "' has been committed without any changes!",
+                                                     "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                             }
                         }
                     }
-                    else MessageBox.Show("Service must be 'Processed' before it can be committed!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    svcContext.UnlockModel();
+                    else MessageBox.Show("Service is already committed!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
+                else MessageBox.Show("Service must be new or checked-out before it can be committed!",
+                                     "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            catch
+            catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> Unable to determine proper context for commit!");
-                return;
+                string msg = "Unable to commit service '" + myService.Name + "' because: " + Environment.NewLine + exc.Message;
+                MessageBox.Show(msg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Logger.WriteError("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> " + msg + Environment.NewLine + exc.ToString());
             }
+            myService.Paint(context.CurrentDiagram);
+            svcContext.UnlockModel();
         }
     }
 }

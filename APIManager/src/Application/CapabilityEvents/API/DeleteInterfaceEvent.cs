@@ -51,28 +51,42 @@ namespace Plugin.Application.Events.API
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
+            string errorMsg = string.Empty;
+            bool isError = false;
 
+            // Perform a series of precondition tests...
             if (!svcContext.Valid || svcContext.InterfaceClass == null || svcContext.SVCModelPackage == null)
             {
-                Logger.WriteError("Plugin.Application.Events.API.DeleteInterfaceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
-                return;
+                errorMsg = "Illegal or corrupt context, operation aborted!";
+                isError = true;
             }
-            else if (svcContext.Type != Service.ServiceArchetype.SOAP)
+            else if (svcContext.Type != Service.ServiceArchetype.SOAP) errorMsg = "Operation only suitable for SOAP Services!";
+            else if (!Service.UpdateAllowed(svcContext.ServiceClass)) errorMsg = "Service must be in checked-out state for interfaces to be deleted!";
+            else if (!svcContext.LockModel())
             {
-                Logger.WriteWarning("Operation only suitable for SOAP Services!");
-                return;
+                errorMsg = "Unable to lock the model!";
+                isError = true;
             }
 
-            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
-            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            if (errorMsg != string.Empty)
             {
-                Logger.WriteWarning("Service must be in checked-out state for interfaces to be deleted!");
+                if (isError)
+                {
+                    Logger.WriteError("Plugin.Application.Events.API.DeleteInterfaceEvent.HandleEvent >> " + errorMsg);
+                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    Logger.WriteWarning(errorMsg);
+                    MessageBox.Show(errorMsg, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                svcContext.UnlockModel();
                 return;
             }
 
             using (var dialog = new ConfirmOperationChanges("Are you sure you want to delete Interface '" + svcContext.InterfaceClass.Name + "'?"))
             {
-                if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
+                if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     // Creating the service will build the entire object hierarchy. Subsequently, we can create Capabilities by class alone...
                     var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));

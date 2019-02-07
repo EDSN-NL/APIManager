@@ -293,7 +293,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
             {
                 string message = "Caught exception when retrieving schema for key '" + itfTypeKey + "'!" + Environment.NewLine + exc.Message;
                 Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.GetSchema >> " + message);
-                throw new MissingFieldException(message);
+                throw new MissingFieldException(message, exc);
             }
         }
 

@@ -58,72 +58,83 @@ namespace Plugin.Application.Events.API
 
             string operationStereotype = context.GetConfigProperty(_OperationClassStereotype);
             string commonSchemaStereotype = context.GetConfigProperty(_CommonSchemaClassStereotype);
+            string errorMsg = string.Empty;
+            bool isError = false;
 
+            // Perform a series of precondition tests...
             if (!svcContext.Valid || svcContext.InterfaceClass == null)
             {
-                Logger.WriteError("Plugin.Application.Events.API.AddAnnotationEvent.handleEvent >> Illegal context! Aborting.");
-                return;
+                errorMsg = "Illegal or corrupt context, operation aborted!";
+                isError = true;
             }
-            else if (svcContext.Type != Service.ServiceArchetype.SOAP)
+            else if (svcContext.Type != Service.ServiceArchetype.SOAP) errorMsg = "Operation only suitable for SOAP Services!";
+            else if (!Service.UpdateAllowed(svcContext.ServiceClass)) errorMsg = "Service must be in checked-out state for cange-log to be updated!";
+            else if (!svcContext.LockModel())
             {
-                Logger.WriteWarning("Operation only suitable for SOAP Services!");
-                return;
-            }
-
-            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
-            if (!Service.UpdateAllowed(svcContext.ServiceClass))
-            {
-                Logger.WriteWarning("Service must be in checked-out state for change-log to be modified!");
-                return;
+                errorMsg = "Unable to lock the model!";
+                isError = true;
             }
 
-            if (svcContext.LockModel())
+            if (errorMsg != string.Empty)
             {
-                // Collect all possible operations on this interface so the user can indicate what operations have been modified...
-                foreach (MEAssociation assoc in svcContext.InterfaceClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                if (isError)
                 {
-                    MEClass cl = assoc.Destination.EndPoint;
-                    if (cl.HasStereotype(operationStereotype)) operationList.Add(cl);
-                    else if (cl.HasStereotype(commonSchemaStereotype)) commonSchemaClass = cl;
+                    Logger.WriteError("Plugin.Application.Events.API.UpdateChangeLogEvent.HandleEvent >> " + errorMsg);
+                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-
-                using (var dialog = new CollectAnnotation())
+                else
                 {
-                    dialog.LoadNodes("Operations on '" + svcContext.InterfaceClass.Name + "' to annotate:", operationList);
-                    if (dialog.ShowDialog() == DialogResult.OK)
-                    {
-                        var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
-                        operationList = dialog.GetCheckedNodes();
-                        foreach (MEClass cl in operationList)
-                        {
-                            if (dialog.MinorVersionIndicator)
-                            {
-                                Logger.WriteInfo("Plugin.Application.Events.API.AddAnnotationEvent.handleEvent >> Updating version for class: '" + cl.Name + "'...");
-                                var newVersion = new Tuple<int, int>(cl.Version.Item1, cl.Version.Item2 + 1);
-                                cl.Version = newVersion;
-                            }
-                            CreateLogEntry(cl, dialog.Annotation);
-                        }
-                        if (dialog.MinorVersionIndicator)
-                        {
-                            var newVersion = new Tuple<int, int>(svcContext.InterfaceClass.Version.Item1, svcContext.InterfaceClass.Version.Item2 + 1);
-                            svcContext.InterfaceClass.Version = newVersion;
-                            commonSchemaClass.Version = newVersion;
-                            newVersion = new Tuple<int, int>(svcContext.ServiceClass.Version.Item1, svcContext.ServiceClass.Version.Item2 + 1);
-                            svcContext.ServiceClass.Version = newVersion;
-                        }
-                        if (svcContext.InterfaceList.Count > 1) UpdateInterfaces(svcContext, operationList, dialog.Annotation, dialog.MinorVersionIndicator);
-                        CreateLogEntry(svcContext.InterfaceClass, dialog.Annotation);
-                        CreateLogEntry(commonSchemaClass, dialog.Annotation);
-                        CreateLogEntry(svcContext.ServiceClass, dialog.Annotation);
-
-                        // Mark service as 'modified' for configuration management and add to diagram in different color...
-                        myService.Dirty();
-                        myService.Paint(svcContext.ServiceDiagram);
-                    }
+                    Logger.WriteWarning(errorMsg);
+                    MessageBox.Show(errorMsg, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 svcContext.UnlockModel();
+                return;
             }
+
+            // Collect all possible operations on this interface so the user can indicate what operations have been modified...
+            foreach (MEAssociation assoc in svcContext.InterfaceClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+            {
+                MEClass cl = assoc.Destination.EndPoint;
+                if (cl.HasStereotype(operationStereotype)) operationList.Add(cl);
+                else if (cl.HasStereotype(commonSchemaStereotype)) commonSchemaClass = cl;
+            }
+
+            using (var dialog = new CollectAnnotation())
+            {
+                dialog.LoadNodes("Operations on '" + svcContext.InterfaceClass.Name + "' to annotate:", operationList);
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
+                    operationList = dialog.GetCheckedNodes();
+                    foreach (MEClass cl in operationList)
+                    {
+                        if (dialog.MinorVersionIndicator)
+                        {
+                            Logger.WriteInfo("Plugin.Application.Events.API.AddAnnotationEvent.handleEvent >> Updating version for class: '" + cl.Name + "'...");
+                            var newVersion = new Tuple<int, int>(cl.Version.Item1, cl.Version.Item2 + 1);
+                            cl.Version = newVersion;
+                        }
+                        CreateLogEntry(cl, dialog.Annotation);
+                    }
+                    if (dialog.MinorVersionIndicator)
+                    {
+                        var newVersion = new Tuple<int, int>(svcContext.InterfaceClass.Version.Item1, svcContext.InterfaceClass.Version.Item2 + 1);
+                        svcContext.InterfaceClass.Version = newVersion;
+                        commonSchemaClass.Version = newVersion;
+                        newVersion = new Tuple<int, int>(svcContext.ServiceClass.Version.Item1, svcContext.ServiceClass.Version.Item2 + 1);
+                        svcContext.ServiceClass.Version = newVersion;
+                    }
+                    if (svcContext.InterfaceList.Count > 1) UpdateInterfaces(svcContext, operationList, dialog.Annotation, dialog.MinorVersionIndicator);
+                    CreateLogEntry(svcContext.InterfaceClass, dialog.Annotation);
+                    CreateLogEntry(commonSchemaClass, dialog.Annotation);
+                    CreateLogEntry(svcContext.ServiceClass, dialog.Annotation);
+
+                    // Mark service as 'modified' for configuration management and add to diagram in different color...
+                    myService.Dirty();
+                    myService.Paint(svcContext.ServiceDiagram);
+                }
+            }
+            svcContext.UnlockModel();
         }
 
         /// <summary>

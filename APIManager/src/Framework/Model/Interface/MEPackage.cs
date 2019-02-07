@@ -197,21 +197,6 @@ namespace Framework.Model
         }
 
         /// <summary>
-        /// The method searches the current package for the first child with specified name and optional stereotype.
-        /// You can have multiple child packages with the same name. In that case, differentiation by Stereotype makes sense.
-        /// If stereotype is not specified, we return the first match found. In case of name + stereotype, we return the first
-        /// match of both the name and the stereotype.
-        /// </summary>
-        /// <param name="packageName">Name of child to locate.</param>
-        /// <returns>Child package or NULL when not found or on errors.</returns>
-        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal MEPackage FindPackage(string packageName, string packageStereotype = null)
-        {
-            if (this._imp != null) return ((MEIPackage)this._imp).FindPackage(packageName, packageStereotype);
-            else throw new MissingImplementationException("MEIPackage");
-        }
-
-        /// <summary>
         /// Searches the package for any class with given name and optional stereotype.
         /// </summary>
         /// <param name="className">Name of class (or class-derived) object to find.</param>
@@ -263,6 +248,37 @@ namespace Framework.Model
         internal Diagram FindDiagram(string diagramName = null)
         {
             if (this._imp != null) return ((MEIPackage)this._imp).FindDiagram(diagramName);
+            else throw new MissingImplementationException("MEIPackage");
+        }
+
+        /// <summary>
+        /// The method searches the current package for the first child with specified name and optional stereotype.
+        /// You can have multiple child packages with the same name. In that case, differentiation by Stereotype makes sense.
+        /// If stereotype is not specified, we return the first match found. In case of name + stereotype, we return the first
+        /// match of both the name and the stereotype.
+        /// </summary>
+        /// <param name="packageName">Name of child to locate.</param>
+        /// <returns>Child package or NULL when not found or on errors.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal MEPackage FindPackage(string packageName, string packageStereotype = null)
+        {
+            if (this._imp != null) return ((MEIPackage)this._imp).FindPackage(packageName, packageStereotype);
+            else throw new MissingImplementationException("MEIPackage");
+        }
+
+        /// <summary>
+        /// Searches the package for any child packages containing the specified name part and/or stereotype.
+        /// One or both parameters must be specified. If we have only the name part, the function returns all packages
+        /// that contain that name part. If only the stereotype is specified, we return all packages that match the
+        /// stereotype. If both are specified, we return all packages of the specified stereotype that match the name filter.
+        /// The search is only at the level of the current package, that is, we don't search multiple levels down!
+        /// </summary>
+        /// <param name="nameFilter">Optional (part of) name to search for.</param>
+        /// <param name="stereotype">Optional stereotype of class.</param>
+        /// <returns>List of packages found (can be empty).</returns>
+        internal List<MEPackage> FindPackages(string nameFilter, string stereotype)
+        {
+            if (this._imp != null) return ((MEIPackage)this._imp).FindPackages(nameFilter, stereotype);
             else throw new MissingImplementationException("MEIPackage");
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Xml;
@@ -159,17 +160,27 @@ namespace Framework.ConfigurationManagement
         /// </summary>
         private CMRepositoryDscManagerSlt()
         {
-            this._cmDescriptors = new SortedList<string, RepositoryDescriptor>();
-            string currentList = Settings.Default.RepositoryDescriptorList;
-            if (!string.IsNullOrEmpty(currentList))
+            try
             {
-                XmlDocument xmlConfig = new XmlDocument();
-                xmlConfig.LoadXml(Compression.StringUnzip(Settings.Default.RepositoryDescriptorList));
-                foreach (XmlNode configNode in xmlConfig.SelectNodes("RepositoryList/Repository"))
+                this._cmDescriptors = new SortedList<string, RepositoryDescriptor>();
+                string currentList = Settings.Default.RepositoryDescriptorList;
+                if (!string.IsNullOrEmpty(currentList))
                 {
-                    RepositoryDescriptor dsc = new RepositoryDescriptor(configNode);
-                    this._cmDescriptors.Add(dsc.Name.ToLower(), dsc);
+                    XmlDocument xmlConfig = new XmlDocument();
+                    xmlConfig.LoadXml(Compression.StringUnzip(Settings.Default.RepositoryDescriptorList));
+                    foreach (XmlNode configNode in xmlConfig.SelectNodes("RepositoryList/Repository"))
+                    {
+                        RepositoryDescriptor dsc = new RepositoryDescriptor(configNode);
+                        this._cmDescriptors.Add(dsc.Name.ToLower(), dsc);
+                    }
                 }
+            }
+            catch (XmlException exc)
+            {
+                Logger.WriteError("Framework.ConfigurationManagement.CMRepositoryDscManagerSlt >> Repository Descriptor List corruption detected, please re-create!" + 
+                                  Environment.NewLine + exc.ToString());
+                Settings.Default.RepositoryDescriptorList = string.Empty;
+                Settings.Default.Save();
             }
         }
     }

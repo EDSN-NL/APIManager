@@ -12,7 +12,7 @@ using Plugin.Application.Forms;
 namespace Plugin.Application.Events.Util
 {
     /// <summary>
-    /// Process an explicit 'service checkout' event.
+    /// Process a 'service checkout' event.
     /// </summary>
     class CheckoutServiceEvent : EventImplementation
     {
@@ -29,77 +29,152 @@ namespace Plugin.Application.Events.Util
         }
 
         /// <summary>
-        /// Performs a service 'checkout', which prepares a service for processing. Typically, this is done explicitly when performing a
-        /// 'process service' event. However, users can perform an explicit checkout to assure that CM contains the appropriate branches and
-        /// to check whether no pending changes from other services prevent processing of the selected service.
+        /// Performs a service 'checkout', which prepares a service for processing. Users must perform an explicit checkout to create and assign
+        /// the appropriate change-tickets and establish the necessary feature branch for processing the change.
         /// </summary>
         internal override void HandleEvent()
         {
             Logger.WriteInfo("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Message processing...");
             ContextSlt context = ContextSlt.GetContextSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
+            string errorMsg = string.Empty;
+            Service myService = null;
 
-            if (!svcContext.Valid)
+            // Perform a series of precondition tests...
+            if (!svcContext.Valid) errorMsg = "Illegal or corrupt context, operation aborted!";
+            else if (!svcContext.LockModel()) errorMsg = "Unable to lock the model!";
+
+            if (errorMsg != string.Empty)
             {
-                Logger.WriteError("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
+                Logger.WriteError("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> " + errorMsg);
+                MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                svcContext.UnlockModel();
                 return;
             }
 
             try
             {
-                if (svcContext.LockModel())
+                myService = svcContext.GetServiceInstance();
+                RMServiceTicket existingTicket = myService.Ticket;      // Current ticket assigned to the service.
+                if (myService.IsValidCMState(CMContext.CMState.CheckedOut))
                 {
-                    Service myService = svcContext.GetServiceInstance();
-                    using (CheckoutService dialog = new CheckoutService(myService))
+                    if (myService.ConfigurationMgmtState != CMContext.CMState.CheckedOut)
                     {
-                        if (dialog.ShowDialog() == DialogResult.OK)
+                        using (CMCheckoutService dialog = new CMCheckoutService(myService))
                         {
-                            // TODO: Get the Ticket for the checkout.
-                            // ALSO: ALL operations that modify the model MUST be locked until after a valid Checkout (when CM is enabled) --> Create global
-                            // method that we can call from the IsValidState method!!!
-                            if (dialog.UseNewVersion)
+                            if (dialog.ShowDialog() == DialogResult.OK)
                             {
-                                if (dialog.NewVersion.Item1 > myService.MajorVersion) 
+                                bool needCheckout = true;
+                                if (dialog.UseVersion)
                                 {
-                                    var newSvcContext = new ServiceContext(myService.CopyService(myService.DeclarationPkg.Name));
-                                    myService = newSvcContext.GetServiceInstance();         // Instance of copied service.
-                                    myService.UpdateVersion(dialog.NewVersion);             // Updates entire hierarchy.
-                                    myService.Paint(newSvcContext.MyDiagram);
+                                    if (dialog.NewVersion.Item1 > myService.MajorVersion)
+                                    {
+                                        // We're going to create a new service instance with a new major version. This service is then
+                                        // checked-out and we leave the original alone.
+                                        svcContext = new ServiceContext(myService.CopyService(myService.DeclarationPkg.Name));
+                                        myService = svcContext.GetServiceInstance();        // Instance of copied service.
+                                        needCheckout = false;
+                                    }
+                                    if (myService.Version.Item1 != dialog.NewVersion.Item1 || 
+                                        myService.Version.Item2 != dialog.NewVersion.Item2) myService.UpdateVersion(dialog.NewVersion);
                                 }
-                                else myService.UpdateVersion(dialog.NewVersion);
-                            }
-                            else
-                            {
-                                // Use Existing Feature Tag...
-                                MessageBox.Show("Use Feature Tag: '" + dialog.FeatureTag + "'...");
-                            }
+                                else
+                                {
+                                    // Restore service based on selected tag.
+                                    // First of all, we import a (new) service package from Configuration Management.
+                                    // Since this might invalidate our current service tree, we then re-create the capability tree by
+                                    // creating a new service context based on the newly imported service.
+                                    // Finally, we update the version history in this tree using the version information that has been
+                                    // recorded in the importedService by the 'RestoreService' flow (might be different from the tag 
+                                    // version in case we decided to create a new version based on an existing one).
+                                    Tuple<int, int, int> tagVersion = ParseTagVersion(dialog.FeatureTag);
+                                    MEClass importedService = myService.RestoreService(dialog.FeatureTag, dialog.CreateNewFeatureTagVersion);
+                                    svcContext = new ServiceContext(importedService);
+                                    myService = svcContext.GetServiceInstance();
+                                    myService.UpdateVersion(importedService.Version);   
 
-                            // Now that we have made sure that the service context is correctly changed, perform the actual checkout.
-                            // This will create the appropriate feature branch and push stuff to remote...
-                            if (!myService.Checkout(dialog.TicketID, dialog.ProjectID))
-                            {
-                                MessageBox.Show("Unable to checkout service '" + myService.Name +
-                                                "' from configuration management; probably caused by uncommitted changes on branch(es): '" +
-                                                CMContext.FindBranchesInState(CMState.Modified) + "'." + Environment.NewLine +
-                                                "Please commit pending changes before starting work on a new service!",
-                                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            }
-                            else
-                            {
-                                MessageBox.Show("Successfully checked-out service '" + myService.Name + "'.",
-                                                "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                myService.Paint(svcContext.MyDiagram);
+                                    // If we did not select to create a new version, we have to set the build number to the version indicated
+                                    // by the tag, since the UpdateVersion call will have reset it to default value!
+                                    // Otherwise, we must reset the build number.
+                                    // Also, don't check-out new services since these will be in CM state 'created'.
+                                    if (dialog.CreateNewFeatureTagVersion) 
+                                    {
+                                        myService.BuildNumber = 1;
+                                        needCheckout = false;
+                                    }
+                                    else myService.BuildNumber = tagVersion.Item3;
+                                }
+
+                                // We have to check whether:
+                                // a) The user has selected a new ticket (dialog.Ticket == null and RemoteTicket contains the new ticket);
+                                // b) If the user has left the ticket alone and we find the existing ticket to be different from the current
+                                //    service ticket, the user has restored an 'old' service that contains an 'old' ticket and we must replace
+                                //    this with the ticket from our 'current' service.
+                                RMServiceTicket ticket = dialog.Ticket;
+                                if (ticket == null) ticket = new RMServiceTicket(dialog.RemoteTicket, dialog.ProjectOrderID, myService);
+                                else if (myService.Ticket != existingTicket) ticket = new RMServiceTicket(existingTicket, myService);
+
+                                // Now that we have made sure that the service context is correctly changed, perform the actual checkout.
+                                // This will create the appropriate feature branch and push stuff to remote.
+                                // Only after checkout can we modify te service contents.
+                                if (needCheckout)
+                                {
+                                    if (myService.Checkout(ticket))
+                                    {
+                                        MessageBox.Show("Successfully checked-out service '" + myService.Name + "'.",
+                                                        "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                    }
+                                    else
+                                    {
+                                        MessageBox.Show("Unable to checkout service '" + myService.Name +
+                                                        "' from configuration management; probably caused by uncommitted changes on branch(es): '" +
+                                                        CMContext.FindBranchesInState(CMContext.CMState.Modified) + "'." + Environment.NewLine +
+                                                        "Please commit pending changes before starting work on a new service!",
+                                                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    }
+                                }
+                                else
+                                {
+                                    // Typically, the ticket is assigned during Checkout. Since we skipped that, don't forget to tell our
+                                    // service about the ticket here.
+                                    myService.Ticket = ticket;
+                                    MessageBox.Show("Successfully created new service instance '" + myService.Name + "_V" + myService.MajorVersion,
+                                                     "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                }
                             }
                         }
                     }
-                    svcContext.UnlockModel();
+                    else MessageBox.Show("Service is already checked-out!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
+                else MessageBox.Show("Service must be committed or released before it can be checked-out!", 
+                                     "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> Caught an exception during service creation: " + Environment.NewLine + exc.Message);
-                return;
+                string msg = "Unable to checkout service '" + myService.Name + "' because: " + Environment.NewLine + exc.Message;
+                MessageBox.Show(msg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Logger.WriteError("Plugin.Application.Events.API.CheckoutServiceEvent.HandleEvent >> " + msg + Environment.NewLine + exc.ToString());
             }
+            myService.Paint(svcContext.MyDiagram);
+            svcContext.UnlockModel();
+        }
+
+        /// <summary>
+        /// Helper function that receives a tag and extracts the version information from it.
+        /// </summary>
+        /// <param name="tag">Tag to be parsed.</param>
+        /// <returns>Version info as a triplet major,minor,build</returns>
+        private static Tuple<int, int, int> ParseTagVersion(string tag)
+        {
+            int indexMajor = tag.LastIndexOf("_V");
+            int indexMinor = tag.LastIndexOf('P');
+            int indexBuild = tag.LastIndexOf('B');
+
+            int majorNr = Int32.Parse(tag.Substring(indexMajor + 2, indexMinor - indexMajor - 2));
+            int minorNr = Int32.Parse(tag.Substring(indexMinor + 1, indexBuild - indexMinor - 1));
+            int buildNr = Int32.Parse(tag.Substring(indexBuild + 1));
+
+            return new Tuple<int, int, int>(majorNr, minorNr, buildNr);
         }
     }
 }

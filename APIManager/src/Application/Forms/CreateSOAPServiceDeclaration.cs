@@ -12,6 +12,7 @@ namespace Plugin.Application.Forms
     internal partial class CreateSOAPServiceDeclaration : Form
     {
         private MEPackage _parent;
+        private Ticket _remoteTicket;       // Remote ticket as selected by the user.
         private bool _hasValidOperations;   // True when at least one valid operation name has been entered.
         private bool _hasTicket;            // True when a valid ticket ID has been entered.
         private bool _hasValidName;         // True when a valid API name has been entered;
@@ -51,9 +52,9 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
-        /// Returns the Jira ticket ID entered by the user.
+        /// Returns the remote ticket as selected by the user.
         /// </summary>
-        internal string TicketID { get { return TicketIDFld.Text; } }
+        internal Ticket RemoteTicket { get { return this._remoteTicket; } }
 
         /// <summary>
         /// Returns the Project ID entered by the user.
@@ -70,6 +71,7 @@ namespace Plugin.Application.Forms
             this._parent = parent;
             this._hasValidName = false;
             this._hasValidOperations = false;
+            this._remoteTicket = null;
 
             // Initialize the drop-down box with all Operational States, with the exception of 'Deprecated'...
             foreach (var state in EnumConversions<OperationalState>.GetValues())
@@ -185,12 +187,22 @@ namespace Plugin.Application.Forms
         private void TicketIDFld_Leave(object sender, EventArgs e)
         {
             ErrorLine.Text = string.Empty;
-            this._hasTicket = RMServiceTicket.IsValidID(TicketIDFld.Text);
-            if (!this._hasTicket)
+            if (TicketIDFld.Text != string.Empty)
             {
-                ErrorLine.Text = "Provided ID does not identify a valid open ticket, please try again!";
+                TicketServerSlt ticketSrv = TicketServerSlt.GetTicketServerSlt();
+                Ticket remoteTicket = ticketSrv.GetTicket(TicketIDFld.Text);
+                if (remoteTicket == null || ticketSrv.IsClosed(remoteTicket))
+                {
+                    ErrorLine.Text = "Specified ticket does not exist or is closed, please try again!";
+                    TicketIDFld.Text = string.Empty;
+                }
+                else
+                {
+                    this._remoteTicket = remoteTicket;
+                    this._hasTicket = true;
+                    CheckOK();
+                }
             }
-            else CheckOK();
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Framework.Context;
 using Framework.Event;
 using Framework.Model;
@@ -45,11 +46,19 @@ namespace Framework.Controller
             ModelSlt.GetModelSlt().Flush();    // Clean the model context.
 
             // Simulate a scope switch in order to get the context back to a consistent state...
-            Logger.WriteInfo("Framework.Controller.ControllerSlt.flush >> Restoring current diagram (" + 
-                             diagramName + "), package (" + packageName + ") and class (" + className + ")...");
-            if (currentPackage != null && currentPackage.Valid) SwitchScope(ContextScope.Package, currentPackage.ElementID, currentPackage.GlobalID);
-            if (currentClass != null && currentClass.Valid) SwitchScope(ContextScope.Class, currentClass.ElementID, currentClass.GlobalID);
-            if (currentDiagram != null) SwitchScope(ContextScope.Diagram, currentDiagram.DiagramID, currentDiagram.GlobalID);
+            try
+            {
+                Logger.WriteInfo("Framework.Controller.ControllerSlt.flush >> Restoring current diagram (" +
+                                 diagramName + "), package (" + packageName + ") and class (" + className + ")...");
+                if (currentPackage != null && currentPackage.Valid) SwitchScope(ContextScope.Package, currentPackage.ElementID, currentPackage.GlobalID);
+                if (currentClass != null && currentClass.Valid) SwitchScope(ContextScope.Class, currentClass.ElementID, currentClass.GlobalID);
+                if (currentDiagram != null && currentDiagram.Valid) SwitchScope(ContextScope.Diagram, currentDiagram.DiagramID, currentDiagram.GlobalID);
+            }
+            catch (Exception exc)
+            {
+                Logger.WriteInfo("Framework.Controller.ControllerSlt.flush >> Got an exception during context restore, DB might have changed!" + 
+                                 Environment.NewLine + exc.ToString());
+            }
         }
 
         /// <summary>

@@ -71,38 +71,42 @@ namespace Plugin.Application.Events.API
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
             this._isRootLevelResource = svcContext.InterfaceClass != null;
             MEClass collectionParent = this._isRootLevelResource ? svcContext.InterfaceClass : svcContext.ResourceClass;
+            string errorMsg = string.Empty;
+            bool isError = false;               // In case errorMsg is not empty, 'true' = error, 'false' = warning.
 
+            // Perform a series of precondition tests...
             if (!svcContext.Valid || svcContext.MyDiagram == null || collectionParent == null)
             {
-                Logger.WriteError("Plugin.Application.Events.API.AddResourcesEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
-                return;
+                errorMsg = "Illegal or corrupt context, operation aborted!";
+                isError = true;
             }
             else if (svcContext.Type != Service.ServiceArchetype.REST)
+                errorMsg = "Operation only suitable for REST Services!";
+            else if (!Service.UpdateAllowed(svcContext.ServiceClass))
+                errorMsg = "Service must be in checked-out state for resources to be added!";
+            else if (!this._isRootLevelResource && svcContext.MyDiagram.OwningPackage != svcContext.ResourceClass.OwningPackage)
+                errorMsg = "Child Resources can only be added from the diagram of the owning Resource Collection!";
+            else if (this._isRootLevelResource && svcContext.MyDiagram.OwningPackage != svcContext.SVCModelPackage)
+                errorMsg = "Root-level resources can only be added from the Service Model diagram!";
+            else if (!svcContext.LockModel())
             {
-                Logger.WriteWarning("Operation only suitable for REST Services!");
-                return;
+                errorMsg = "Unable to lock the model!";
+                isError = true;
             }
 
-            // Check what type of diagram has been selected, must be top-level for root-level resource collections...
-            if (this._isRootLevelResource && svcContext.MyDiagram.OwningPackage != svcContext.SVCModelPackage)
+            if (errorMsg != string.Empty)
             {
-                Logger.WriteWarning("Root-level Resources can only be added from the Service Model diagram!");
-                return;
-            }
-
-            // Check the Resource that we want to use as parent. If this is a root collection, we can only add the child Resource
-            // when we are at the diagram of that root collection!
-            // RULE: A child Resource has EXACTLY ONE parent Resource Collection! 
-            if (!this._isRootLevelResource && svcContext.MyDiagram.OwningPackage != svcContext.ResourceClass.OwningPackage)
-            {
-                Logger.WriteWarning("Child Resources can only be added from the diagram of the owning Resource Collection!");
-                return;
-            }
-
-            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
-            if (!Service.UpdateAllowed(svcContext.ServiceClass))
-            {
-                Logger.WriteWarning("Service must be in checked-out state for resources to be added!");
+                if (isError)
+                {
+                    Logger.WriteError("Plugin.Application.Events.API.AddRESTResourceEvent.HandleEvent >> " + errorMsg);
+                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    Logger.WriteWarning(errorMsg);
+                    MessageBox.Show(errorMsg, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                svcContext.UnlockModel();
                 return;
             }
 
@@ -125,7 +129,7 @@ namespace Plugin.Application.Events.API
             var newResource = new RESTResourceDeclaration(parent);
             using (var dialog = new RESTResourceDialog(newResource))
             {
-                if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
+                if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     List<RESTResourceDeclaration> resourceList = new List<RESTResourceDeclaration> { dialog.Resource };
                     bool result = resourceContainer.AddResources(resourceList, dialog.MinorVersionIndicator);

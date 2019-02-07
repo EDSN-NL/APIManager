@@ -225,7 +225,7 @@ namespace Framework.Context
                 }
                 catch (Exception exc)
                 {
-                    Logger.WriteError("Framework.Context.FrameworkSettings.GetStringSetting >> Error decrypting value, resetting contents because: " + exc.Message);
+                    Logger.WriteError("Framework.Context.FrameworkSettings.GetStringSetting >> Error decrypting value, resetting contents because: " + exc.ToString());
                     SetStringSetting(name, string.Empty, true);
                     return string.Empty;
                 }

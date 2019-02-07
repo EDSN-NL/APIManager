@@ -145,7 +145,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.MessageCapabilityImp (new) >> Error creating capability because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.MessageCapabilityImp (new) >> Error creating capability because: " + exc.ToString());
                 this._capabilityClass = null;   // Assures that instance is declared invalid.
             }
         }
@@ -175,7 +175,7 @@ namespace Plugin.Application.CapabilityModel.API
         internal override void Delete()
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.MessageCapabilityImp.delete >> Deleting the message capability resources...");
-            this._msgAssembly.OwningPackage.Parent.DeletePackage(this._msgAssembly.OwningPackage);
+            if (this._msgAssembly != null) this._msgAssembly.OwningPackage.Parent.DeletePackage(this._msgAssembly.OwningPackage);
             base.Delete();
         }
 

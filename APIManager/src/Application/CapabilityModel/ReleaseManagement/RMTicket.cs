@@ -19,8 +19,6 @@ namespace Plugin.Application.CapabilityModel
         private const string _RMTicketStereotype            = "RMTicketStereotype";
         private const string _RMReleasedVersionTag          = "RMReleasedVersionTag";
         private const string _ReleaseHistoryPos             = "ReleaseHistoryPos";
-        private const string _RMCreationTimestampTag        = "RMCreationTimestampTag";
-        private const string _RMModificationTimestampTag    = "RMModificationTimestampTag";
         private const string _RMProjectOrderIDTag           = "RMProjectOrderIDTag";
         private const string _RMTicketIDTag                 = "RMTicketIDTag";
 
@@ -37,6 +35,11 @@ namespace Plugin.Application.CapabilityModel
         /// release tickets have different qualified ID formats).
         /// </summary>
         internal abstract string GetQualifiedID();
+
+        /// <summary>
+        /// Returns 'true' in case the ticket is closed in the remote ticket server, 'false' otherwise.
+        /// </summary>
+        internal bool Closed { get { return this._ticket.Closed; } }
 
         /// <summary>
         /// Returns the unique (Jira) Ticket identifier.
@@ -147,6 +150,39 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
+        /// The constructor creates a basic object containing the Jira ticket. Subsequent calls are required to actually create the
+        /// ticket administration within the model repository (or read it in case of existing tickets). We left this out of the 
+        /// constructor since context depends on the ticket implementation classes and these might require additional work until 
+        /// they can actually initiate package/class retrieval or creation.
+        /// </summary>
+        /// <param name="remoteTicket">The associated Jira Ticket.</param>
+        /// <param name="projectOrderID=">Project Order Identifier associated with the ticket.</param>
+        /// <exception cref="ArgumentException">Is thrown when the specified ticketID does not yield a valid ticket or when no valid PO number has been specified.</exception>
+        internal RMTicket(Ticket remoteTicket, string projectOrderID)
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMTicket >> Creating new instance for Ticket '" + remoteTicket.ID +
+                             "' and project '" + projectOrderID + "'...");
+
+            this._isInitialized = false;
+            this._isExistingTicket = false;
+            this._projectOrderID = projectOrderID;
+            this._ticket = remoteTicket;
+            this._isExistingTicket = true;
+
+            // We don't know these yet and we depend on the specialized class to help us initializing them...
+            this._ticketClass = null;
+            this._ticketPackage = null;
+            this._myDiagram = null;
+
+            if (string.IsNullOrEmpty(projectOrderID))
+            {
+                string message = "Plugin.Application.CapabilityModel.RMTicket >> No valid PO ID for Ticket '" + remoteTicket.ID + "'!";
+                Logger.WriteError(message);
+                throw new ArgumentException(message);
+            }
+        }
+
+        /// <summary>
         /// Override method that compares an RMTicket with another Object. Returns true if both elements are of 
         /// identical type and have identical ID's.
         /// </summary>
@@ -239,8 +275,6 @@ namespace Plugin.Application.CapabilityModel
             Logger.WriteInfo("Plugin.Application.CapabilityModel.RMTicket.UpdateTicket >> Storing ticket data...");
             ContextSlt context = ContextSlt.GetContextSlt();
 
-            TicketClass.SetTag(context.GetConfigProperty(_RMCreationTimestampTag), this._ticket.CreationTimestamp.ToString());
-            TicketClass.SetTag(context.GetConfigProperty(_RMModificationTimestampTag), this._ticket.UpdateTimestamp.ToString());
             TicketClass.SetTag(context.GetConfigProperty(_RMTicketIDTag), this._ticket.ID);
             TicketClass.SetTag(context.GetConfigProperty(_RMProjectOrderIDTag), this._projectOrderID);
         }

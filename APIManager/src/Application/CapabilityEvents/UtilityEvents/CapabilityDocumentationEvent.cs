@@ -2,7 +2,11 @@
 using Framework.Event;
 using Framework.Context;
 using Framework.Util;
+using Framework.Logging;
 using Plugin.Application.Forms;
+using Plugin.Application.CapabilityModel;
+using Plugin.Application.Events.API;
+
 
 namespace Plugin.Application.Events.Util
 {
@@ -21,11 +25,45 @@ namespace Plugin.Application.Events.Util
         internal override void HandleEvent()
         {
             ContextSlt context = ContextSlt.GetContextSlt();
-            string caption = "Edit documentation for class: '" + context.CurrentClass.Name + "'...";
-            using (var capDoc = new CapabilityDocumentation(caption, MEChangeLog.GetRTFDocumentation(context.CurrentClass)))
+            var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
+            string errorMsg = string.Empty;
+            bool isError = false;
+
+            // Perform a series of precondition tests...
+            if (!svcContext.Valid)
             {
-                if (capDoc.ShowDialog() == DialogResult.OK) MEChangeLog.SetRTFDocumentation(context.CurrentClass, capDoc.Documentation);
+                errorMsg = "Illegal or corrupt context, operation aborted!";
+                isError = true;
             }
+            else if (!Service.UpdateAllowed(svcContext.ServiceClass)) errorMsg = "Service must be in checked-out state for documentation to be updated!";
+            else if (!svcContext.LockModel())
+            {
+                errorMsg = "Unable to lock the model!";
+                isError = true;
+            }
+
+            if (errorMsg != string.Empty)
+            {
+                if (isError)
+                {
+                    Logger.WriteError("Plugin.Application.Events.API.CapabilityDocumentationEvent.HandleEvent >> " + errorMsg);
+                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    Logger.WriteWarning(errorMsg);
+                    MessageBox.Show(errorMsg, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            else
+            {
+                string caption = "Edit documentation for class: '" + context.CurrentClass.Name + "'...";
+                using (var capDoc = new CapabilityDocumentation(caption, MEChangeLog.GetRTFDocumentation(context.CurrentClass)))
+                {
+                    if (capDoc.ShowDialog() == DialogResult.OK) MEChangeLog.SetRTFDocumentation(context.CurrentClass, capDoc.Documentation);
+                }
+            }
+            svcContext.UnlockModel();
         }
     }
 }

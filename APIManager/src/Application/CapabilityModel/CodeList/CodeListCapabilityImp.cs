@@ -142,7 +142,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.CodeListCapabilityImp (new) >> Error creating capability because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.CodeListCapabilityImp (new) >> Error creating capability because: " + exc.ToString());
                 this._capabilityClass = null;   // Assures that instance is declared invalid.
             }
         }
@@ -172,7 +172,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.CodeListCapabilityImp (existing) >> Error creating capability because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.CodeListCapabilityImp (existing) >> Error creating capability because: " + exc.ToString());
                 this._capabilityClass = null;   // Assures that instance is declared invalid
             }
         }

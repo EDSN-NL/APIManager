@@ -5,6 +5,7 @@ using Framework.Model;
 using Framework.Context;
 using Framework.View;
 using Framework.Util;
+using Framework.ConfigurationManagement;
 
 namespace Plugin.Application.CapabilityModel.API
 {
@@ -63,13 +64,16 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="metaData">Set of user-defined API meta data (see above).</param>
         /// <param name="resources">List of root-level Resource collection declarations.</param>
         /// <param name="declarationStereotype">The stereotype to apply to the created API.</param>
-        /// <param name="initialState">Initial operational state to be assigned to the service. When not specified, we assume the default state.</param>
+        /// <param name="initialState">Initial operational state to be assigned to the service.</param>
+        /// <param name="remoteTicket">The ticket used for creation, ignored when CM is not enabled.</param>
+        /// <param name="projectOrderID">Identifier of the project order used for creation, ignored when CM is not enabled.</param>
         internal RESTService(MEPackage containerPackage, 
                              RESTInterfaceCapability.MetaData metaData, 
                              List<RESTResourceDeclaration> resources, 
                              string declarationStereotype,
-                             OperationalState initialState = _DefaultOperationalState): 
-            base(containerPackage, metaData.qualifiedName, declarationStereotype, initialState)
+                             OperationalState initialState,
+                             Ticket remoteTicket, string projectOrderID): 
+            base(containerPackage, metaData.qualifiedName, declarationStereotype, initialState, remoteTicket, projectOrderID)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
@@ -129,7 +133,7 @@ namespace Plugin.Application.CapabilityModel.API
             catch (Exception exc)
             {
                 Logger.WriteError("Plugin.Application.CapabilityModel.APIProcessor.RESTService >> Service creation failed because:" + 
-                                  Environment.NewLine + exc.Message);
+                                  Environment.NewLine + exc.ToString());
             }
         }
 
@@ -162,7 +166,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.APIProcessor.RESTService (existing) >> Error creating capability structure because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.APIProcessor.RESTService (existing) >> Error creating capability structure because: " + exc.ToString());
                 this._serviceClass = null;   // Assures that instance is declared invalid.
             }
         }

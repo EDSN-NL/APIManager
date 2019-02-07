@@ -33,7 +33,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
                                  SortedList<string, CodeListDirector.DirectorContext> codeLists, 
                                  string declarationStereotype,
                                  OperationalState initialState = _DefaultOperationalState): 
-            base(containerPackage, qualifiedServiceName, declarationStereotype, initialState)
+            base(containerPackage, qualifiedServiceName, declarationStereotype, initialState, null, null)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
@@ -131,7 +131,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
                 }
                 catch (Exception exc)
                 {
-                    Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.CodeListService (existing) >> Error creating capability structure because: " + exc.Message);
+                    Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.CodeListService (existing) >> Error creating capability structure because: " + exc.ToString());
                     this._serviceClass = null;   // Assures that instance is declared invalid.
                 }
             }
@@ -167,7 +167,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.CodeListService (existing) >> Error creating capability structure because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.CodeListService (existing) >> Error creating capability structure because: " + exc.ToString());
                 this._serviceClass = null;   // Assures that instance is declared invalid.
             }
         }

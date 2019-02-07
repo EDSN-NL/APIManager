@@ -31,22 +31,36 @@ namespace Plugin.Application.Events.API
             ContextSlt context = ContextSlt.GetContextSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
             string operationClassStereotype = context.GetConfigProperty(_OperationClassStereotype);
+            string errorMsg = string.Empty;
+            bool isError = false;               // In case errorMsg is not empty, 'true' = error, 'false' = warning.
 
+            // Perform a series of precondition tests...
             if (!svcContext.Valid || svcContext.InterfaceClass == null)
             {
-                Logger.WriteError("Plugin.Application.Events.API.AssociateWithOperationsEvent.HandleEvent >> Illegal context! Aborting.");
-                return;
+                errorMsg = "Illegal or corrupt context, operation aborted!";
+                isError = true;
             }
-            else if (svcContext.Type != Service.ServiceArchetype.SOAP)
+            else if (svcContext.Type != Service.ServiceArchetype.SOAP) errorMsg = "Operation only suitable for SOAP Services!";
+            else if (!Service.UpdateAllowed(svcContext.ServiceClass)) errorMsg = "Service must be in checked-out state for operations to be associated!";
+            else if (!svcContext.LockModel())
             {
-                Logger.WriteWarning("Operation only suitable for SOAP Services!");
-                return;
+                errorMsg = "Unable to lock the model!";
+                isError = true;
             }
 
-            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
-            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            if (errorMsg != string.Empty)
             {
-                Logger.WriteWarning("Service must be in checked-out state for operations to be associated!");
+                if (isError)
+                {
+                    Logger.WriteError("Plugin.Application.Events.API.AssociateWithOperations.HandleEvent >> " + errorMsg);
+                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    Logger.WriteWarning(errorMsg);
+                    MessageBox.Show(errorMsg, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                svcContext.UnlockModel();
                 return;
             }
 
@@ -65,7 +79,7 @@ namespace Plugin.Application.Events.API
             {
                 using (var picker = new CapabilityPicker("Select Operation(s) to associate:", allOperations))
                 {
-                    if (svcContext.LockModel() && picker.ShowDialog() == DialogResult.OK)
+                    if (picker.ShowDialog() == DialogResult.OK)
                     {
                         // Mark service as 'modified' for configuration management and add to diagram in different color...
                         myService.Dirty();
@@ -74,10 +88,10 @@ namespace Plugin.Application.Events.API
                         itfCap.AssociateOperations(picker.GetCheckedCapabilities().ConvertAll(Converter), picker.MinorVersionIndicator);
                         svcContext.Refresh();
                     }
-                    svcContext.UnlockModel();
                 }
             }
             else MessageBox.Show("No operations to be associated with selected interface!", "No free operations", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            svcContext.UnlockModel();
         }
 
         /// <summary>

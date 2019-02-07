@@ -34,6 +34,14 @@ namespace Framework.ConfigurationManagement
         internal DateTime UpdateTimestamp       { get { return this._updated; } }
 
         /// <summary>
+        /// Returns 'true' when the ticket is marked 'closed' in the remote ticket server, 'false' otherwise.
+        /// </summary>
+        internal bool Closed
+        {
+            get { return TicketServerSlt.GetTicketServerSlt().IsClosed(this._ticketID); }
+        }
+
+        /// <summary>
         /// Returns a string representation of the ticket.
         /// </summary>
         /// <returns>Formatted ticket information.</returns>

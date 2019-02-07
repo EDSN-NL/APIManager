@@ -337,7 +337,7 @@ namespace SparxEA.Model
             }
             catch (Exception exc)
             {
-                Logger.WriteError("SparxEA.Model.EAMEIClass.getDocumentation >> Caught an exception: " + exc.Message);
+                Logger.WriteError("SparxEA.Model.EAMEIClass.getDocumentation >> Caught an exception: " + exc.ToString());
             }
             return null;
         }
@@ -584,7 +584,7 @@ namespace SparxEA.Model
             }
             catch (Exception exc)
             {
-                Logger.WriteError("SparxEA.Model.EAIAssociation.SetTag >> Caught an exception because: " + Environment.NewLine + exc.Message);
+                Logger.WriteError("SparxEA.Model.EAIAssociation.SetTag >> Caught an exception because: " + Environment.NewLine + exc.ToString());
             }
         }
 

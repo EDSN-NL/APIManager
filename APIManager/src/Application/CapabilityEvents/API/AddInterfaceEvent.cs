@@ -46,34 +46,43 @@ namespace Plugin.Application.Events.API
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
-            if (svcContext.Type != Service.ServiceArchetype.SOAP)
-            {
-                Logger.WriteWarning("Operation only suitable for SOAP Services!");
-                return;
-            }
+            string errorMsg = string.Empty;
+            bool isError = false;
 
+            // Perform a series of precondition tests...
             if (!svcContext.Valid || svcContext.SVCModelPackage == null)
             {
-                Logger.WriteError("Plugin.Application.Events.API.AddInterfaceEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
-                return;
+                errorMsg = "Illegal or corrupt context, operation aborted!";
+                isError = true;
             }
-            else if (svcContext.Type != Service.ServiceArchetype.SOAP)
+            else if (svcContext.Type != Service.ServiceArchetype.SOAP) errorMsg = "Operation only suitable for SOAP Services!";
+            else if (!Service.UpdateAllowed(svcContext.ServiceClass)) errorMsg = "Service must be in checked-out state for interfaces to be added!";
+            else if (!svcContext.LockModel())
             {
-                Logger.WriteWarning("Operation only suitable for SOAP Services!");
-                return;
+                errorMsg = "Unable to lock the model!";
+                isError = true;
             }
 
-            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
-            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            if (errorMsg != string.Empty)
             {
-                Logger.WriteWarning("Service must be in checked-out state for interfaces to be added!");
+                if (isError)
+                {
+                    Logger.WriteError("Plugin.Application.Events.API.AddInterfaceEvent.HandleEvent >> " + errorMsg);
+                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    Logger.WriteWarning(errorMsg);
+                    MessageBox.Show(errorMsg, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                svcContext.UnlockModel();
                 return;
             }
 
             using (var dialog = new AddInterfaceInput(svcContext.SVCModelPackage, 
                                                       svcContext.SVCModelPackage.GetClasses(context.GetConfigProperty(_OperationClassStereotype))))
             {
-                if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
+                if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
                     var itfCap = new InterfaceCapability(myService, dialog.InterfaceName, null);

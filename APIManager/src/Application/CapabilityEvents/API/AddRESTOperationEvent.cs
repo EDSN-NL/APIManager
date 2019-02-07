@@ -60,29 +60,37 @@ namespace Plugin.Application.Events.API
             ModelSlt model = ModelSlt.GetModelSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
             MEClass operationParent = svcContext.ResourceClass;
+            string errorMsg = string.Empty;
+            bool isError = false;               // In case errorMsg is not empty, 'true' = error, 'false' = warning.
 
+            // Perform a series of precondition tests...
             if (!svcContext.Valid || svcContext.MyDiagram == null || operationParent == null)
             {
-                Logger.WriteError("Plugin.Application.Events.API.AddRESTOperationEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
-                return;
+                errorMsg = "Illegal or corrupt context, operation aborted!";
+                isError = true;
             }
-            else if (svcContext.Type != Service.ServiceArchetype.REST)
+            else if (svcContext.Type != Service.ServiceArchetype.REST) errorMsg = "Operation only suitable for REST Services!";
+            else if (!Service.UpdateAllowed(svcContext.ServiceClass)) errorMsg = "Service must be in checked-out state for operations to be added!";
+            else if (svcContext.MyDiagram.OwningPackage != operationParent.OwningPackage) errorMsg = "Operations can only be added from the diagram of the owning resource!";
+            else if (!svcContext.LockModel())
             {
-                Logger.WriteWarning("Operation only suitable for REST Services!");
-                return;
-            }
-
-            // Check what type of diagram has been selected, must be the owner of the resource...
-            if (svcContext.MyDiagram.OwningPackage != operationParent.OwningPackage)
-            {
-                Logger.WriteWarning("Operations can only be added from the diagram of the owning resource!");
-                return;
+                errorMsg = "Unable to lock the model!";
+                isError = true;
             }
 
-            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
-            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            if (errorMsg != string.Empty)
             {
-                Logger.WriteWarning("Service must be in checked-out state for operations to be added!");
+                if (isError)
+                {
+                    Logger.WriteError("Plugin.Application.Events.API.ProcessRESTOperationEvent.HandleEvent >> " + errorMsg);
+                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    Logger.WriteWarning(errorMsg);
+                    MessageBox.Show(errorMsg, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                svcContext.UnlockModel();
                 return;
             }
 
@@ -94,7 +102,7 @@ namespace Plugin.Application.Events.API
 
             using (var dialog = new RESTOperationDialog(myService, newOperationDecl, new RESTResourceDeclaration(myResource)))
             {
-                if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
+                if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     bool result = myResource.AddOperation(dialog.Operation, dialog.MinorVersionIndicator);
                     if (result)

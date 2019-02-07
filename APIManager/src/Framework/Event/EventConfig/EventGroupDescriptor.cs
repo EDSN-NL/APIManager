@@ -52,7 +52,7 @@ namespace Framework.EventConfig
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Framework.EventConfig.EventGroupDescriptor >> Error parsing config. descriptor: " + exc.Message);
+                Logger.WriteError("Framework.EventConfig.EventGroupDescriptor >> Error parsing config. descriptor: " + exc.ToString());
             }
         }
     }

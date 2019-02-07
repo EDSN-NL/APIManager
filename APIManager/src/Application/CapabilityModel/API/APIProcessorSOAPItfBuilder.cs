@@ -121,8 +121,8 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.APIProcessor.BuildSOAPInterface >> Caught exception: " + exc);
-                this._panel.WriteError(this._panelIndex, "Caught exception while building Interface! " + exc);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.APIProcessor.BuildSOAPInterface >> Caught exception: " + exc.ToString());
+                this._panel.WriteError(this._panelIndex, "Caught exception while building Interface! " + exc.Message);
                 result = false;
             }
 

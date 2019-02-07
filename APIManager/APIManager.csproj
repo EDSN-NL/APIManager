@@ -60,9 +60,8 @@
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Atlassian.Jira, Version=10.3.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>H:\UserData\GITHubRepositories\Atlassian.Net-SDK\Atlassian.Jira\bin\Debug\net452\Atlassian.Jira.dll</HintPath>
+    <Reference Include="Atlassian.Jira">
+      <HintPath>\\Mac\Home\UserData\GITHubRepositories\Atlassian.Net-SDK\Atlassian.Jira\bin\Debug\net452\Atlassian.Jira.dll</HintPath>
     </Reference>
     <Reference Include="ClosedXML, Version=0.86.0.0, Culture=neutral, PublicKeyToken=fd1eb21b62ae805b, processorArchitecture=MSIL">
       <HintPath>..\packages\ClosedXML.0.86.0\lib\net40\ClosedXML.dll</HintPath>
@@ -73,6 +72,9 @@
     <Reference Include="Interop.EA">
       <HintPath>C:\Program Files (x86)\Sparx Systems\EA\Interop.EA.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Ionic.Zip, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ionic.Zip.1.9.1.8\lib\Ionic.Zip.dll</HintPath>
     </Reference>
     <Reference Include="LibGit2Sharp, Version=0.25.0.0, Culture=neutral, PublicKeyToken=7cbde695407f0333, processorArchitecture=MSIL">
       <HintPath>..\packages\LibGit2Sharp.0.25.2\lib\netstandard2.0\LibGit2Sharp.dll</HintPath>
@@ -86,9 +88,8 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="RestSharp, Version=106.3.1.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>H:\UserData\GITHubRepositories\Atlassian.Net-SDK\Atlassian.Jira\bin\Debug\net452\RestSharp.dll</HintPath>
+    <Reference Include="RestSharp">
+      <HintPath>\\Mac\Home\UserData\GITHubRepositories\Atlassian.Net-SDK\Atlassian.Jira\bin\Debug\net452\RestSharp.dll</HintPath>
     </Reference>
     <Reference Include="SVGExport">
       <HintPath>C:\Program Files (x86)\Siemens\EA SVG Export\SVGExport.dll</HintPath>
@@ -99,8 +100,6 @@
     <Reference Include="System.Core" />
     <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Runtime.Serialization.Formatters.Soap" />
     <Reference Include="System.Web" />
@@ -139,7 +138,10 @@
     <Compile Include="src\Application\CapabilityEvents\API\AddRESTResourceEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\CreateRESTServiceDeclarationEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\ProcessRESTInterfaceEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\EnableCMEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\SynchroniseTagsEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\RepairStereotypeEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\RemoveTagsEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\RevertServiceEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\CheckoutServiceEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\ReleaseServiceEvent.cs" />
@@ -210,17 +212,35 @@
     <Compile Include="src\Application\CapabilityModel\CodeList\ExcelExporter.cs" />
     <Compile Include="src\Application\CapabilityModel\ProgressPanelSlt.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Interface\OperationCapability.cs" />
+    <Compile Include="src\Application\Forms\CMRemoveTags.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\CMRemoveTags.Designer.cs">
+      <DependentUpon>CMRemoveTags.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\CMEnable.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\CMEnable.designer.cs">
+      <DependentUpon>CMEnable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\CMReleaseMessage.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\CMReleaseMessage.Designer.cs">
+      <DependentUpon>CMReleaseMessage.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Application\Forms\RESTOperationResultCodeCollectionPicker.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="src\Application\Forms\RESTOperationResultCodeCollectionPicker.Designer.cs">
       <DependentUpon>RESTOperationResultCodeCollectionPicker.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CheckoutService.cs">
+    <Compile Include="src\Application\Forms\CMCheckoutService.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CheckoutService.designer.cs">
-      <DependentUpon>CheckoutService.cs</DependentUpon>
+    <Compile Include="src\Application\Forms\CMCheckoutService.designer.cs">
+      <DependentUpon>CMCheckoutService.cs</DependentUpon>
     </Compile>
     <Compile Include="src\Application\Forms\CMRevertPicker.cs">
       <SubType>Form</SubType>
@@ -257,11 +277,11 @@
     <Compile Include="src\Application\Forms\AccessLevelForm.designer.cs">
       <DependentUpon>AccessLevelForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CMChangeMessage.cs">
+    <Compile Include="src\Application\Forms\CMCommitMessage.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CMChangeMessage.Designer.cs">
-      <DependentUpon>CMChangeMessage.cs</DependentUpon>
+    <Compile Include="src\Application\Forms\CMCommitMessage.Designer.cs">
+      <DependentUpon>CMCommitMessage.cs</DependentUpon>
     </Compile>
     <Compile Include="src\Application\Forms\CMRepositorySetting.cs">
       <SubType>Form</SubType>
@@ -494,6 +514,7 @@
     <Compile Include="src\Framework\Model\Interface\MESupplementary.cs" />
     <Compile Include="src\Framework\Model\Interface\MEFacet.cs" />
     <Compile Include="src\Framework\Model\Interface\MEAttribute.cs" />
+    <Compile Include="src\Framework\Util\Ensure.cs" />
     <Compile Include="src\Framework\Util\MEChangeLog.cs" />
     <Compile Include="src\Framework\Model\Interface\MEEnumeratedType.cs" />
     <Compile Include="src\Framework\Model\Interface\MEDataType.cs" />
@@ -505,7 +526,6 @@
     <Compile Include="src\Framework\Util\IllegalContextException.cs" />
     <Compile Include="src\Framework\Util\FileLogger.cs" />
     <Compile Include="src\Framework\Util\LoggerInterface.cs" />
-    <Compile Include="src\Framework\Util\ArchiveFile.cs" />
     <Compile Include="src\Framework\Util\MissingImplementationException.cs" />
     <Compile Include="src\Framework\Util\MetadataCreator.cs" />
     <Compile Include="src\SparxEA\EAClassifierManager.cs" />
@@ -622,17 +642,26 @@
     <EmbeddedResource Include="src\Application\Forms\AddInterfaceInput.resx">
       <DependentUpon>AddInterfaceInput.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\CMRemoveTags.resx">
+      <DependentUpon>CMRemoveTags.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\CMEnable.resx">
+      <DependentUpon>CMEnable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\CMReleaseMessage.resx">
+      <DependentUpon>CMReleaseMessage.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="src\Application\Forms\RESTOperationResultCodeCollectionPicker.resx">
       <DependentUpon>RESTOperationResultCodeCollectionPicker.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CheckoutService.resx">
-      <DependentUpon>CheckoutService.cs</DependentUpon>
+    <EmbeddedResource Include="src\Application\Forms\CMCheckoutService.resx">
+      <DependentUpon>CMCheckoutService.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Application\Forms\CMRevertPicker.resx">
       <DependentUpon>CMRevertPicker.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CMChangeMessage.resx">
-      <DependentUpon>CMChangeMessage.cs</DependentUpon>
+    <EmbeddedResource Include="src\Application\Forms\CMCommitMessage.resx">
+      <DependentUpon>CMCommitMessage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Application\Forms\CMRepositorySetting.resx">
       <DependentUpon>CMRepositorySetting.cs</DependentUpon>

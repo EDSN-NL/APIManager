@@ -15,9 +15,10 @@ namespace Plugin.Application.Forms
     {
         private MEPackage _parent;      // Package in which we're creating the new API.
         private SortedList<string, RESTResourceDeclaration> _resourceList;
-        private bool _hasTicket;        // True when a valid ticket ID has been entered.
+        private Ticket _remoteTicket;   // True when a valid ticket ID has been entered.
         private bool _hasValidName;     // True when a valid API name has been entered;
         private bool _hasProjectID;     // True when a project ID has been entered;
+        private bool _hasTicket;        // True when we have selected a valid ticket;
 
         /// <summary>
         /// The MetaData property returns a set of user-specified metadata for the new API...
@@ -46,9 +47,9 @@ namespace Plugin.Application.Forms
         internal List<RESTResourceDeclaration> Resources { get { return new List<RESTResourceDeclaration>(this._resourceList.Values); } }
 
         /// <summary>
-        /// Returns the Jira ticket ID entered by the user.
+        /// Returns the remote ticket as selected by the user.
         /// </summary>
-        internal string TicketID { get { return TicketIDFld.Text; } }
+        internal Ticket RemoteTicket { get { return this._remoteTicket; } }
 
         /// <summary>
         /// Returns the Project ID entered by the user.
@@ -76,6 +77,7 @@ namespace Plugin.Application.Forms
             InitializeComponent();
             this._parent = parent;
             this._resourceList = new SortedList<string, RESTResourceDeclaration>();
+            this._remoteTicket = null;
 
             // Assign context menus to the appropriate controls...
             ResourceList.ContextMenuStrip = ResourceMenuStrip;
@@ -283,12 +285,22 @@ namespace Plugin.Application.Forms
         private void TicketIDFld_Leave(object sender, EventArgs e)
         {
             ErrorLine.Text = string.Empty;
-            this._hasTicket = RMServiceTicket.IsValidID(TicketIDFld.Text);
-            if (!this._hasTicket)
+            if (TicketIDFld.Text != string.Empty)
             {
-                ErrorLine.Text = "Provided ID does not identify a valid open ticket, please try again!";
+                TicketServerSlt ticketSrv = TicketServerSlt.GetTicketServerSlt();
+                Ticket remoteTicket = ticketSrv.GetTicket(TicketIDFld.Text);
+                if (remoteTicket == null || ticketSrv.IsClosed(remoteTicket))
+                {
+                    ErrorLine.Text = "Specified ticket does not exist or is closed, please try again!";
+                    TicketIDFld.Text = string.Empty;
+                }
+                else
+                {
+                    this._remoteTicket = remoteTicket;
+                    this._hasTicket = true;
+                    CheckOK();
+                }
             }
-            else CheckOK();
         }
 
         /// <summary>

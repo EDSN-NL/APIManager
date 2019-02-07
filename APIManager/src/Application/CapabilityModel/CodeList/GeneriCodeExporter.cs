@@ -153,7 +153,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.GenericodeExporter.processCapability >> Caught exception: " + exc);
+                Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.GenericodeExporter.processCapability >> Caught exception: " + exc.ToString());
                 result = false;
             }
             return result;
@@ -218,7 +218,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.GenericodeExporter.processService >> Caught exception: " + exc);
+                Logger.WriteError("Plugin.Application.CapabilityModel.CodeList.GenericodeExporter.processService >> Caught exception: " + exc.ToString());
                 result = false;
             }
             return result;

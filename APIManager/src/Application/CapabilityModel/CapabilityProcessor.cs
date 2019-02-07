@@ -132,7 +132,7 @@ namespace Plugin.Application.CapabilityModel
             catch (Exception exc)
             {
                 Logger.WriteError("Plugin.Application.CapabilityModel.CapabilityProcessor.saveProcessedCapability >> Error writing to '" +
-                                  pathName + "\\" + fileName + "' because:\n" + exc.Message);
+                                  pathName + "\\" + fileName + "' because:\n" + exc.ToString());
             }
             finally
             {
@@ -167,7 +167,7 @@ namespace Plugin.Application.CapabilityModel
             catch (Exception exc)
             {
                 Logger.WriteError("Plugin.Application.CapabilityModel.CapabilityProcessor.saveProcessedService >> Error writing to '" +
-                                  pathName + "/" + fileName + "' because:\n" + exc.Message);
+                                  pathName + "/" + fileName + "' because:\n" + exc.ToString());
             }
             finally
             {

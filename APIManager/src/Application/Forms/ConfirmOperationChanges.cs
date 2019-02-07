@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using Framework.ConfigurationManagement;
 
 namespace Plugin.Application.Forms
 {
     /// <summary>
-    /// Dialog box that can be used to request confirmation from the user for a specified action. The dialogue includes a minor-version update toggle
+    /// Dialog box that can be used to request confirmation from the user for a specified action. 
+    /// The dialogue includes a minor-version update toggle, which is shown only when CM is not active.
     /// switch.
     /// </summary>
     internal partial class ConfirmOperationChanges : Form
@@ -29,6 +25,7 @@ namespace Plugin.Application.Forms
             InitializeComponent();
             Label.Text = text;
             this._newMinorVersion = false;
+            if (CMRepositorySlt.GetRepositorySlt().IsCMEnabled) NewMinorVersion.Visible = false;
         }
 
         /// <summary>

@@ -284,6 +284,8 @@ namespace Framework.Context
         /// <param name="uniqueID">Globally unique identifier of the item.</param>
         internal virtual void SwitchScope(ContextScope newScope, int itemID, string uniqueID)
         {
+            Logger.WriteInfo("Framework.Context.ContextImplementation.SwitchScope >> newScope = '" + 
+                              newScope + "', itemID = '" + itemID + "' and uniqueID = '" + uniqueID + "'...");
             switch (newScope)
             {
                 // No additional actions required for these (at the moment)...

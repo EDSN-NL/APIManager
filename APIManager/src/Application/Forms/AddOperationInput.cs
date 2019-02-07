@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Framework.Model;
+using Framework.ConfigurationManagement;
 
 namespace Plugin.Application.Forms
 {
@@ -29,6 +30,8 @@ namespace Plugin.Application.Forms
             this._operValidation = true;
             this._newMinorVersion = false;
             NewMinorVersion.Checked = false;
+
+            if (CMRepositorySlt.GetRepositorySlt().IsCMEnabled) NewMinorVersion.Visible = false;
         }
 
         /// <summary>

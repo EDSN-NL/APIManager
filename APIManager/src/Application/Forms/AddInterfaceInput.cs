@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using Framework.Model;
 using Framework.Context;
 using Framework.Logging;
+using Framework.ConfigurationManagement;
 
 namespace Plugin.Application.Forms
 {
@@ -49,6 +50,8 @@ namespace Plugin.Application.Forms
             OperationList.Items.Clear();
             foreach (MEClass operation in operationList) OperationList.Items.Add(operation, false);
             OperationList.EndUpdate();
+
+            if (CMRepositorySlt.GetRepositorySlt().IsCMEnabled) NewMinorVersion.Visible = false;
         }
 
         /// <summary>

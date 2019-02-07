@@ -4,12 +4,10 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Framework.Model;
 using Framework.Logging;
-using Plugin.Application.CapabilityModel;
+using Framework.ConfigurationManagement;
 
 namespace Plugin.Application.Forms
 {
@@ -37,6 +35,7 @@ namespace Plugin.Application.Forms
             InitializeComponent();
             this._newMinorVersion = false;
             NewMinorVersion.Checked = false;
+            if (CMRepositorySlt.GetRepositorySlt().IsCMEnabled) NewMinorVersion.Visible = false;
         }
 
         /// <summary>

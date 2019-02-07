@@ -244,7 +244,7 @@ namespace SparxEA.ModelTransform
             }
             catch (Exception exc)
             {
-                Logger.WriteError("SparxEA.ModelTransform.EAClassifierManager.loadClassifierTypes >> Exception retrieving Classifiers for FQN: " + fullyQualifiedName + "! Cause: " + Environment.NewLine + exc.Message);
+                Logger.WriteError("SparxEA.ModelTransform.EAClassifierManager.loadClassifierTypes >> Exception retrieving Classifiers for FQN: " + fullyQualifiedName + "! Cause: " + Environment.NewLine + exc.ToString());
                 return "Error";
             }
         }

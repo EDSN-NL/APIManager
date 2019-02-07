@@ -5,6 +5,7 @@ using Framework.Model;
 using Framework.Context;
 using Framework.View;
 using Framework.Util;
+using Framework.ConfigurationManagement;
 
 namespace Plugin.Application.CapabilityModel.API
 {
@@ -32,15 +33,18 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="containerPackage">Name of the container that will hold the service declaration.</param>
         /// <param name="declarationStereotype">Stereotype to be used for the service declaration package.</param>
-        /// <param name="initialState">Operational state in which the service will be created, when not specified, the default will apply.</param>
+        /// <param name="initialState">Operational state in which the service will be created.</param>
         /// <param name="operationNames">List of initial operation names for the service.</param>
         /// <param name="qualifiedServiceName">Qualified name of the service (includes major version).</param>
+        /// <param name="ticketID">ID of the ticket used for creation, ignored when CM is not active.</param>
+        /// <param name="projectOrderID">Id of the project order used for creation, ignored when CM is not active.</param>
         internal ApplicationService(MEPackage containerPackage, 
                                     string qualifiedServiceName, 
                                     List<string> operationNames, 
                                     string declarationStereotype, 
-                                    OperationalState initialState = _DefaultOperationalState): 
-            base(containerPackage, qualifiedServiceName, declarationStereotype, initialState)
+                                    OperationalState initialState,
+                                    Ticket remoteTicket, string projectOrderID): 
+            base(containerPackage, qualifiedServiceName, declarationStereotype, initialState, remoteTicket, projectOrderID)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
@@ -119,7 +123,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.APIProcessor.ApplicationService (existing) >> Error creating capability structure because: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.APIProcessor.ApplicationService (existing) >> Error creating capability structure because: " + exc.ToString());
                 this._serviceClass = null;   // Assures that instance is declared invalid.
             }
         }

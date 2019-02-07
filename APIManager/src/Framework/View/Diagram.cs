@@ -20,6 +20,7 @@ namespace Framework.View
         internal int DiagramID            {get { return (this._imp != null) ? this._imp.DiagramID : -1; }}
         internal string GlobalID          {get { return (this._imp != null) ? this._imp.GlobalID : string.Empty; }}
         internal MEPackage OwningPackage  {get { return (this._imp != null) ? this._imp.OwningPackage : null; } }
+        internal bool Valid               { get { return (this._imp != null) && this._imp.Valid; } }
 
         /// <summary>
         /// The constructor receives a, platform-dependent, implementation object and creates a new Diagram object that

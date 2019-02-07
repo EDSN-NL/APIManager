@@ -51,29 +51,43 @@ namespace Plugin.Application.Events.API
             string interfaceContractClassStereotype = context.GetConfigProperty(_InterfaceContractClassStereotype);
             string interfaceNames = string.Empty;
             bool deleteResources = true;
+            string errorMsg = string.Empty;
+            bool isError = false;
 
+            // Perform a series of precondition tests...
             if (!svcContext.Valid && svcContext.OperationClass == null)
             {
-                Logger.WriteError("Plugin.Application.Events.API.DeleteOperationsEvent.handleEvent >> Illegal context! Aborting.");
-                return;
+                errorMsg = "Illegal or corrupt context, operation aborted!";
+                isError = true;
             }
-            else if (svcContext.Type != Service.ServiceArchetype.SOAP)
+            else if (svcContext.Type != Service.ServiceArchetype.SOAP) errorMsg = "Operation only suitable for SOAP Services!";
+            else if (!Service.UpdateAllowed(svcContext.ServiceClass)) errorMsg = "Service must be in checked-out state for operations to be deleted!";
+            else if (!svcContext.LockModel())
             {
-                Logger.WriteWarning("Operation only suitable for SOAP Services!");
-                return;
+                errorMsg = "Unable to lock the model!";
+                isError = true;
             }
 
-            // When CM is enabled, we are only allowed to make changes to models that have been checked-out.
-            if (!Service.UpdateAllowed(svcContext.ServiceClass))
+            if (errorMsg != string.Empty)
             {
-                Logger.WriteWarning("Service must be in checked-out state for operations to be deleted!");
+                if (isError)
+                {
+                    Logger.WriteError("Plugin.Application.Events.API.DeleteOperationEvent.HandleEvent >> " + errorMsg);
+                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    Logger.WriteWarning(errorMsg);
+                    MessageBox.Show(errorMsg, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                svcContext.UnlockModel();
                 return;
             }
 
             // Ask the user whether he/she really wants to delete the operation...
             using (var dialog = new ConfirmOperationChanges("Are you sure you want to delete Operation '" + svcContext.OperationClass.Name + "'?"))
             {
-                if (svcContext.LockModel() && dialog.ShowDialog() == DialogResult.OK)
+                if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     // Search the model for all interfaces that have an association with the operation to be deleted...
                     var myService = new ApplicationService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
