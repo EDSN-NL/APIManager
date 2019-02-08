@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Xml.Schema;
-using Framework.Logging;
 
 namespace Framework.Util.SchemaManagement.XML
 {
@@ -40,7 +38,6 @@ namespace Framework.Util.SchemaManagement.XML
         /// <param name="sequenceKey">Optional element sequence key (a value of 0 indicates that the key is undefined.</param>
         internal SortableSchemaElement(XmlSchemaElement schemaElement, int sequenceKey)
         {
-            Logger.WriteInfo("Framework.Util.SchemaManagement.XML.SortableSchemaElement >> Constructing sortable element for: " + schemaElement.Name);
             this._schemaObject = schemaElement;
             this._schemaObjectName = schemaElement.Name;
             this._schemaObjectIsElement = true;
@@ -55,7 +52,6 @@ namespace Framework.Util.SchemaManagement.XML
         /// <param name="sequenceKey">Optional type sequence key (a value of 0 indicates that the key is undefined).</param>
         internal SortableSchemaElement(XmlSchemaType schemaType, int sequenceKey)
         {
-            Logger.WriteInfo("Framework.Util.SchemaManagement.XML.SortableSchemaElement >> Constructing sortable type for: " + schemaType.Name);
             this._schemaObject = schemaType;
             this._schemaObjectName = schemaType.Name;
             this._schemaObjectIsElement = false;
@@ -72,7 +68,6 @@ namespace Framework.Util.SchemaManagement.XML
         /// <param name="sequenceKey">Optional type sequence key (a value of 0 indicates that the key is undefined.</param>
         internal SortableSchemaElement(XMLChoice choice, int sequenceKey)
         {
-            Logger.WriteInfo("Framework.Util.SchemaManagement.XML.SortableSchemaElement >> Constructing sortable type for Choice: " + choice.Name);
             this._schemaObject = null;
             this._schemaObjectName = choice.Name;
             this._schemaObjectIsElement = true;  //Choices end up in the element list of a class and thus have to be treated as elements.
@@ -98,11 +93,6 @@ namespace Framework.Util.SchemaManagement.XML
             {
                 throw new ArgumentException("XMLUtil.CompareTo: object '" + other.GetType() + "' is of wrong type!");
             }
-
-            Logger.WriteInfo("Framework.Util.SchemaManagement.XML.SortableSchemaElement.CompareTo >> Comparing this: " + 
-                             this._schemaObjectName + " with other: " + otherElement._schemaObjectName);
-            Logger.WriteInfo("Framework.Util.SchemaManagement.XML.SortableSchemaElement.CompareTo >> This sequence key = " + 
-                             this._sequenceKey + " and other sequence key = " + otherElement._sequenceKey);
 
             // First check is based om element vs. types. Elements should always come first! 
             // If I'm an element and the other is not, I will be first.

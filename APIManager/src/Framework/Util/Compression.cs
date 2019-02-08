@@ -15,16 +15,48 @@ namespace Framework.Util
         private const string _CompressedFileSuffix = "CompressedFileSuffix";
 
         /// <summary>
+        /// Recursively compresses the specified directory.
+        /// </summary>
+        /// <param name="dirName">Absolute path to the directory to be compressed.</param>
+        /// <returns>The name of the generated compressed file.</returns>
+        public static string DirectoryZip(string dirName)
+        {
+            string zipName = dirName + ContextSlt.GetContextSlt().GetConfigProperty(_CompressedFileSuffix);
+            using (FileStream fs = new FileStream(zipName, FileMode.Create))
+            using (ZipFile arch = new ZipFile())
+            {
+                arch.CompressionLevel = Ionic.Zlib.CompressionLevel.BestCompression;
+                arch.AddDirectory(dirName, ".");
+                arch.Save(fs);
+            }
+            return zipName;
+        }
+
+        /// <summary>
+        /// Decompresses the specified ZIP file to its parent directory, overwriting existing files.
+        /// </summary>
+        /// <param name="dirName">Absolute path to te zip file to be inflated.</param>
+        public static void DirectoryUnzip(string zipName)
+        {
+            int extensionIdx = zipName.LastIndexOf('.');
+            string dirName = (extensionIdx > 0) ? zipName.Substring(0, extensionIdx) : zipName;
+
+            using (ZipFile arch = new ZipFile(zipName)) arch.ExtractAll(dirName, ExtractExistingFileAction.OverwriteSilently);
+        }
+
+        /// <summary>
         /// Compress the specified file and optionally remove the original, uncompressed, file. The function will overwrite an existing compressed file.
         /// </summary>
-        /// <param name="fileName">Absolute path to te file to be compressed.</param>
+        /// <param name="fileName">Absolute path to the file to be compressed.</param>
         /// <returns>The name of the generated compressed file.</returns>
         public static string FileZip(string fileName, bool deleteOriginal)
         {
-            string outName = fileName.Substring(0, fileName.LastIndexOf(".")) + ContextSlt.GetContextSlt().GetConfigProperty(_CompressedFileSuffix);
-            if (File.Exists(outName)) File.Delete(outName);
+            int extensionIdx = fileName.LastIndexOf('.');
+            string outName = fileName;
+            if (extensionIdx > 0) outName = fileName.Substring(0, extensionIdx);
+            outName += ContextSlt.GetContextSlt().GetConfigProperty(_CompressedFileSuffix);
+            //if (!string.IsNullOrEmpty(outName) && File.Exists(outName)) File.Delete(outName);
             fileName = fileName.Replace('\\', '/');
-            string entryName = fileName.Substring(fileName.LastIndexOf('/') + 1);
             using (FileStream fs = new FileStream(outName, FileMode.Create))
             using (ZipFile arch = new ZipFile())
             {
@@ -34,28 +66,6 @@ namespace Framework.Util
             }
             if (deleteOriginal) File.Delete(fileName);
             return outName;
-        }
-
-        /// <summary>
-        /// Compress the specified string into an array of bytes and return this as a Base64-encoded text string.
-        /// </summary>
-        /// <param name="str">The string to be compressed.</param>
-        /// <returns>Compressed string as Base64 string.</returns>
-        public static string StringZip(string str)
-        {
-            var buffer = Encoding.UTF8.GetBytes(str);
-
-            using (var msi = new MemoryStream(buffer))
-            using (var mso = new MemoryStream())
-            {
-                using (var zso = new ZipOutputStream(mso))
-                {
-                    zso.PutNextEntry("contents");
-                    msi.CopyTo(zso);
-                }
-                var plainTextBytes = mso.ToArray();
-                return Convert.ToBase64String(plainTextBytes);
-            }
         }
 
         /// <summary>
@@ -80,6 +90,28 @@ namespace Framework.Util
                 newFileName = dirName + "/" + newFileName.Substring(0, newFileName.IndexOf('"'));
                 File.Delete(newFileName);
                 using (ZipFile arch = new ZipFile(fileName)) arch.ExtractAll(dirName, ExtractExistingFileAction.OverwriteSilently);
+            }
+        }
+
+        /// <summary>
+        /// Compress the specified string into an array of bytes and return this as a Base64-encoded text string.
+        /// </summary>
+        /// <param name="str">The string to be compressed.</param>
+        /// <returns>Compressed string as Base64 string.</returns>
+        public static string StringZip(string str)
+        {
+            var buffer = Encoding.UTF8.GetBytes(str);
+
+            using (var msi = new MemoryStream(buffer))
+            using (var mso = new MemoryStream())
+            {
+                using (var zso = new ZipOutputStream(mso))
+                {
+                    zso.PutNextEntry("contents");
+                    msi.CopyTo(zso);
+                }
+                var plainTextBytes = mso.ToArray();
+                return Convert.ToBase64String(plainTextBytes);
             }
         }
 

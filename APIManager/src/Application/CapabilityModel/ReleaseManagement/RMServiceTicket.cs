@@ -147,40 +147,6 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
-        /// Copy constructor that creates a clone of the specified ticket for another service. If the specified tracked-service is identical to the
-        /// service in the ticket to be copied, the constructor throws an argument exception!
-        /// </summary>
-        /// <param name="copyTicket">The ticket to be copied.</param>
-        /// <param name="trackedService">the Service for which we are administering the ticket, must be different from the service in 'copyTicket'.</param>
-        /// <exception cref="ArgumentException">Is thrown when the specified ticketID does not yield a valid ticket or when no valid PO number has been specified.</exception>
-        internal RMServiceTicket(RMServiceTicket copyTicket, Service trackedService) : base(copyTicket.TicketClass)
-        {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket >> Copy constructor for Ticket '" + copyTicket.ID +
-                             "' and Service '" + trackedService.Name + "'...");
-
-            if (trackedService.ServiceGUID != this.TrackedService.ServiceGUID)
-            {
-                ContextSlt context = ContextSlt.GetContextSlt();
-                this._trackedService = trackedService;
-
-                // This will either receive an existing ticket of force creation of a new one...
-                LoadTicketClass(trackedService.DeclarationPkg, ContextSlt.GetContextSlt().GetConfigProperty(_RMTicketStereotype));
-                if (IsExistingTicket)
-                {
-                    // In case of loading an existing ticket, make sure to read our in-memory properties...
-                    this._status = Ticket.Closed ? Status.Closed : Status.Open;
-                    this._typeCode = EnumConversions<TypeCode>.StringToEnum(this.TicketClass.GetTag(context.GetConfigProperty(_RMTypeCodeTag)));
-                }
-            }
-            else
-            {
-                string msg = "Copy constructor attempts to duplicate ticket '" + copyTicket.GetQualifiedID() + "' for service '" + trackedService.Name + "'!";
-                Logger.WriteError("Plugin.Application.CapabilityModel.RMServiceTicket >> " + msg);
-                throw new ArgumentException(msg);
-            }
-        }
-
-        /// <summary>
         /// Returns the qualified Ticket Identifier, which is a combination of ticket-project name and ticket ID, formatted as:
         /// [project-name]/[Ticket-ID]. Example: "CSTI Integration/CSTI-2345"
         /// </summary>
@@ -259,6 +225,20 @@ namespace Plugin.Application.CapabilityModel
             ticketDiagram.AddAssociationList(diagramAssocList);
             ticketDiagram.Redraw();
             return ticketClass;
+        }
+
+        /// <summary>
+        /// Updates the model with the current 'release version' of our tracked service. Typically, this is called from a Release Ticket constructor at the moment 
+        /// that the release is actually registered.
+        /// </summary>
+        internal void UpdateReleasedVersion()
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket.UpdateReleasedVersion >> Syncing version...");
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string version = this._trackedService.Version.Item1 + "." +
+                             this._trackedService.Version.Item2 + "." +
+                             this._trackedService.BuildNumber;
+            TicketClass.SetTag(context.GetConfigProperty(_RMReleasedVersionTag), version, MEClass.CreateNewTag);
         }
 
         /// <summary>

@@ -91,13 +91,13 @@ namespace Plugin.Application.Events.Util
                                     MEClass importedService = myService.RestoreService(dialog.FeatureTag, dialog.CreateNewFeatureTagVersion);
                                     svcContext = new ServiceContext(importedService);
                                     myService = svcContext.GetServiceInstance();
-                                    myService.UpdateVersion(importedService.Version);   
+                                    myService.UpdateVersion(importedService.Version);
 
                                     // If we did not select to create a new version, we have to set the build number to the version indicated
                                     // by the tag, since the UpdateVersion call will have reset it to default value!
                                     // Otherwise, we must reset the build number.
                                     // Also, don't check-out new services since these will be in CM state 'created'.
-                                    if (dialog.CreateNewFeatureTagVersion) 
+                                    if (dialog.CreateNewFeatureTagVersion)
                                     {
                                         myService.BuildNumber = 1;
                                         needCheckout = false;
@@ -109,10 +109,12 @@ namespace Plugin.Application.Events.Util
                                 // a) The user has selected a new ticket (dialog.Ticket == null and RemoteTicket contains the new ticket);
                                 // b) If the user has left the ticket alone and we find the existing ticket to be different from the current
                                 //    service ticket, the user has restored an 'old' service that contains an 'old' ticket and we must replace
-                                //    this with the ticket from our 'current' service.
+                                //    this with the ticket from our 'current' service. Note that we can not 'trust' this old ticket since we could
+                                //    have reloaded the service, destroying all existing context! Therefor, we create a new Service Ticket using
+                                //    minimal data from the old one.
                                 RMServiceTicket ticket = dialog.Ticket;
                                 if (ticket == null) ticket = new RMServiceTicket(dialog.RemoteTicket, dialog.ProjectOrderID, myService);
-                                else if (myService.Ticket != existingTicket) ticket = new RMServiceTicket(existingTicket, myService);
+                                else if (myService.Ticket != existingTicket) ticket = new RMServiceTicket(existingTicket.Ticket, existingTicket.ProjectOrderID, myService);
 
                                 // Now that we have made sure that the service context is correctly changed, perform the actual checkout.
                                 // This will create the appropriate feature branch and push stuff to remote.

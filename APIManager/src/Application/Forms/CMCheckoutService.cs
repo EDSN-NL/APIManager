@@ -4,12 +4,15 @@ using System.Windows.Forms;
 using Framework.ConfigurationManagement;
 using Plugin.Application.CapabilityModel;
 using Framework.Logging;
+using Framework.Model;
+using Framework.Context;
 
 namespace Plugin.Application.Forms
 {
     internal partial class CMCheckoutService : Form
     {
-        private const string _UseFeatureLabel = "Revert";
+        private const string _ServiceDeclPkgStereotype  = "ServiceDeclPkgStereotype";
+        private const string _UseFeatureLabel           = "Revert";
 
         private Service _service;
         private string _featureTag;
@@ -140,6 +143,8 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void NewVersion_Leave(object sender, EventArgs e)
         {
+            Tuple<int, int> existingVersion = this._newVersion;
+            string existingFeatureTag = this._featureTag;
             string[] newVersion = NewVersionFld.Text.Split('.');
             if (newVersion.Length == 2)
             {
@@ -149,6 +154,32 @@ namespace Plugin.Application.Forms
                     this._featureTag = null;
                     this._newVersion = new Tuple<int, int>(major, minor);
                     SelectedTag.Text = string.Empty;
+                }
+            }
+            else
+            {
+                int major;
+                if (int.TryParse(newVersion[0], out major))
+                {
+                    this._featureTag = null;
+                    this._newVersion = new Tuple<int, int>(major, 0);
+                    SelectedTag.Text = string.Empty;
+                }
+            }
+
+            // If we selected a new major version (minor version == 0), check is the new version is indeed unique...
+            if (this._newVersion != null && this._newVersion.Item2 == 0)
+            {
+                foreach (MEPackage pkg in this._service.ContainerPkg.FindPackages(this._service.Name, ContextSlt.GetContextSlt().GetConfigProperty(_ServiceDeclPkgStereotype)))
+                {
+                    string version = pkg.Name.Substring(pkg.Name.LastIndexOf("_V") + 2);
+                    if (this._newVersion.Item1.ToString() == version)
+                    {
+                        MessageBox.Show("A Service declaration with major version '" + version + "' already exists, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        this._featureTag = existingFeatureTag;
+                        this._newVersion = existingVersion;
+                        break;
+                    }
                 }
             }
         }

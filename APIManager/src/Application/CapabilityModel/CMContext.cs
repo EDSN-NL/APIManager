@@ -632,6 +632,16 @@ namespace Plugin.Application.CapabilityModel
                     // be NULL, which would result in an entirely new version of the service to be created with the selected exact major/minor version nrs.
                     importedClass = ImportSnapshot(new Tuple<int, int>(tagVersion.Item1, tagVersion.Item2), revertPackage, tagVersion.Item1);
 
+                    // Make sure to set the context right! Remove old branches and (for existing services), set the state to 'released'...
+                    importedClass.SetTag(context.GetConfigProperty(_CMBranchTag), string.Empty);
+                    importedClass.SetTag(context.GetConfigProperty(_CMStateTag), EnumConversions<CMState>.EnumToString(CMState.Released));
+
+                    // We have now restored the UML model of the service to the state it had at the moment of release.
+                    // We also have to recover what's currently in the temporary path as build files. Can't use simple merge/revert etc. operations since these would
+                    // delete files from other services and probably cause a whole lot of merge conflicts. Instead, we simply save the contents of the working directory
+                    // in a temporary archive and restore this after going back to the main branch...
+                    string archive = SaveFiles(tagVersion.Item1);
+
                     // Now that we have recovered this 'old' version, we must remove all equal- and more recent tags since these are not valid anymore!
                     // Since we leave the associated commits alone, you could be able to retrieve the associated snapshots and/or other service
                     // contents if required. We do have to delete the tags since these would cause naming conflicts when we want to re-release the
@@ -640,7 +650,7 @@ namespace Plugin.Application.CapabilityModel
                     {
                         Tuple<int, int, int> thisVersion = ParseTagVersion(tag);
                         if (thisVersion.Item1 != tagVersion.Item1) continue;        // Different major version, ignore!
-                        if (thisVersion.Item2 >= tagVersion.Item2 && thisVersion.Item3 >= tagVersion.Item3)
+                        if ((thisVersion.Item2 > tagVersion.Item2) || (thisVersion.Item2 == tagVersion.Item2 && thisVersion.Item3 >= tagVersion.Item3))
                         {
                             Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.RevertService >> Deleting more recent release tag '" + tag.FriendlyName + "'...");
                             this._repository.DeleteTag(tag);
@@ -649,7 +659,9 @@ namespace Plugin.Application.CapabilityModel
 
                     // Finally, we merge the state of the Detached Head back into master in order to restore the contents of the folders to the
                     // original state and then delete the temporary branch (the latter will be covered by the 'finally' clause).
-                    this._repository.Merge(tempBranch, this._repository.ReleaseBranchName);
+                    //this._repository.Merge(tempBranch, this._repository.ReleaseBranchName);
+                    this._repository.RemoveBranch(tempBranch, this._repository.ReleaseBranchName);
+                    RestoreFiles(archive, tagVersion.Item1);
                 }
             }
             finally
@@ -1011,6 +1023,83 @@ namespace Plugin.Application.CapabilityModel
             int buildNr = Int32.Parse(tag.FriendlyName.Substring(indexBuild + 1));
 
             return new Tuple<int, int, int>(majorNr, minorNr, buildNr);
+        }
+
+        /// <summary>
+        /// Restores the content of a service' build folders from an archive, previously created by 'SaveFiles'. The method deletes all current contents of the service working
+        /// directory before restoring the archive. Next, the archive file is deleted.
+        /// </summary>
+        /// <param name="archivePath">Full pathname of archive file as returned from 'SaveFiles'.</param>
+        /// <param name="majorVersion">The major service version in which we're going to restore the archive. This MUST match the version used to create the archive!</param>
+        private void RestoreFiles(string archivePath, int majorVersion)
+        {
+            Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.RestoreFiles >> Going to restore contents from temporary archive '" + archivePath + "'...");
+            RepositoryDescriptor repoDsc = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor();
+            ContextSlt context = ContextSlt.GetContextSlt();
+
+            try
+            {
+                string artefactFolder = "/" + context.GetConfigProperty(_CMArtefactsFolderName);
+                int folderIndex = this._trackedService.ServiceBuildPath.LastIndexOf(artefactFolder);
+                string currentRoot = folderIndex >= 0 ? this._trackedService.ServiceBuildPath.Substring(0, folderIndex) : this._trackedService.ServiceBuildPath;
+                string restorePath = repoDsc.LocalRootPath + "/";
+                restorePath += currentRoot.Substring(0, currentRoot.LastIndexOf("_V")) + "_V" + majorVersion;
+                Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.RestoreFiles >> Restoring to '" + restorePath + "'...");
+
+                // First of all, remove ALL current contents from the build directory...
+                foreach (string dirName in Directory.EnumerateDirectories(restorePath)) Directory.Delete(dirName, true);
+                foreach (string fileName in Directory.EnumerateFiles(restorePath)) File.Delete(fileName);
+
+                Compression.DirectoryUnzip(archivePath);
+                File.Delete(archivePath);
+            }
+            catch (Exception exc)
+            {
+                // Restore errors are treated as Argument Exceptions.
+                string msg = "Failed to restore build files for service '" + this._trackedService.Name + "' because: " + Environment.NewLine + exc.ToString();
+                Logger.WriteError("Plugin.Application.ConfigurationManagement.CMContext.RestoreFiles >> " + msg);
+                throw new ArgumentException(msg, exc);
+            }
+            finally
+            {
+                // Make sure we delete the uncompressed snapshot since we don't need it anymore...
+                if (File.Exists(archivePath)) File.Delete(archivePath);
+            }
+        }
+
+        /// <summary>
+        /// Saves the contents of the build folders of the service to a temporary archive at container level. The method saves the folder tree indicated by 'majorVersion', which
+        /// must exist at time of call. Since the archive is one level up from the actual CM working directory, it will not change when we perform a branch switch and is therefor
+        /// suited to save the contents of a branch and restore as part of another branch.
+        /// </summary>
+        /// <returns>Full path to the created archive.</returns>
+        private string SaveFiles(int majorVersion)
+        {
+            Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.SaveFiles >> Going to store current contents to temporary archive...");
+            RepositoryDescriptor repoDsc = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor();
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string archive = string.Empty;
+
+            try
+            {
+                string artefactFolder = "/" + context.GetConfigProperty(_CMArtefactsFolderName);
+                int folderIndex = this._trackedService.ServiceBuildPath.LastIndexOf(artefactFolder);
+                string currentRoot = folderIndex >= 0 ? this._trackedService.ServiceBuildPath.Substring(0, folderIndex) : this._trackedService.ServiceBuildPath;
+                string savePath = repoDsc.LocalRootPath + "/";
+                savePath += currentRoot.Substring(0, currentRoot.LastIndexOf("_V")) + "_V" + majorVersion;
+                Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.SaveFiles >> Saving '" + savePath + "'...");
+                archive = Compression.DirectoryZip(savePath);
+                return archive;
+            }
+            catch (Exception exc)
+            {
+                if (File.Exists(archive)) File.Delete(archive);
+
+                // Save errors are treated as Argument Exceptions.
+                string msg = "Failed to save build files for service '" + this._trackedService.Name + "' because: " + Environment.NewLine + exc.ToString();
+                Logger.WriteError("Plugin.Application.ConfigurationManagement.CMContext.SaveFiles >> " + msg);
+                throw new ArgumentException(msg, exc);
+            }
         }
 
         /// <summary>

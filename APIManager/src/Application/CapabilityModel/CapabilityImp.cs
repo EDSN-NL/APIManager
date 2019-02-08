@@ -599,16 +599,20 @@ namespace Plugin.Application.CapabilityModel
         /// It can be overloaded by capabilities that require special processing.
         /// The operation updates both the major- and minor version of the capabilities and makes it equal to the version of the
         /// service. This implies that ALL components of a service ALWAYS have the same version of that service.
+        /// When our current version is equal to the service version, we don't perform any actions.
         /// </summary>
         internal virtual void VersionSync()
         {
-            this._capabilityClass.Version = this._rootService.Version;
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.CapabilityImp.versionSync >> Version of class '" + Name + "' set to: " + 
-                             this._capabilityClass.Version.Item1 + "." + this._capabilityClass.Version.Item2 + "'.");
-            CreateLogEntry("Version changed to: '" + this._capabilityClass.Version.Item1 + "." + this._capabilityClass.Version.Item2 + "'.");
+            if (this.CapabilityClass.Version.Item1 != this._rootService.Version.Item1 || this._capabilityClass.Version.Item2 != this._rootService.Version.Item2)
+            {
+                this._capabilityClass.Version = this._rootService.Version;
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.CapabilityImp.versionSync >> Version of class '" + Name + "' set to: " +
+                                 this._capabilityClass.Version.Item1 + "." + this._capabilityClass.Version.Item2 + "'.");
+                CreateLogEntry("Version changed to: '" + this._capabilityClass.Version.Item1 + "." + this._capabilityClass.Version.Item2 + "'.");
 
-            // Synchronize my children (if any)...
-            foreach (CapabilityImp child in this) child.VersionSync();
+                // Synchronize my children (if any)...
+                foreach (CapabilityImp child in this) child.VersionSync();
+            }
         }
 
         /// <summary>

@@ -61,13 +61,10 @@ namespace Plugin.Application.Events.Util
                 Diagram currentDiagram = context.CurrentDiagram;
 
                 //var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
-                //CapabilityModel.Service myService = svcContext.GetServiceInstance();
+                //CapabilityModel.Service myService = svcContext.GetServiceInstance(););
 
-                string zipped = Compression.StringZip("De kat krabt de krullen van de trap!");
-                string unzipped = Compression.StringUnzip(zipped);
-
-                string myZippedFile = Compression.FileZip("C:/Temp/InfrastructureProject.xmi", false);
-                Compression.FileUnzip("C:/Temp/InfrastructureProject.gz");
+                string myZippedFile = Compression.DirectoryZip("C:/Temp/InfrastructureProject_V3");
+                Compression.DirectoryUnzip(myZippedFile);
 
 
 

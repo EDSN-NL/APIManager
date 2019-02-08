@@ -167,21 +167,16 @@ namespace SparxEA.Model
         /// <param name="sourceProfiler">Profiler to copy.</param>
         internal override void LoadProfile(MEProfiler sourceProfiler)
         {
-            Logger.WriteInfo("SparxEA.Model.EAMEIClass.LoadProfile >> Copy source profile '" + sourceProfiler.Name + "' into '" + this.Name + "'...");
-
             EAMEIProfiler sourceObject = sourceProfiler.Implementation as EAMEIProfiler;
             if (sourceObject != null)
             {
                 EA.Repository repository = ((EAModelImplementation)this._model).Repository;
                 if (sourceObject._element.Type == "Artifact")
                 {
-                    Logger.WriteInfo("SparxEA.Model.EAMEIClass.LoadProfile >> Source element is of type 'Artifact', which is good...");
-
                     string update = "UPDATE t_document SET StrContent = " +
                                        "(SELECT REPLACE(d.StrContent,'<description name=\"" + sourceProfiler.Name + "\"','<description name = \"" + this.Name + "\"') " +
                                          "FROM (SELECT * FROM t_document) AS d WHERE d.ElementType = 'SC_MessageProfile' AND d.ElementID = '" + sourceProfiler.GlobalID + "') " +
                                     "WHERE ElementType = 'SC_MessageProfile' AND ElementID = '" + this.GlobalID + "'";
-                    Logger.WriteInfo("SparxEA.Model.EAMEIClass.LoadProfile >> Going to execute query: " + Environment.NewLine + update);
                     repository.Execute(update);     // Undocumented method, might dissapear at some time, at which we will be screwed :-)
                     this._element.Refresh();
                     repository.AdviseElementChange(this._element.ElementID);

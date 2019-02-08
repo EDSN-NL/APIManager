@@ -105,8 +105,9 @@ namespace Plugin.Application.CapabilityModel
             }
             this._serviceTicket = serviceTicket;
 
-            // We now set the modification date/time of the release ticket to the current date and time...
+            // We now set the modification date/time of the release ticket to the current date and time and we update the release version in the service ticket...
             this.TicketClass.SetTag(context.GetConfigProperty(_RMModificationTimestampTag), DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+            this._serviceTicket.UpdateReleasedVersion();
         }
 
         /// <summary>
@@ -200,6 +201,9 @@ namespace Plugin.Application.CapabilityModel
                 this.TicketDiagram.AddAssociationList(diagramAssocList);
                 this.TicketDiagram.Redraw();
             }
+
+            // Instruct the service ticket to register it's current release version (formal release):
+            this._serviceTicket.UpdateReleasedVersion();
             
             if (!IsExistingTicket)
             {

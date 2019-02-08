@@ -126,6 +126,8 @@ namespace Framework.ConfigurationManagement
                         }
                     }
                 }
+
+                // Fall-through in case of errors...
                 GotoBranch(_CMReleaseBranchName);   // On checkout errors, return to the release branch!
                 if (tempBranch != null) this._gitRepository.Branches.Remove(tempBranch);
                 string msg = "Unable to checkout tag '" + tagName + "'!";
@@ -306,7 +308,7 @@ namespace Framework.ConfigurationManagement
                 Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.Merge >> " + message);
                 throw new ArgumentException(message);
             }
-            if (this._currentBranch == null || this._currentBranch.FriendlyName != targetBranch) Commands.Checkout(this._gitRepository, target);
+            Commands.Checkout(this._gitRepository, target);
             this._currentBranch = target;
 
             Branch branch = this._gitRepository.Branches[thisBranch];
@@ -320,7 +322,8 @@ namespace Framework.ConfigurationManagement
             this._lastCommit = result.Commit;   // The commit at the merge head.
             if (result.Status == MergeStatus.Conflicts)
             {
-                string message = "Unable to merge branch '" + thisBranch + "' due to merge conflicts!";
+                this._gitRepository.Reset(ResetMode.Hard);  // To avoid any more damage due to merge conflict, reset the repository to the last commit.
+                string message = "Failed to merge branch '" + thisBranch + "' due to merge conflicts, repository has been reset!";
                 Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.Merge >> " + message);
                 throw new ArgumentException(message);
             }
