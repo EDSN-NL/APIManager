@@ -71,9 +71,9 @@ namespace Plugin.Application.CapabilityModel.API
                     this._capabilityClass.CreateAttribute(context.GetConfigProperty(_ResultCodeAttributeName), classifier,
                                                           AttributeType.Attribute, this._resultCode, new Tuple<int, int>(1, 1), true);
                     MEChangeLog.SetRTFDocumentation(this._capabilityClass, result.Description);
-                    string operationResultClass = context.GetConfigProperty(_OperationResultClassName);
 
                     // ResponseDocumentClass is also used to store the generic OperationResultClass, which we must skip!
+                    string operationResultClass = context.GetConfigProperty(_OperationResultClassName);
                     if (result.ResponseDocumentClass != null && result.ResponseDocumentClass.Name != operationResultClass)
                     {
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp (declaration) >> Associating with response type '" + result.ResponseDocumentClass.Name + "'...");

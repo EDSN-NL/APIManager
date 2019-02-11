@@ -213,7 +213,7 @@ namespace Plugin.Application.Forms
 
                 case HTTPOperation.Type.Get:
                     FilterGroup.Enabled = true;
-                    RequestParamBox.Enabled = true;
+                    RequestParamBox.Enabled = false;
                     ResponseParamBox.Enabled = true;
                     HasPagination.Enabled = true;
                     break;
