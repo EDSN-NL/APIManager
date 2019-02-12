@@ -39,8 +39,8 @@ namespace Framework.Util
         private const string _LogTrailer = "}";
         private const string _HDRTOKEN = "{\\rtf1\\ansi\\deflang";
         private const string _LINESTOKEN = "Text:\\plain\\f0\\fs24\\par";
-        private const string _DOCTOKEN = "Documentation:\\plain\\f0\\fs24\\par";
-        private const string _EODTOKEN = "\\plain\\f0\\fs24\\hich\\f0\\dbch\\f0\\loch\\f0\\fs24\\b Change Log:";
+        private const string _DOCTOKEN = "Documentation:\\plain\\f0\\fs24\\par";                                    // Documentation header.
+        private const string _EODTOKEN = "\\plain\\f0\\fs24\\hich\\f0\\dbch\\f0\\loch\\f0\\fs24\\b Change Log:";    // End of Documentation.
         private const string _EOLTOKEN = "\\par ";
         private const string _DOCHEADER = "";
 
@@ -72,12 +72,17 @@ namespace Framework.Util
                 // Remove the header and trailer and split into documentation section and changelog lines...
                 contents = RemoveLineSeparators(contents);
                 string startDocumentation = contents.Substring(contents.IndexOf(_DOCTOKEN) + _DOCTOKEN.Length);
-                this._documentation = startDocumentation.Substring(0, startDocumentation.IndexOf(_EODTOKEN)).Trim();
-                string lines = startDocumentation.Substring(startDocumentation.IndexOf(_LINESTOKEN) + _LINESTOKEN.Length);
-                while (lines.Length > 20)    // Must have at least a date field and an author in it, so this is an easy check.
+                int eodToken = startDocumentation.IndexOf(_EODTOKEN);
+                int lineToken = startDocumentation.IndexOf(_LINESTOKEN);
+                if (eodToken >= 0 && lineToken >= 0)
                 {
-                    this._lines.Add(lines.Substring(0, lines.IndexOf(_EOLTOKEN) + _EOLTOKEN.Length));
-                    lines = lines.Substring(lines.IndexOf(_EOLTOKEN) + _EOLTOKEN.Length);
+                    this._documentation = startDocumentation.Substring(0, eodToken).Trim();
+                    string lines = startDocumentation.Substring(lineToken + _LINESTOKEN.Length);
+                    while (lines.Length > 20)    // Must have at least a date field and an author in it, so this is an easy check.
+                    {
+                        this._lines.Add(lines.Substring(0, lines.IndexOf(_EOLTOKEN) + _EOLTOKEN.Length));
+                        lines = lines.Substring(lines.IndexOf(_EOLTOKEN) + _EOLTOKEN.Length);
+                    }
                 }
             }
         }
@@ -217,6 +222,7 @@ namespace Framework.Util
         /// It checks the contents of the current log and if not in proper format, migrates it to the correct format.
         /// </summary>
         /// <param name="thisClass">Class for which we want to migrate the log.</param>
+        /// <returns>Migrated log in RTF format.</returns>
         internal static void MigrateLog(MEClass thisClass)
         {
             const string pattern = @"^.*Documentation:";

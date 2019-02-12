@@ -126,7 +126,7 @@ namespace Plugin.Application.Events.API
                     }
                     if (svcContext.InterfaceList.Count > 1) UpdateInterfaces(svcContext, operationList, dialog.Annotation, dialog.MinorVersionIndicator);
                     CreateLogEntry(svcContext.InterfaceClass, dialog.Annotation);
-                    CreateLogEntry(commonSchemaClass, dialog.Annotation);
+                    if (commonSchemaClass != null) CreateLogEntry(commonSchemaClass, dialog.Annotation);    // You don't ALWAYS have a common schema!
                     CreateLogEntry(svcContext.ServiceClass, dialog.Annotation);
 
                     // Mark service as 'modified' for configuration management and add to diagram in different color...
