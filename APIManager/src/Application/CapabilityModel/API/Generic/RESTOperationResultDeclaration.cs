@@ -362,6 +362,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._defaultResponseCode = context.GetConfigProperty(_DefaultResponseCode);
             this._responseDocumentClass = null;
             this._category = category;
+            this._responseCardinality = new Cardinality();
             this._status = this._initialStatus = DeclarationStatus.Stable;
 
             switch (category)

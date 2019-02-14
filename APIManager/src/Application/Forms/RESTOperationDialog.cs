@@ -554,7 +554,7 @@ namespace Plugin.Application.Forms
         {
             foreach (RESTOperationResultDeclaration result in this._responseManager.GetCollectionContents())
             {
-                if (ResponseCodeList.FindItemWithText(result.ResultCode) == null)
+                if (ResponseCodeList.FindItemWithText(result.ResultCode) == null && this._operation.AddOperationResult(result))
                 {
                     ListViewItem newItem = new ListViewItem(result.ResultCode);
                     newItem.SubItems.Add(result.Description);

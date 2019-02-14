@@ -506,6 +506,35 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// This function receives a predefined OperationResultDeclaration and inserts the object in my result list.
+        /// If the code already exists with a status 'deleted', it is replaced. Otherwise, the result is ignored and
+        /// the function returns false. 
+        /// </summary>
+        /// <param name="result">The Operation Result to insert.</param>
+        /// <returns>True if successfully inserted, false on duplicate code.</returns>
+        internal bool AddOperationResult(RESTOperationResultDeclaration result)
+        {
+            bool operResult = true;
+            if (!this._resultList.ContainsKey(result.ResultCode))
+            {
+                result.Status = RESTOperationResultDeclaration.DeclarationStatus.Created;
+                this._resultList.Add(result.ResultCode, result);
+                if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+            }
+            else if (this._resultList[result.ResultCode].Status == RESTOperationResultDeclaration.DeclarationStatus.Deleted)
+            {
+                result.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
+                this._resultList[result.ResultCode] = result;
+                if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+            }
+            else
+            {
+                operResult = false;
+            }
+            return operResult;
+        }
+
+        /// <summary>
         /// The method call will display the 'Edit Parameter' dialog so that the user can create a new parameter declaration object. 
         /// On return from the dialog, if the parameter settings are Ok, the parameter declaration is initialized and the created 
         /// parameter declaration object is returned to the caller.
