@@ -647,8 +647,11 @@ namespace Framework.ConfigurationManagement
                 this._identity = null;
                 this._lastCommit = null;
                 this._currentBranch = null;
-                this._gitRepository.Dispose();
-                this._gitRepository = null;
+                if (this._gitRepository != null)
+                {
+                    this._gitRepository.Dispose();
+                    this._gitRepository = null;
+                }
                 this._disposed = true;
             }
         }
