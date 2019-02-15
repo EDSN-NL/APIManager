@@ -1169,11 +1169,7 @@ namespace SparxEA.Model
             {
                 if (this._isLocked)
                 {
-                    bool result = recursiveUnlock ? this._package.ReleaseUserLockRecursive(true, true, true): this._package.ReleaseUserLock();
-                    if (!result)
-                    {
-                        Logger.WriteWarning("Failed to unlock package structure because: '" + this._package.GetLastError() + "'!");
-                    }
+                    if (recursiveUnlock) this._package.ReleaseUserLockRecursive(true,true,true); else this._package.ReleaseUserLock();
                     this._isLocked = false;
                 }
             }

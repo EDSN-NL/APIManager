@@ -154,12 +154,7 @@ namespace Plugin.Application.CapabilityModel
 
                 if (this._configurationMgmtState == CMState.Released)
                 {
-                    // When the service is in released state, clear old branch. We KEEP the ticket (if present) since that might provide 
-                    // useful info for a subsequent change...
                     Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext >> Released service!");
-                    this._branchName = string.Empty;
-                    this._trackedService.ServiceClass.SetTag(CMBranchTagName, string.Empty);
-
                     string ticketID = this._trackedService.ServiceClass.GetTag(ticketIDTagName);
                     if (!string.IsNullOrEmpty(ticketID))
                     {

@@ -943,7 +943,7 @@ namespace SparxEA.Model
             }
             catch (Exception exc)
             {
-                Logger.WriteError("SparxEA.Model.EAMEIClass.SetTag >> Unable to update tag '" + tagName + "' in class '" + this.Name + 
+                Logger.WriteError("SparxEA.Model.EAMEIClass.SetTag >> Unable to update tag '" + tagName + "' in class '" + this.Name +
                                   "' because: " + Environment.NewLine + exc.ToString());
             }
         }

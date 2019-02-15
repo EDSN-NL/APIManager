@@ -563,7 +563,7 @@ namespace Plugin.Application.Events.API
         /// <returns>True if package is locked successfully.</returns>
         internal bool LockReleaseHistory()
         {
-            return ModelSlt.GetModelSlt().LockPackage(ContextSlt.GetContextSlt().GetConfigProperty(_RMReleasePackagePath), false);
+            return ModelSlt.GetModelSlt().LockPackage(ContextSlt.GetContextSlt().GetConfigProperty(_RMReleasePackagePath), true);
         }
 
         /// <summary>
@@ -592,7 +592,7 @@ namespace Plugin.Application.Events.API
         /// <returns>True if package is locked successfully.</returns>
         internal void UnlockReleaseHistory()
         {
-            ModelSlt.GetModelSlt().UnlockPackage(ContextSlt.GetContextSlt().GetConfigProperty(_RMReleasePackagePath), false);
+            ModelSlt.GetModelSlt().UnlockPackage(ContextSlt.GetContextSlt().GetConfigProperty(_RMReleasePackagePath), true);
         }
 
         /// <summary>

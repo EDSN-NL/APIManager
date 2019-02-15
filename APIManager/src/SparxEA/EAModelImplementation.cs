@@ -239,6 +239,7 @@ namespace SparxEA.Model
         /// <returns>Retrieved package or NULL on errors / nothing found.</returns>
         internal override MEPackage FindPackage(string path, string packageName)
         {
+            //Logger.WriteInfo("SparxEA.Model.EAModelImplementation.findPackage >> Looking on path '" + path + "' for package '" + packageName + "'...");
             string query = @"SELECT p.Package_ID AS PackageID
                             FROM((((((t_package p
                             LEFT JOIN t_package p0 ON p0.package_id = p.parent_id)
@@ -260,7 +261,7 @@ namespace SparxEA.Model
                     query += " and p" + index-- + ".name = '" + pName.Trim() + "'";
                 }
                 query += ";";
-
+                //Logger.WriteInfo("SparxEA.Model.EAModelImplementation.findPackage >> Executing search query: '" + query + "'...");
                 XmlDocument queryResult = new XmlDocument();                    // Repository query will return an XML Document.
                 queryResult.LoadXml(Repository.SQLQuery(query));                // Execute query and store result in XML Document.
                 XmlNodeList elements = queryResult.GetElementsByTagName("Row"); // Retrieve parent class name and package in which class resides.
@@ -683,7 +684,8 @@ namespace SparxEA.Model
         /// package structure (recursiveLock is true).
         /// This function does NOT use the 'AutomaticLocking' and 'PersistentModelLocks' configuration options.
         /// </summary>
-        /// <param name="packagePath">Absolute path from the repository root to the package that must be locked (repository root NOT included).</param>
+        /// <param name="packagePath">Path from the repository root to the package that must be locked (repository root NOT included), items
+        /// separated by ':' characters.</param>
         /// <param name="recursiveLock">When set to 'true', the function will recursively lock all packages below the specified package.</param>
         /// <returns>True if locked successfully.</returns>
         internal override bool LockPackage(string packagePath, bool recursiveLock)
@@ -692,9 +694,17 @@ namespace SparxEA.Model
             bool result = !this._repository.IsSecurityEnabled;
             if (!result)
             {
-                string root = ContextSlt.GetContextSlt().GetConfigProperty(_RootPkgName);
-                Logger.WriteInfo("Framework.Model.ModelImplementation.LockPackage >> Locking package '" + packagePath + "'...");
-                MEPackage lockPackage = FindPackage(root, packagePath);
+                string searchPath = ContextSlt.GetContextSlt().GetConfigProperty(_RootPkgName);
+                string packageName = packagePath;
+                int pkgIndex = packagePath.LastIndexOf(':');
+                if (pkgIndex > 0)
+                {
+                    searchPath += ":" + packagePath.Substring(0, pkgIndex);
+                    packageName = packagePath.Substring(pkgIndex + 1);
+                }
+                Logger.WriteInfo("Framework.Model.ModelImplementation.LockPackage >> Locking package '" + 
+                                 packageName + "' in path '" + searchPath + "'...");
+                MEPackage lockPackage = FindPackage(searchPath, packageName);
                 if (lockPackage != null)
                 {
                     MEPackage.LockStatus status = lockPackage.IsLocked(out userName);
@@ -770,10 +780,18 @@ namespace SparxEA.Model
         {
             if (this._repository.IsSecurityEnabled)
             {
-                string root = ContextSlt.GetContextSlt().GetConfigProperty(_RootPkgName);
-                Logger.WriteInfo("Framework.Model.ModelImplementation.UnLockPackage >> Unlocking package '" + packagePath + "'...");
-                MEPackage unLockPackage = FindPackage(root, packagePath);
-                if (unLockPackage != null) unLockPackage.Unlock(recursiveUnLock);
+                string searchPath = ContextSlt.GetContextSlt().GetConfigProperty(_RootPkgName);
+                string packageName = packagePath;
+                int pkgIndex = packagePath.LastIndexOf(':');
+                if (pkgIndex > 0)
+                {
+                    searchPath += ":" + packagePath.Substring(0, pkgIndex);
+                    packageName = packagePath.Substring(pkgIndex + 1);
+                }
+                Logger.WriteInfo("Framework.Model.ModelImplementation.UnlockPackage >> Releasing package '" +
+                                 packageName + "' in path '" + searchPath + "'...");
+                MEPackage unlockPackage = FindPackage(searchPath, packageName);
+                if (unlockPackage != null) unlockPackage.Unlock(recursiveUnLock);
                 else Logger.WriteError("Framework.Model.ModelImplementation.UnLockPackage >> Could not find package '" + packagePath + "' to unlock!");
             }
         }

@@ -63,31 +63,8 @@ namespace Plugin.Application.Events.Util
                 //var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
                 //CapabilityModel.Service myService = svcContext.GetServiceInstance(););
 
-                string myZippedFile = Compression.DirectoryZip("C:/Temp/InfrastructureProject_V3");
-                Compression.DirectoryUnzip(myZippedFile);
-
-
-
-                //CMRepositorySlt repo = CMRepositorySlt.GetRepositorySlt();
-                //repo.CheckoutTag("feature/CSTI-483/3010.99.TestContainer/Personen_V1P8B3");
-                //repo.SynchroniseTags();
-
-                /**************
-                if (currentClass.HasStereotype("Service"))
-                {
-                    string ticketID = string.Empty;
-                    if (ShowInputDialog(ref ticketID) == DialogResult.OK)
-                    {
-                        RMServiceTicket ticket = new RMServiceTicket(ticketID, "700123", myService);
-                        MessageBox.Show(ticket.ToString());
-                    }
-                }
-                else if (currentClass.HasStereotype("Ticket"))
-                {
-                    RMServiceTicket ticket = new RMServiceTicket(currentClass, myService);
-                    RMReleaseTicket relTicket = new RMReleaseTicket(ticket);
-                }
-                *****************/
+                MEPackage findPkg = model.FindPackage("ECDMRoot:DomainModels", "ReleaseHistory");
+                MessageBox.Show("Found my package with ID = " + (findPkg != null ? findPkg.GlobalID : "_NONE_"));
 
                 //MakeCommonSchema();
                 //Test7() ;
