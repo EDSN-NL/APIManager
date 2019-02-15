@@ -23,6 +23,9 @@ namespace SparxEA.Model
         private const string _MetaTypeEnumeration           = "MetaTypeEnumeration";
         private const string _MetaTypeUnion                 = "MetaTypeUnion";
 
+        // Other configuration items used by this module...
+        private const string _RootPkgName                   = "RootPkgName";
+
         // Some of the default stereotypes required when creating components...
         private const string _GeneralizationStereotype      = "GeneralizationStereotype";
         private const string _AssociationStereotype         = "AssociationStereotype";
@@ -633,6 +636,7 @@ namespace SparxEA.Model
         /// If the package is already locked by the current user, no action is performed.
         /// Note that we only check the locking status of the model root. This implies that things might go wrong in case lower-level items are 
         /// locked by another user!
+        /// This function always performs a recursive lock of all sub-packages below the specified package.
         /// If security is not enabled on the repository, the function always returns 'true' but does not perform any actual operation!
         /// </summary>
         /// <returns>True if locked successfully.</returns>
@@ -671,6 +675,52 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Attempts to lock the specified package. The function checks the current locking status. If already locked
+        /// by another user, an error is displayed. Otherwise, if locking failed (for whatever reason), an error is displayed.
+        /// If the package is already locked by the current user, no action is performed.
+        /// If security is not enabled on the repository, the function always returns 'true' but does not perform any actual operation!
+        /// Depending on parameter 'recursiveLock', the function only locks the current package (recursiveLock is false), or the entire
+        /// package structure (recursiveLock is true).
+        /// This function does NOT use the 'AutomaticLocking' and 'PersistentModelLocks' configuration options.
+        /// </summary>
+        /// <param name="packagePath">Absolute path from the repository root to the package that must be locked (repository root NOT included).</param>
+        /// <param name="recursiveLock">When set to 'true', the function will recursively lock all packages below the specified package.</param>
+        /// <returns>True if locked successfully.</returns>
+        internal override bool LockPackage(string packagePath, bool recursiveLock)
+        {
+            string userName;
+            bool result = !this._repository.IsSecurityEnabled;
+            if (!result)
+            {
+                string root = ContextSlt.GetContextSlt().GetConfigProperty(_RootPkgName);
+                Logger.WriteInfo("Framework.Model.ModelImplementation.LockPackage >> Locking package '" + packagePath + "'...");
+                MEPackage lockPackage = FindPackage(root, packagePath);
+                if (lockPackage != null)
+                {
+                    MEPackage.LockStatus status = lockPackage.IsLocked(out userName);
+                    if (status == MEPackage.LockStatus.Unlocked)
+                    {
+                        result = lockPackage.Lock(recursiveLock);
+                        if (!result)
+                        {
+                            string msg = "Unable to lock package '" + packagePath + "'!";
+                            Logger.WriteError("Framework.Model.ModelImplementation.LockPackage >> " + msg);
+                        }
+                    }
+                    else if (status == MEPackage.LockStatus.Locked)
+                    {
+                        string msg = "Package '" + packagePath + "' is currently locked by user '" + userName + "'!";
+                        Logger.WriteError("Framework.Model.ModelImplementation.LockPackage >> " + msg);
+                    }
+                    else result = true;     // Package is already locked by current user, no need to lock again.
+                }
+                else Logger.WriteError("Framework.Model.ModelImplementation.LockPackage >> Could not find package '" + packagePath + "' to lock!");
+            }
+            Logger.WriteInfo("Framework.Model.ModelImplementation.LockPackage >> Result of lock: " + result);
+            return result;
+        }
+
+        /// <summary>
         /// Forces the repository implementation to refresh the entire model tree. This can be
         /// called after a number of model changes to assure that the model view is consistent with these changes.
         /// </summary>
@@ -704,6 +754,27 @@ namespace SparxEA.Model
                     Logger.WriteInfo("Framework.Model.ModelImplementation.UnlockModel >> Unlocking model '" + modelRoot.Name + "'...");
                     modelRoot.Unlock();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Attempts to unlock the specified package. 
+        /// If security is not enabled on the repository, the function does not perform any actual operation!
+        /// Depending on parameter 'recursiveUnLock', the function only unlocks the current package (recursiveUnLock is false), or the entire
+        /// package structure (recursiveUnLock is true). If the package could not be found, we generate an error message.
+        /// This function does NOT use the 'AutomaticLocking' and 'PersistentModelLocks' configuration options.
+        /// </summary>
+        /// <param name="packagePath">Absolute path from the repository root to the package that must be locked (repository root NOT included).</param>
+        /// <param name="recursiveUnLock">When set to 'true', the function will recursively unlock all packages below the specified package.</param>
+        internal override void UnlockPackage(string packagePath, bool recursiveUnLock)
+        {
+            if (this._repository.IsSecurityEnabled)
+            {
+                string root = ContextSlt.GetContextSlt().GetConfigProperty(_RootPkgName);
+                Logger.WriteInfo("Framework.Model.ModelImplementation.UnLockPackage >> Unlocking package '" + packagePath + "'...");
+                MEPackage unLockPackage = FindPackage(root, packagePath);
+                if (unLockPackage != null) unLockPackage.Unlock(recursiveUnLock);
+                else Logger.WriteError("Framework.Model.ModelImplementation.UnLockPackage >> Could not find package '" + packagePath + "' to unlock!");
             }
         }
     }

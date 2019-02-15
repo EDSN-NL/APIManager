@@ -191,6 +191,20 @@ namespace Framework.Model
         internal abstract bool LockModel(MEPackage modelRoot);
 
         /// <summary>
+        /// Attempts to lock the specified package. The function checks the current locking status. If already locked
+        /// by another user, an error is displayed. Otherwise, if locking failed (for whatever reason), an error is displayed.
+        /// If the package is already locked by the current user, no action is performed.
+        /// If security is not enabled on the repository, the function always returns 'true' but does not perform any actual operation!
+        /// Depending on parameter 'recursiveLock', the function only locks the current package (recursiveLock is false), or the entire
+        /// package structure (recursiveLock is true).
+        /// This function does NOT use the 'AutomaticLocking' and 'PersistentModelLocks' configuration options.
+        /// </summary>
+        /// <param name="packagePath">Absolute path from the repository root to the package that must be locked (repository root NOT included).</param>
+        /// <param name="recursiveLock">When set to 'true', the function will recursively lock all packages below the specified package.</param>
+        /// <returns>True if locked successfully.</returns>
+        internal abstract bool LockPackage(string packagePath, bool recursiveLock);
+
+        /// <summary>
         /// Forces the repository implementation to refresh the entire model tree. This can be
         /// called after a number of model changes to assure that the model view is consistent with these changes.
         /// </summary>
@@ -288,6 +302,17 @@ namespace Framework.Model
         /// The function fails silently on errors.
         /// </summary>
         internal abstract void UnlockModel(MEPackage modelRoot);
+
+        /// <summary>
+        /// Attempts to unlock the specified package. 
+        /// If security is not enabled on the repository, the function does not perform any actual operation!
+        /// Depending on parameter 'recursiveUnLock', the function only unlocks the current package (recursiveUnLock is false), or the entire
+        /// package structure (recursiveUnLock is true). If the package could not be found, we generate an error message.
+        /// This function does NOT use the 'AutomaticLocking' and 'PersistentModelLocks' configuration options.
+        /// </summary>
+        /// <param name="packagePath">Absolute path from the repository root to the package that must be locked (repository root NOT included).</param>
+        /// <param name="recursiveUnLock">When set to 'true', the function will recursively unlock all packages below the specified package.</param>
+        internal abstract void UnlockPackage(string packagePath, bool recursiveUnLock);
 
         /// <summary>
         /// Removes a DiagramImplementation that has been registered earlier. Fails silently if the diagram is not registered.

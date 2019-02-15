@@ -44,6 +44,7 @@ namespace Plugin.Application.Events.API
         private const string _RMPackageName                     = "RMPackageName";
         private const string _RMReleasePackageParentPath        = "RMReleasePackageParentPath";
         private const string _RMReleasePackageParentName        = "RMReleasePackageParentName";
+        private const string _RMReleasePackagePath              = "RMReleasePackagePath";
 
         private const bool _NOBUILDHIERARCHY = false;           // Used for CodeLists to suppress construction of complete class hierarchy.
 
@@ -556,6 +557,16 @@ namespace Plugin.Application.Events.API
         }
 
         /// <summary>
+        /// Attempts to lock the release history package. If this fails, we can't continue until the user has solved this.
+        /// This function is a very simple pass-through to the actual locking function, which is part of the Model singleton.
+        /// </summary>
+        /// <returns>True if package is locked successfully.</returns>
+        internal bool LockReleaseHistory()
+        {
+            return ModelSlt.GetModelSlt().LockPackage(ContextSlt.GetContextSlt().GetConfigProperty(_RMReleasePackagePath), false);
+        }
+
+        /// <summary>
         /// Refreshes an entire service declaration environment after applying updates, assures that user-view is updated accordingly.
         /// </summary>
         internal void Refresh()
@@ -572,6 +583,16 @@ namespace Plugin.Application.Events.API
         internal void UnlockModel()
         {
             ModelSlt.GetModelSlt().UnlockModel(this._lockContainer? this._declarationPackage.Parent: this._declarationPackage);
+        }
+
+        /// <summary>
+        /// Unlocks the release history package, ignoring any warnings / errors.
+        /// This function is a very simple pass-through to the actual unlocking function, which is part of the Model singleton.
+        /// </summary>
+        /// <returns>True if package is locked successfully.</returns>
+        internal void UnlockReleaseHistory()
+        {
+            ModelSlt.GetModelSlt().UnlockPackage(ContextSlt.GetContextSlt().GetConfigProperty(_RMReleasePackagePath), false);
         }
 
         /// <summary>

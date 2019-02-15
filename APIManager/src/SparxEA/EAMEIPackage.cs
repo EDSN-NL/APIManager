@@ -1010,11 +1010,13 @@ namespace SparxEA.Model
         }
 
         /// <summary>
-        /// First check whether the current package is unlocked. If so, create a recursive lock for the package and all contents (including contained 
-        /// packages).
+        /// First check whether the current package is unlocked. If so, create a (recursive) lock for the package and all contents.
+        /// If 'recursiveLock' is set to 'false', the function only locks the current package.
         /// </summary>
+        /// <param name="recursiveLock">Optional indicator that, when set to 'false', will only lock the current package. Default is 'true', 
+        /// which locks the entire package tree.</param>
         /// <returns>True when lock is successfull, false on errors (includes locked by somebody else).</returns>
-        internal override bool Lock()
+        internal override bool Lock(bool recursiveLock)
         {
             try
             {
@@ -1022,7 +1024,7 @@ namespace SparxEA.Model
                 MEPackage.LockStatus status = IsLocked(out lockedUser);
                 if (status == MEPackage.LockStatus.Unlocked)
                 {
-                    bool result = this._package.ApplyUserLockRecursive(true, true, true);
+                    bool result = recursiveLock ? this._package.ApplyUserLockRecursive(true, true, true) : this._package.ApplyUserLock();
                     if (!result)
                     {
                         this._isLocked = false;
@@ -1156,14 +1158,18 @@ namespace SparxEA.Model
 
         /// <summary>
         /// Attempts to unlock the package and all included elements, diagrams and sub-packages. Errors are silently ignored.
+        /// When parameter 'currentPackageOnly' is set to 'true', the function only unlocks the current package. When set to
+        /// 'false', the package is unlocked recursively, including all sub-packages.
         /// </summary>
-        internal override void Unlock()
+        /// <param name="recursiveUnlock">When set to 'true' (the default), unlocks the entire package tree. When set to 'false', we 
+        /// only unlock the current package hierarchy.</param>
+        internal override void Unlock(bool recursiveUnlock)
         {
             try
             {
                 if (this._isLocked)
                 {
-                    bool result = this._package.ReleaseUserLockRecursive(true, true, true);
+                    bool result = recursiveUnlock ? this._package.ReleaseUserLockRecursive(true, true, true): this._package.ReleaseUserLock();
                     if (!result)
                     {
                         Logger.WriteWarning("Failed to unlock package structure because: '" + this._package.GetLastError() + "'!");

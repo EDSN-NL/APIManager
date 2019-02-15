@@ -229,10 +229,13 @@ namespace Framework.Model
         internal abstract bool IsUniqueName(string name);
 
         /// <summary>
-        /// Attempts to lock the package and all included elements, diagrams and sub-packages.
+        /// First check whether the current package is unlocked. If so, create a (recursive) lock for the package and all contents.
+        /// If 'recursiveLock' is set to 'false', the function only locks the current package.
         /// </summary>
+        /// <param name="recursiveLock">Optional indicator that, when set to 'false', will only lock the current package. Default is 'true', 
+        /// which locks the entire package tree.</param>
         /// <returns>True when lock is successfull, false on errors (includes locked by somebody else).</returns>
-        internal abstract bool Lock();
+        internal abstract bool Lock(bool recursiveLock);
 
         /// <summary>
         /// Forces the repository implementation to refresh the current package and all children packages. This can be
@@ -257,8 +260,12 @@ namespace Framework.Model
 
         /// <summary>
         /// Attempts to unlock the package and all included elements, diagrams and sub-packages. Errors are silently ignored.
+        /// When parameter 'currentPackageOnly' is set to 'true', the function only unlocks the current package. When set to
+        /// 'false', the package is unlocked recursively, including all sub-packages.
         /// </summary>
-        internal abstract void Unlock();
+        /// <param name="recursiveUnlock">When set to 'true' (the default), unlocks the entire package tree. When set to 'false', we 
+        /// only unlock the current package hierarchy.</param>
+        internal abstract void Unlock(bool recursiveUnlock);
 
         /// <summary>
         /// Method that explicitly searches the model repository for the parent implementation of the current package.

@@ -392,13 +392,16 @@ namespace Framework.Model
         }
 
         /// <summary>
-        /// Attempts to lock the package and all included elements, diagrams and sub-packages.
+        /// First check whether the current package is unlocked. If so, create a (recursive) lock for the package and all contents.
+        /// If 'recursiveLock' is set to 'false', the function only locks the current package.
         /// </summary>
+        /// <param name="recursiveLock">Optional indicator that, when set to 'false', will only lock the current package. Default is 'true', 
+        /// which locks the entire package tree.</param>
         /// <returns>True when lock is successfull, false on errors (includes locked by somebody else).</returns>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal bool Lock()
+        internal bool Lock(bool recursiveLock = true)
         {
-            if (this._imp != null) return ((MEIPackage)this._imp).Lock();
+            if (this._imp != null) return ((MEIPackage)this._imp).Lock(recursiveLock);
             else throw new MissingImplementationException("MEIPackage");
         }
 
@@ -440,11 +443,15 @@ namespace Framework.Model
 
         /// <summary>
         /// Attempts to unlock the package and all included elements, diagrams and sub-packages. Errors are silently ignored.
+        /// When parameter 'currentPackageOnly' is set to 'true', the function only unlocks the current package. When set to
+        /// 'false', the package is unlocked recursively, including all sub-packages.
         /// </summary>
+        /// <param name="recursiveUnlock">When set to 'true' (the default), unlocks the entire package tree. When set to 'false', we 
+        /// only unlock the current package hierarchy.</param>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal void Unlock()
+        internal void Unlock(bool recursiveUnlock = true)
         {
-            if (this._imp != null) ((MEIPackage)this._imp).Unlock();
+            if (this._imp != null) ((MEIPackage)this._imp).Unlock(recursiveUnlock);
             else throw new MissingImplementationException("MEIPackage");
         }
     }

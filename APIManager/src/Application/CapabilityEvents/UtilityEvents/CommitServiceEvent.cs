@@ -37,6 +37,7 @@ namespace Plugin.Application.Events.Util
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
             string errorMsg = string.Empty;
             Service myService = null;
+            bool releaseLocked = false;
 
             // Perform some precondition tests...
             if (!svcContext.Valid) errorMsg = "Illegal or corrupt context, operation aborted!";
@@ -61,6 +62,16 @@ namespace Plugin.Application.Events.Util
                         {
                             if (dialog.ShowDialog() == DialogResult.OK)
                             {
+                                if (dialog.AutoRelease && !svcContext.LockReleaseHistory())
+                                {
+                                    errorMsg = "Unable to lock the release history package!";
+                                    Logger.WriteError("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> " + errorMsg);
+                                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    svcContext.UnlockModel();
+                                    return;
+                                }
+                                else releaseLocked = true;
+
                                 if (myService.Commit(dialog.Annotation, dialog.AutoRelease))
                                 {
                                     MessageBox.Show("Successfully committed service '" + myService.Name + "'.",
@@ -84,6 +95,7 @@ namespace Plugin.Application.Events.Util
             }
             myService.Paint(context.CurrentDiagram);
             svcContext.UnlockModel();
+            if (releaseLocked) svcContext.UnlockReleaseHistory();
         }
     }
 }

@@ -41,12 +41,14 @@ namespace Plugin.Application.Events.Util
             // Perform a series of precondition tests...
             if (!svcContext.Valid) errorMsg = "Illegal or corrupt context, operation aborted!";
             else if (!svcContext.LockModel()) errorMsg = "Unable to lock the model!";
+            else if (!svcContext.LockReleaseHistory()) errorMsg = "Unable to lock the release history package!";
 
             if (errorMsg != string.Empty)
             {
                 Logger.WriteError("Plugin.Application.Events.API.ReleaseServiceEvent.HandleEvent >> " + errorMsg);
                 MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 svcContext.UnlockModel();
+                svcContext.UnlockReleaseHistory();
                 return;
             }
 
@@ -79,6 +81,7 @@ namespace Plugin.Application.Events.Util
             }
             myService.Paint(context.CurrentDiagram);
             svcContext.UnlockModel();
+            svcContext.UnlockReleaseHistory();
         }
     }
 }

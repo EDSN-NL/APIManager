@@ -258,6 +258,25 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Attempts to lock the specified package. The function checks the current locking status. If already locked
+        /// by another user, an error is displayed. Otherwise, if locking failed (for whatever reason), an error is displayed.
+        /// If the package is already locked by the current user, no action is performed.
+        /// If security is not enabled on the repository, the function always returns 'true' but does not perform any actual operation!
+        /// Depending on parameter 'recursiveLock', the function only locks the current package (recursiveLock is false), or the entire
+        /// package structure (recursiveLock is true).
+        /// This function does NOT use the 'AutomaticLocking' and 'PersistentModelLocks' configuration options.
+        /// </summary>
+        /// <param name="packagePath">Absolute path from the repository root to the package that must be locked (repository root NOT included).</param>
+        /// <param name="recursiveLock">When set to 'true', the function will recursively lock all packages below the specified package.</param>
+        /// <returns>True if locked successfully.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal bool LockPackage(string packagePath, bool recursiveLock)
+        {
+            if (this._modelImp != null) return this._modelImp.LockPackage(packagePath, recursiveLock);
+            else throw new MissingImplementationException("ModelImplementation");
+        }
+
+        /// <summary>
         /// Forces the repository implementation to refresh the entire model tree. 
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
@@ -278,7 +297,6 @@ namespace Framework.Model
             this._modelImp = null;
         }
 
-
         /// <summary>
         /// Attempts to unlock the model defined by the specified root package. We only perform any actions in case Automatic Locking is enabled and
         /// we have not specified persistent locks.
@@ -288,6 +306,22 @@ namespace Framework.Model
         internal void UnlockModel(MEPackage modelRoot)
         {
             if (this._modelImp != null) this._modelImp.UnlockModel(modelRoot);
+            else throw new MissingImplementationException("ModelImplementation");
+        }
+
+        /// <summary>
+        /// Attempts to unlock the specified package. 
+        /// If security is not enabled on the repository, the function does not perform any actual operation!
+        /// Depending on parameter 'recursiveUnLock', the function only unlocks the current package (recursiveUnLock is false), or the entire
+        /// package structure (recursiveUnLock is true). If the package could not be found, we generate an error message.
+        /// This function does NOT use the 'AutomaticLocking' and 'PersistentModelLocks' configuration options.
+        /// </summary>
+        /// <param name="packagePath">Absolute path from the repository root to the package that must be locked (repository root NOT included).</param>
+        /// <param name="recursiveUnLock">When set to 'true', the function will recursively unlock all packages below the specified package.</param>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal void UnlockPackage(string packagePath, bool recursiveUnLock)
+        {
+            if (this._modelImp != null) this._modelImp.UnlockPackage(packagePath, recursiveUnLock);
             else throw new MissingImplementationException("ModelImplementation");
         }
 
