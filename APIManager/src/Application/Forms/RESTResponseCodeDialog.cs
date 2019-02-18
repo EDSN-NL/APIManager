@@ -15,7 +15,6 @@ namespace Plugin.Application.Forms
         private const string _DefaultSuccessCode            = "DefaultSuccessCode";
         private const string _DefaultSuccessEditCode        = "DefaultSuccessEditCode";
         private const string _APISupportModelPathName       = "APISupportModelPathName";
-        private const string _OperationResultClassName      = "OperationResultClassName";
 
         private RESTOperationResultDeclaration _result;     // The result declaration that we're building.
         private List<RESTOperationResultDeclaration.CodeDescriptor> _codeList;      // Currently active set of response code definitions.
@@ -78,7 +77,6 @@ namespace Plugin.Application.Forms
             }
             ResponseCode.SelectedItem = RESTOperationResultDeclaration.CodeDescriptor.CodeToLabel(this._result.ResultCode);
             ResponseDescription.Text = (result != null && !string.IsNullOrEmpty(result.Description)) ? result.Description : string.Empty;
-            AssignParameterClass();
         }
 
         /// <summary>
@@ -145,26 +143,6 @@ namespace Plugin.Application.Forms
                 }
                 ResponseCode.SelectedItem = RESTOperationResultDeclaration.CodeDescriptor.CodeToLabel(this._result.ResultCode);
                 ResponseDescription.Text = this._result.Description;
-                AssignParameterClass();
-            }
-        }
-
-        /// <summary>
-        /// Helper method that, in case of an error response, locates the default error response parameter class and assigns this to the response
-        /// declaration object. If the result declaration already constains a Parameter Class, the method does nothing.
-        /// </summary>
-        private void AssignParameterClass()
-        {
-            if (this._result.ResponseDocumentClass == null &&
-                (this._result.Category == RESTOperationResultCapability.ResponseCategory.ClientError ||
-                this._result.Category == RESTOperationResultCapability.ResponseCategory.ServerError))
-            {
-                ContextSlt context = ContextSlt.GetContextSlt();
-                ModelSlt model = ModelSlt.GetModelSlt();
-                MEClass resultParam = model.FindClass(context.GetConfigProperty(_APISupportModelPathName), context.GetConfigProperty(_OperationResultClassName));
-                if (resultParam != null) this._result.ResponseDocumentClass = resultParam;
-                else Logger.WriteError("Plugin.Application.Forms.RESTResponseCodeDialog.AssiognParameterClass >> Unable to find '" +
-                                       context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_OperationResultClassName));
             }
         }
 

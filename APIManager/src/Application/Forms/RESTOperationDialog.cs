@@ -224,7 +224,7 @@ namespace Plugin.Application.Forms
                     FilterGroup.Enabled = true;
                     RequestParamBox.Enabled = true;
                     ResponseParamBox.Enabled = true;
-                    HasPagination.Enabled = false;
+                    HasPagination.Enabled = true;
                     HasPagination.Checked = false;
                     break;
 

@@ -49,10 +49,9 @@ namespace Plugin.Application.Events.API
                                                          dialog.SelectedState, dialog.RemoteTicket, dialog.ProjectID);
                         if (svc.Valid)
                         {
-                            if (svc.UseConfigurationMgmt && !svc.Checkout(svc.Ticket))
-                                MessageBox.Show("Unable to checkout the new service, please check configuration settings!",
-                                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             svc.Paint(svc.ModelPkg.FindDiagram(svc.ModelPkg.Name));
+                            MessageBox.Show("Successfully created service '" + dialog.ServiceName + "'.",
+                                            "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                         else MessageBox.Show("Error creating Service declaration, not all components might have been created!",
                                              "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);

@@ -547,13 +547,15 @@ namespace Plugin.Application.CapabilityModel.API
             ContextSlt context = ContextSlt.GetContextSlt();
             string qualifiedClassName = string.Empty;
             string businessComponentStereotype = context.GetConfigProperty(_BusinessComponentStereotype);
+            string messageComponentStereotype = context.GetConfigProperty(_GenericMessageClassStereotype);
             string token = context.GetConfigProperty(_SchemaTokenName) + ":" + documentResourceClass.Name;
             MEClass schemaClass = null;
 
             // Locate the associated Business Component...
             foreach (MEAssociation association in documentResourceClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
             {
-                if (association.Destination.EndPoint.HasStereotype(businessComponentStereotype))
+                if (association.Destination.EndPoint.HasStereotype(businessComponentStereotype) ||
+                    association.Destination.EndPoint.HasStereotype(messageComponentStereotype))
                 {
                     // Note that we might have used an Alias name for our Business Component (in order to create unique / meaningfull names)
                     // and thus the Document Resource class is named after the Alias. We MUST use that name for all references to the Business

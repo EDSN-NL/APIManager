@@ -96,6 +96,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _ResultCodeAttributeName       = "ResultCodeAttributeName";
         private const string _ResultCodeAttributeClassifier = "ResultCodeAttributeClassifier";
         private const string _ResourceClassStereotype       = "ResourceClassStereotype";
+        private const string _OperationResultClassName      = "OperationResultClassName";
 
         /// <summary>
         /// Helper class that facilitates translation between code, description and human friendly labels.
@@ -343,6 +344,7 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
             }
+            else AssignParameterClass();    // If we did not get an explicit class from the result capabilty, we assign our default!
         }
 
         /// <summary>
@@ -360,7 +362,6 @@ namespace Plugin.Application.CapabilityModel.API
 
             ContextSlt context = ContextSlt.GetContextSlt();
             this._defaultResponseCode = context.GetConfigProperty(_DefaultResponseCode);
-            this._responseDocumentClass = null;
             this._category = category;
             this._responseCardinality = new Cardinality();
             this._status = this._initialStatus = DeclarationStatus.Stable;
@@ -404,6 +405,7 @@ namespace Plugin.Application.CapabilityModel.API
                     break;
             }
             this._originalCode = this._resultCode;
+            AssignParameterClass();                     // Assign default response class.
         }
 
         /// <summary>
@@ -422,6 +424,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._defaultResponseCode = ContextSlt.GetContextSlt().GetConfigProperty(_DefaultResponseCode);
             this._status = this._initialStatus = DeclarationStatus.Stable;
             this._responseCardinality = new Cardinality();
+            if (type == null) AssignParameterClass();   // If we did not receive an explicit class, assign implicit one.
         }
 
         /// <summary>
@@ -505,6 +508,25 @@ namespace Plugin.Application.CapabilityModel.API
                     break;
             }
             return resultList;
+        }
+
+        /// <summary>
+        /// Helper method that, in case of an error response, locates the default error response parameter class and assigns this to the response
+        /// declaration object. If the result declaration already constains a Parameter Class, the method does nothing.
+        /// </summary>
+        private void AssignParameterClass()
+        {
+            if (this._responseDocumentClass == null &&
+                (this._category == RESTOperationResultCapability.ResponseCategory.ClientError ||
+                 this._category == RESTOperationResultCapability.ResponseCategory.ServerError))
+            {
+                ContextSlt context = ContextSlt.GetContextSlt();
+                ModelSlt model = ModelSlt.GetModelSlt();
+                MEClass resultParam = model.FindClass(context.GetConfigProperty(_APISupportModelPathName), context.GetConfigProperty(_OperationResultClassName));
+                if (resultParam != null) this._responseDocumentClass = resultParam;
+                else Logger.WriteError("Plugin.Application.Forms.RESTOperationResultDeclaration.AssignParameterClass >> Unable to find '" +
+                                       context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_OperationResultClassName));
+            }
         }
 
         /// <summary>
