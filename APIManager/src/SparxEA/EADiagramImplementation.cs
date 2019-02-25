@@ -158,7 +158,7 @@ namespace SparxEA.View
                     }
                 }
             }
-            catch
+            catch (Exception exc)
             {
                 string classes = string.Empty;
                 bool firstOne = true;
@@ -167,7 +167,8 @@ namespace SparxEA.View
                     classes += firstOne ? cl.Name : "," + cl.Name;
                     firstOne = false;
                 }
-                Logger.WriteError("SparxEA.View.EADiagramImplementation.AddClassList >> Exception during diagram update of diagram '" + this._diagram.Name + "' with classes '" + classes + "'!");
+                Logger.WriteError("SparxEA.View.EADiagramImplementation.AddClassList >> Exception during diagram update of diagram '" + 
+                                  this._diagram.Name + "' with classes '" + classes + "'! Reason: " + Environment.NewLine + exc.ToString());
             }
         }
 
