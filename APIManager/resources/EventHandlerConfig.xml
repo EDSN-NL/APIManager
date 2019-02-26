@@ -430,6 +430,13 @@
      </EventGroup>
      <EventGroup ID="Configuration Management">
        <EventHandlerList>
+         <EventHandler ID="Repository: Synchronise">
+           <HandlerFQN>Plugin.Application.Events.Util.SynchroniseRepositoryEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on 'Service' classes. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
          <EventHandler ID="Service: Checkout">
            <HandlerFQN>Plugin.Application.Events.Util.CheckoutServiceEvent</HandlerFQN>
            <StereotypeList>

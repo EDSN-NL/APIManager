@@ -62,7 +62,7 @@ namespace Plugin.Application.Events.Util
                         {
                             if (dialog.ShowDialog() == DialogResult.OK)
                             {
-                                if (dialog.AutoRelease && !svcContext.LockReleaseHistory())
+                                if (dialog.AutoRelease && (releaseLocked = svcContext.LockReleaseHistory() == false))
                                 {
                                     errorMsg = "Unable to lock the release history package!";
                                     Logger.WriteError("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> " + errorMsg);
@@ -70,7 +70,6 @@ namespace Plugin.Application.Events.Util
                                     svcContext.UnlockModel();
                                     return;
                                 }
-                                else releaseLocked = true;
 
                                 if (myService.Commit(dialog.Annotation, dialog.AutoRelease))
                                 {
