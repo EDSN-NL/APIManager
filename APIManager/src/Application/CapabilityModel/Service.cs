@@ -511,11 +511,12 @@ namespace Plugin.Application.CapabilityModel
         /// When CM is not active for the service, the operation won't have any effects (always returns 'true').
         /// </summary>
         /// <param name="message">Commit reporting message.</param>
-        /// <param name="autoRelease">When set to 'true', the commit will be followed by a release of the service.</param>
+        /// <param name="commitScope">Indicates whether we only want to commit locally, commit followed by push to remote or commit followed 
+        /// by a release of the service.</param>
         /// <returns>True on successfull commit (or CM not active for the service), false when there was nothing to commit (state is not
         /// updated in this case).</returns>
         /// <exception cref="InvalidOperationException">Thrown when commit could not be performed.</exception>
-        internal bool Commit(string message, bool autoRelease = false)
+        internal bool Commit(string message, CMContext.CommitScope commitScope = CMContext.CommitScope.Local)
         {
             bool result = false;
             try
@@ -523,13 +524,13 @@ namespace Plugin.Application.CapabilityModel
                 if (this._CMContext.CMEnabledService)
                 {
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.Commit >> Committing service '" + Name +
-                                     "' with auto-release set to: '" + autoRelease + "'...");
+                                     "' with commit scope set to: '" + commitScope + "'...");
                     string commitID = ContextSlt.GetContextSlt().GetConfigProperty(_CommitIDLeader) +
                                       this._businessFunctionID + "." + this._containerPackage.Name + ":" +
                                       this.Name + "_V" + this._version.Item1 + "P" + this._version.Item2 + "B" + this._serviceClass.BuildNumber;
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.Commit >> CommitID = '" + commitID + "'...");
                     string commitMsg = commitID + Environment.NewLine + message;
-                    result = this._CMContext.CommitService(commitMsg, autoRelease);
+                    result = this._CMContext.CommitService(commitMsg, commitScope);
                 }
                 else result = true;
             }

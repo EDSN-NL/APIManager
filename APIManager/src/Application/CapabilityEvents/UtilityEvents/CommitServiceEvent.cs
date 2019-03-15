@@ -62,7 +62,7 @@ namespace Plugin.Application.Events.Util
                         {
                             if (dialog.ShowDialog() == DialogResult.OK)
                             {
-                                if (dialog.AutoRelease && (releaseLocked = svcContext.LockReleaseHistory() == false))
+                                if (dialog.CommitScope == CMContext.CommitScope.Release && (releaseLocked = svcContext.LockReleaseHistory() == false))
                                 {
                                     errorMsg = "Unable to lock the release history package!";
                                     Logger.WriteError("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> " + errorMsg);
@@ -71,7 +71,7 @@ namespace Plugin.Application.Events.Util
                                     return;
                                 }
 
-                                if (myService.Commit(dialog.Annotation, dialog.AutoRelease))
+                                if (myService.Commit(dialog.Annotation, dialog.CommitScope))
                                 {
                                     MessageBox.Show("Successfully committed service '" + myService.Name + "'.",
                                                     "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);

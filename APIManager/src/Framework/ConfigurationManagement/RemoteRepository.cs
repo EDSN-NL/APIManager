@@ -2,7 +2,6 @@
 using System.Configuration;
 using System.Security;
 using System.Diagnostics;
-using System.Web;
 using LibGit2Sharp;
 using Framework.Context;
 using Framework.Logging;
@@ -24,6 +23,7 @@ namespace Framework.ConfigurationManagement
 
         // Configuration settings used by this module...
         private const string _CMGitLabAPIURLSuffix                  = "CMGitLabAPIURLSuffix";
+        private const string _CMRemoteGITExtension                  = "CMRemoteGITExtension";
 
         // These are a set of configuration properties, read from the applicable repository descriptor.
         private SecureString _password;                             // Configured remote user password.
@@ -61,7 +61,7 @@ namespace Framework.ConfigurationManagement
             this._repositoryNamespace = repoDsc.RemoteRepositoryNamespace.OriginalString;
             this._myIdentity = repoDsc.RepositoryUserID;
             this._password = repoDsc.RepositoryPassword;
-            this._repositoryURL = this._repositoryBaseURL + this._repositoryNamespace;
+            this._repositoryURL = this._repositoryBaseURL + this._repositoryNamespace + context.GetConfigProperty(_CMRemoteGITExtension);
 
             Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository >> Repository URL set to: '" + this._repositoryURL + "'...");
 
@@ -77,6 +77,8 @@ namespace Framework.ConfigurationManagement
                 Username = this._myIdentity.Name,
                 Password = CryptString.ToPlainString(this._password)
             };
+            var fetchOptions = new FetchOptions();
+            fetchOptions.CredentialsProvider = (url, user, cred) => this._remoteCredentials;
 
             Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository >> Retrieved remote repository '" + this._repositoryBaseURL + "'...");
             Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository >> User '" + this._myIdentity.Name + "', with e-mail '" + this._myIdentity.Email + "'...");
@@ -86,19 +88,22 @@ namespace Framework.ConfigurationManagement
             if (this._repository.Network.Remotes[_RemoteName] == null)
             {
                 Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository >> Explicit registration of remote repository '" + _RemoteName + "'...");
-                this._myRemote = this._repository.Network.Remotes.Add(_RemoteName, _repositoryURL);
+                this._myRemote = this._repository.Network.Remotes.Add(_RemoteName, this._repositoryURL);
             }
             else
             {
                 this._myRemote = this._repository.Network.Remotes[_RemoteName];
-                if (this._myRemote.Url != _repositoryURL)
+                if (this._myRemote.Url != this._repositoryURL)
                 {
                     Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository >> Registered URL '" + this._myRemote.Url + 
                                      "' is different from configured URL '" + _repositoryURL + "'; updating registration...");
                     this._repository.Network.Remotes.Remove(_RemoteName);
-                    this._myRemote = this._repository.Network.Remotes.Add(_RemoteName, _repositoryURL);
+                    this._myRemote = this._repository.Network.Remotes.Add(_RemoteName, this._repositoryURL);
                 }
             }
+            // Fetch branches and stuff....
+            string[] refSpec = { "+refs/heads/*:refs/remotes/origin/*" };
+            this._repository.Network.Fetch(_RemoteName, refSpec, fetchOptions);
             UpdateBranches();       // Assures that we're tracking the current HEAD.
         }
 

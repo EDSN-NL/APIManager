@@ -25,6 +25,7 @@ namespace Framework.ConfigurationManagement
         private const string _GITDirectory = ".git";        // Name of the default GIT repository directory.
         private const string _NoChanges = "No changes";     // Check GIT response status for 'no changes made'.
         private const string _CertError = "unknown certificate check failure";  // Check GIT response status for 'certificate errors'.
+        private const string _RemoteName = "origin";
 
         private static readonly CMRepositorySlt _repositorySlt = new CMRepositorySlt();     // The singleton repository instance.
 
@@ -257,9 +258,10 @@ namespace Framework.ConfigurationManagement
         internal void GotoBranch(string targetBranch)
         {
             Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.GotoBranch >> Checkout branch '" + targetBranch + "'...");
+            Branch target = null;
             if (this._gitRepository != null)
             {
-                Branch target = this._gitRepository.Branches[targetBranch];
+                target = this._gitRepository.Branches[targetBranch];
                 if (target != null)
                 {
                     Commands.Checkout(this._gitRepository, target);
@@ -267,9 +269,31 @@ namespace Framework.ConfigurationManagement
                 }
                 else
                 {
-                    string msg = "Target branch '" + targetBranch + "' not found!";
-                    Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.GotoBranch >> " + msg);
-                    throw new ArgumentException(msg);
+                    // Branch is not in our 'current branches' list, but it might exist on remote...
+                    try
+                    {
+                        Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.GotoBranch >> Trying to get '" + targetBranch + "' from remote...");
+                        string trackedBranchName = _RemoteName + "/" + targetBranch;
+                        Branch trackedBranch = this._gitRepository.Branches[trackedBranchName];                // Get a reference on the remote tracking branch...
+                        Branch branch = this._gitRepository.CreateBranch(targetBranch, trackedBranch.Tip);     // ...and create a local branch pointing at the same Commit
+                        
+                        // Finally, let's configure the local branch to track the remote one.
+                        target = this._gitRepository.Branches.Update(branch, b => b.TrackedBranch = trackedBranch.CanonicalName);
+                        if (target == null)
+                        {
+                            string msg = "Target branch '" + targetBranch + "' not found!";
+                            Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.GotoBranch >> " + msg);
+                            throw new ArgumentException(msg);
+                        }
+                    }
+                    catch (Exception exc)
+                    {
+                        string msg = "Target branch '" + targetBranch + "' not found!";
+                        Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.GotoBranch >> Caught an exception:" + 
+                                          Environment.NewLine + exc.ToString());
+                        Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.GotoBranch >> " + msg);
+                        throw new ArgumentException(msg);
+                    }
                 }
             }
             else

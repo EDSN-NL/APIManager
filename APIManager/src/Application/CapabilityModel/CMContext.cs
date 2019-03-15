@@ -19,15 +19,25 @@ namespace Plugin.Application.CapabilityModel
     /// </summary>
     sealed internal class CMContext
     {
-        // In case we're using configuration management, the service can be in any of the following states:
-        // Created - New service that has not yet been added to configuration management;
-        // Modified - Service is in configuration management, but configuration items have been changed (and not yet committed);
-        // Committed - Configuration items have been committed to local repository, but have not yet been released to central repository;
-        // Tagged - Committed service has been pushed to remote with a commit tag, indicating a handover to development;
-        // Released - Configuration items have been committed and released to central repository;
-        // CheckedOut - Service has been checked-out from configuration management but no changes have been made (yet).
-        // Disabled indicates that configuration management is not used.
-        // Unknown indicates that the state is not (yet) known.
+        /// <summary>
+        /// Defines the scope of a commit operation. Choices are:
+        /// Local - Only commit to local repository;
+        /// Remote - Commit locally, then push to branch on remote;
+        /// Release - Commit locally, then create a release;
+        /// </summary>
+        internal enum CommitScope { Unknown, Local, Remote, Release }
+
+        /// <summary>
+        /// In case we're using configuration management, the service can be in any of the following states:
+        /// Created - New service that has not yet been added to configuration management;
+        /// Modified - Service is in configuration management, but configuration items have been changed (and not yet committed);
+        /// Committed - Configuration items have been committed to local repository, but have not yet been released to central repository;
+        /// Tagged - Committed service has been pushed to remote with a commit tag, indicating a handover to development;
+        /// Released - Configuration items have been committed and released to central repository;
+        /// CheckedOut - Service has been checked-out from configuration management but no changes have been made (yet).
+        /// Disabled indicates that configuration management is not used.
+        /// Unknown indicates that the state is not (yet) known.
+        /// </summary>
         internal enum CMState { Unknown, Disabled, Created, Modified, Committed, Released, CheckedOut }
 
         // Private configuration properties used by this service...
@@ -311,11 +321,12 @@ namespace Plugin.Application.CapabilityModel
         /// If an auto-release has been ordered, we will invoke the release operation after a sucessfull commit.
         /// </summary>
         /// <param name="message">Commit reporting message.</param>
-        /// <param name="autoRelease">When set to 'true', the commit will be followed by a release.</param>
+        /// <param name="commitScope">Defines whether we only perform a local commit, do a commit followed by a push to remote or do a commit
+        /// followed by a release.</param>
         /// <returns>True when we actually committed something, false when there is nothing to commit (state has still been updated).</returns>
         /// <exception cref="InvalidOperationException">Is thrown when configuration settings are missing or identity has not been initialized yet or the
         /// service is not in the correct state to be committed.</exception>
-        internal bool CommitService(string message, bool autoRelease = false)
+        internal bool CommitService(string message, CommitScope commitScope = CommitScope.Local)
         {
             if (!this._repository.IsCMEnabled) return true;
 
@@ -330,7 +341,7 @@ namespace Plugin.Application.CapabilityModel
 
                 // On auto-release, we create the snapshot on commit-time so it can be committed together with the other artefacts in a 
                 // single transaction. Release will just perform a 'tagged-push' to remote...
-                if (autoRelease)
+                if (commitScope == CommitScope.Release)
                 {
                     Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.CommitService >> Create snapshot early...");
                     CreateSnapshot();
@@ -338,10 +349,10 @@ namespace Plugin.Application.CapabilityModel
                 }
 
                 this._repository.AddToStagingArea(this._commitPath);
-                if (this._repository.CommitStagingArea(message, autoRelease)) // We only push stuff when we actually committed something.
+                if (this._repository.CommitStagingArea(message, commitScope == CommitScope.Remote))
                 {
-                    UpdateCMState(CMState.Committed);            // Commited state is required for release to proceed!
-                    if (autoRelease) ReleaseService(message);
+                    UpdateCMState(CMState.Committed);           // Must be updated before we proceed with the release!
+                    if (commitScope == CommitScope.Release) ReleaseService(message);
                     retVal = true;
                 } else UpdateCMState(CMState.Committed);         // Even though there were no changes, we still consider this a successfull commit.
             }
@@ -517,14 +528,17 @@ namespace Plugin.Application.CapabilityModel
 
                 if (!this._snapshotCreated)
                 {
-                    Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.ReleaseService >> We have not yet committed a snapshot...");
+                    Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.ReleaseService >> We have not yet committed a snapshot...");         
                     CreateSnapshot();
-                    this._repository.CommitStagingArea("Created release with tag '" + tagName + "'.", true);
+                    this._repository.CommitStagingArea("Created release with tag '" + tagName + "'.", false);
                     this._snapshotCreated = true;
                 }
 
                 Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.ReleaseService >> Merging and Pushing to remote with tag '" +
                                  tagName + "' and message '" + message + "'...");
+                // Make sure that our branch is up to date before attempting to merge...
+                this._repository.GotoBranch(this._branchName);
+                this._repository.Pull();
                 this._repository.Merge(this._branchName, this._repository.ReleaseBranchName);
                 this._repository.Push(tagName, message);
 
@@ -759,6 +773,7 @@ namespace Plugin.Application.CapabilityModel
                 // Activate our new branch so that artefact generation will be associated with this branch. 
                 // Please note that, although we push the new branch to remote, it will not show there until we pushed a commit to it.
                 this._repository.SetBranch(this._branchName, this._repository.ReleaseBranchName);
+                this._repository.Pull();        // In case this is an existing branch, make sure we're up to date.
             }
             catch (Exception exc)
             {
@@ -787,7 +802,8 @@ namespace Plugin.Application.CapabilityModel
             this._trackedService.DeclarationPkg.ExportPackage(snapshotName);    // Create the snapshot.
             string zipFile = Compression.FileZip(snapshotName, true);           // Compress generated XMI and delete original XMI (huge savings in size). 
 
-            SetupDirectories();                                                // Make sure we have a place to store the snapshot.
+            SetupDirectories();                                                 // Make sure we have a place to store the snapshot.
+            this._repository.Pull();  
 
             string destFile = this._snapshotPath + "/" + this._trackedService.Name + context.GetConfigProperty(_CompressedFileSuffix);
             File.Copy(zipFile, destFile, true);                                 // Copy instead of move, since this allows overwrite existing files!
