@@ -82,7 +82,7 @@ namespace Plugin.Application.Forms
             {
                 RequestMultiple.Checked = false;
                 RequestOptional.Checked = false;
-                operation.ResponseCardinality = new Cardinality(1, 0);
+                this._operation.ResponseCardinality = new Cardinality(1, 1);
             }
 
             if (operation.ResponseDocument != null)
@@ -95,7 +95,7 @@ namespace Plugin.Application.Forms
             {
                 ResponseMultiple.Checked = false;
                 ResponseOptional.Checked = false;
-                operation.RequestCardinality = new Cardinality(1, 0);
+                this._operation.RequestCardinality = new Cardinality(1, 1);
             }
 
             // Set remaining indicators according to current settings...
