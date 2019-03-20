@@ -7,6 +7,7 @@ using Framework.Util.SchemaManagement.JSON;
 using Framework.Model;
 using Framework.Context;
 using Framework.Exceptions;
+using Framework.Util;
 using Plugin.Application.CapabilityModel.ASCIIDoc;
 
 namespace Plugin.Application.CapabilityModel.SchemaGeneration
@@ -65,15 +66,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                     {
                         MEClass target = assoc.Destination.EndPoint;
                         string associationName = (assoc.Destination.AliasRole != string.Empty) ? assoc.Destination.AliasRole : assoc.Destination.Role;
-
-                        Tuple<int, int> cardinality = assoc.GetCardinality(MEAssociation.AssociationEnd.Destination);
-                        if (cardinality.Item1 == -1)
-                        {
-                            // In case of errors, we throw an exception, no need to write an error to the log, that has already been done by the Association.
-                            string message = "Cardinality format error in association: '" + assoc.Source.EndPoint.Name + "-->" + assoc.Destination.EndPoint.Name + "'!";
-                            if (this._panel != null) this._panel.WriteError(this._panelIndex + 2, message);
-                            throw new IllegalCardinalityException(message);
-                        }
+                        var cardinality = assoc.GetCardinality(MEAssociation.AssociationEnd.Destination);
 
                         // Note: Sequence- & Choice key tags are on the Association itself, NOT on an endpoint!
                         string choiceKey = assoc.GetTag(context.GetConfigProperty(_ChoiceKeyTag), MEAssociation.AssociationEnd.Association);
@@ -285,7 +278,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             }
                             attribList.Add(suppAttrib);
                             string targetNSToken = targetSchema.NSToken;
-                            Tuple<int, int> cardinality = new Tuple<int, int>(isOptional ? 0 : 1, 1);
+                            var cardinality = new Cardinality(isOptional ? 0 : 1, 1);
                             if (this._useDocContext) classifierDocCtx.AddAttribute(attributeName, AttributeType.Supplementary, classifierCtx.Name, targetNSToken, cardinality, attribute.Annotation);
                         }
                         else
@@ -305,16 +298,9 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                     else
                     {
                         // All others are considered 'regular' attributes.
-                        Tuple<int, int> cardinality = attribute.Cardinality;
-                        if (cardinality.Item1 == -1)
-                        {
-                            // In case of errors, we throw an exception, no need to write an error to the log, that has already been done by the Attribute.
-                            string message = "Cardinality format error in: '" + node.Name + "." + attribute.Name + "'!";
-                            if (this._panel != null) this._panel.WriteError(this._panelIndex + 2, message);
-                            throw new IllegalCardinalityException(message);
-                        }
+                        Cardinality cardinality = attribute.Cardinality;
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Content attribute, default= '" + attribute.DefaultValue +
-                                         "', minOcc = '" + cardinality.Item1 + "', maxOcc = '" + cardinality.Item2 + "'.");
+                                         "', minOcc = '" + cardinality.LowerBoundary + "', maxOcc = '" + cardinality.UpperBoundary + "'.");
                         string choiceKey = attribute.GetTag(context.GetConfigProperty(_ChoiceKeyTag));
                         ChoiceGroup choiceGroup = null;
                         if (choiceKey != string.Empty)
@@ -586,7 +572,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         /// <param name="choiceKey">Choice-key if applicable (empty string otherwise)</param>
         /// <param name="sequenceKey">Sequence-key to be assigned to the attribute.</param>
         /// <returns>Created ContentAttribute object or null in case of errors.</returns>
-        private ContentAttribute ProcessUnion(MEClass source, MEClass target, string attributeName, Tuple<int, int> cardinality, string choiceKey, int sequenceKey)
+        private ContentAttribute ProcessUnion(MEClass source, MEClass target, string attributeName, Cardinality cardinality, string choiceKey, int sequenceKey)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessUnion >> Union '" + target.Name + "' associated with '" + 
                              source.Name + "' as attribute '" + attributeName + "'...");
@@ -604,7 +590,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                     ClassifierContext classifierCtx = ProcessClassifier(classifier); // Assures that we have a classifier definition.
 
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessUnion >> Attribute, default= '" + attribute.DefaultValue +
-                                     "', minOcc = '" + cardinality.Item1 + "', maxOcc = '" + cardinality.Item2 + "'.");
+                                     "', minOcc = '" + cardinality.ToString() + "'.");
                     string defaultVal = attribute.DefaultValue;
 
                     ChoiceGroup choiceGroup = null;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Framework.Logging;
+using Framework.Util;
 
 namespace Framework.Util.SchemaManagement
 {
@@ -24,7 +25,7 @@ namespace Framework.Util.SchemaManagement
         private List<MEDocumentation> _annotation;  // Attribute annotation.
         private string _defaultValue;               // Attribute default value, mutual exclusive with fixed value!
         private string _fixedValue;                 // Attribute fixed value, mutual exclusive with default value!
-        private Tuple<int, int> _cardinality;       // Attribute cardinality. Upper limit = 0 --> Unbounded.
+        private Cardinality _cardinality;           // Attribute cardinality. Upper limit = 0 --> Unbounded.
 
         /// <summary>
         /// Getters for properties of Attribute:
@@ -66,7 +67,7 @@ namespace Framework.Util.SchemaManagement
         internal bool IsListRequired              { get { return this._listRequired; } }
         internal string DefaultValue              { get { return this._defaultValue; } }
         internal string FixedValue                { get { return this._fixedValue; } }
-        internal Tuple<int,int> Cardinality       { get { return this._cardinality; } }
+        internal Cardinality Cardinality          { get { return this._cardinality; } }
 
         /// <summary>
         /// Inherited from base class, will return the name and classifier of the attribute in format 'name: classifier'
@@ -88,13 +89,13 @@ namespace Framework.Util.SchemaManagement
         /// <param name="annotation">Optional comment for the content element. Empty list in case no comment is present.</param>
         /// <param name="defaultValue">Optional default value.</param>
         /// <param name="fixedValue">Optional fixed value.</param
-        protected SchemaAttribute(Schema schema, string name, string classifier, int sequenceKey, Tuple<int, int> cardinality, List<MEDocumentation> annotation,
+        protected SchemaAttribute(Schema schema, string name, string classifier, int sequenceKey, Cardinality cardinality, List<MEDocumentation> annotation,
                                   string defaultValue, string fixedValue, AttributeTypeCode attType)
         {
-            this._isOptional = cardinality.Item1 == 0;
+            this._isOptional = cardinality.IsOptional;
             this._attClassifier = classifier;
             this._attClassifierNs = schema.SchemaNamespace;
-            this._listRequired = (cardinality.Item2 != 1) ? true : false;
+            this._listRequired = cardinality.IsList;
             this._attName = name;
             this._attType = attType;
             this._sequenceKey = sequenceKey;
@@ -105,12 +106,6 @@ namespace Framework.Util.SchemaManagement
             this._schema = schema;
             this._isValid = false;
             this._cardinality = cardinality;
-
-            if (cardinality.Item1 < 0 || cardinality.Item2 < 0 || (cardinality.Item2 != 0 && (cardinality.Item1 > cardinality.Item2)))
-            {
-                Logger.WriteError("Framework.Util.SchemaManagement.SchemaAttribute >> Error, cardinality out of bounds!");
-                return;
-            }
 
             if (defaultValue != string.Empty)
             {
@@ -190,14 +185,14 @@ namespace Framework.Util.SchemaManagement
                                   string classifier,
                                   int sequenceKey,
                                   ChoiceGroup choiceGroup,
-                                  Tuple<int, int> cardinality,
+                                  Cardinality cardinality,
                                   List<MEDocumentation> annotation,
                                   string defaultValue, string fixedValue,
                                   bool isNillable): 
             base(schema, name, classifier, sequenceKey, cardinality, annotation,defaultValue, fixedValue, AttributeTypeCode.Content)
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.ContentAttribute >> Creating attribute '" + name + "' with classifier '" + classifier +
-                             "' and cardinality '" + cardinality.Item1 + "-" + cardinality.Item2 + "'.");
+                             "' and cardinality '" + cardinality.ToString() + "'.");
             this._choiceGroup = choiceGroup;
             this._nillable = isNillable;
         }
@@ -228,7 +223,7 @@ namespace Framework.Util.SchemaManagement
                                         bool isOptional,
                                         List<MEDocumentation> annotation,
                                         string defaultValue, string fixedValue): 
-            base(schema, name, classifier, 0, new Tuple<int, int>(isOptional? 0: 1, 1), annotation, defaultValue, fixedValue, AttributeTypeCode.Supplementary)
+            base(schema, name, classifier, 0, new Cardinality(isOptional? 0: 1, 1), annotation, defaultValue, fixedValue, AttributeTypeCode.Supplementary)
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.SupplementaryAttribute >> Creating attribute '" + name + "' of type '" + classifier + "'.");
         }

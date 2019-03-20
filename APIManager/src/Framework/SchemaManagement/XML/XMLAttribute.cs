@@ -4,6 +4,7 @@ using System.Xml.Schema;
 using System.Collections.Generic;
 using Framework.Logging;
 using Framework.Context;
+using Framework.Util;
 
 namespace Framework.Util.SchemaManagement.XML
 {
@@ -53,14 +54,14 @@ namespace Framework.Util.SchemaManagement.XML
                                    string classifier,
                                    int sequenceKey,
                                    ChoiceGroup choiceGroup,
-                                   Tuple<int, int> cardinality,
+                                   Cardinality cardinality,
                                    List<MEDocumentation> annotation,
                                    string defaultValue, string fixedValue,
                                    bool nillable): 
             base(schema, name, classifier, sequenceKey, choiceGroup, cardinality, annotation, defaultValue, fixedValue, nillable)
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLContentAttribute >> Creating attribute '" + name + "' with classifier '" + classifier + 
-                             "' and cardinality '" + cardinality.Item1 + "-" + cardinality.Item2 + "'.");
+                             "' and cardinality '" + cardinality.ToString() + "'.");
 
             try
             {
@@ -70,15 +71,15 @@ namespace Framework.Util.SchemaManagement.XML
                 };
                 this._attribute.SchemaTypeName = new XmlQualifiedName(this.Classifier, this.ClassifierNS);
                 this._attribute.IsNillable = IsNillable;
-                if (cardinality.Item2 == 0)
+                if (cardinality.IsUnboundedList)
                 {
                     this._attribute.MaxOccursString = "unbounded";
                 }
                 else
                 {
-                    this._attribute.MaxOccurs = cardinality.Item2;
+                    this._attribute.MaxOccurs = cardinality.UpperBoundary;
                 }
-                this._attribute.MinOccurs = (this.IsListRequired && cardinality.Item1 == 0) ? 1 : cardinality.Item1;     // If we're in a list, there must be at least one element.
+                this._attribute.MinOccurs = (cardinality.IsList && cardinality.IsOptional) ? 1 : cardinality.LowerBoundary;     // If we're in a list, there must be at least one element.
 
                 // Add (list of) annotation(s) to the attribute...
                 if (annotation.Count > 0)
@@ -109,13 +110,13 @@ namespace Framework.Util.SchemaManagement.XML
                     this._attribute.FixedValue = fixedValue;
                 }
 
-                if (this.IsListRequired)
+                if (cardinality.IsList)
                 {
                     Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLContentAttribute >> Attribute cardinality > 1, creating an intermediate List element....");
                     var listElement = new XmlSchemaElement()
                     {
                         Name = this.Name + "List",
-                        MinOccurs = (cardinality.Item1 == 0) ? 0 : 1,
+                        MinOccurs = (cardinality.IsOptional) ? 0 : 1,
                         MaxOccurs = 1
                     };
                     var listBody = new XmlSchemaComplexType();

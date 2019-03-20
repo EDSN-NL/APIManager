@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Windows.Forms;
 using Framework.Util;
 using Framework.Logging;
@@ -82,7 +81,7 @@ namespace Plugin.Application.Forms
             {
                 RequestMultiple.Checked = false;
                 RequestOptional.Checked = false;
-                this._operation.ResponseCardinality = new Cardinality(1, 1);
+                this._operation.ResponseCardinality = new Cardinality(Cardinality._Mandatory);
             }
 
             if (operation.ResponseDocument != null)
@@ -95,7 +94,7 @@ namespace Plugin.Application.Forms
             {
                 ResponseMultiple.Checked = false;
                 ResponseOptional.Checked = false;
-                this._operation.RequestCardinality = new Cardinality(1, 1);
+                this._operation.RequestCardinality = new Cardinality(Cardinality._Mandatory);
             }
 
             // Set remaining indicators according to current settings...

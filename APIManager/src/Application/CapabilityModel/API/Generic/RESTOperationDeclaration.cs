@@ -547,7 +547,7 @@ namespace Plugin.Application.CapabilityModel.API
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    if (dialog.Parameter.Cardinality.Item2 == 0 || dialog.Parameter.Cardinality.Item2 > 1)
+                    if (dialog.Parameter.Cardinality.IsList)
                     {
                         if (!(dialog.Parameter.Classifier is MEDataType) && !(dialog.Parameter.Classifier is MEEnumeratedType))
                         {
@@ -609,7 +609,7 @@ namespace Plugin.Application.CapabilityModel.API
                             MessageBox.Show("Parameter must be Data Type or Enumeration, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             return null;
                         }
-                        if (dialog.Parameter.Cardinality.Item2 == 0 || dialog.Parameter.Cardinality.Item2 > 1)
+                        if (dialog.Parameter.Cardinality.IsList)
                         {
                             if (dialog.Parameter.CollectionFormat == RESTParameterDeclaration.QueryCollectionFormat.NA ||
                                 dialog.Parameter.CollectionFormat == RESTParameterDeclaration.QueryCollectionFormat.Unknown)

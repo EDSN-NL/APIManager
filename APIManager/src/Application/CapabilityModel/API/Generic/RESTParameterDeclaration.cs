@@ -62,7 +62,7 @@ namespace Plugin.Application.CapabilityModel.API
         private MEClass _classifier;            // Type of the property.
         private string _defaultValue;           // Default value (if applicable).
         private string _description;            // Property notes.
-        private Tuple<int, int> _cardinality;   // Property cardinality, item2 == 0 --> Undefined.
+        private Cardinality _cardinality;       // Property cardinality, item2 == 0 --> Undefined.
         private QueryCollectionFormat _collectionFormat; // In case of upper-limit cardinality >1: how do we separate values in the input?
         private ParameterScope _scope;          // Parameter scope.
         private DeclarationStatus _status;      // Status of this declaration record.
@@ -88,7 +88,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Parameter lower- and higher cardinality boundaries. A high value of 0 is interpreted as 'infinite'.
         /// </summary>
-        internal Tuple<int, int> Cardinality
+        internal Cardinality Cardinality
         {
             get { return this._cardinality; }
             set
@@ -308,7 +308,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="allowEmptyValue">Set to true to allow the parameter to be specified by 'name only'.</param>
         /// <param name="scope">Scope of this parameter (path, body, query or header)</param>
         /// <param name="collectionFmt">Mechanism used to separate values in case cardinality upper boundary >1.</param>
-        internal RESTParameterDeclaration(string name, MEClass classifier, string deflt, string description, Tuple<int,int> card, bool allowEmptyValue, ParameterScope scope, QueryCollectionFormat collectionFmt = QueryCollectionFormat.Unknown)
+        internal RESTParameterDeclaration(string name, MEClass classifier, string deflt, string description, Cardinality card, bool allowEmptyValue, ParameterScope scope, QueryCollectionFormat collectionFmt = QueryCollectionFormat.Unknown)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTParameterDeclaration >> Creating new declaration with name '" + name + "' and classifier '" + classifier.Name + "'...");
             this._name = name;
@@ -335,8 +335,8 @@ namespace Plugin.Application.CapabilityModel.API
             this._classifier = attrib.Classifier;
             this._description = attrib.Annotation;
             this._defaultValue = !string.IsNullOrEmpty(attrib.DefaultValue) ? attrib.DefaultValue : attrib.FixedValue;
-            this._cardinality = attrib.Cardinality;
             this._status = DeclarationStatus.Stable;
+            this._cardinality = attrib.Cardinality;
 
             string collectionFmt = attrib.GetTag(context.GetConfigProperty(_CollectionFormatTag));
             string scope = attrib.GetTag(context.GetConfigProperty(_ParameterScopeTag));
@@ -357,7 +357,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._classifier = fromThis._classifier;
             this._description = fromThis._description;
             this._defaultValue = fromThis._defaultValue;
-            this._cardinality = new Tuple<int, int>(fromThis._cardinality.Item1, fromThis._cardinality.Item2);
+            this._cardinality = new Cardinality(fromThis._cardinality);
             this._collectionFormat = fromThis._collectionFormat;
             this._scope = fromThis._scope;
             this._allowEmptyValue = fromThis._allowEmptyValue;
@@ -448,7 +448,7 @@ namespace Plugin.Application.CapabilityModel.API
                     _classifierGUID = param._classifier != null ? param._classifier.GlobalID : string.Empty,
                     _defaultValue = param._defaultValue,
                     _description = param._description,
-                    _cardinality = new int[] { param._cardinality.Item1, param._cardinality.Item2 },
+                    _cardinality = new int[] { param._cardinality.LowerBoundary, param._cardinality.UpperBoundary },
                     _collectionFormat = param._collectionFormat.ToString(),
                     _scope = param._scope.ToString(),
                     _status = param._status.ToString(),
@@ -491,7 +491,7 @@ namespace Plugin.Application.CapabilityModel.API
                     _classifier = stateObject._classifierGUID != string.Empty ? ModelSlt.GetModelSlt().GetDataType(stateObject._classifierGUID) : null,
                     _defaultValue = stateObject._defaultValue,
                     _description = stateObject._description,
-                    _cardinality = new Tuple<int, int>(stateObject._cardinality[0], stateObject._cardinality[1]),
+                    _cardinality = new Cardinality(stateObject._cardinality[0], stateObject._cardinality[1]),
                     _collectionFormat = EnumConversions<QueryCollectionFormat>.StringToEnum(stateObject._collectionFormat),
                     _scope = EnumConversions<ParameterScope>.StringToEnum(stateObject._scope),
                     _status = EnumConversions<DeclarationStatus>.StringToEnum(stateObject._status),

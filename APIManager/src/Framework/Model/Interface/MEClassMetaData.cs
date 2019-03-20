@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Framework.Exceptions;
+using Framework.Util;
 
 namespace Framework.Model
 {
@@ -13,7 +13,7 @@ namespace Framework.Model
         private string _name;
         private string _alias;
         private string _classifier;
-        private Tuple<int, int> _cardinality;
+        private Cardinality _cardinality;
         private char _type;
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace Framework.Model
         internal string Name        { get { return this._name; } }
         internal string Alias       { get { return this._alias; } }
         internal string Classifier  { get { return this._classifier; } }
-        internal string Cardinality { get { return GetCardinality(); } }
+        internal string Cardinality { get { return this._cardinality.ToString(); } }
         internal char Type          { get { return this._type; } }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Framework.Model
         /// <param name="classifier">Attribute classifier name.</param>
         /// <param name="card">Cardinality, second value '0' == infinite.</param>
         /// <param name="type">The type of attribute: 'C' = Content, 'F' = Facet, 'S' = Supplementary, 'A' = Association, 'G' = Generalization</param>
-        internal MEAttributeMetaData(int ID, string name, string alias, string classifier, Tuple<int, int> card, char type)
+        internal MEAttributeMetaData(int ID, string name, string alias, string classifier, Cardinality card, char type)
         {
             this._identifier = ID;
             this._name = name;
@@ -79,17 +79,6 @@ namespace Framework.Model
                 else return 1;
             }
             else return string.Compare(this._name, otherAttribMetaData._name);
-        }
-
-        /// <summary>
-        /// Translates the numeric cardinality tuple to a string representation.
-        /// </summary>
-        /// <returns>Cardinality as a string.</returns>
-        private string GetCardinality()
-        {
-            string cardString = this._cardinality.Item1.ToString() + "..";
-            cardString += this._cardinality.Item2 == 0 ? "*" : this._cardinality.Item2.ToString();
-            return cardString;
         }
     }
 
@@ -136,7 +125,7 @@ namespace Framework.Model
         /// <param name="classifier">Attribute classifier name.</param>
         /// <param name="card">Attribute cardinality tuple.</param>
         /// <param name="type">Attribute type (content, facet, etc.).</param>
-        internal void AddAttribute(int ID, string name, string alias, string classifier, Tuple<int, int> card, char type)
+        internal void AddAttribute(int ID, string name, string alias, string classifier, Cardinality card, char type)
         {
             this._attributes.Add(new MEAttributeMetaData(ID, name, alias, classifier, card, type));
         }

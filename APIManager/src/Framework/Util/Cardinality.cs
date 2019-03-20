@@ -1,5 +1,6 @@
 ﻿using System;
 using Framework.Logging;
+using Framework.Exceptions;
 
 namespace Framework.Util
 {
@@ -9,6 +10,10 @@ namespace Framework.Util
     /// </summary>
     internal sealed class Cardinality: IEquatable<Cardinality>
     {
+        // Can be used for the default constructor to indicate whether we have to create a Mandatory (1,1) or an Optional (0,1) cardinality.
+        internal const bool _Mandatory = true;
+        internal const bool _Optional = false;
+
         private int _lowerBoundary;
         private int _upperBoundary;
 
@@ -29,6 +34,11 @@ namespace Framework.Util
         internal Tuple<int,int> CardTuple { get { return new Tuple<int, int>(this._lowerBoundary, this._upperBoundary); } }
 
         /// <summary>
+        /// Returns true in case the upper boundary is not unlimited and > 1.
+        /// </summary>
+        internal bool IsBoundedList { get { return this._upperBoundary > 1; } }
+
+        /// <summary>
         /// Returns 'true' in case of a cardinality with a lower boundary > 0.
         /// </summary>
         internal bool IsMandatory { get { return this._lowerBoundary > 0; } }
@@ -42,6 +52,11 @@ namespace Framework.Util
         /// Returns true in case the Cardinality represents a list (i.e. upper boundary > 1). 
         /// </summary>
         internal bool IsList { get { return this._upperBoundary == 0 || this._upperBoundary > 1; } }
+
+        /// <summary>
+        /// Returns true in case the Cardinality represents a list without an explicit upper boundary.
+        /// </summary>
+        internal bool IsUnboundedList { get { return this._upperBoundary == 0; } }
 
         /// <summary>
         /// Override method that compares a Cardinality with an Object. Returns true if both objects are of 
@@ -134,7 +149,7 @@ namespace Framework.Util
         /// </summary>
         /// <param name="lower">Lower boundary.</param>
         /// <param name="upper">Upper boundary, specify 0 for 'unlimited'.</param>
-        /// <exception cref="ArgumentException">Thrown in case of illegal cardinality format.</exception>
+        /// <exception cref="IllegalCardinalityException">Thrown in case of illegal cardinality format.</exception>
         internal Cardinality(int lower, int upper)
         {
             this._lowerBoundary = lower < 0 ? 0 : lower;
@@ -142,7 +157,7 @@ namespace Framework.Util
             {
                 string msg = "Framework.Util.Cardinality >> Illegal cardinality '" + lower + ".." + upper + "'!";
                 Logger.WriteError(msg);
-                throw new ArgumentException(msg);
+                throw new IllegalCardinalityException(msg);
             }
             this._upperBoundary = upper;
         }
@@ -166,6 +181,16 @@ namespace Framework.Util
         }
 
         /// <summary>
+        /// Copy constructor, which creates a new cardinality object from the given one. The new object is a clone from the old object.
+        /// </summary>
+        /// <param name="fromThis">Source Cardinality object to be copied.</param>
+        internal Cardinality(Cardinality fromThis)
+        {
+            this._lowerBoundary = fromThis.LowerBoundary;
+            this._upperBoundary = fromThis.UpperBoundary;
+        }
+
+        /// <summary>
         /// Builds an integer representation of a cardinality string. In theory, this string can contain literally anything. In our particular 
         /// case, we support:
         /// - Single value 'n' is translated to 'exactly n', i.e. minOcc = maxOcc = 'n'. Unless 'n' == 0, in which case minOcc = 0, maxOcc = 1;
@@ -176,6 +201,7 @@ namespace Framework.Util
         /// All other formats will result in an Argument Exception.
         /// </summary>
         /// <param name="range">Contains the cardinality string.</param>
+        /// <exception cref="IllegalCardinalityException">Is thrown in case the range string does not represent a valid cardinality.</exception>
         internal Cardinality(string range)
         {
             try
@@ -185,7 +211,7 @@ namespace Framework.Util
                 {
                     string msg = "Framework.Util.Cardinality >> Empty cardinality string!";
                     Logger.WriteError(msg);
-                    throw new ArgumentException(msg);
+                    throw new IllegalCardinalityException(msg);
                 }
 
                 if (range.Contains(".."))
@@ -194,7 +220,7 @@ namespace Framework.Util
                     string lowerBound = range.Substring(0, range.IndexOf('.'));
                     string upperBound = range.Substring(range.LastIndexOf('.') + 1);
                     this._lowerBoundary = Convert.ToInt16(lowerBound);
-                    if (!upperBound.Contains("*"))
+                    if (!upperBound.Contains("*") && !upperBound.Contains("n") && !upperBound.Contains("N"))
                     {
                         // If we have a 0..0 cardinality, this is translated to 'optional 0 or 1'.
                         // And if maxOcc < minOcc (and not unbounded), we raise an exception.
@@ -203,7 +229,7 @@ namespace Framework.Util
                         {
                             string msg = "Framework.Util.Cardinality >> Unsupported format in cardinality '" + range + "'!";
                             Logger.WriteError(msg);
-                            throw new ArgumentException(msg);
+                            throw new IllegalCardinalityException(msg);
                         }
                         if (this._upperBoundary == 0) this._upperBoundary = 1;
                     }
@@ -226,11 +252,11 @@ namespace Framework.Util
                     }
                 }
             }
-            catch (FormatException)
+            catch (FormatException exc)
             {
-                string msg = "Framework.Util.Cardinality >> Unsupported format in cardinality '" + range + "'!";
-                Logger.WriteError(msg);
-                throw new ArgumentException(msg);
+                string msg = "Unsupported format in cardinality '" + range + "'!";
+                Logger.WriteError("Framework.Util.Cardinality >> " + msg);
+                throw new IllegalCardinalityException(msg, exc);
             }
         }
     }

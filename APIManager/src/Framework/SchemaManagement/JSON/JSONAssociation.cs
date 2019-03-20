@@ -1,6 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json.Schema;
 using Framework.Logging;
+using Framework.Util;
 
 namespace Framework.Util.SchemaManagement.JSON
 {
@@ -51,17 +52,12 @@ namespace Framework.Util.SchemaManagement.JSON
                                  string classifierName,
                                  int sequenceKey,
                                  ChoiceGroup choiceGroup,
-                                 Tuple<int, int> cardinality,
+                                 Cardinality cardinality,
                                  JSONSchema classifierSchema = null) : base(associationName, classifierName, sequenceKey, cardinality, choiceGroup)
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONAssociation >> Creating association for '" + associationName + "' with classifier: " + classifierName +
-                             " and cardinality: " + cardinality.Item1 + ".." + cardinality.Item2 + "...");
+                             " and cardinality: " + cardinality.ToString() + "...");
             this.IsValid = false;
-            if (cardinality.Item1 < 0 || cardinality.Item2 < 0 || (cardinality.Item2 != 0 && (cardinality.Item1 > cardinality.Item2)))
-            {
-                Logger.WriteError("Framework.Util.SchemaManagement.JSON.JSONAssociation>> Cardinality out of bounds for target '" + classifierName + "' in schema '" + schema.Name+ "'!");
-                return;
-            }
 
             JSONSchema searchSchema = classifierSchema ?? schema;
             JSchema classSchema = searchSchema.FindClass(classifierName);
@@ -77,19 +73,19 @@ namespace Framework.Util.SchemaManagement.JSON
                 return;
             }
 
-            // If upper boundary of cardinality > 1 (or 0, which means unbounded), we have to create an array of type, instead of only the type.
-            if (cardinality.Item2 == 0 || cardinality.Item2 > 1)
+            // If cardinality suggests a list, we have to create an array of type, instead of only the type.
+            if (cardinality.IsList)
             {
                 // If the classifier name ends with 'Type', we remove this before adding a new post-fix 'ListType'...
-                string listType = (classifierName.EndsWith("Type")) ? classifierName.Substring(0, classifierName.IndexOf("Type")) : classifierName;
+                string listType = classifierName.EndsWith("Type") ? classifierName.Substring(0, classifierName.IndexOf("Type")) : classifierName;
                 listType += "ListType";
                 this._associationClassifier = new JSchema()
                 {
                     Title = listType,
-                    Type = JSchemaType.Array,
-                    MinimumItems = (cardinality.Item1 == 0) ? 1 : cardinality.Item1,      // A list must have at least one value!
+                    Type = JSchemaType.Array
                 };
-                if (cardinality.Item2 > 1) this._associationClassifier.MaximumItems = cardinality.Item2;
+                if (cardinality.IsMandatory) this._associationClassifier.MinimumItems = cardinality.LowerBoundary;
+                if (cardinality.IsBoundedList) this._associationClassifier.MaximumItems = cardinality.UpperBoundary;
                 this._associationClassifier.Items.Add(classSchema);
             }
             else this._associationClassifier = classSchema;

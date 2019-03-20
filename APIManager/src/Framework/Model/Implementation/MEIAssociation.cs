@@ -156,8 +156,8 @@ namespace Framework.Model
         /// All other formates will result in a response values of minOcc = maxOcc = -1.
         /// </summary>
         /// <param name="endpoint">The endpoint to be evaluated.</param>
-        /// <returns>Tuple consisting of minOCC, maxOcc. In case of errors, both will be -1.</returns>
-        internal abstract Tuple<int, int> GetCardinality(MEAssociation.AssociationEnd endpoint);
+        /// <returns>Cardinality object containing minOCC, maxOcc. In case of errors, both will be -1.</returns>
+        internal abstract Cardinality GetCardinality(MEAssociation.AssociationEnd endpoint);
 
         /// <summary>
         /// Set the cardinality of the specified endpoint. If item2 is 0, this is translated to "*". And if Item2 < Item1, the functions silently
@@ -166,7 +166,7 @@ namespace Framework.Model
         /// <param name="card">Cardinality to set.</param>
         /// <param name="endpoint">The endpoint to be evaluated.</param>
         /// <exception cref="MissingImplementationException">No implementation object exists.</exception>
-        internal abstract void SetCardinality(Tuple<int, int> card, MEAssociation.AssociationEnd endpoint);
+        internal abstract void SetCardinality(Cardinality card, MEAssociation.AssociationEnd endpoint);
 
         // These are association-specific operations on tags and stereotype, in which the association end can be explicitly specified...
         internal abstract void AddStereotype(string stereotype, MEAssociation.AssociationEnd endpoint);

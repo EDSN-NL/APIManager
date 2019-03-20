@@ -41,8 +41,8 @@ namespace Plugin.Application.Forms
             ParameterDefaultValue.Text = parameter.Default;
             if (parameter.Cardinality != null)
             {
-                ParameterCardLow.Text = parameter.Cardinality.Item1.ToString();
-                ParameterCardHigh.Text = parameter.Cardinality.Item2 == 0 ? "*" : parameter.Cardinality.Item2.ToString();
+                ParameterCardLow.Text = parameter.Cardinality.LowerBoundary.ToString();
+                ParameterCardHigh.Text = parameter.Cardinality.UpperBoundary == 0 ? "*" : parameter.Cardinality.UpperBoundary.ToString();
             }
             MayBeEmpty.Checked = parameter.AllowEmptyValue;
 
@@ -52,8 +52,7 @@ namespace Plugin.Application.Forms
                 CollectionFormat.Items.Add(str);
             }
             CollectionFormat.SelectedIndex = isEdit ? (int)parameter.CollectionFormat : (int)RESTParameterDeclaration.QueryCollectionFormat.Unknown;
-
-            CollectionFormat.Enabled = isEdit && (parameter.Cardinality.Item2 == 0 || parameter.Cardinality.Item2 > 1);
+            CollectionFormat.Enabled = isEdit && parameter.Cardinality.IsList;
          
             IsDataType.Checked = true;              // Set default classifier type to 'data type'.
             Ok.Enabled = false;                     // Block the OK button until preconditions have been satisfied.
@@ -163,7 +162,7 @@ namespace Plugin.Application.Forms
             if (!int.TryParse(ParameterCardLow.Text, out lowVal)) lowVal = -1;
             if (highVal != -1 && lowVal != -1 && ((highVal != 0 && lowVal <= highVal) || highVal == 0))
             {
-                this._parameter.Cardinality = new Tuple<int, int>(lowVal, highVal);
+                this._parameter.Cardinality = new Cardinality(lowVal, highVal);
                 this._hasCardinality = true;
             }
             else this._hasCardinality = false;
@@ -231,7 +230,7 @@ namespace Plugin.Application.Forms
                 MessageBox.Show("Parameter must be Data Type or Enumeration, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 mayClose = false;
             }
-            if (Parameter.Cardinality.Item2 == 0 || Parameter.Cardinality.Item2 > 1)
+            if (Parameter.Cardinality.IsList)
             {
                 if (Parameter.CollectionFormat == RESTParameterDeclaration.QueryCollectionFormat.NA ||
                     Parameter.CollectionFormat == RESTParameterDeclaration.QueryCollectionFormat.Unknown)

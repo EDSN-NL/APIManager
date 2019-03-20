@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Framework.Exceptions;
 using Framework.View;
+using Framework.Util;
 
 namespace Framework.Model
 {
@@ -225,7 +226,7 @@ namespace Framework.Model
         /// <param name="annotation">Optional annotation text for the attribute.</param>
         /// <returns>Newly created attribute object.</returns>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal MEAttribute CreateAttribute(string name, MEDataType classifier, AttributeType type, string defaultValue, Tuple<int, int> cardinality, bool isConstant, string annotation = null)
+        internal MEAttribute CreateAttribute(string name, MEDataType classifier, AttributeType type, string defaultValue, Cardinality cardinality, bool isConstant, string annotation = null)
         {
             if (this._imp != null) return ((MEIClass)this._imp).CreateAttribute(name, classifier, type, defaultValue, cardinality, isConstant, annotation);
             else throw new MissingImplementationException("MEIClass");

@@ -539,7 +539,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="documentResourceClass">The DocumentResource class that contains the association with our schema root.</param>
         /// <param name="cardinality">The cardinality of the request object association. If upper limit > 1, we must create an array.</param>
         /// <returns>True when processed ok, false on errors.</returns>
-        private bool WriteRequestBodyParameter(MEClass documentResourceClass, Tuple<int,int> cardinality)
+        private bool WriteRequestBodyParameter(MEClass documentResourceClass, Cardinality cardinality)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestBodyParameter >> Processing body class '" + documentResourceClass.Name + "'...");
             this._panel.WriteInfo(this._panelIndex + 3, "Processing Request Message Body '" + documentResourceClass.Name + "'...");
@@ -587,7 +587,7 @@ namespace Plugin.Application.CapabilityModel.API
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestBodyParameter >> Gotten FQN '" + qualifiedClassName + "'.");
                     this._JSONWriter.WritePropertyName("schema"); this._JSONWriter.WriteStartObject();
                     {
-                        if (cardinality.Item2 == 0 || cardinality.Item2 > 1)
+                        if (cardinality.IsList)
                         {
                             this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("array");
                             this._JSONWriter.WritePropertyName("items"); this._JSONWriter.WriteStartObject();
@@ -595,13 +595,13 @@ namespace Plugin.Application.CapabilityModel.API
                                 this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
                             }
                             this._JSONWriter.WriteEndObject();
-                            if (cardinality.Item1 > 1)
+                            if (cardinality.IsMandatory)
                             {
-                                this._JSONWriter.WritePropertyName("minItems"); this._JSONWriter.WriteValue(cardinality.Item1);
+                                this._JSONWriter.WritePropertyName("minItems"); this._JSONWriter.WriteValue(cardinality.LowerBoundary);
                             }
-                            if (cardinality.Item2 != 0)
+                            if (cardinality.IsBoundedList)
                             {
-                                this._JSONWriter.WritePropertyName("maxItems"); this._JSONWriter.WriteValue(cardinality.Item2);
+                                this._JSONWriter.WritePropertyName("maxItems"); this._JSONWriter.WriteValue(cardinality.UpperBoundary);
                             }
                         }
                         else this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
@@ -666,7 +666,7 @@ namespace Plugin.Application.CapabilityModel.API
                 var target = new EndpointDescriptor(payload, assocCard, roleName, null, true);
                 paginationClass.CreateAssociation(source, target, MEAssociation.AssociationType.MessageAssociation);
                 qualifiedClassName = this._schema.ProcessClass(paginationClass, context.GetConfigProperty(_SchemaTokenName) + ":" + paginationClass.Name);
-                cardinality = new Cardinality(1, 1);    // Response is mandatory object and actual cardinality with payload has been solved otherwise.
+                cardinality = new Cardinality(Cardinality._Mandatory);    // Response is mandatory object and actual cardinality with payload has been solved otherwise.
             }
             else
             {
@@ -805,11 +805,11 @@ namespace Plugin.Application.CapabilityModel.API
                 {
                     this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
                 } this._JSONWriter.WriteEndObject();
-                if (cardinality.LowerBoundary > 1)
+                if (cardinality.IsMandatory)
                 {
                     this._JSONWriter.WritePropertyName("minItems"); this._JSONWriter.WriteValue(cardinality.LowerBoundary);
                 }
-                if (cardinality.UpperBoundary != 0)
+                if (cardinality.IsBoundedList)
                 {
                     this._JSONWriter.WritePropertyName("maxItems"); this._JSONWriter.WriteValue(cardinality.UpperBoundary);
                 }

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using EA;
 using Framework.Logging;
 using Framework.Model;
+using Framework.Util;
 
 namespace SparxEA.Model
 {
@@ -127,7 +127,7 @@ namespace SparxEA.Model
         /// <param name="isConstant">Indicates that the attribute has a constant value. Default value must be specified in this case!</param>
         /// <param name="annotation">Annotation text for the attribute.</param>
         /// <returns>Newly created attribute object or null in case of errors.</returns>
-        internal override MEAttribute CreateAttribute(string name, MEDataType classifier, AttributeType type, string defaultValue, Tuple<int, int> cardinality, bool isConstant, string annotation)
+        internal override MEAttribute CreateAttribute(string name, MEDataType classifier, AttributeType type, string defaultValue, Cardinality cardinality, bool isConstant, string annotation)
         {
             return this._classPart.CreateAttribute(name, classifier, type, defaultValue, cardinality, isConstant, annotation);
         }

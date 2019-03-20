@@ -1,5 +1,6 @@
 ﻿using System;
 using Framework.Exceptions;
+using Framework.Util;
 
 namespace Framework.Model
 {
@@ -18,7 +19,7 @@ namespace Framework.Model
         /// </summary>
         /// <returns>Tuple consisting of minOCC, maxOcc. In case of errors, both will be -1.</returns>
         /// <exception cref="MissingImplementationException">No implementation object exists.</exception>
-        internal Tuple<int, int> Cardinality
+        internal Cardinality Cardinality
         {
             get
             {

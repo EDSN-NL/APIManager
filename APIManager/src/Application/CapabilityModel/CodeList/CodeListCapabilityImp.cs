@@ -105,7 +105,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
 
                 // All attributes are of the same classifier: primitive String.
                 MEDataType attribClassifier = model.FindDataType(context.GetConfigProperty(_PrimDataTypesPathName), _AttribClassifierType);
-                var card = new Tuple<int, int>(1, 1);   // All attributes are mandatory.
+                var card = new Cardinality(Cardinality._Mandatory);   // All attributes are mandatory.
 
                 // Create the Canonical- and CanonicalVersion URI's...
                 string majorVersionToken = ":" + myService.MajorVersion + ".0:";
@@ -226,7 +226,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
             MEDataType attribClassifier = model.FindDataType(context.GetConfigProperty(_CoreDataTypesPathName), _CodeListEnumClassifierType);
-            var card = new Tuple<int, int>(1, 1);   // All attributes are mandatory.
+            var card = new Cardinality(Cardinality._Mandatory);   // All attributes are mandatory.
             bool result = false;
             string logEntry = string.Empty;
             if (!this._isInitialised) FinalizeInit();

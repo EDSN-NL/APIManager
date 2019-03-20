@@ -900,7 +900,7 @@ namespace Plugin.Application.CapabilityModel.API
                 string coreDataTypesPath = context.GetConfigProperty(_CoreDataTypesPathName);
                 MEDataType descriptionType = model.FindDataType(coreDataTypesPath, _DescriptionClassifier);
                 MEDataType identifierType = model.FindDataType(coreDataTypesPath, _URLClassifier);
-                var mandatory = new Tuple<int, int>(1, 1);
+                var mandatory = new Cardinality(Cardinality._Mandatory);
                 MEClass docClass = parent.OwningPackage.CreateClass(context.GetConfigProperty(_DocumentationTypeClassName),
                                                                     context.GetConfigProperty(_BusinessComponentStereotype));
                 if (docClass != null)

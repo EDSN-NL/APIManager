@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using EA;
 using Framework.Logging;
 using Framework.Model;
+using Framework.Util;
+using Framework.Exceptions;
 
 namespace SparxEA.Model
 {
@@ -116,35 +118,15 @@ namespace SparxEA.Model
         /// <summary>
         /// Returns an integer representation of a 'Cardinality' string that should be interpreted as follows:
         /// - Lower bound MUST be numeric. This is copied verbatim, all other values are rejected. A value smaller then 0 is interpreted as 0.
-        /// - Upper bound MUST be >= 1 or either "*" or "n".  "*"/"n" is translated to 0, which is lateron interpreted as 'unbounded'.
+        /// - Upper bound MUST be >= 1 or either "*" or "n", which is translated to 0, which is lateron interpreted as 'unbounded'.
         /// If, after conversion, upper bound is smaller then lower bound, both values are swapped!
-        /// All other formates will result in a response values of minOcc = maxOcc = -1.
+        /// All other formats will result in an IllegalCardinalityException.
         /// </summary>
-        /// <returns>Tuple consisting of minOCC, maxOcc. In case of errors, both will be -1.</returns>
-        /// <exception cref="MissingImplementationException">No implementation object exists.</exception>
-        internal override Tuple<int, int> GetCardinality()
+        /// <returns>Tuple consisting of minOCC, maxOcc.</returns>
+        /// <exception cref="IllegalCardinalityException">Cardinality format error detected.</exception>
+        internal override Cardinality GetCardinality()
         {
-            int minOcc, maxOcc;
-
-            try
-            {
-                minOcc = Convert.ToInt16(this._attribute.LowerBound);
-                if (minOcc < 0) minOcc = 0;
-
-                string upperBound = this._attribute.UpperBound;
-                if (upperBound.Contains("*") || upperBound.Contains("n") || upperBound.Contains("N")) maxOcc = 0;
-                else maxOcc = Convert.ToInt16(upperBound);
-
-                // If maxOcc < minOcc (and not 'unbounded'), we return an error as well.
-                if ((maxOcc > 0) && (maxOcc < minOcc)) minOcc = maxOcc = -1;
-                return new Tuple<int, int>(minOcc, maxOcc);
-            }
-            catch (FormatException exc)
-            {
-                Logger.WriteError("SparxEA.Model.EAMEIAttribute.GetCardinality >> Unsupported format in cardinality field of attribute: '" + 
-                                  this._attribute.Name + "'!" + Environment.NewLine + exc.Message);
-            }
-            return new Tuple<int, int>(-1, -1);
+            return new Cardinality(this._attribute.LowerBound + ".." + this._attribute.UpperBound);
         }
 
         /// <summary>

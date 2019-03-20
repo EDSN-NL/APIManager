@@ -69,7 +69,7 @@ namespace Plugin.Application.CapabilityModel.API
                 if (classifier != null)
                 {
                     this._capabilityClass.CreateAttribute(context.GetConfigProperty(_ResultCodeAttributeName), classifier,
-                                                          AttributeType.Attribute, this._resultCode, new Tuple<int, int>(1, 1), true);
+                                                          AttributeType.Attribute, this._resultCode, new Cardinality(Cardinality._Mandatory), true);
                     MEChangeLog.SetRTFDocumentation(this._capabilityClass, result.Description);
 
                     if (result.ResponseDocumentClass != null)
@@ -147,7 +147,7 @@ namespace Plugin.Application.CapabilityModel.API
                         {
                             if (association.Destination.EndPoint == this._responseBodyClass)
                             {
-                                this._responseCardinality = new Cardinality(association.GetCardinality(MEAssociation.AssociationEnd.Destination));
+                                this._responseCardinality = association.GetCardinality(MEAssociation.AssociationEnd.Destination);
                                 break;
                             }
                         }
@@ -324,7 +324,7 @@ namespace Plugin.Application.CapabilityModel.API
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp.UpdateResponseDocument >> Cardinality has changed, update...");
                 this._responseCardinality = result.ResponseCardinality;
-                resourceAssoc.SetCardinality(this._responseCardinality.CardTuple, MEAssociation.AssociationEnd.Destination);
+                resourceAssoc.SetCardinality(this._responseCardinality, MEAssociation.AssociationEnd.Destination);
             }
 
             if (responseDocChanged && result.ResponseDocumentClass != null)

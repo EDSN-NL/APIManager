@@ -339,7 +339,7 @@ namespace Plugin.Application.CapabilityModel.API
                     if (association.Destination.EndPoint.HasStereotype(resourceStereotype) &&
                         association.Destination.EndPoint.Name == this._responseDocumentClass.Name)
                     {
-                        this._responseCardinality = new Cardinality(association.GetCardinality(MEAssociation.AssociationEnd.Destination));
+                        this._responseCardinality = association.GetCardinality(MEAssociation.AssociationEnd.Destination);
                         break;
                     }
                 }
@@ -448,7 +448,7 @@ namespace Plugin.Application.CapabilityModel.API
                 if (classifier != null)
                 {
                     MEAttribute newAttrib = resultClass.CreateAttribute(context.GetConfigProperty(_ResultCodeAttributeName), classifier,
-                                                                        AttributeType.Attribute, this._resultCode, new Tuple<int, int>(1, 1), true);
+                                                                        AttributeType.Attribute, this._resultCode, new Cardinality(Cardinality._Mandatory), true);
                     resultClass.Annotation = this._description;
                     if (this._responseDocumentClass != null)
                     {

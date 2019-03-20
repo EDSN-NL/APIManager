@@ -3,6 +3,7 @@ using System.Xml;
 using System.Xml.Schema;
 using System.Collections.Generic;
 using Framework.Logging;
+using Framework.Util;
 
 namespace Framework.Util.SchemaManagement.XML
 {
@@ -40,42 +41,36 @@ namespace Framework.Util.SchemaManagement.XML
         /// <param name="annotation">Optional annotation for the association (empty list in case of no annotation).</param>
         /// <param name="namespaceRef">Optional reference to external namespace. If NULL, the classifier is referenced through the specified schema.</param>
         internal XMLAssociation(XMLSchema schema, string associationName,
-                              string classifier,
-                              int sequenceKey,
-                              ChoiceGroup choiceGroup,
-                              Tuple<int, int> cardinality,
-                              List<MEDocumentation> annotation,
-                              string namespaceRef = null): base(associationName, classifier, sequenceKey, cardinality, choiceGroup)
+                                string classifier,
+                                int sequenceKey,
+                                ChoiceGroup choiceGroup,
+                                Cardinality cardinality,
+                                List<MEDocumentation> annotation,
+                                string namespaceRef = null): base(associationName, classifier, sequenceKey, cardinality, choiceGroup)
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLAssociation >> Creating association for '" + associationName + "' with classifier: " + classifier + 
-                             " and cardinality: " + cardinality.Item1 + ".." + cardinality.Item2 + "...");
+                             " and cardinality: " + cardinality.ToString() + "...");
             this.IsValid = false;
-            if (cardinality.Item1 < 0 || cardinality.Item2 < 0 || (cardinality.Item2 != 0 && (cardinality.Item1 > cardinality.Item2)))
-            {
-                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLAssociation >> Cardinality out of bounds for target '" + classifier + "'!");
-                return;
-            }
 
             try
             {
                 string classifierNamespace = namespaceRef ?? schema.SchemaNamespace;
                 Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLAssociation >> Collected namespace '" + classifierNamespace + "', for classifier '" + classifier + "'.");
 
-                bool listRequired = (cardinality.Item2 != 1) ? true : false;
                 this._classifier = new XmlSchemaElement()
                 {
                     Name = associationName,
                     SchemaTypeName = new XmlQualifiedName(classifier, classifierNamespace)
                 };
-                if (cardinality.Item2 == 0)
+                if (cardinality.IsUnboundedList)
                 {
                     this._classifier.MaxOccursString = "unbounded";
                 }
                 else
                 {
-                    this._classifier.MaxOccurs = cardinality.Item2;
+                    this._classifier.MaxOccurs = cardinality.UpperBoundary;
                 }
-                this._classifier.MinOccurs = (listRequired && cardinality.Item1 == 0) ? 1 : cardinality.Item1;     // If we're in a list, there must be at least one element.
+                this._classifier.MinOccurs = (cardinality.IsList && cardinality.IsOptional) ? 1 : cardinality.LowerBoundary;     // If we're in a list, there must be at least one element.
 
                 // Add (list of) annotation(s) to the association...
                 if (annotation.Count > 0)
@@ -89,13 +84,13 @@ namespace Framework.Util.SchemaManagement.XML
                     }
                 }
 
-                if (listRequired)
+                if (cardinality.IsList)
                 {
                     Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLAssociation >> ASBIE cardinality > 1, creating an intermediate List element....");
                     var listElement = new XmlSchemaElement()
                     {
                         Name = associationName + "List",
-                        MinOccurs = (cardinality.Item1 == 0) ? 0 : 1,
+                        MinOccurs = cardinality.IsOptional ? 0 : 1,
                         MaxOccurs = 1
                     };
                     var listBody = new XmlSchemaComplexType();

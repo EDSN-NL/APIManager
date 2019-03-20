@@ -1,4 +1,5 @@
 ﻿using System;
+using Framework.Util;
 
 namespace Framework.Model
 {
@@ -21,10 +22,10 @@ namespace Framework.Model
         /// - Single value '*' is translated to '0 to unbounded', represented by minOcc = maxOcc = 0;
         /// - Range 'n..m' is translated to minOcc = 'n', maxOcc = 'm'. Unless 'm' = 0, in which case maxOcc = 1. If this leads to minOcc > maxOcc, both values will be swapped!
         /// - Range 'n..*' is translated to minOcc = 'n', maxOcc = 0 (maxOcc == 0 is lateron interpreted as 'unbounded').
-        /// All other formates will result in a response values of minOcc = maxOcc = -1.
+        /// All other formates will result in an IllegalCardinlity exception.
         /// </summary>
         /// <returns>Tuple consisting of minOCC, maxOcc. In case of errors, both will be -1.</returns>)]
-        internal abstract Tuple<int, int> GetCardinality();
+        internal abstract Cardinality GetCardinality();
 
         /// <summary>
         /// Reads or writes the default value of the attribute (if defined).

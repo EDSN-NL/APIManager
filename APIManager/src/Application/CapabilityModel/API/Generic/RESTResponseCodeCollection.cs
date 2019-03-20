@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Framework.Model;
 using Framework.Logging;
 using Framework.Context;
+using Framework.Util;
 using Plugin.Application.Forms;
 
 namespace Plugin.Application.CapabilityModel.API
@@ -167,7 +168,7 @@ namespace Plugin.Application.CapabilityModel.API
                         newResult = dialog.OperationResult;
                         if (this._collectionClass != null)
                             this._collectionClass.CreateAttribute(dialog.OperationResult.ResultCode, this._attribClassifier,
-                                                                  AttributeType.Attribute, null, new Tuple<int, int>(1, 1),
+                                                                  AttributeType.Attribute, null, new Cardinality(Cardinality._Mandatory),
                                                                   false, dialog.OperationResult.Description);
                     }
                     else
@@ -327,7 +328,7 @@ namespace Plugin.Application.CapabilityModel.API
                         foreach (RESTOperationResultDeclaration attrib in this._collection)
                         {
                             this._collectionClass.CreateAttribute(attrib.ResultCode, this._attribClassifier,
-                                                                  AttributeType.Attribute, null, new Tuple<int, int>(1, 1), 
+                                                                  AttributeType.Attribute, null, new Cardinality(Cardinality._Mandatory), 
                                                                   false, attrib.Description);
                         }
                     }

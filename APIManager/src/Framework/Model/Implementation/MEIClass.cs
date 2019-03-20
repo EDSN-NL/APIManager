@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Framework.View;
+using Framework.Util;
 
 namespace Framework.Model
 {
@@ -52,7 +53,7 @@ namespace Framework.Model
         /// <param name="isConstant">Indicates that the attribute has a constant value. Default value must be specified in this case!</param>
         /// <param name="annotation">Annotation text for the attribute.</param>
         /// <returns>Newly created attribute object.</returns>
-        internal abstract MEAttribute CreateAttribute(string name, MEDataType classifier, AttributeType type, string defaultValue, Tuple<int, int> cardinality, bool isConstant, string annotation);
+        internal abstract MEAttribute CreateAttribute(string name, MEDataType classifier, AttributeType type, string defaultValue, Cardinality cardinality, bool isConstant, string annotation);
 
         /// <summary>
         /// Delete the specified association from the class. If the association could not be found, the operation fails silently.

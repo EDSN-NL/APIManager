@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using EA;
 using Framework.Model;
+using Framework.Util;
 
 namespace SparxEA.Model
 {
@@ -78,7 +78,7 @@ namespace SparxEA.Model
         /// Returns the cardinality of this attribute.
         /// </summary>
         /// <returns>Cardinality as tuple lowerBound, upperBound (upperBound 0 is defined as unbounded).</returns>
-        internal override Tuple<int, int> GetCardinality()
+        internal override Cardinality GetCardinality()
         {
             return this._attributePart.GetCardinality();
         }

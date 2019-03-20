@@ -327,7 +327,7 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         if (this._requestBodyDocument != null && association.Destination.EndPoint.Name == this._requestBodyDocument.Name)
                         {
-                            this._requestCardinality = new Cardinality(association.GetCardinality(MEAssociation.AssociationEnd.Destination));
+                            this._requestCardinality = association.GetCardinality(MEAssociation.AssociationEnd.Destination);
                         }
                     }
                     else if (association.Destination.EndPoint.Name == paginationClassName)
@@ -514,7 +514,7 @@ namespace Plugin.Application.CapabilityModel.API
                         if (assoc.Destination.EndPoint == this._requestBodyDocument.CapabilityClass)
                         {
                             this._requestCardinality = operation.RequestCardinality;
-                            assoc.SetCardinality(this._requestCardinality.CardTuple, MEAssociation.AssociationEnd.Destination);
+                            assoc.SetCardinality(this._requestCardinality, MEAssociation.AssociationEnd.Destination);
                             break;
                         }
                     }

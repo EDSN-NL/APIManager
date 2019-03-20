@@ -5,6 +5,7 @@ using Framework.Context;
 using Framework.Logging;
 using Framework.Model;
 using Framework.Util;
+using Framework.Exceptions;
 
 namespace SparxEA.Model
 {
@@ -224,74 +225,15 @@ namespace SparxEA.Model
         /// - Single value '*' is translated to '0 to unbounded', represented by minOcc = maxOcc = 0;
         /// - Range 'n..m' is translated to minOcc = 'n', maxOcc = 'm'. Unless 'm' = 0, in which case maxOcc = 1. If this leads to minOcc > maxOcc, both values will be swapped!
         /// - Range 'n..*' is translated to minOcc = 'n', maxOcc = 0 (maxOcc == 0 is lateron interpreted as 'unbounded').
-        /// All other formates will result in a response values of minOcc = maxOcc = -1.
+        /// All other formats will result in an ArgumentException!
         /// </summary>
         /// <param name="endpoint">The endpoint to be evaluated.</param>
-        /// <returns>Tuple consisting of minOCC, maxOcc. In case of errors, both will be -1.</returns>
-        internal override Tuple<int, int> GetCardinality(MEAssociation.AssociationEnd endpoint)
+        /// <returns>Tuple consisting of minOCC, maxOcc.</returns>
+        /// <exception cref="IllegalCardinalityException">Is thrown in case we could not obtain a valid cardinality.</exception>
+        internal override Cardinality GetCardinality(MEAssociation.AssociationEnd endpoint)
         {
-            string cardinality = (endpoint == MEAssociation.AssociationEnd.Source) ? this._connector.ClientEnd.Cardinality.Trim() :
-                                                                                     this._connector.SupplierEnd.Cardinality.Trim();
-            int minOcc, maxOcc;
-
-            try
-            {
-                // In case of empty or invalid cardinality, return illegal tuple...
-                if (string.IsNullOrEmpty(cardinality)) return new Tuple<int, int>(-1, -1);
-
-                if (cardinality.Contains(".."))
-                {
-                    // Different lower- and upper boundaries...
-                    string lowerBound = cardinality.Substring(0, cardinality.IndexOf('.'));
-                    string upperBound = cardinality.Substring(cardinality.LastIndexOf('.') + 1);
-                    minOcc = Convert.ToInt16(lowerBound);
-                    if (upperBound.Contains("*"))
-                    {
-                        // maxOcc is lateron translated to 'unbounded'.
-                        maxOcc = 0;
-                    }
-                    else
-                    {
-                        // If we have a 0..0 cardinality, this is translated to 'optional 0 or 1'.
-                        // And if maxOcc < minOcc (and not unbounded), we return an illegal cardinality.
-                        maxOcc = Convert.ToInt16(upperBound);
-                        if ((maxOcc > 0) && (maxOcc < minOcc))
-                        {
-                            EA.Element source = ((EAModelImplementation)this._model).Repository.GetElementByID(this._connector.ClientID);
-                            EA.Element destination = ((EAModelImplementation)this._model).Repository.GetElementByID(this._connector.SupplierID);
-                            Logger.WriteError("SparxEA.Model.EAMEIAssociation.GetCardinality >> Unsupported format in cardinality field of association: '" +
-                                              source.Name + "-->" + destination.Name + "'!");
-                            minOcc = maxOcc = -1;
-                        }
-                        if (maxOcc == 0) maxOcc = 1;
-                    }
-                }
-                else
-                {
-                    // Upper- and lower boundaries are equal...
-                    if (cardinality.Trim() == "*")
-                    {
-                        // A single '*' character is interpreted as: 0 to unbounded, which translates to an upper boundary of 0.
-                        minOcc = 0;
-                        maxOcc = 0;
-                    }
-                    else
-                    {
-                        // A single character is translated to 'exactly n', with the exception of '0', which is translated to 'optional 0 or 1'.
-                        minOcc = Convert.ToInt16(cardinality);
-                        maxOcc = (minOcc == 0) ? 1 : minOcc;
-                    }
-                }
-                return new Tuple<int, int>(minOcc, maxOcc);
-            }
-            catch (FormatException exc)
-            {
-                EA.Element source = ((EAModelImplementation)this._model).Repository.GetElementByID(this._connector.ClientID);
-                EA.Element destination = ((EAModelImplementation)this._model).Repository.GetElementByID(this._connector.SupplierID);
-                Logger.WriteError("SparxEA.Model.EAMEIAssociation.GetCardinality >> Unsupported format in cardinality field of association: '" + 
-                                   source.Name + "-->" + destination.Name + "';" + Environment.NewLine + exc.Message);
-            }
-            return new Tuple<int, int>(-1, -1);
+            return new Cardinality((endpoint == MEAssociation.AssociationEnd.Source) ? this._connector.ClientEnd.Cardinality.Trim() :
+                                                                                       this._connector.SupplierEnd.Cardinality.Trim());
         }
 
         /// <summary>
@@ -467,25 +409,16 @@ namespace SparxEA.Model
         /// </summary>
         /// <param name="card">Cardinality to set.</param>
         /// <param name="endpoint">The endpoint to be evaluated.</param>
-        internal override void SetCardinality(Tuple<int,int> card, MEAssociation.AssociationEnd endpoint)
+        internal override void SetCardinality(Cardinality card, MEAssociation.AssociationEnd endpoint)
         {
-            if (card.Item1 < 0  || card.Item2 < 0 || (card.Item2 != 0 && card.Item2 < card.Item1))
-            {
-                Logger.WriteError("SparxEA.Model.EAMEIAssociation.GetCardinality >> Cardinality format error '" + card.Item1 + ".." + card.Item2 + "' detected!");
-                return;
-            }
-
-            string newCard = card.Item1.ToString();
-            if (card.Item1 != card.Item2 || card.Item2 == 0) newCard += ".." + (card.Item2 == 0 ? "*" : card.Item2.ToString());
-
             if (endpoint == MEAssociation.AssociationEnd.Source)
             {
-                this._connector.ClientEnd.Cardinality = newCard;
+                this._connector.ClientEnd.Cardinality = card.ToString();
                 this._connector.ClientEnd.Update();
             }
             else if (endpoint == MEAssociation.AssociationEnd.Destination)
             {
-                this._connector.SupplierEnd.Cardinality = newCard;
+                this._connector.SupplierEnd.Cardinality = card.ToString();
                 this._connector.SupplierEnd.Update();
             }
             else

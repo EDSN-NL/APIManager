@@ -4,6 +4,7 @@ using Newtonsoft.Json.Schema;
 using Newtonsoft.Json.Linq;
 using Framework.Logging;
 using Framework.Context;
+using Framework.Util;
 
 namespace Framework.Util.SchemaManagement.JSON
 {
@@ -70,14 +71,14 @@ namespace Framework.Util.SchemaManagement.JSON
                                       string classifierName,
                                       int sequenceKey,
                                       ChoiceGroup choiceGroup,
-                                      Tuple<int, int> cardinality,
+                                      Cardinality cardinality,
                                       List<MEDocumentation> annotation,
                                       string defaultValue, string fixedValue,
                                       bool isNillable) :
             base(schema, attributeName, classifierName, sequenceKey, choiceGroup, cardinality, annotation, defaultValue, fixedValue, isNillable)
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Creating attribute '" + attributeName + "' with classifier '" + classifierName +
-                             "' and cardinality '" + cardinality.Item1 + "-" + cardinality.Item2 + "'.");
+                             "' and cardinality '" + cardinality.ToString() + "'.");
             
             if (!string.IsNullOrEmpty(fixedValue))
             {
@@ -140,12 +141,8 @@ namespace Framework.Util.SchemaManagement.JSON
                     }
                 }
 
-                if (cardinality.Item2 == 1)
-                {
-                    this._attributeClassifier = attribClassifier;
-                    this._simpleAttributeClassifier = simpleAttributeClassifier;
-                }
-                else // If upper boundary of cardinality > 1 (or 0, which means unbounded), we have to create an array of type, instead of only the type.
+                // If upper boundary of cardinality > 1 (or 0, which means unbounded), we have to create an array of type, instead of only the type.
+                if (cardinality.IsList)
                 {
                     // If the classifier name ends with 'Type', we remove this before adding a new post-fix 'ListType'...
                     string listType = (classifierName.EndsWith("Type")) ? classifierName.Substring(0, classifierName.IndexOf("Type")) : classifierName;
@@ -153,21 +150,26 @@ namespace Framework.Util.SchemaManagement.JSON
                     this._attributeClassifier = new JSchema
                     {
                         Title = listType,
-                        Type = JSchemaType.Array,
-                        //AllowAdditionalItems = false,  Only use this when different array elements use different schemas.
-                        // For 'normal' classifiers, a list must have at least one element and the list as a whole can be made optional in the
-                        // context of the 'owning' attribute...
-                        MinimumItems = (cardinality.Item1 == 0) ? 1 : cardinality.Item1,  
+                        Type = JSchemaType.Array
                     };
                     this._simpleAttributeClassifier = new JSchema { Type = JSchemaType.Array };
-                    if (cardinality.Item1 > 0) this._simpleAttributeClassifier.MinimumItems = cardinality.Item1;
-                    if (cardinality.Item2 > 1)
+                    if (cardinality.IsMandatory)
                     {
-                        this._attributeClassifier.MaximumItems = cardinality.Item2;
-                        this._simpleAttributeClassifier.MaximumItems = cardinality.Item2;
+                        this._attributeClassifier.MinimumItems = cardinality.LowerBoundary;
+                        this._simpleAttributeClassifier.MinimumItems = cardinality.LowerBoundary;
+                    }
+                    if (cardinality.IsBoundedList)
+                    {
+                        this._attributeClassifier.MaximumItems = cardinality.UpperBoundary;
+                        this._simpleAttributeClassifier.MaximumItems = cardinality.UpperBoundary;
                     }
                     this._attributeClassifier.Items.Add(attribClassifier);
                     this._simpleAttributeClassifier.Items.Add(simpleAttributeClassifier);
+                }
+                else
+                {
+                    this._attributeClassifier = attribClassifier;
+                    this._simpleAttributeClassifier = simpleAttributeClassifier;
                 }
             }
 
@@ -206,13 +208,13 @@ namespace Framework.Util.SchemaManagement.JSON
                 enumList = enumList.Substring(0, enumList.IndexOf(']') + 1);
 
                 schemaString = "\"type\": ";
-                if (this.Cardinality.Item2 == 0 || this.Cardinality.Item2 > 1)
+                if (this.Cardinality.IsList)
                 {
                     schemaString += "\"array\", \"items\": {\"type\": \"string\", " + enumList;
                     if (!string.IsNullOrEmpty(DefaultValue)) schemaString += ", \"default\": \"" + DefaultValue + "\"";
                     schemaString += "}";
-                    if (this.Cardinality.Item1 > 0) schemaString += ", \"minItems\": " + this.Cardinality.Item1;
-                    if (this.Cardinality.Item2 != 0) schemaString += ", \"maxItems\": " + this.Cardinality.Item2;
+                    if (this.Cardinality.IsMandatory) schemaString += ", \"minItems\": " + this.Cardinality.LowerBoundary;
+                    if (this.Cardinality.IsBoundedList) schemaString += ", \"maxItems\": " + this.Cardinality.UpperBoundary;
                 }
                 else
                 {
@@ -228,11 +230,11 @@ namespace Framework.Util.SchemaManagement.JSON
                     Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute.GetClassifierAsJSONSchemaText >> Got me a schema reference!");
                     schemaString = "\"schema\": ";
                     string typeRef = "{\"$ref\": \"#/definitions/" + this._classifier.Name + "\"}";
-                    if (this.Cardinality.Item2 == 0 || this.Cardinality.Item2 > 1)
+                    if (this.Cardinality.IsList)
                     {
                         schemaString = schemaString + "{\"type\": \"array\", \"items\": " + typeRef + "}";
-                        if (this.Cardinality.Item1 > 0) schemaString += ", \"minItems\": " + this.Cardinality.Item1;
-                        if (this.Cardinality.Item2 != 0) schemaString += ", \"maxItems\": " + this.Cardinality.Item2;
+                        if (this.Cardinality.IsMandatory) schemaString += ", \"minItems\": " + this.Cardinality.LowerBoundary;
+                        if (this.Cardinality.IsBoundedList) schemaString += ", \"maxItems\": " + this.Cardinality.UpperBoundary;
                     }
                     else schemaString += typeRef;
                 }

@@ -81,7 +81,7 @@ namespace Plugin.Application.CapabilityModel.API
                     if (classifier != null)
                     {
                         this._capabilityClass.CreateAttribute(context.GetConfigProperty(_TermsOfServiceAttributeName), classifier,
-                                                              AttributeType.Attribute, metaData.termsOfService, new Tuple<int, int>(1, 1), true);
+                                                              AttributeType.Attribute, metaData.termsOfService, new Cardinality(Cardinality._Mandatory), true);
                     }
                     else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTInterfaceCapabilityImp (create) >> Unable to find Classifier '" +
                                             coreDataTypesPath + "/" + _TermsOfServiceClassifier);
@@ -90,7 +90,7 @@ namespace Plugin.Application.CapabilityModel.API
                 // Add license details (if specified)...
                 MEDataType nameType = model.FindDataType(coreDataTypesPath, _NameClassifier);
                 MEDataType identifierType = model.FindDataType(coreDataTypesPath, _IDClassifier);
-                var mandatory = new Tuple<int, int>(1, 1);
+                var mandatory = new Cardinality(Cardinality._Mandatory);
                 if (nameType != null && identifierType != null)
                 {
                     if (!string.IsNullOrEmpty(metaData.licenseName))

@@ -1,4 +1,5 @@
 ﻿using System;
+using Framework.Util;
 
 namespace Framework.Util.SchemaManagement
 {
@@ -63,12 +64,12 @@ namespace Framework.Util.SchemaManagement
         /// <summary>
         /// Default constructor, initializes local properties to provided values.
         /// </summary>
-        protected SchemaAssociation(string roleName, string classifier, int sequenceKey, Tuple<int, int> cardinality, ChoiceGroup choiceGroup)
+        protected SchemaAssociation(string roleName, string classifier, int sequenceKey, Cardinality cardinality, ChoiceGroup choiceGroup)
         {
             this._isValid = false;
             this._ASBIEName = classifier;
             this._sequenceKey = sequenceKey;
-            this._isOptional = cardinality.Item1 == 0;
+            this._isOptional = cardinality.IsOptional;
             this._choiceGroup = choiceGroup;
             this._roleName = roleName;
         }

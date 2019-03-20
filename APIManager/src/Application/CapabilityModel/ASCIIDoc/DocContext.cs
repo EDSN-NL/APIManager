@@ -2,7 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using Framework.Model;
-using Framework.Logging;
+using Framework.Util;
 using Framework.Util.SchemaManagement;
 
 namespace Plugin.Application.CapabilityModel.ASCIIDoc
@@ -45,7 +45,7 @@ namespace Plugin.Application.CapabilityModel.ASCIIDoc
         /// <param name="classifierContextID">The context in which this class is defined (by definition, namespace token of target context).</param>
         /// <param name="cardinality">Cardinality of the association as a string.</param>
         /// <param name="notes">Notes associated with the role.</param>
-        internal void AddAssociation(string name, string classifierName, string classifierContextID, Tuple<int, int> cardinality, string notes)
+        internal void AddAssociation(string name, string classifierName, string classifierContextID, Cardinality cardinality, string notes)
         {
             if (this._currentNode != null) this._currentNode.AddAssociation(name, classifierName, classifierContextID, cardinality, notes);
         }
@@ -60,9 +60,9 @@ namespace Plugin.Application.CapabilityModel.ASCIIDoc
         /// <param name="classifierContextID">The context in which the classifier is defined (by definition, namespace token of target context).</param>
         /// <param name="cardinality">Cardinality of the attribute as a string.</param>
         /// <param name="notes">Notes associated with the attribute.</param>
-        internal void AddAttribute(string name, AttributeType type, string classifierName, string classifierContextID, Tuple<int, int> cardinality, string notes)
+        internal void AddAttribute(string name, AttributeType type, string classifierName, string classifierContextID, Cardinality cardinality, string notes)
         {
-            if (this._currentNode != null) this._currentNode.AddAttribute(name, type, classifierName, classifierContextID, cardinality, notes);
+           if (this._currentNode != null) this._currentNode.AddAttribute(name, type, classifierName, classifierContextID, cardinality, notes);
         }
 
         /// <summary>

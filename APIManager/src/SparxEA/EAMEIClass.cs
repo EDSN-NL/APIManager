@@ -5,6 +5,7 @@ using EA;
 using Framework.Context;
 using Framework.Logging;
 using Framework.Model;
+using Framework.Util;
 
 namespace SparxEA.Model
 {
@@ -304,7 +305,7 @@ namespace SparxEA.Model
         /// </summary>
         /// <returns>Newly created attribute object.</returns>
         /// <exception cref="ArgumentException">Illegal or missing name.</exception>
-        internal override MEAttribute CreateAttribute(string attribName, MEDataType classifier, AttributeType type, string defaultValue, Tuple<int, int> cardinality, bool isConstant, string annotation)
+        internal override MEAttribute CreateAttribute(string attribName, MEDataType classifier, AttributeType type, string defaultValue, Cardinality cardinality, bool isConstant, string annotation)
         {
             if (string.IsNullOrEmpty(attribName))
             {
@@ -343,8 +344,8 @@ namespace SparxEA.Model
             if (!string.IsNullOrEmpty(defaultValue)) newAttribute.Default = defaultValue;
             newAttribute.ClassifierID = classifier.ElementID;
             newAttribute.Type = classifier.Name;
-            newAttribute.LowerBound = cardinality.Item1.ToString();
-            newAttribute.UpperBound = (cardinality.Item2 == 0)? "*": cardinality.Item2.ToString();
+            newAttribute.LowerBound = cardinality.LowerBoundary.ToString();
+            newAttribute.UpperBound = cardinality.IsUnboundedList? "*": cardinality.UpperBoundary.ToString();
             newAttribute.Visibility = "Public";
             if (isConstant && string.IsNullOrEmpty(defaultValue))
             {
@@ -609,7 +610,7 @@ namespace SparxEA.Model
             int ID;
             string name;
             string alias;
-            Tuple<int, int> card;
+            Cardinality card = null;
             char type;
 
             // First, we collect the 'regular' attributes...
@@ -618,21 +619,7 @@ namespace SparxEA.Model
                 ID = (att.Pos + 1) * 100;
                 name = att.Name;
                 alias = att.Alias ?? string.Empty;
-
-                // Create Cardinality...
-                try
-                {
-                    int maxOcc;
-                    int minOcc = Convert.ToInt16(att.LowerBound);
-                    if (minOcc < 0) minOcc = 0;
-                    if (att.UpperBound.Contains("*") || att.UpperBound.Contains("n") || att.UpperBound.Contains("N")) maxOcc = 0;
-                    else maxOcc = Convert.ToInt16(att.UpperBound);
-                    card = new Tuple<int, int>(minOcc, maxOcc);
-                }
-                catch // Conversion error, create an invalid cardinality tuple...
-                {
-                    card = new Tuple<int, int>(-1, -1);
-                }
+                card = new Cardinality(att.LowerBound + ".." + att.UpperBound);
 
                 // Determine the attribute type.
                 type = 'C';    // Default is most generic type.

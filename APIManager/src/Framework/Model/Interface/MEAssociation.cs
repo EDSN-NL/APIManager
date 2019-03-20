@@ -207,9 +207,9 @@ namespace Framework.Model
         /// All other formates will result in a response values of minOcc = maxOcc = -1.
         /// </summary>
         /// <param name="endpoint">The endpoint to be evaluated.</param>
-        /// <returns>Tuple consisting of minOCC, maxOcc. In case of errors, both will be -1.</returns>
+        /// <returns>Cardinality object containing minOCC, maxOcc. In case of errors, both will be -1.</returns>
         /// <exception cref="MissingImplementationException">No implementation object exists.</exception>
-        internal Tuple<int, int> GetCardinality(AssociationEnd endpoint)
+        internal Cardinality GetCardinality(AssociationEnd endpoint)
         {
             if (this._imp != null) return ((MEIAssociation)this._imp).GetCardinality(endpoint);
             else throw new MissingImplementationException("MEIAssociation");
@@ -295,7 +295,7 @@ namespace Framework.Model
         /// <param name="card">Cardinality to set.</param>
         /// <param name="endpoint">The endpoint to be evaluated.</param>
         /// <exception cref="MissingImplementationException">No implementation object exists.</exception>
-        internal void SetCardinality(Tuple<int, int> card, MEAssociation.AssociationEnd endpoint)
+        internal void SetCardinality(Cardinality card, MEAssociation.AssociationEnd endpoint)
         {
             if (this._imp != null) ((MEIAssociation)this._imp).SetCardinality(card, endpoint);
             else throw new MissingImplementationException("MEIAssociation");

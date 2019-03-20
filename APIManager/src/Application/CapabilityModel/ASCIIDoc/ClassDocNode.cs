@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Framework.Model;
 using Framework.Context;
 using Framework.Logging;
+using Framework.Util;
 
 namespace Plugin.Application.CapabilityModel.ASCIIDoc
 {
@@ -72,7 +73,7 @@ namespace Plugin.Application.CapabilityModel.ASCIIDoc
         /// <param name="classifierContextID">The context in which this class is defined (by definition, namespace token of target context).</param>
         /// <param name="cardinality">Cardinality of the association.</param>
         /// <param name="notes">Notes associated with the role.</param>
-        internal void AddAssociation(string name, string classifierName, string classifierContextID, Tuple<int, int> cardinality, string notes)
+        internal void AddAssociation(string name, string classifierName, string classifierContextID, Cardinality cardinality, string notes)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.ASCIIDoc.ClassDocNode.AddAssociation >> Link to '" + classifierContextID + ":" + classifierName + 
                              "' with role '" + name + "' and cardinality '" + cardinality + "'...");
@@ -85,15 +86,13 @@ namespace Plugin.Application.CapabilityModel.ASCIIDoc
             else this._attribList.Add(name);
 
             string attribDoc = ContextSlt.GetContextSlt().GetConfigProperty(_ASCIIDocAttribute);
-            string cardString = cardinality.Item1.ToString();
-            if (cardinality.Item2 == 0) cardString += "..*";
-            else cardString += ".." + cardinality.Item2.ToString();
+            string cardString = cardinality.ToString();
 
             attribDoc = attribDoc.Replace("@NAME@", name);
             attribDoc = attribDoc.Replace("@CLASSIFIERANCHOR@", classifierContextID.ToLower() + "_" + classifierName.ToLower());
             attribDoc = attribDoc.Replace("@CLASSIFIER@", classifierName);
             attribDoc = attribDoc.Replace("@CARDINALITY@", cardString);
-            attribDoc = attribDoc.Replace("@PRESENCE@", (cardinality.Item1 == 0) ? "Optional" : "Required");
+            attribDoc = attribDoc.Replace("@PRESENCE@", cardinality.IsOptional ? "Optional" : "Required");
             attribDoc = attribDoc.Replace("@NOTES@", notes);
             this._ASCIIDoc = this._ASCIIDoc.Replace("@ATTRIBUTES@", this._firstAttrib ? attribDoc + "@ATTRIBUTES@" :
                                                                                        Environment.NewLine + attribDoc + "@ATTRIBUTES@");
@@ -111,7 +110,7 @@ namespace Plugin.Application.CapabilityModel.ASCIIDoc
         /// <param name="classifierContextID">The context in which the classifier is defined (by definition, namespace token of target context).</param>
         /// <param name="cardinality">Cardinality of the attribute.</param>
         /// <param name="notes">Notes associated with the attribute.</param>
-        internal void AddAttribute (string name, AttributeType type,  string classifierName, string classifierContextID, Tuple<int, int> cardinality, string notes)
+        internal void AddAttribute (string name, AttributeType type,  string classifierName, string classifierContextID, Cardinality cardinality, string notes)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.ASCIIDoc.ClassDocNode.AddAttribute >> Attribute '" + name + "' of type '" + classifierContextID + 
                              ":" + classifierName + "' with cardinality '" + cardinality + "'...");
@@ -126,15 +125,13 @@ namespace Plugin.Application.CapabilityModel.ASCIIDoc
             string attribDoc = ContextSlt.GetContextSlt().GetConfigProperty(_ASCIIDocAttribute);
             if (type == AttributeType.Facet) return;    // We don't support Facets at this level!
 
-            string cardString = cardinality.Item1.ToString();
-            if (cardinality.Item2 == 0) cardString += "..*";
-            else cardString += ".." + cardinality.Item2.ToString();
+            string cardString = cardinality.ToString();
 
             attribDoc = attribDoc.Replace("@NAME@", (type == AttributeType.Supplementary) ? "Attribute: " + name : name);
             attribDoc = attribDoc.Replace("@CLASSIFIERANCHOR@", classifierContextID.ToLower() + "_" + classifierName.ToLower());
             attribDoc = attribDoc.Replace("@CLASSIFIER@", classifierName);
             attribDoc = attribDoc.Replace("@CARDINALITY@", cardString);
-            attribDoc = attribDoc.Replace("@PRESENCE@", (cardinality.Item1 == 0) ? "Optional" : "Required");
+            attribDoc = attribDoc.Replace("@PRESENCE@", cardinality.IsOptional ? "Optional" : "Required");
             attribDoc = attribDoc.Replace("@NOTES@", notes);
             this._ASCIIDoc = this._ASCIIDoc.Replace("@ATTRIBUTES@", this._firstAttrib ? attribDoc + "@ATTRIBUTES@" :
                                                                                        Environment.NewLine + attribDoc + "@ATTRIBUTES@");

@@ -670,12 +670,12 @@ namespace Plugin.Application.CapabilityModel.API
                             MessageBox.Show("Parameter must be Data Type or Enumeration, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             return null;
                         }
-                        if (dialog.Parameter.Cardinality.Item1 != 1)
+                        if (dialog.Parameter.Cardinality.LowerBoundary != 1)
                         {
                             MessageBox.Show("Identifier is mandatory, lower bound adjusted!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            dialog.Parameter.Cardinality = new Tuple<int, int>(1, dialog.Parameter.Cardinality.Item2);
+                            dialog.Parameter.Cardinality = new Cardinality(1, dialog.Parameter.Cardinality.UpperBoundary);
                         }
-                        if (dialog.Parameter.Cardinality.Item2 == 0 || dialog.Parameter.Cardinality.Item2 > 1)
+                        if (dialog.Parameter.Cardinality.IsList)
                         {
                             if (dialog.Parameter.CollectionFormat == RESTParameterDeclaration.QueryCollectionFormat.Multi ||
                                 dialog.Parameter.CollectionFormat == RESTParameterDeclaration.QueryCollectionFormat.NA ||
