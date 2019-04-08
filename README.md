@@ -3,7 +3,10 @@ API Manager is a Sparx Enterprise Architect plugin that is used to manage formal
 
 # Documentation
 
-Consult the Github Wiki for documentation.
+Consult the [Github Wiki](https://github.com/wmeijers/APIManager/wiki) for documentation.
 
 # Goal of the APIManager
 The goal of the APIManager is generate interface specification based on standards and private extensions. The goal is not to generate interfaces exactly following the standards.
+
+# License
+[License file}(https://github.com/wmeijers/APIManager/blob/master/APIManagerSetup/license.rtf)
