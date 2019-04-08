@@ -9,4 +9,4 @@ Consult the [Github Wiki](https://github.com/wmeijers/APIManager/wiki) for docum
 The goal of the APIManager is generate interface specification based on standards and private extensions. The goal is not to generate interfaces exactly following the standards.
 
 # License
-[License file}(https://github.com/wmeijers/APIManager/blob/master/APIManagerSetup/license.rtf)
+[License file](https://github.com/wmeijers/APIManager/blob/master/APIManagerSetup/license.rtf)
