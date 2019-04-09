@@ -22,6 +22,7 @@ namespace Framework.Util.SchemaManagement.JSON
     internal class JSONAssociation : SchemaAssociation, IJSONProperty
     {
         private JSchema _associationClassifier;     // Represents the association as a (referenced) schema. 
+        private bool _isList;                       // Set to 'true' if the association has a cardinality > 1.
 
         /// <summary>
         /// Implementation of the JSON Property interface:
@@ -32,6 +33,7 @@ namespace Framework.Util.SchemaManagement.JSON
         /// </summary>
         public JSchema JSchema          { get { return this._associationClassifier; } }
         public string Name              { get { return base.RoleName; } }
+        public string SchemaName        { get { return GetSchemaName(); } }
         public new int SequenceKey      { get { return base.SequenceKey; } }
         public new bool IsMandatory     { get { return base.IsMandatory; } }
 
@@ -58,6 +60,7 @@ namespace Framework.Util.SchemaManagement.JSON
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONAssociation >> Creating association for '" + associationName + "' with classifier: " + classifierName +
                              " and cardinality: " + cardinality.ToString() + "...");
             this.IsValid = false;
+            this._isList = false;
 
             JSONSchema searchSchema = classifierSchema ?? schema;
             JSchema classSchema = searchSchema.FindClass(classifierName);
@@ -87,9 +90,26 @@ namespace Framework.Util.SchemaManagement.JSON
                 if (cardinality.IsMandatory) this._associationClassifier.MinimumItems = cardinality.LowerBoundary;
                 if (cardinality.IsBoundedList) this._associationClassifier.MaximumItems = cardinality.UpperBoundary;
                 this._associationClassifier.Items.Add(classSchema);
+                this._isList = true;
             }
             else this._associationClassifier = classSchema;
             this.IsValid = true;
+        }
+
+        /// <summary>
+        /// Helper function that returns the schema name of the association. If the name ends with 'Type' (should not happen), this is removed.
+        /// If the name represents a list, we append 'List' to the name.
+        /// </summary>
+        /// <returns>Association role name to be used in schemas.</returns>
+        private string GetSchemaName()
+        {
+            string name = base.RoleName;
+            if (this._isList && !name.EndsWith("List"))
+            {
+                if (name.EndsWith("Type")) name = name.Substring(0, name.LastIndexOf("Type"));
+                name += "List";
+            }
+            return name;
         }
     }
 }

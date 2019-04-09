@@ -40,6 +40,8 @@ namespace Plugin.Application.Forms
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.OperationGroup = new System.Windows.Forms.GroupBox();
+            this.UseHeaderParameters = new System.Windows.Forms.CheckBox();
+            this.HasPagination = new System.Windows.Forms.CheckBox();
             this.NewMinorVersion = new System.Windows.Forms.CheckBox();
             this.FilterGroup = new System.Windows.Forms.GroupBox();
             this.EditParameter = new System.Windows.Forms.Button();
@@ -48,8 +50,6 @@ namespace Plugin.Application.Forms
             this.ParamName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.ParamType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.AddFilter = new System.Windows.Forms.Button();
-            this.HasPagination = new System.Windows.Forms.CheckBox();
-            this.OverrideSecurity = new System.Windows.Forms.CheckBox();
             this.ResponseCodeGroup = new System.Windows.Forms.GroupBox();
             this.UseCollection = new System.Windows.Forms.Button();
             this.EditCollections = new System.Windows.Forms.Button();
@@ -79,19 +79,27 @@ namespace Plugin.Application.Forms
             this.SummaryText = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.RequestParamBox = new System.Windows.Forms.GroupBox();
-            this.RequestOptional = new System.Windows.Forms.CheckBox();
-            this.RequestMultiple = new System.Windows.Forms.CheckBox();
+            this.ReqCardinalityGroup = new System.Windows.Forms.GroupBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.ReqCardHi = new System.Windows.Forms.TextBox();
+            this.ReqCardLo = new System.Windows.Forms.TextBox();
+            this.ReqSecurityGroup = new System.Windows.Forms.GroupBox();
+            this.ReqEncryption = new System.Windows.Forms.CheckBox();
+            this.ReqSigning = new System.Windows.Forms.CheckBox();
             this.RemoveRequest = new System.Windows.Forms.Button();
             this.RequestTypeName = new System.Windows.Forms.TextBox();
             this.SelectRequest = new System.Windows.Forms.Button();
             this.ResponseParamBox = new System.Windows.Forms.GroupBox();
-            this.ResponseOptional = new System.Windows.Forms.CheckBox();
-            this.ResponseMultiple = new System.Windows.Forms.CheckBox();
+            this.RspCardinalityGroup = new System.Windows.Forms.GroupBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.RspCardHi = new System.Windows.Forms.TextBox();
+            this.RspCardLo = new System.Windows.Forms.TextBox();
+            this.RspSecurityGroup = new System.Windows.Forms.GroupBox();
+            this.RspEncryption = new System.Windows.Forms.CheckBox();
+            this.RspSigning = new System.Windows.Forms.CheckBox();
             this.RemoveResponse = new System.Windows.Forms.Button();
             this.SelectResponse = new System.Windows.Forms.Button();
             this.ResponseTypeName = new System.Windows.Forms.TextBox();
-            this.UseHeaderParameters = new System.Windows.Forms.CheckBox();
-            this.UseLinkHeaders = new System.Windows.Forms.CheckBox();
             this.OperationGroup.SuspendLayout();
             this.FilterGroup.SuspendLayout();
             this.ResponseCodeGroup.SuspendLayout();
@@ -100,13 +108,17 @@ namespace Plugin.Application.Forms
             this.MimeBox.SuspendLayout();
             this.DocumentationBox.SuspendLayout();
             this.RequestParamBox.SuspendLayout();
+            this.ReqCardinalityGroup.SuspendLayout();
+            this.ReqSecurityGroup.SuspendLayout();
             this.ResponseParamBox.SuspendLayout();
+            this.RspCardinalityGroup.SuspendLayout();
+            this.RspSecurityGroup.SuspendLayout();
             this.SuspendLayout();
             // 
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(513, 504);
+            this.Cancel.Location = new System.Drawing.Point(523, 558);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
             this.Cancel.TabIndex = 12;
@@ -116,7 +128,7 @@ namespace Plugin.Application.Forms
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(432, 504);
+            this.Ok.Location = new System.Drawing.Point(442, 558);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
             this.Ok.TabIndex = 13;
@@ -138,16 +150,16 @@ namespace Plugin.Application.Forms
             this.OperationNameFld.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.OperationNameFld.Location = new System.Drawing.Point(50, 18);
             this.OperationNameFld.Name = "OperationNameFld";
-            this.OperationNameFld.Size = new System.Drawing.Size(226, 20);
+            this.OperationNameFld.Size = new System.Drawing.Size(234, 20);
             this.OperationNameFld.TabIndex = 1;
             this.OperationNameFld.Leave += new System.EventHandler(this.OperationNameFld_Leave);
             // 
             // OperationTypeFld
             // 
             this.OperationTypeFld.FormattingEnabled = true;
-            this.OperationTypeFld.Location = new System.Drawing.Point(50, 50);
+            this.OperationTypeFld.Location = new System.Drawing.Point(352, 18);
             this.OperationTypeFld.Name = "OperationTypeFld";
-            this.OperationTypeFld.Size = new System.Drawing.Size(226, 21);
+            this.OperationTypeFld.Size = new System.Drawing.Size(223, 21);
             this.OperationTypeFld.TabIndex = 2;
             this.OperationTypeFld.SelectedIndexChanged += new System.EventHandler(this.OperationTypeFld_SelectedIndexChanged);
             // 
@@ -164,7 +176,7 @@ namespace Plugin.Application.Forms
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(6, 53);
+            this.label2.Location = new System.Drawing.Point(312, 21);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(34, 13);
             this.label2.TabIndex = 0;
@@ -172,22 +184,46 @@ namespace Plugin.Application.Forms
             // 
             // OperationGroup
             // 
+            this.OperationGroup.Controls.Add(this.UseHeaderParameters);
             this.OperationGroup.Controls.Add(this.OperationNamesLbl);
             this.OperationGroup.Controls.Add(this.label2);
             this.OperationGroup.Controls.Add(this.OperationTypeFld);
             this.OperationGroup.Controls.Add(this.OperationNameFld);
+            this.OperationGroup.Controls.Add(this.HasPagination);
             this.OperationGroup.Location = new System.Drawing.Point(12, 4);
             this.OperationGroup.Name = "OperationGroup";
-            this.OperationGroup.Size = new System.Drawing.Size(282, 79);
+            this.OperationGroup.Size = new System.Drawing.Size(584, 64);
             this.OperationGroup.TabIndex = 1;
             this.OperationGroup.TabStop = false;
             this.OperationGroup.Text = "Operation";
+            // 
+            // UseHeaderParameters
+            // 
+            this.UseHeaderParameters.AutoSize = true;
+            this.UseHeaderParameters.Location = new System.Drawing.Point(9, 44);
+            this.UseHeaderParameters.Name = "UseHeaderParameters";
+            this.UseHeaderParameters.Size = new System.Drawing.Size(116, 17);
+            this.UseHeaderParameters.TabIndex = 4;
+            this.UseHeaderParameters.Text = "Header parameters";
+            this.UseHeaderParameters.UseVisualStyleBackColor = true;
+            this.UseHeaderParameters.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
+            // 
+            // HasPagination
+            // 
+            this.HasPagination.AutoSize = true;
+            this.HasPagination.Location = new System.Drawing.Point(131, 44);
+            this.HasPagination.Name = "HasPagination";
+            this.HasPagination.Size = new System.Drawing.Size(76, 17);
+            this.HasPagination.TabIndex = 6;
+            this.HasPagination.Text = "Pagination";
+            this.HasPagination.UseVisualStyleBackColor = true;
+            this.HasPagination.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
             // 
             // NewMinorVersion
             // 
             this.NewMinorVersion.AutoSize = true;
             this.NewMinorVersion.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.NewMinorVersion.Location = new System.Drawing.Point(12, 512);
+            this.NewMinorVersion.Location = new System.Drawing.Point(12, 566);
             this.NewMinorVersion.Name = "NewMinorVersion";
             this.NewMinorVersion.Size = new System.Drawing.Size(138, 17);
             this.NewMinorVersion.TabIndex = 11;
@@ -200,9 +236,9 @@ namespace Plugin.Application.Forms
             this.FilterGroup.Controls.Add(this.DeleteFilter);
             this.FilterGroup.Controls.Add(this.FilterParameterList);
             this.FilterGroup.Controls.Add(this.AddFilter);
-            this.FilterGroup.Location = new System.Drawing.Point(12, 135);
+            this.FilterGroup.Location = new System.Drawing.Point(12, 189);
             this.FilterGroup.Name = "FilterGroup";
-            this.FilterGroup.Size = new System.Drawing.Size(282, 180);
+            this.FilterGroup.Size = new System.Drawing.Size(284, 180);
             this.FilterGroup.TabIndex = 7;
             this.FilterGroup.TabStop = false;
             this.FilterGroup.Text = "Filter parameters";
@@ -238,7 +274,7 @@ namespace Plugin.Application.Forms
             this.FilterParameterList.Location = new System.Drawing.Point(11, 19);
             this.FilterParameterList.MultiSelect = false;
             this.FilterParameterList.Name = "FilterParameterList";
-            this.FilterParameterList.Size = new System.Drawing.Size(265, 121);
+            this.FilterParameterList.Size = new System.Drawing.Size(260, 121);
             this.FilterParameterList.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.FilterParameterList.TabIndex = 0;
             this.FilterParameterList.UseCompatibleStateImageBehavior = false;
@@ -264,28 +300,6 @@ namespace Plugin.Application.Forms
             this.AddFilter.UseVisualStyleBackColor = true;
             this.AddFilter.Click += new System.EventHandler(this.AddFilter_Click);
             // 
-            // HasPagination
-            // 
-            this.HasPagination.AutoSize = true;
-            this.HasPagination.Location = new System.Drawing.Point(218, 89);
-            this.HasPagination.Name = "HasPagination";
-            this.HasPagination.Size = new System.Drawing.Size(76, 17);
-            this.HasPagination.TabIndex = 6;
-            this.HasPagination.Text = "Pagination";
-            this.HasPagination.UseVisualStyleBackColor = true;
-            this.HasPagination.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
-            // 
-            // OverrideSecurity
-            // 
-            this.OverrideSecurity.AutoSize = true;
-            this.OverrideSecurity.Location = new System.Drawing.Point(120, 89);
-            this.OverrideSecurity.Name = "OverrideSecurity";
-            this.OverrideSecurity.Size = new System.Drawing.Size(92, 17);
-            this.OverrideSecurity.TabIndex = 5;
-            this.OverrideSecurity.Text = "Public access";
-            this.OverrideSecurity.UseVisualStyleBackColor = true;
-            this.OverrideSecurity.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
-            // 
             // ResponseCodeGroup
             // 
             this.ResponseCodeGroup.Controls.Add(this.UseCollection);
@@ -294,9 +308,9 @@ namespace Plugin.Application.Forms
             this.ResponseCodeGroup.Controls.Add(this.DeleteResponseCode);
             this.ResponseCodeGroup.Controls.Add(this.AddResponseCode);
             this.ResponseCodeGroup.Controls.Add(this.ResponseCodeList);
-            this.ResponseCodeGroup.Location = new System.Drawing.Point(306, 135);
+            this.ResponseCodeGroup.Location = new System.Drawing.Point(314, 189);
             this.ResponseCodeGroup.Name = "ResponseCodeGroup";
-            this.ResponseCodeGroup.Size = new System.Drawing.Size(282, 180);
+            this.ResponseCodeGroup.Size = new System.Drawing.Size(284, 180);
             this.ResponseCodeGroup.TabIndex = 8;
             this.ResponseCodeGroup.TabStop = false;
             this.ResponseCodeGroup.Text = "Response codes";
@@ -363,7 +377,7 @@ namespace Plugin.Application.Forms
             this.ResponseCodeList.Location = new System.Drawing.Point(12, 19);
             this.ResponseCodeList.MultiSelect = false;
             this.ResponseCodeList.Name = "ResponseCodeList";
-            this.ResponseCodeList.Size = new System.Drawing.Size(265, 121);
+            this.ResponseCodeList.Size = new System.Drawing.Size(261, 121);
             this.ResponseCodeList.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.ResponseCodeList.TabIndex = 0;
             this.ResponseCodeList.UseCompatibleStateImageBehavior = false;
@@ -461,9 +475,9 @@ namespace Plugin.Application.Forms
             this.MimeBox.Controls.Add(this.label4);
             this.MimeBox.Controls.Add(this.ProducesMIME);
             this.MimeBox.Controls.Add(this.label3);
-            this.MimeBox.Location = new System.Drawing.Point(12, 321);
+            this.MimeBox.Location = new System.Drawing.Point(12, 375);
             this.MimeBox.Name = "MimeBox";
-            this.MimeBox.Size = new System.Drawing.Size(576, 49);
+            this.MimeBox.Size = new System.Drawing.Size(586, 49);
             this.MimeBox.TabIndex = 9;
             this.MimeBox.TabStop = false;
             this.MimeBox.Text = "MIME types";
@@ -472,7 +486,7 @@ namespace Plugin.Application.Forms
             // 
             this.ConsumesMIME.Location = new System.Drawing.Point(358, 16);
             this.ConsumesMIME.Name = "ConsumesMIME";
-            this.ConsumesMIME.Size = new System.Drawing.Size(212, 20);
+            this.ConsumesMIME.Size = new System.Drawing.Size(217, 20);
             this.ConsumesMIME.TabIndex = 3;
             this.ConsumesMIME.TextChanged += new System.EventHandler(this.ConsumesMIME_TextChanged);
             // 
@@ -507,9 +521,9 @@ namespace Plugin.Application.Forms
             this.DocumentationBox.Controls.Add(this.Description);
             this.DocumentationBox.Controls.Add(this.SummaryText);
             this.DocumentationBox.Controls.Add(this.label5);
-            this.DocumentationBox.Location = new System.Drawing.Point(12, 376);
+            this.DocumentationBox.Location = new System.Drawing.Point(12, 430);
             this.DocumentationBox.Name = "DocumentationBox";
-            this.DocumentationBox.Size = new System.Drawing.Size(576, 122);
+            this.DocumentationBox.Size = new System.Drawing.Size(586, 122);
             this.DocumentationBox.TabIndex = 10;
             this.DocumentationBox.TabStop = false;
             this.DocumentationBox.Text = "Documentation";
@@ -519,7 +533,7 @@ namespace Plugin.Application.Forms
             this.Description.Location = new System.Drawing.Point(12, 47);
             this.Description.Multiline = true;
             this.Description.Name = "Description";
-            this.Description.Size = new System.Drawing.Size(558, 59);
+            this.Description.Size = new System.Drawing.Size(563, 59);
             this.Description.TabIndex = 2;
             this.Description.Leave += new System.EventHandler(this.Description_Leave);
             // 
@@ -527,7 +541,7 @@ namespace Plugin.Application.Forms
             // 
             this.SummaryText.Location = new System.Drawing.Point(63, 16);
             this.SummaryText.Name = "SummaryText";
-            this.SummaryText.Size = new System.Drawing.Size(507, 20);
+            this.SummaryText.Size = new System.Drawing.Size(512, 20);
             this.SummaryText.TabIndex = 1;
             this.SummaryText.Leave += new System.EventHandler(this.SummaryText_Leave);
             // 
@@ -542,39 +556,87 @@ namespace Plugin.Application.Forms
             // 
             // RequestParamBox
             // 
-            this.RequestParamBox.Controls.Add(this.RequestOptional);
-            this.RequestParamBox.Controls.Add(this.RequestMultiple);
+            this.RequestParamBox.Controls.Add(this.ReqCardinalityGroup);
+            this.RequestParamBox.Controls.Add(this.ReqSecurityGroup);
             this.RequestParamBox.Controls.Add(this.RemoveRequest);
             this.RequestParamBox.Controls.Add(this.RequestTypeName);
             this.RequestParamBox.Controls.Add(this.SelectRequest);
-            this.RequestParamBox.Location = new System.Drawing.Point(306, 4);
+            this.RequestParamBox.Location = new System.Drawing.Point(12, 74);
             this.RequestParamBox.Name = "RequestParamBox";
-            this.RequestParamBox.Size = new System.Drawing.Size(282, 59);
+            this.RequestParamBox.Size = new System.Drawing.Size(284, 107);
             this.RequestParamBox.TabIndex = 2;
             this.RequestParamBox.TabStop = false;
             this.RequestParamBox.Text = "Request";
             // 
-            // RequestOptional
+            // ReqCardinalityGroup
             // 
-            this.RequestOptional.AutoSize = true;
-            this.RequestOptional.Location = new System.Drawing.Point(214, 36);
-            this.RequestOptional.Name = "RequestOptional";
-            this.RequestOptional.Size = new System.Drawing.Size(65, 17);
-            this.RequestOptional.TabIndex = 4;
-            this.RequestOptional.Text = "Optional";
-            this.RequestOptional.UseVisualStyleBackColor = true;
-            this.RequestOptional.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
+            this.ReqCardinalityGroup.Controls.Add(this.label6);
+            this.ReqCardinalityGroup.Controls.Add(this.ReqCardHi);
+            this.ReqCardinalityGroup.Controls.Add(this.ReqCardLo);
+            this.ReqCardinalityGroup.Location = new System.Drawing.Point(176, 47);
+            this.ReqCardinalityGroup.Name = "ReqCardinalityGroup";
+            this.ReqCardinalityGroup.Size = new System.Drawing.Size(102, 47);
+            this.ReqCardinalityGroup.TabIndex = 6;
+            this.ReqCardinalityGroup.TabStop = false;
+            this.ReqCardinalityGroup.Text = "Cardinality";
             // 
-            // RequestMultiple
+            // label6
             // 
-            this.RequestMultiple.AutoSize = true;
-            this.RequestMultiple.Location = new System.Drawing.Point(214, 15);
-            this.RequestMultiple.Name = "RequestMultiple";
-            this.RequestMultiple.Size = new System.Drawing.Size(62, 17);
-            this.RequestMultiple.TabIndex = 3;
-            this.RequestMultiple.Text = "Multiple";
-            this.RequestMultiple.UseVisualStyleBackColor = true;
-            this.RequestMultiple.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(42, 20);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(16, 13);
+            this.label6.TabIndex = 2;
+            this.label6.Text = "...";
+            // 
+            // ReqCardHi
+            // 
+            this.ReqCardHi.Location = new System.Drawing.Point(64, 19);
+            this.ReqCardHi.Name = "ReqCardHi";
+            this.ReqCardHi.Size = new System.Drawing.Size(30, 20);
+            this.ReqCardHi.TabIndex = 1;
+            this.ReqCardHi.Leave += new System.EventHandler(this.ReqCardinality_Leave);
+            // 
+            // ReqCardLo
+            // 
+            this.ReqCardLo.Location = new System.Drawing.Point(6, 19);
+            this.ReqCardLo.Name = "ReqCardLo";
+            this.ReqCardLo.Size = new System.Drawing.Size(30, 20);
+            this.ReqCardLo.TabIndex = 0;
+            this.ReqCardLo.Leave += new System.EventHandler(this.ReqCardinality_Leave);
+            // 
+            // ReqSecurityGroup
+            // 
+            this.ReqSecurityGroup.Controls.Add(this.ReqEncryption);
+            this.ReqSecurityGroup.Controls.Add(this.ReqSigning);
+            this.ReqSecurityGroup.Location = new System.Drawing.Point(8, 47);
+            this.ReqSecurityGroup.Name = "ReqSecurityGroup";
+            this.ReqSecurityGroup.Size = new System.Drawing.Size(161, 47);
+            this.ReqSecurityGroup.TabIndex = 5;
+            this.ReqSecurityGroup.TabStop = false;
+            this.ReqSecurityGroup.Text = "Security";
+            // 
+            // ReqEncryption
+            // 
+            this.ReqEncryption.AutoSize = true;
+            this.ReqEncryption.Location = new System.Drawing.Point(73, 19);
+            this.ReqEncryption.Name = "ReqEncryption";
+            this.ReqEncryption.Size = new System.Drawing.Size(76, 17);
+            this.ReqEncryption.TabIndex = 6;
+            this.ReqEncryption.Text = "Encryption";
+            this.ReqEncryption.UseVisualStyleBackColor = true;
+            this.ReqEncryption.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
+            // 
+            // ReqSigning
+            // 
+            this.ReqSigning.AutoSize = true;
+            this.ReqSigning.Location = new System.Drawing.Point(6, 19);
+            this.ReqSigning.Name = "ReqSigning";
+            this.ReqSigning.Size = new System.Drawing.Size(61, 17);
+            this.ReqSigning.TabIndex = 5;
+            this.ReqSigning.Text = "Signing";
+            this.ReqSigning.UseVisualStyleBackColor = true;
+            this.ReqSigning.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
             // 
             // RemoveRequest
             // 
@@ -591,7 +653,7 @@ namespace Plugin.Application.Forms
             this.RequestTypeName.Location = new System.Drawing.Point(70, 21);
             this.RequestTypeName.Name = "RequestTypeName";
             this.RequestTypeName.ReadOnly = true;
-            this.RequestTypeName.Size = new System.Drawing.Size(138, 20);
+            this.RequestTypeName.Size = new System.Drawing.Size(201, 20);
             this.RequestTypeName.TabIndex = 0;
             // 
             // SelectRequest
@@ -606,39 +668,87 @@ namespace Plugin.Application.Forms
             // 
             // ResponseParamBox
             // 
-            this.ResponseParamBox.Controls.Add(this.ResponseOptional);
-            this.ResponseParamBox.Controls.Add(this.ResponseMultiple);
+            this.ResponseParamBox.Controls.Add(this.RspCardinalityGroup);
+            this.ResponseParamBox.Controls.Add(this.RspSecurityGroup);
             this.ResponseParamBox.Controls.Add(this.RemoveResponse);
             this.ResponseParamBox.Controls.Add(this.SelectResponse);
             this.ResponseParamBox.Controls.Add(this.ResponseTypeName);
-            this.ResponseParamBox.Location = new System.Drawing.Point(306, 69);
+            this.ResponseParamBox.Location = new System.Drawing.Point(314, 74);
             this.ResponseParamBox.Name = "ResponseParamBox";
-            this.ResponseParamBox.Size = new System.Drawing.Size(282, 59);
+            this.ResponseParamBox.Size = new System.Drawing.Size(284, 107);
             this.ResponseParamBox.TabIndex = 3;
             this.ResponseParamBox.TabStop = false;
             this.ResponseParamBox.Text = "Response";
             // 
-            // ResponseOptional
+            // RspCardinalityGroup
             // 
-            this.ResponseOptional.AutoSize = true;
-            this.ResponseOptional.Location = new System.Drawing.Point(214, 35);
-            this.ResponseOptional.Name = "ResponseOptional";
-            this.ResponseOptional.Size = new System.Drawing.Size(65, 17);
-            this.ResponseOptional.TabIndex = 4;
-            this.ResponseOptional.Text = "Optional";
-            this.ResponseOptional.UseVisualStyleBackColor = true;
-            this.ResponseOptional.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
+            this.RspCardinalityGroup.Controls.Add(this.label7);
+            this.RspCardinalityGroup.Controls.Add(this.RspCardHi);
+            this.RspCardinalityGroup.Controls.Add(this.RspCardLo);
+            this.RspCardinalityGroup.Location = new System.Drawing.Point(175, 47);
+            this.RspCardinalityGroup.Name = "RspCardinalityGroup";
+            this.RspCardinalityGroup.Size = new System.Drawing.Size(102, 47);
+            this.RspCardinalityGroup.TabIndex = 6;
+            this.RspCardinalityGroup.TabStop = false;
+            this.RspCardinalityGroup.Text = "Cardinality";
             // 
-            // ResponseMultiple
+            // label7
             // 
-            this.ResponseMultiple.AutoSize = true;
-            this.ResponseMultiple.Location = new System.Drawing.Point(214, 12);
-            this.ResponseMultiple.Name = "ResponseMultiple";
-            this.ResponseMultiple.Size = new System.Drawing.Size(62, 17);
-            this.ResponseMultiple.TabIndex = 3;
-            this.ResponseMultiple.Text = "Multiple";
-            this.ResponseMultiple.UseVisualStyleBackColor = true;
-            this.ResponseMultiple.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(44, 20);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(16, 13);
+            this.label7.TabIndex = 2;
+            this.label7.Text = "...";
+            // 
+            // RspCardHi
+            // 
+            this.RspCardHi.Location = new System.Drawing.Point(66, 17);
+            this.RspCardHi.Name = "RspCardHi";
+            this.RspCardHi.Size = new System.Drawing.Size(30, 20);
+            this.RspCardHi.TabIndex = 1;
+            this.RspCardHi.Leave += new System.EventHandler(this.RspCardinality_Leave);
+            // 
+            // RspCardLo
+            // 
+            this.RspCardLo.Location = new System.Drawing.Point(6, 17);
+            this.RspCardLo.Name = "RspCardLo";
+            this.RspCardLo.Size = new System.Drawing.Size(30, 20);
+            this.RspCardLo.TabIndex = 0;
+            this.RspCardLo.Leave += new System.EventHandler(this.RspCardinality_Leave);
+            // 
+            // RspSecurityGroup
+            // 
+            this.RspSecurityGroup.Controls.Add(this.RspEncryption);
+            this.RspSecurityGroup.Controls.Add(this.RspSigning);
+            this.RspSecurityGroup.Location = new System.Drawing.Point(8, 47);
+            this.RspSecurityGroup.Name = "RspSecurityGroup";
+            this.RspSecurityGroup.Size = new System.Drawing.Size(161, 47);
+            this.RspSecurityGroup.TabIndex = 5;
+            this.RspSecurityGroup.TabStop = false;
+            this.RspSecurityGroup.Text = "Security";
+            // 
+            // RspEncryption
+            // 
+            this.RspEncryption.AutoSize = true;
+            this.RspEncryption.Location = new System.Drawing.Point(73, 19);
+            this.RspEncryption.Name = "RspEncryption";
+            this.RspEncryption.Size = new System.Drawing.Size(76, 17);
+            this.RspEncryption.TabIndex = 1;
+            this.RspEncryption.Text = "Encryption";
+            this.RspEncryption.UseVisualStyleBackColor = true;
+            this.RspEncryption.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
+            // 
+            // RspSigning
+            // 
+            this.RspSigning.AutoSize = true;
+            this.RspSigning.Location = new System.Drawing.Point(6, 19);
+            this.RspSigning.Name = "RspSigning";
+            this.RspSigning.Size = new System.Drawing.Size(61, 17);
+            this.RspSigning.TabIndex = 0;
+            this.RspSigning.Text = "Signing";
+            this.RspSigning.UseVisualStyleBackColor = true;
+            this.RspSigning.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
             // 
             // RemoveResponse
             // 
@@ -665,30 +775,8 @@ namespace Plugin.Application.Forms
             this.ResponseTypeName.Location = new System.Drawing.Point(70, 20);
             this.ResponseTypeName.Name = "ResponseTypeName";
             this.ResponseTypeName.ReadOnly = true;
-            this.ResponseTypeName.Size = new System.Drawing.Size(138, 20);
+            this.ResponseTypeName.Size = new System.Drawing.Size(203, 20);
             this.ResponseTypeName.TabIndex = 0;
-            // 
-            // UseHeaderParameters
-            // 
-            this.UseHeaderParameters.AutoSize = true;
-            this.UseHeaderParameters.Location = new System.Drawing.Point(12, 89);
-            this.UseHeaderParameters.Name = "UseHeaderParameters";
-            this.UseHeaderParameters.Size = new System.Drawing.Size(98, 17);
-            this.UseHeaderParameters.TabIndex = 4;
-            this.UseHeaderParameters.Text = "Header params";
-            this.UseHeaderParameters.UseVisualStyleBackColor = true;
-            this.UseHeaderParameters.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
-            // 
-            // UseLinkHeaders
-            // 
-            this.UseLinkHeaders.AutoSize = true;
-            this.UseLinkHeaders.Location = new System.Drawing.Point(12, 112);
-            this.UseLinkHeaders.Name = "UseLinkHeaders";
-            this.UseLinkHeaders.Size = new System.Drawing.Size(87, 17);
-            this.UseLinkHeaders.TabIndex = 14;
-            this.UseLinkHeaders.Text = "Link headers";
-            this.UseLinkHeaders.UseVisualStyleBackColor = true;
-            this.UseLinkHeaders.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
             // 
             // RESTOperationDialog
             // 
@@ -696,16 +784,12 @@ namespace Plugin.Application.Forms
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(600, 546);
-            this.Controls.Add(this.UseLinkHeaders);
-            this.Controls.Add(this.UseHeaderParameters);
+            this.ClientSize = new System.Drawing.Size(607, 601);
             this.Controls.Add(this.ResponseParamBox);
             this.Controls.Add(this.RequestParamBox);
             this.Controls.Add(this.DocumentationBox);
             this.Controls.Add(this.MimeBox);
             this.Controls.Add(this.ResponseCodeGroup);
-            this.Controls.Add(this.OverrideSecurity);
-            this.Controls.Add(this.HasPagination);
             this.Controls.Add(this.FilterGroup);
             this.Controls.Add(this.NewMinorVersion);
             this.Controls.Add(this.OperationGroup);
@@ -730,8 +814,16 @@ namespace Plugin.Application.Forms
             this.DocumentationBox.PerformLayout();
             this.RequestParamBox.ResumeLayout(false);
             this.RequestParamBox.PerformLayout();
+            this.ReqCardinalityGroup.ResumeLayout(false);
+            this.ReqCardinalityGroup.PerformLayout();
+            this.ReqSecurityGroup.ResumeLayout(false);
+            this.ReqSecurityGroup.PerformLayout();
             this.ResponseParamBox.ResumeLayout(false);
             this.ResponseParamBox.PerformLayout();
+            this.RspCardinalityGroup.ResumeLayout(false);
+            this.RspCardinalityGroup.PerformLayout();
+            this.RspSecurityGroup.ResumeLayout(false);
+            this.RspSecurityGroup.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -756,7 +848,6 @@ namespace Plugin.Application.Forms
         private ColumnHeader ParamType;
         private Button AddFilter;
         private CheckBox HasPagination;
-        private CheckBox OverrideSecurity;
         private GroupBox ResponseCodeGroup;
         private Button EditResponseCode;
         private Button DeleteResponseCode;
@@ -787,17 +878,26 @@ namespace Plugin.Application.Forms
         private TextBox ResponseTypeName;
         private Button RemoveRequest;
         private Button RemoveResponse;
-        private CheckBox RequestMultiple;
-        private CheckBox ResponseMultiple;
         private CheckBox UseHeaderParameters;
-        private CheckBox UseLinkHeaders;
-        private CheckBox RequestOptional;
-        private CheckBox ResponseOptional;
         private Button UseCollection;
         private Button EditCollections;
         private ToolStripMenuItem addToolStripMenuItem;
         private ToolStripMenuItem useCollectionToolStripMenuItem;
         private ToolStripMenuItem addToolStripMenuItem1;
         private ToolStripMenuItem manageCollectionsToolStripMenuItem;
+        private GroupBox ReqCardinalityGroup;
+        private GroupBox ReqSecurityGroup;
+        private CheckBox ReqEncryption;
+        private CheckBox ReqSigning;
+        private GroupBox RspCardinalityGroup;
+        private GroupBox RspSecurityGroup;
+        private Label label6;
+        private TextBox ReqCardHi;
+        private TextBox ReqCardLo;
+        private Label label7;
+        private TextBox RspCardHi;
+        private TextBox RspCardLo;
+        private CheckBox RspEncryption;
+        private CheckBox RspSigning;
     }
 }

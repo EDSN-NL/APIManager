@@ -103,7 +103,7 @@ namespace Framework.Util.SchemaManagement.JSON
                 if (att.IsValid && att is JSONContentAttribute)
                 {
                     var contentAttrib = att as JSONContentAttribute;     // Want to avoid a lot of explicit casts ;-)
-                    if (att.IsMandatory) mandatoryProperties.Add(att.Name);
+                    if (contentAttrib.IsMandatory) mandatoryProperties.Add(contentAttrib.SchemaName);
 
                     // Check whether this attribute is part of a choice group. If so, check whether we have created an instance of this
                     // choice group. If not, first create the new choice object. Finally, add the attribute to the choice.
@@ -116,22 +116,22 @@ namespace Framework.Util.SchemaManagement.JSON
                             var newChoice = new JSONChoice(this, choiceGroup);
                             choiceList.Add(choiceGroup.GroupID, newChoice);
                         }
-                        Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Adding attribute '" + contentAttrib.Name +
+                        Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Adding attribute '" + contentAttrib.SchemaName +
                                          "' to Choice Group '" + choiceGroup.GroupID + "'...");
                         choiceList[choiceGroup.GroupID].AddContentAttribute(contentAttrib);
                     }
                     else
                     {
                         propertyList.Add(new SortableSchemaElement(contentAttrib), contentAttrib);
-                        Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Added content attribute '" + contentAttrib.Name + "'.");
+                        Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Added content attribute '" + contentAttrib.SchemaName + "'.");
                     }
                 }
                 else if (att.IsValid && att is JSONSupplementaryAttribute)
                 {
                     var suppAttrib = att as JSONSupplementaryAttribute;
-                    if (att.IsMandatory) mandatoryProperties.Add(att.Name);
+                    if (suppAttrib.IsMandatory) mandatoryProperties.Add(suppAttrib.SchemaName);
                     propertyList.Add(new SortableSchemaElement(suppAttrib), suppAttrib);
-                    Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Added supplementary attribute '" + suppAttrib.Name + "'.");
+                    Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Added supplementary attribute '" + suppAttrib.SchemaName + "'.");
                 }
                 else
                 {
@@ -145,7 +145,7 @@ namespace Framework.Util.SchemaManagement.JSON
             {
                 if (associatedClass.IsValid)
                 {
-                    if (associatedClass.IsMandatory) mandatoryProperties.Add(associatedClass.Name);
+                    if (associatedClass.IsMandatory) mandatoryProperties.Add(associatedClass.SchemaName);
                     // Check whether this association (constructed element) is part of a choice group. If so, check whether we have created an instance of this
                     // choice object. If not, first create the new choice object. Finally, add the association to the choice.
                     if (associatedClass.IsChoiceElement)
@@ -195,9 +195,9 @@ namespace Framework.Util.SchemaManagement.JSON
             // Now that our property list is complete (and sorted), we can copy the contents to the ABIE schema...
             foreach (IJSONProperty property in propertyList.Values)
             {
-                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Adding property '" + property.Name + "' to ABIE...");
-                newType.Properties.Add(property.Name, property.JSchema);
-                if (property.IsMandatory && !mandatoryProperties.Contains(property.Name)) mandatoryProperties.Add(property.Name);   // Make sure we did not miss any mandatories!
+                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Adding property '" + property.SchemaName + "' to ABIE...");
+                newType.Properties.Add(property.SchemaName, property.JSchema);
+                if (property.IsMandatory && !mandatoryProperties.Contains(property.SchemaName)) mandatoryProperties.Add(property.SchemaName);   // Make sure we did not miss any mandatories!
             }
             foreach (string mandatoryProperty in mandatoryProperties) newType.Required.Add(mandatoryProperty);
             return result;

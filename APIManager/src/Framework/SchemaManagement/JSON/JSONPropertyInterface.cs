@@ -10,6 +10,7 @@ namespace Framework.Util.SchemaManagement.JSON
     internal interface IJSONProperty
     {
         string Name { get; }
+        string SchemaName { get; }
         JSchema JSchema { get; }
         int SequenceKey { get; }
         bool IsMandatory { get; }

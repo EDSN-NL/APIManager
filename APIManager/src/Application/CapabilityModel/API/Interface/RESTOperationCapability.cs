@@ -59,11 +59,63 @@ namespace Plugin.Application.CapabilityModel.API
         /// Returns true when the operation has pagination support enabled.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal bool HasPagination
+        internal bool UsePagination
         {
             get
             {
-                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).HasPagination;
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).UsePagination;
+                else throw new MissingImplementationException("RESTOperationCapabilityImp");
+            }
+        }
+
+        /// <summary>
+        /// Returns true when the operation has request encryption enabled (will encrypt the request body payload if present).
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
+        internal bool UseRequestEncryption
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).UseRequestEncryption;
+                else throw new MissingImplementationException("RESTOperationCapabilityImp");
+            }
+        }
+
+        /// <summary>
+        /// Returns true when the operation has response encryption enabled (will encrypt the ok-response body payload if present).
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
+        internal bool UseResponseEncryption
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).UseResponseEncryption;
+                else throw new MissingImplementationException("RESTOperationCapabilityImp");
+            }
+        }
+
+        /// <summary>
+        /// Returns true when the operation has request signing enabled (will sign the request body payload if present).
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
+        internal bool UseRequestSigning
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).UseRequestSigning;
+                else throw new MissingImplementationException("RESTOperationCapabilityImp");
+            }
+        }
+
+        /// <summary>
+        /// Returns true when the operation has response signing enabled (will sign the ok-response body payload if present).
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
+        internal bool UseResponseSigning
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).UseResponseSigning;
                 else throw new MissingImplementationException("RESTOperationCapabilityImp");
             }
         }

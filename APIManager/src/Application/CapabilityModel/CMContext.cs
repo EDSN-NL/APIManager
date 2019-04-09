@@ -27,6 +27,10 @@ namespace Plugin.Application.CapabilityModel
         /// </summary>
         internal enum CommitScope { Unknown, Local, Remote, Release }
 
+        // These are used by the ActivateBranch function to indicate whether we must pull the branch from remote or not...
+        internal bool _DoSync = true;
+        internal bool _NoSync = false;
+
         /// <summary>
         /// In case we're using configuration management, the service can be in any of the following states:
         /// Created - New service that has not yet been added to configuration management;
@@ -212,6 +216,43 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
+        /// Activates the feature branch for the service. This is either an existing branch (stored in the service model) or a new one (in case
+        /// the service does not yet contain a cached branch name).
+        /// </summary>
+        /// <param name="doSync">When set to 'true' and we have an existing branch, the function performs a 'pull' from remote after
+        /// switching to the branch. This assures that we're in sync with the remote branch.</param>
+        internal void ActivateBranch(bool doSync)
+        {
+            try
+            {
+                ContextSlt context = ContextSlt.GetContextSlt();
+                string CMBranchTagName = context.GetConfigProperty(_CMBranchTag);
+                this._branchName = this._trackedService.ServiceClass.GetTag(CMBranchTagName);
+                if (string.IsNullOrEmpty(this._branchName))
+                {
+                    this._branchName = GetFeatureBranchName();
+                    this._trackedService.ServiceClass.SetTag(CMBranchTagName, this._branchName, true);
+                    Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.ActivateBranch >> Branch created: '" + this._branchName + "'.");
+                }
+
+                // Activate our new branch so that artefact generation will be associated with this branch. 
+                // Please note that, although we push the new branch to remote, it will not show there until we pushed a commit to it.
+                this._repository.SetBranch(this._branchName, this._repository.ReleaseBranchName);
+                if (doSync) this._repository.Pull();
+            }
+            catch (Exception exc)
+            {
+                if (exc.Message.Contains(_NoRemoteBranch) || exc.Message.Contains(_NoTrackingRemoteBranch))
+                {
+                    Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.ActivateBranch >> Service branch '" + this._branchName +
+                                     "' does not (yet) exist at remote, creating one...");
+                    this._repository.PushBranch(this._branchName);
+                }
+                else throw;
+            }
+        }
+
+        /// <summary>
         /// This method must be called when we want to start working with a service. The current branch for the service is determined and if this is found to 
         /// be new, a new branch is created in the repository (as a fork from the development branch). The new/existing branch is then checked-out so work on 
         /// the service will commence on that branch. 
@@ -248,16 +289,13 @@ namespace Plugin.Application.CapabilityModel
                 try
                 {
                     this._repository.GotoBranch(this._repository.ReleaseBranchName); // Make sure we're on the master release branch
-                    this._repository.Pull();                                         // Synchronise branch (might affect our service).
+                    this._repository.Pull();                                         // Synchronise master branch (might affect our service).
 
                     // Now that the repository is in sync with remote, check whether versions are in sync.
                     // We only check this for services that are still in the repository (state is Committed or Released), for all other states,
                     // the check is not required since it has either performed in the past or we're dealing with a new service...
-                    if (this._configurationMgmtState == CMState.Committed || this._configurationMgmtState == CMState.Released)
-                    {
-                        CheckRemoteVersion();
-                    }
-                    ActivateBranch();   // Make sure we're on a valid branch for the service.
+                    if (this._configurationMgmtState == CMState.Committed || this._configurationMgmtState == CMState.Released) CheckRemoteVersion();
+                    ActivateBranch(_DoSync);   // Make sure we're on a valid branch for the service (and sync with remote).
 
                     // The new state will be changed only when the service is still in the repository (committed or released)...
                     if (this._configurationMgmtState == CMState.Committed || this._configurationMgmtState == CMState.Released) UpdateCMState(CMState.CheckedOut);
@@ -337,7 +375,7 @@ namespace Plugin.Application.CapabilityModel
 
                 this._snapshotCreated = false;  // We reset this on each commit since obviously the service state has changed (hence the new commit).
                 SetupDirectories();             // Make sure we have our commit 'pointers' setup properly.
-                ActivateBranch();               // Make sure we are on a valid branch.
+                ActivateBranch(_NoSync);        // Make sure we are on a valid branch (but don't pull the branch just yet since this might ruin the work we just done).
 
                 // On auto-release, we create the snapshot on commit-time so it can be committed together with the other artefacts in a 
                 // single transaction. Release will just perform a 'tagged-push' to remote...
@@ -749,41 +787,6 @@ namespace Plugin.Application.CapabilityModel
                     Logger.WriteError("Plugin.Application.ConfigurationManagement.CMContext.UpdateVersion >> " + msg);
                     throw new InvalidOperationException(msg);
                 }
-            }
-        }
-
-        /// <summary>
-        /// Activates the feature branch for the service. This is either an existing branch (stored in the service model) or a new one (in case
-        /// the service does not yet contain a cached branch name).
-        /// </summary>
-        private void ActivateBranch()
-        {
-            try
-            {
-                ContextSlt context = ContextSlt.GetContextSlt();
-                string CMBranchTagName = context.GetConfigProperty(_CMBranchTag);
-                this._branchName = this._trackedService.ServiceClass.GetTag(CMBranchTagName);
-                if (string.IsNullOrEmpty(this._branchName))
-                {
-                    this._branchName = GetFeatureBranchName();
-                    this._trackedService.ServiceClass.SetTag(CMBranchTagName, this._branchName, true);
-                    Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.ActivateBranch >> Branch created: '" + this._branchName + "'.");
-                }
-
-                // Activate our new branch so that artefact generation will be associated with this branch. 
-                // Please note that, although we push the new branch to remote, it will not show there until we pushed a commit to it.
-                this._repository.SetBranch(this._branchName, this._repository.ReleaseBranchName);
-                this._repository.Pull();        // In case this is an existing branch, make sure we're up to date.
-            }
-            catch (Exception exc)
-            {
-                if (exc.Message.Contains(_NoRemoteBranch) || exc.Message.Contains(_NoTrackingRemoteBranch))
-                {
-                    Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.ActivateBranch >> Service branch '" + this._branchName +
-                                     "' does not (yet) exist at remote, creating one...");
-                    this._repository.PushBranch(this._branchName);
-                }
-                else throw;
             }
         }
 

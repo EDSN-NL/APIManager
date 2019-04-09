@@ -32,11 +32,13 @@ namespace Framework.Util.SchemaManagement.JSON
         /// Implementation of the JSON Property interface:
         /// JSchema = Returns the JSON Schema object that implements the content attribute.
         /// Name = Returns the associated property name.
+        /// SchemaName = Returns the associated property for use in a JSON Schema (could be different from the property name)!
         /// SequenceKey = Returns the sequence identifier of the content property.
         /// IsMandatory = Checks whether the attribute must be present.
         /// </summary>
         public JSchema JSchema                      { get { return this._attributeClassifier; } }
         public new string Name                      { get { return base.Name; } }
+        public string SchemaName                    { get { return GetSchemaName(); } }
         public new int SequenceKey                  { get { return base.SequenceKey; } }
         public new bool IsMandatory                 { get { return base.IsMandatory; } }
         public string Annotation                    { get { return this._annotation; } }
@@ -479,6 +481,22 @@ namespace Framework.Util.SchemaManagement.JSON
             }
             return propertyList;
         }
+
+        /// <summary>
+        /// Helper function that returns the schema name of the attribute. If the name ends with 'Type', this is removed.
+        /// If the name represents a list, we append 'List' to the name.
+        /// </summary>
+        /// <returns>Attribute name to be used in schemas.</returns>
+        private string GetSchemaName()
+        {
+            string name = base.Name;
+            if (IsListRequired && !base.Name.EndsWith("List"))
+            {
+                if (name.EndsWith("Type")) name = name.Substring(0, name.LastIndexOf("Type"));
+                name += "List";
+            }
+            return name;
+        }
     }
 
     /// <summary>
@@ -497,11 +515,13 @@ namespace Framework.Util.SchemaManagement.JSON
         /// Implementation of the JSON Property interface:
         /// JSchema = Returns the JSON Schema object that implements the content attribute.
         /// Name = Returns the associated property name.
+        /// SchemaName = Returns the name of the associated property for use in a schema (could be different from normal Name).
         /// SequenceKey = Returns the sequence identifier of the content property.
         /// IsMandatory = Returns true if this attribute must be present.
         /// </summary>
         public JSchema JSchema          { get { return this._classifier; } }
         public new string Name          { get { return base.Name; } }
+        public string SchemaName        { get { return GetSchemaName(); } }
         public new int SequenceKey      { get { return base.SequenceKey; } }
         public new bool IsMandatory     { get { return base.IsMandatory; } }
 
@@ -617,6 +637,22 @@ namespace Framework.Util.SchemaManagement.JSON
                 }
                 this._classifier.Description = this._annotation;
             }
+        }
+
+        /// <summary>
+        /// Helper function that returns the schema name of the attribute. If the name ends with 'Type', this is removed.
+        /// If the name represents a list, we append 'List' to the name.
+        /// </summary>
+        /// <returns>Attribute name to be used in schemas.</returns>
+        private string GetSchemaName()
+        {
+            string name = base.Name;
+            if (IsListRequired && !base.Name.EndsWith("List"))
+            {
+                if (name.EndsWith("Type")) name = name.Substring(0, name.LastIndexOf("Type"));
+                name += "List";
+            }
+            return name;
         }
     }
 }

@@ -484,7 +484,6 @@ namespace Framework.ConfigurationManagement
                 if (this._currentBranch == null || this._currentBranch.FriendlyName != parentBranch)
                     this._currentBranch = Commands.Checkout(this._gitRepository, parent);  // Assign to current in case something goes wrong below!
    
-
                 Branch branch = this._gitRepository.Branches[childBranch];
                 if (branch == null)
                 {

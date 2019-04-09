@@ -479,6 +479,13 @@
              <StereotypeName>Enexis ECDM::Service</StereotypeName>
            </StereotypeList>
          </EventHandler>
+         <EventHandler ID="Service: Synchronise">
+           <HandlerFQN>Plugin.Application.Events.Util.SynchroniseServiceEvent</HandlerFQN>
+           <StereotypeList>
+             <!-- This event only works on 'Service' classes. -->
+             <StereotypeName>Enexis ECDM::Service</StereotypeName>
+           </StereotypeList>
+         </EventHandler>
          <EventHandler ID="Synchronise Tags">
            <HandlerFQN>Plugin.Application.Events.Util.SynchroniseTagsEvent</HandlerFQN>
            <StereotypeList>

@@ -198,6 +198,8 @@ namespace Framework.Util
         /// - Range 'n..m' is translated to minOcc = 'n', maxOcc = 'm'. Unless 'm' = 0, in which case maxOcc = 1. If this leads to 
         ///   minOcc > maxOcc, both values will be swapped!
         /// - Range 'n..*' is translated to minOcc = 'n', maxOcc = 0 (maxOcc == 0 is interpreted as 'unbounded').
+        /// - Instead of '*', you can also use the character 'n' or 'N'.
+        /// - The range separator can be any number of consecutive '.' characters.
         /// All other formats will result in an Argument Exception.
         /// </summary>
         /// <param name="range">Contains the cardinality string.</param>
@@ -238,9 +240,9 @@ namespace Framework.Util
                 else
                 {
                     // Upper- and lower boundaries are equal...
-                    if (range.Trim() == "*")
+                    if (range.Trim() == "*" || range.Trim() == "n" || range.Trim() == "N")
                     {
-                        // A single '*' character is interpreted as: 0 to unbounded, which translates to an upper boundary of 0.
+                        // A single '*'/'n'/'N' character is interpreted as: 0 to unbounded, which translates to an upper boundary of 0.
                         this._lowerBoundary = 0;
                         this._upperBoundary = 0;
                     }

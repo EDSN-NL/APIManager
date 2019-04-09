@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Newtonsoft.Json.Schema;
 using Framework.Logging;
 
@@ -46,7 +45,7 @@ namespace Framework.Util.SchemaManagement.JSON
                               property.SequenceKey + "]" + property.Name + "' in Context: 'Property'...");;
             this._sequenceKey = property.SequenceKey;
             this._context = SortingContext.Property;
-            this._sortingName = property.Name;
+            this._sortingName = property.SchemaName;
         }
 
         /// <summary>

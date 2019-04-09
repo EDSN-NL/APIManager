@@ -161,8 +161,8 @@ namespace Plugin.Application.CapabilityModel.API
                     result = WriteResponseBodyParameter(operationResult.ResponseBodyClass, operationResult.ResponseCardinality);
                 }
 
-                if (this._currentOperation.UseHeaderParameters || 
-                    this._currentOperation.UseLinkHeaders) WriteResponseHeaderParameters(operationResult.Category);
+                if (this._currentOperation.UseHeaderParameters || this._currentOperation.UseLinkHeaders)
+                    WriteResponseHeaderParameters(operationResult.Category);
             } this._JSONWriter.WriteEndObject();
             return true;
         }

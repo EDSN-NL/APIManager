@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using Framework.Logging;
 using Framework.Util;
 using Framework.Context;
+using Framework.ConfigurationManagement;
 using Plugin.Application.CapabilityModel.API;
 
 namespace Plugin.Application.Forms
@@ -117,6 +118,9 @@ namespace Plugin.Application.Forms
 
             // Assign context menus to the appropriate controls...
             OperationsList.ContextMenuStrip = OperationMenuStrip;
+
+            // If CM is enabled, we have to suppress the 'minor version' checkbox...
+            if (CMRepositorySlt.GetRepositorySlt().IsCMEnabled) NewMinorVersion.Visible = false;
 
             Ok.Enabled = this._isEdit;
             NewMinorVersion.Checked = false;

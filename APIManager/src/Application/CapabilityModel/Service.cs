@@ -447,6 +447,22 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
+        /// When configuration management is active and the current CM state of the service indicates that a branch must be present, the
+        /// functions assures that the branch is checked-out and pulled from the remote repository.
+        /// </summary>
+        internal void SyncWithRemote()
+        {
+            if (UseConfigurationMgmt &&
+                ConfigurationMgmtState == CMContext.CMState.CheckedOut ||
+                ConfigurationMgmtState == CMContext.CMState.Committed ||
+                ConfigurationMgmtState == CMContext.CMState.Modified)
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.addCapability >> Going to set branch and pull...");
+                this._CMContext.ActivateBranch(this._CMContext._DoSync);
+            }
+        }
+
+        /// <summary>
         /// Add a new capability to this service. Note that the method does not accept two identical capabilities to
         /// register more then once (identical capabilities are capabilities that share the same capability class).
         /// Capabilities register themselves with 'their' service, so there is NO need to directly invoke this method!!
@@ -728,6 +744,7 @@ namespace Plugin.Application.CapabilityModel
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.handleCapabilities >> Processing capabilities one at a time...");
             bool result = false;
+            if (UseConfigurationMgmt) this._CMContext.ActivateBranch(this._CMContext._DoSync);  // Make sure we're on the right branch and it's up to date!
             ProcessingStage stage = ProcessingStage.PreProcess;
             if (this._selectedCapabilities != null)
             {

@@ -3,6 +3,8 @@ using System.Windows.Forms;
 using Framework.Util;
 using Framework.Logging;
 using Framework.Context;
+using Framework.Exceptions;
+using Framework.ConfigurationManagement;
 using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 
@@ -71,37 +73,33 @@ namespace Plugin.Application.Forms
             Description.Text = operation.Description;
 
             // Show the associated default request- and response documents (if present)...
-            if (operation.RequestDocument != null)
+            if (operation.RequestDocument == null) 
             {
-                RequestTypeName.Text = operation.RequestDocument.Name;
-                RequestMultiple.Checked = operation.RequestCardinality.IsList;
-                RequestOptional.Checked = operation.RequestCardinality.IsOptional;
-            }
-            else
-            {
-                RequestMultiple.Checked = false;
-                RequestOptional.Checked = false;
-                this._operation.ResponseCardinality = new Cardinality(Cardinality._Mandatory);
-            }
-
-            if (operation.ResponseDocument != null)
-            {
-                ResponseTypeName.Text = operation.ResponseDocument.Name;
-                ResponseMultiple.Checked = operation.ResponseCardinality.IsList;
-                ResponseOptional.Checked = operation.ResponseCardinality.IsOptional;
-            }
-            else
-            {
-                ResponseMultiple.Checked = false;
-                ResponseOptional.Checked = false;
                 this._operation.RequestCardinality = new Cardinality(Cardinality._Mandatory);
+                this._operation.UseRequestEncryption = false;
+                this._operation.UseRequestSigning = false;
             }
+            else RequestTypeName.Text = operation.RequestDocument.Name;
+            ReqCardLo.Text = this._operation.RequestCardinality.LowerBoundary.ToString();
+            ReqCardHi.Text = this._operation.RequestCardinality.IsUnboundedList ? "*" : operation.RequestCardinality.UpperBoundary.ToString();
+            ReqEncryption.Checked = this._operation.UseRequestEncryption;
+            ReqSigning.Checked = this._operation.UseRequestSigning;
+
+            if (operation.ResponseDocument == null)
+            {
+                this._operation.ResponseCardinality = new Cardinality(Cardinality._Mandatory);
+                this._operation.UseResponseEncryption = false;
+                this._operation.UseResponseSigning = false;
+            }
+            else ResponseTypeName.Text = operation.ResponseDocument.Name;
+            RspCardLo.Text = this._operation.ResponseCardinality.LowerBoundary.ToString();
+            RspCardHi.Text = this._operation.ResponseCardinality.IsUnboundedList ? "*" : operation.ResponseCardinality.UpperBoundary.ToString();
+            RspEncryption.Checked = this._operation.UseResponseEncryption;
+            RspSigning.Checked = this._operation.UseResponseSigning;
 
             // Set remaining indicators according to current settings...
             HasPagination.Checked       = operation.PaginationIndicator;
-            OverrideSecurity.Checked    = operation.PublicAccessIndicator;
             UseHeaderParameters.Checked = operation.UseHeaderParametersIndicator;
-            UseLinkHeaders.Checked      = operation.UseLinkHeaderIndicator;
 
             // Initialize the MIME-type fields...
             string MIMETypes = string.Empty;
@@ -169,6 +167,9 @@ namespace Plugin.Application.Forms
             FilterParameterList.ContextMenuStrip = FilterParametersMenuStrip;
             ResponseCodeList.ContextMenuStrip = ResponseCodeMenuStrip;
 
+            // If CM is enabled, we have to suppress the 'minor version' checkbox...
+            if (CMRepositorySlt.GetRepositorySlt().IsCMEnabled) NewMinorVersion.Visible = false;
+
             // Check whether we may enable the OK button...
             this._hasName = !string.IsNullOrEmpty(operation.Name);
             this._hasType = operation.OperationType != unknownOperation;
@@ -192,11 +193,17 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void OperationTypeFld_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (this._initializing) return;   // Ignore event during initialization.
-            int index = OperationTypeFld.SelectedIndex;
-            HTTPOperation oldType = this._operation.OperationType;
-            HTTPOperation unknownType = new HTTPOperation();
-            this._operation.OperationType = OperationTypeFld.Items[index] as HTTPOperation;
+            if (!this._initializing)
+            {
+                // This part is skipped when still in initialization phase!
+                int index = OperationTypeFld.SelectedIndex;
+                HTTPOperation oldType = this._operation.OperationType;
+                HTTPOperation unknownType = new HTTPOperation();
+                this._operation.OperationType = OperationTypeFld.Items[index] as HTTPOperation;
+                this._hasType = this._operation.OperationType != unknownType;
+                if (this._hasType) this._dirty = true;
+                CheckOk();
+            }
 
             // Depending on the selected operation type, some parameters / settings should be enabled and/or disabled...
             switch (this._operation.OperationType.TypeEnum)
@@ -235,9 +242,6 @@ namespace Plugin.Application.Forms
                     HasPagination.Checked = false;
                     break;
             }
-            this._hasType = this._operation.OperationType != unknownType;
-            if (this._hasType) this._dirty = true;
-            CheckOk();
         }
 
         /// <summary>
@@ -405,26 +409,18 @@ namespace Plugin.Application.Forms
         {
             if (this._initializing) return;   // Ignore event during initialization.
             this._operation.PaginationIndicator = HasPagination.Checked;
-            this._operation.PublicAccessIndicator = OverrideSecurity.Checked;
             if (this._operation.RequestDocument != null)
             {
-                this._operation.RequestCardinality = new Cardinality(RequestOptional.Checked ? 0 : 1, RequestMultiple.Checked ? 0 : 1);
+                this._operation.UseRequestEncryption = ReqEncryption.Checked;
+                this._operation.UseRequestSigning = ReqSigning.Checked;
             }
             if (this._operation.ResponseDocument != null)
             {
-                this._operation.ResponseCardinality = new Cardinality(ResponseOptional.Checked ? 0 : 1, ResponseMultiple.Checked ? 0 : 1);
+                this._operation.UseResponseEncryption = RspEncryption.Checked;
+                this._operation.UseResponseSigning = RspSigning.Checked;
             }
             this._operation.UseHeaderParametersIndicator = UseHeaderParameters.Checked;
-            this._operation.UseLinkHeaderIndicator = UseLinkHeaders.Checked;
             this._dirty = true;
-
-            Logger.WriteInfo("Plugin.Application.Forms.RESTOperationDialog.IndicatorCheckedChanged >> Collected indicators: " + 
-                             "RequestCardinality =" + this._operation.RequestCardinality.ToString() + Environment.NewLine +
-                             "ResponseCardinality =" + this._operation.ResponseCardinality.ToString() + Environment.NewLine +
-                             "PaginationIndicator = " + this._operation.PaginationIndicator + Environment.NewLine +
-                             "LinkHeaderIndicator = " + this._operation.UseLinkHeaderIndicator + Environment.NewLine +
-                             "UseHeaderParametersIndicator = " + this._operation.UseHeaderParametersIndicator + Environment.NewLine +
-                             "PublicAccessIndicator = " + this._operation.PublicAccessIndicator);
         }
 
         /// <summary>
@@ -572,6 +568,50 @@ namespace Plugin.Application.Forms
         private void EditCollections_Click(object sender, EventArgs e)
         {
             this._responseManager.ManageCollection();
+        }
+
+        /// <summary>
+        /// This event is raised when the user leaves either the request cardinality upper- or lower boundary field.
+        /// We check the contents of the fields and create a new cardinality only if both fields have a value. In case
+        /// of illegal values, we raise a pop-up error.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void ReqCardinality_Leave(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(ReqCardLo.Text) && !string.IsNullOrEmpty(ReqCardHi.Text))
+                {
+                    this._operation.RequestCardinality = new Cardinality(ReqCardLo.Text + ".." + ReqCardHi.Text);
+                }
+            }
+            catch (IllegalCardinalityException)
+            {
+                MessageBox.Show("Provided cardinality value is not correct!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// This event is raised when the user leaves either the response cardinality upper- or lower boundary field.
+        /// We check the contents of the fields and create a new cardinality only if both fields have a value. In case
+        /// of illegal values, we raise a pop-up error.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void RspCardinality_Leave(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(RspCardLo.Text) && !string.IsNullOrEmpty(RspCardHi.Text))
+                {
+                    this._operation.ResponseCardinality = new Cardinality(RspCardLo.Text + ".." + RspCardHi.Text);
+                }
+            }
+            catch (IllegalCardinalityException)
+            {
+                MessageBox.Show("Provided cardinality value is not correct!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

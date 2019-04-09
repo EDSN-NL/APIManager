@@ -30,6 +30,14 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _RESTUseHeaderParametersTag        = "RESTUseHeaderParametersTag";
         private const string _RESTUseLinkHeaderTag              = "RESTUseLinkHeaderTag";
 
+        // Configuration properties for signing and encryption:
+        private const string _SigningClassName                  = "SigningClassName";
+        private const string _EncryptionClassName               = "EncryptionClassName";
+        private const string _RequestSigningRoleName            = "RequestSigningRoleName";
+        private const string _ResponseSigningRoleName           = "ResponseSigningRoleName";
+        private const string _RequestEncryptionRoleName         = "RequestEncryptionRoleName";
+        private const string _ResponseEncryptionRoleName        = "ResponseEncryptionRoleName";
+
         private RESTResourceCapability _parent;                 // Parent resource capability that owns this operation.
         private HTTPOperation _operationType;                   // The HTTP operation type associated with the operation.
         private List<string> _producedMIMETypes;                // List of non-standard MIME types produced by the operation.
@@ -40,7 +48,11 @@ namespace Plugin.Application.CapabilityModel.API
         private Cardinality _responseCardinality;               // Cardinality of response body document. Only valid if responseBodyDocument is specified.
         private bool _useHeaderParameters;                      // Set to 'true' when operation muse use configured Header Parameters.
         private bool _useLinkHeaders;                           // Set to 'true' when the response must contain a definition for Link Headers.
-        private bool _hasPagination;                            // Set to 'true' when the operation uses pagination.
+        private bool _usePagination;                            // Set to 'true' when the operation uses pagination.
+        private bool _useReqEncryption;                         // Set to 'true' when the operations uses request encryption. 
+        private bool _useRspEncryption;                         // Set to 'true' when the operations uses response encryption. 
+        private bool _useReqSigning;                            // Set to 'true' when the operations uses request signing. 
+        private bool _useRspSigning;                            // Set to 'true' when the operations uses response encryption. 
 
         /// <summary>
         /// Getters for class properties:
@@ -54,7 +66,11 @@ namespace Plugin.Application.CapabilityModel.API
         /// ResponseBodyDocument = If the operation has a default Ok response body, this gets/sets the associated Document Resource.
         /// RequestCardinality = Cardinality of request document (valid only if RequestBodyDocument is not NULL).
         /// ResponseCardinality = Cardinality of response document (valid only if ResponseBodyDocument is not NULL).
-        /// HasPagination = True of the operation has pagination support.
+        /// UsePagination = True if the operation has pagination support.
+        /// UseRequestSigning = True if the operation uses signing for request bodies.
+        /// UseResponseSigning = True if the operation uses signing for Ok-response bodies.
+        /// UseRequestEncryption = True if the operation uses encryption for request bodies.
+        /// UseResponseEncryption = True of the operation uses encryption for Ok-response bodies.
         /// </summary>
         internal HTTPOperation HTTPOperationType                { get { return this._operationType; } }
         internal bool UseHeaderParameters                       { get { return this._useHeaderParameters; } }
@@ -70,7 +86,11 @@ namespace Plugin.Application.CapabilityModel.API
         }
         internal Cardinality RequestCardinality                 { get { return this._requestCardinality; } }
         internal Cardinality ResponseCardinality                { get { return this._responseCardinality; } }
-        internal bool HasPagination                             { get { return this._hasPagination; } }
+        internal bool UsePagination                             { get { return this._usePagination; } }
+        internal bool UseRequestSigning                         { get { return this._useReqSigning; } }
+        internal bool UseResponseSigning                        { get { return this._useRspSigning; } }
+        internal bool UseRequestEncryption                      { get { return this._useReqEncryption; } }
+        internal bool UseResponseEncryption                     { get { return this._useRspEncryption; } }
 
         /// <summary>
         /// Returns the list of Operation Result capabilities for this Operation.
@@ -112,7 +132,11 @@ namespace Plugin.Application.CapabilityModel.API
                 this._requestBodyDocument = operation.RequestDocument;
                 this._responseBodyDocument = operation.ResponseDocument;
                 this._useHeaderParameters = operation.UseHeaderParametersIndicator;
-                this._hasPagination = operation.PaginationIndicator;
+                this._usePagination = operation.PaginationIndicator;
+                this._useReqEncryption = operation.UseRequestEncryption;
+                this._useRspEncryption = operation.UseResponseEncryption;
+                this._useReqSigning = operation.UseRequestSigning;
+                this._useRspSigning = operation.UseResponseSigning;
 
                 this._capabilityClass = OperationPackage.CreateClass(operation.Name, context.GetConfigProperty(_RESTOperationClassStereotype));
                 if (this._capabilityClass != null)
@@ -210,34 +234,77 @@ namespace Plugin.Application.CapabilityModel.API
 
                     // Check whether we have to use Pagination. If so, we first attempt to create an association with the Request Pagination parameters,
                     // followed by the Response Pagination parameters...
-                    if (operation.PaginationIndicator)
+                    string supportLocation = context.GetConfigProperty(_APISupportModelPathName);
+                    if (UsePagination)
                     {
-                        MEClass paginationClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName), 
-                                                                  context.GetConfigProperty(_RequestPaginationClassName));
+                        MEClass paginationClass = model.FindClass(supportLocation, context.GetConfigProperty(_RequestPaginationClassName));
                         if (paginationClass != null)
                         {
                             var paginationEndpoint = new EndpointDescriptor(paginationClass, "1", context.GetConfigProperty(_PaginationRoleName), null, true);
                             model.CreateAssociation(operationEndpoint, paginationEndpoint, MEAssociation.AssociationType.MessageAssociation);
-                            paginationClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
-                                                              context.GetConfigProperty(_ResponsePaginationClassName));
+                            paginationClass = model.FindClass(supportLocation, context.GetConfigProperty(_ResponsePaginationClassName));
                             if (paginationClass != null)
                             {
                                 paginationEndpoint = new EndpointDescriptor(paginationClass, "1", context.GetConfigProperty(_PaginationRoleName), null, true);
                                 model.CreateAssociation(operationEndpoint, paginationEndpoint, MEAssociation.AssociationType.MessageAssociation);
                             }
                             else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (declaration) >> Unable to retrieve Response Pagination class '" +
-                                                   context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_ResponsePaginationClassName) + "'!");
+                                                   supportLocation + "/" + context.GetConfigProperty(_ResponsePaginationClassName) + "'!");
 
                         }
-                        else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (declaration) >> Unable to retrieve Request Pagination class '" + 
-                                               context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_RequestPaginationClassName) + "'!");
+                        else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (declaration) >> Unable to retrieve Request Pagination class '" +
+                                               supportLocation + "/" + context.GetConfigProperty(_RequestPaginationClassName) + "'!");
+                    }
+
+                    // Check whether we need encryption...
+                    if (UseRequestEncryption || UseResponseEncryption)
+                    {
+                        MEClass encryptionClass = model.FindClass(supportLocation, context.GetConfigProperty(_EncryptionClassName));
+                        if (encryptionClass != null)
+                        {
+                            EndpointDescriptor encryptEndpoint;
+                            if (operation.UseRequestEncryption)
+                            {
+                                encryptEndpoint = new EndpointDescriptor(encryptionClass, "1", context.GetConfigProperty(_RequestEncryptionRoleName), null, true);
+                                model.CreateAssociation(operationEndpoint, encryptEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                            }
+                            if (operation.UseResponseEncryption)
+                            {
+                                encryptEndpoint = new EndpointDescriptor(encryptionClass, "1", context.GetConfigProperty(_ResponseEncryptionRoleName), null, true);
+                                model.CreateAssociation(operationEndpoint, encryptEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                            }
+                        }
+                        else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (declaration) >> Unable to retrieve Encryption class '" +
+                                                supportLocation + "/" + context.GetConfigProperty(_EncryptionClassName) + "'!");
+                    }
+
+                    // Check whether we need signing...
+                    if (UseRequestSigning || UseResponseSigning)
+                    {
+                        MEClass signingClass = model.FindClass(supportLocation, context.GetConfigProperty(_SigningClassName));
+                        if (signingClass != null)
+                        {
+                            EndpointDescriptor signingEndpoint;
+                            if (operation.UseRequestEncryption)
+                            {
+                                signingEndpoint = new EndpointDescriptor(signingClass, "1", context.GetConfigProperty(_RequestEncryptionRoleName), null, true);
+                                model.CreateAssociation(operationEndpoint, signingEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                            }
+                            if (operation.UseResponseEncryption)
+                            {
+                                signingEndpoint = new EndpointDescriptor(signingClass, "1", context.GetConfigProperty(_ResponseEncryptionRoleName), null, true);
+                                model.CreateAssociation(operationEndpoint, signingEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                            }
+                        }
+                        else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (declaration) >> Unable to retrieve Signing class '" +
+                                                supportLocation + "/" + context.GetConfigProperty(_EncryptionClassName) + "'!");
                     }
                     CreateLogEntry("Initial release.");
                 }
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (declaration) >> Error creating operation: " + exc.Message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (declaration) >> Error creating operation: " + exc.ToString());
                 this._capabilityClass = null;   // Assures that instance is declared invalid.
             }
         }
@@ -319,8 +386,15 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
 
-                this._hasPagination = false;
+                // Check whether we're using Pagination, Signing and/or Encryption...
+                this._usePagination = this._useReqEncryption = this._useRspEncryption = this._useReqSigning = this._useRspSigning = false;
                 string paginationClassName = context.GetConfigProperty(_RequestPaginationClassName);
+                string encryptionClassName = context.GetConfigProperty(_EncryptionClassName);
+                string signingClassName = context.GetConfigProperty(_SigningClassName);
+                string requestEncryptionRoleName = context.GetConfigProperty(_RequestEncryptionRoleName);
+                string responseEncryptionRoleName = context.GetConfigProperty(_ResponseEncryptionRoleName);
+                string requestSigningRoleName = context.GetConfigProperty(_RequestSigningRoleName);
+                string responseSigningRoleName = context.GetConfigProperty(_ResponseSigningRoleName);
                 foreach (MEAssociation association in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
                 {
                     if (association.Destination.EndPoint.HasStereotype(resourceStereotype))
@@ -333,8 +407,20 @@ namespace Plugin.Application.CapabilityModel.API
                     else if (association.Destination.EndPoint.Name == paginationClassName)
                     {
                         // With regard to pagination, we only look for the request class (it should have both a request- and a response)...
-                        this._hasPagination = true;
+                        this._usePagination = true;
                         break;
+                    }
+                    else if (association.Destination.EndPoint.Name == encryptionClassName)
+                    {
+                        // This can be either request- and/or response encryption, so we have to check the role name...
+                        if (association.Destination.Role == requestEncryptionRoleName) this._useReqEncryption = true;
+                        else if (association.Destination.Role == responseEncryptionRoleName) this._useRspEncryption = true;
+                    }
+                    else if (association.Destination.EndPoint.Name == signingClassName)
+                    {
+                        // This can be either request- and/or response signing, so we have to check the role name...
+                        if (association.Destination.Role == requestSigningRoleName) this._useReqSigning = true;
+                        else if (association.Destination.Role == responseSigningRoleName) this._useRspSigning = true;
                     }
                 }
             }
@@ -447,6 +533,9 @@ namespace Plugin.Application.CapabilityModel.API
 
                 // Make sure to update pagination: add if required and not there yet or remove if not required anymore...
                 UpdatePagination(operation.PaginationIndicator);
+
+                // Make sure to update signing and encryption: add if required and not there yet or remove if not required anymore...
+                UpdateSecurity(operation);
 
                 // (Re-)Load MIME Types...
                 if (this._consumedMIMETypes != operation.ConsumedMIMETypes || this._producedMIMETypes != operation.ProducedMIMETypes)
@@ -673,6 +762,40 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Helper class that either creates- or removes request or response encryption, depending on provided current- and end states.
+        /// </summary>
+        /// <param name="isResponse">True when the call is for Response Encryption, false for Request Encryption.</param>
+        /// <param name="hasEncryption">Whether we currently have request/response encryption enabled (current-state).</param>
+        /// <param name="mustHaveEncryption">Whether we must have request/response encryption enabled (end-state).</param>
+        /// <param name="currentAssoc">Reference to request/response association if current state is 'enabled'.</param>
+        /// <param name="encryptionClass">Reference to the encryption class if we already have an association with that class.</param>
+        private void UpdateEncryption(bool isResponse, bool hasEncryption, bool mustHaveEncryption, MEAssociation currentAssoc, MEClass encryptionClass)
+        {
+            if (hasEncryption == mustHaveEncryption) return;    // Current state is already correct, do nothing!
+
+            if (hasEncryption && !mustHaveEncryption)           // We have encryption but don't need it anymore, get rid of association...
+            {
+                this._capabilityClass.DeleteAssociation(currentAssoc);
+            }
+            else                                                // We don't have encryption but must get it now. Create the appropriate association...
+            {
+                ContextSlt context = ContextSlt.GetContextSlt();
+                ModelSlt model = ModelSlt.GetModelSlt();
+                var operationEndpoint = new EndpointDescriptor(this._capabilityClass, "1", this._assignedRole, null, true);
+                if (encryptionClass == null) encryptionClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
+                                                                               context.GetConfigProperty(_EncryptionClassName));
+                if (encryptionClass != null)
+                {
+                    var encryptionEndpoint = new EndpointDescriptor(encryptionClass, "1", context.GetConfigProperty(isResponse ? _ResponseEncryptionRoleName : _RequestEncryptionRoleName), null, true);
+                    model.CreateAssociation(operationEndpoint, encryptionEndpoint, MEAssociation.AssociationType.MessageAssociation);
+
+                }
+                else Logger.WriteError("Plugin.Application.CapabilityModel.API.UpdateSigning >> Unable to retrieve Encryption class '" +
+                                       context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_EncryptionClassName) + "'!");
+            }
+        }
+
+        /// <summary>
         /// This helper method is used to update the Operation Result object specified by the 'result' parameter.
         /// Depending on the result status, a new entry is created, an existing entry removed or an existing entry is updated.
         /// </summary>
@@ -717,6 +840,109 @@ namespace Plugin.Application.CapabilityModel.API
                         }
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Helper method that updates the current security settings (signing and/or encryption): add them if required, remove if not required anymore.
+        /// </summary>
+        /// <param name="updatedOperation">Contains the (possibly changed) security settings.</param>
+        private void UpdateSecurity(RESTOperationDeclaration updatedOperation)
+        {
+            // We use this to indicate what association to change...
+            const bool _Request = false;
+            const bool _Response = true;
+
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string encryptionClassName = context.GetConfigProperty(_EncryptionClassName);
+            string signingClassName = context.GetConfigProperty(_SigningClassName);
+            string requestEncryptionRoleName = context.GetConfigProperty(_RequestEncryptionRoleName);
+            string responseEncryptionRoleName = context.GetConfigProperty(_ResponseEncryptionRoleName);
+            string requestSigningRoleName = context.GetConfigProperty(_RequestSigningRoleName);
+            string responseSigningRoleName = context.GetConfigProperty(_ResponseSigningRoleName);
+            MEAssociation requestSigningAssoc = null;
+            MEAssociation responseSigningAssoc = null;
+            MEAssociation requestEncryptionAssoc = null;
+            MEAssociation responseEncryptionAssoc = null;
+            MEClass signingClass = null;
+            MEClass encryptionClass = null;
+            bool hasRequestSigning = false;
+            bool hasResponseSigning = false;
+            bool hasRequestEncryption = false;
+            bool hasResponseEncryption = false;
+
+            // First of all, collect existing associations and work from there...
+            foreach (MEAssociation assoc in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+            {
+                if (assoc.Destination.EndPoint.Name == signingClassName)
+                {
+                    signingClass = assoc.Destination.EndPoint;
+                    // This can be either request- and/or response signing, so we have to check the role name...
+                    if (assoc.Destination.Role == requestSigningRoleName)
+                    {
+                        requestSigningAssoc = assoc;
+                        hasRequestSigning = true;
+                    }
+                    else if (assoc.Destination.Role == responseSigningRoleName)
+                    {
+                        responseSigningAssoc = assoc;
+                        hasResponseSigning = true;
+                    }
+                }
+                else if (assoc.Destination.EndPoint.Name == encryptionClassName)
+                {
+                    encryptionClass = assoc.Destination.EndPoint;
+                    // This can be either request- and/or response encryption, so we have to check the role name...
+                    if (assoc.Destination.Role == requestEncryptionRoleName)
+                    {
+                        requestEncryptionAssoc = assoc;
+                        hasRequestEncryption = true;
+                    }
+                    else if (assoc.Destination.Role == responseEncryptionRoleName)
+                    {
+                        responseEncryptionAssoc = assoc;
+                        hasResponseEncryption = true;
+                    }
+                }
+            }
+
+            UpdateSigning(_Request, hasRequestSigning, updatedOperation.UseRequestSigning, requestSigningAssoc, signingClass);
+            UpdateSigning(_Response, hasResponseSigning, updatedOperation.UseResponseSigning, responseSigningAssoc, signingClass);
+            UpdateEncryption(_Request, hasRequestEncryption, updatedOperation.UseRequestEncryption, requestEncryptionAssoc, encryptionClass);
+            UpdateEncryption(_Response, hasResponseEncryption, updatedOperation.UseResponseEncryption, responseEncryptionAssoc, encryptionClass);
+        }
+
+        /// <summary>
+        /// Helper class that either creates- or removes request or response signing, depending on provided current- and end states.
+        /// </summary>
+        /// <param name="isResponse">True when the call is for Response Signing, false for Request Signing.</param>
+        /// <param name="hasSigning">Whether we currently have request/response signing enabled (current-state).</param>
+        /// <param name="mustHaveSigning">Whether we must have request/response signing enabled (end-state).</param>
+        /// <param name="currentAssoc">Reference to request/response association if current state is 'enabled'.</param>
+        /// <param name="signingClass">Reference to the signing class if we already have an association with that class.</param>
+        private void UpdateSigning(bool isResponse, bool hasSigning, bool mustHaveSigning, MEAssociation currentAssoc, MEClass signingClass)
+        {
+            if (hasSigning == mustHaveSigning) return;  // Current state is already correct, do nothing!
+
+            if (hasSigning && !mustHaveSigning)         // We have signing but don't need it anymore, get rid of association...
+            {
+                this._capabilityClass.DeleteAssociation(currentAssoc);
+            }
+            else                                        // We don't have signing but must get it now. Create the appropriate association...
+            {
+                ContextSlt context = ContextSlt.GetContextSlt();
+                ModelSlt model = ModelSlt.GetModelSlt();
+                var operationEndpoint = new EndpointDescriptor(this._capabilityClass, "1", this._assignedRole, null, true);
+                if (signingClass == null) signingClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
+                                                                         context.GetConfigProperty(_SigningClassName));
+                if (signingClass != null)
+                {
+                    var signingEndpoint = new EndpointDescriptor(signingClass, "1", context.GetConfigProperty(isResponse? _ResponseSigningRoleName: _RequestSigningRoleName), null, true);
+                    model.CreateAssociation(operationEndpoint, signingEndpoint, MEAssociation.AssociationType.MessageAssociation);
+
+                }
+                else Logger.WriteError("Plugin.Application.CapabilityModel.API.UpdateSigning >> Unable to retrieve Signing class '" +
+                                       context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_SigningClassName) + "'!");
             }
         }
     }

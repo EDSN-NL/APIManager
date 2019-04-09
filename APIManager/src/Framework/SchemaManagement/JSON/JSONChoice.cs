@@ -19,12 +19,14 @@ namespace Framework.Util.SchemaManagement.JSON
         /// Implementation of the JSON Property interface:
         /// Schema = Returns the JSON Schema object that implements the interface.
         /// Name = Returns the associated property name (role name of the association).
+        /// SchemaName = not implemented for choices, this is identical to calling Name.
         /// SequenceKey = Returns the sequence identifier of the association.
         /// IsMandatory = Returns true if the choice must be treated as a mandatory property of the owning schema. Note that this property
         /// is ONLY valid AFTER a call to FinalizeChoice!
         /// </summary>
         public JSchema JSchema          { get { return this.FinalizeChoice(); } }
         public new string Name          { get { return base.Name; } }
+        public string SchemaName        { get { return base.Name; } }
         public new int SequenceKey      { get { return base.SequenceKey; } }
         public bool IsMandatory         { get { return this._isMandatory; } }
 

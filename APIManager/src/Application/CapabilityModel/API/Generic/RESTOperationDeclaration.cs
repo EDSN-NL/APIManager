@@ -52,6 +52,10 @@ namespace Plugin.Application.CapabilityModel.API
         private bool _publicAccess;                                 // Security must be overruled for this operation.
         private bool _useHeaderParameters;                          // Operation uses configured Header Parameters.
         private bool _useLinkHeaders;                               // Operations uses response Link Headers.
+        private bool _useReqSigning;                                // Any request body must be signed.
+        private bool _useRspSigning;                                // Ok-response body must be signed.
+        private bool _useReqEncryption;                             // Any request body must be encrypted.
+        private bool _useRspEncryption;                             // Ok-response body must be encrypted.
         private SortedList<string, RESTOperationResultDeclaration> _resultList;     // Set of result declarations (one for each unique HTTP result code).
         private List<string> _producedMIMEList;                     // Non-standard MIME types produced by the operation.
         private List<string> _consumedMIMEList;                     // Non-standard MIME types consumed by the operation.
@@ -279,6 +283,70 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Get or set the request Encryption flag.
+        /// </summary>
+        internal bool UseRequestEncryption
+        {
+            get { return this._useReqEncryption; }
+            set
+            {
+                if (this._useReqEncryption != value)
+                {
+                    this._useReqEncryption = value;
+                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get or set the response Encryption flag.
+        /// </summary>
+        internal bool UseResponseEncryption
+        {
+            get { return this._useRspEncryption; }
+            set
+            {
+                if (this._useRspEncryption != value)
+                {
+                    this._useRspEncryption = value;
+                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get or set the request Signing flag.
+        /// </summary>
+        internal bool UseRequestSigning
+        {
+            get { return this._useReqSigning; }
+            set
+            {
+                if (this._useReqSigning != value)
+                {
+                    this._useReqSigning = value;
+                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get or set the response Signing flag.
+        /// </summary>
+        internal bool UseResponseSigning
+        {
+            get { return this._useRspSigning; }
+            set
+            {
+                if (this._useRspSigning != value)
+                {
+                    this._useRspSigning = value;
+                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                }
+            }
+        }
+
+        /// <summary>
         /// Compares the Operation Declaration against another object. If the other object is also an Operation Declaration, the 
         /// function returns true if both Declarations are of the same operation type and have the same name. In all other cases,
         /// the function returns false.
@@ -358,8 +426,8 @@ namespace Plugin.Application.CapabilityModel.API
             this._initialStatus = this.Status;
             this._requestDocument = null;
             this._responseDocument = null;
-            this._requestCardinality = new Cardinality();   // Default is 0..1
-            this._responseCardinality = new Cardinality();  // Default is 0..1
+            this._requestCardinality = new Cardinality(Cardinality._Mandatory);
+            this._responseCardinality = new Cardinality(Cardinality._Mandatory);
             this._hasPagination = false;
             this._publicAccess = false;
             this._producedMIMEList = new List<string>();
@@ -369,6 +437,10 @@ namespace Plugin.Application.CapabilityModel.API
             this._summaryText = string.Empty;
             this._useHeaderParameters = true;
             this._useLinkHeaders = false;
+            this._useReqEncryption = false;
+            this._useRspEncryption = false;
+            this._useReqSigning = false;
+            this._useRspSigning = false;
 
             CreateDefaultResults();
         }
@@ -386,7 +458,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._operationType = operation.HTTPOperationType;
             this._status = DeclarationStatus.Stable;
             this._initialStatus = DeclarationStatus.Stable;
-            this._hasPagination = operation.HasPagination;
+            this._hasPagination = operation.UsePagination;
             this._publicAccess = false;                                     // Not yet implemented!
             this._producedMIMEList = operation.ProducedMIMEList;
             this._consumedMIMEList = operation.ConsumedMIMEList;
@@ -396,6 +468,10 @@ namespace Plugin.Application.CapabilityModel.API
             this._useLinkHeaders = operation.UseLinkHeaders;
             this._summaryText = string.Empty;
             this._description = string.Empty;
+            this._useReqEncryption = operation.UseRequestEncryption;
+            this._useRspEncryption = operation.UseResponseEncryption;
+            this._useReqSigning = operation.UseRequestSigning;
+            this._useRspSigning = operation.UseResponseSigning;
 
             // Extract documentation from the class. This can be a multi-line object in which the first line might be the 'summary' description...
             List<string> documentation = MEChangeLog.GetDocumentationAsTextLines(operation.CapabilityClass);
@@ -796,13 +872,12 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         private void CreateDefaultResults()
         {
-            // Simplified response: only OK and default Error supported by default.
             this._resultList = new SortedList<string, RESTOperationResultDeclaration>();
             var defaultOk = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Success);
             var defaultResponse = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Default);
             this._resultList.Add(defaultOk.ResultCode, defaultOk);
 
-            /*************
+            /************* No more default responses (for now)
             this._resultList.Add(defaultResponse.ResultCode, defaultResponse);
 
             // Associate the default error responses with a parameter type...
