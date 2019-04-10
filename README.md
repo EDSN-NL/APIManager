@@ -10,3 +10,7 @@ The goal of the APIManager is generate interface specification based on standard
 
 # License
 [License file](https://github.com/wmeijers/APIManager/blob/master/APIManagerSetup/license.rtf)
+
+# Git
+Some files are big. Please read this regarding GIT Collaboration using LFS:
+[Collaboration with GIT Large File Storage](https://help.github.com/en/articles/collaboration-with-git-large-file-storage)
