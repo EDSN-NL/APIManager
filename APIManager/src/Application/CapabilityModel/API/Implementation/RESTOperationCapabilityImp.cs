@@ -24,6 +24,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _PaginationRoleName                = "PaginationRoleName";
         private const string _APISupportModelPathName           = "APISupportModelPathName";
         private const string _DefaultSuccessCode                = "DefaultSuccessCode";
+        private const string _AltSuccessCode                    = "AltSuccessCode";
         private const string _DefaultResponseCode               = "DefaultResponseCode";
         private const string _ConsumesMIMEListTag               = "ConsumesMIMEListTag";
         private const string _ProducesMIMEListTag               = "ProducesMIMEListTag";
@@ -219,17 +220,22 @@ namespace Plugin.Application.CapabilityModel.API
 
                     // Create Response Object classes for each operation result declaration...
                     string defaultSuccess = context.GetConfigProperty(_DefaultSuccessCode);
+                    string altSuccess = context.GetConfigProperty(_AltSuccessCode);
                     foreach (RESTOperationResultDeclaration result in operation.OperationResults)
                     {
-                        if (this._responseBodyDocument != null && result.ResultCode == defaultSuccess)
+                        if (result.IsValid)  // Make sure to process only valid records!
                         {
-                            // If we need a response body, this must be linked to the default success result capability.
-                            // We assign the associated document class with the result parameter so it will be linked to the result class.
-                            result.ResponseCardinality = operation.ResponseCardinality;
-                            result.ResponseDocumentClass = this._responseBodyDocument.CapabilityClass;
+                            if (this._responseBodyDocument != null && (result.ResultCode == defaultSuccess || result.ResultCode == altSuccess))
+                            {
+                                // If we need a response body, this must be linked to the default success result capability.
+                                // We assign the associated document class with the result parameter so it will be linked to the result class.
+                                // We must differentiate between default success and alternative success codes.
+                                result.ResponseCardinality = operation.ResponseCardinality;
+                                result.ResponseDocumentClass = this._responseBodyDocument.CapabilityClass;
+                            }
+                            RESTOperationResultCapability newResult = new RESTOperationResultCapability(myInterface, result);
+                            newResult.InitialiseParent(myInterface);
                         }
-                        RESTOperationResultCapability newResult = new RESTOperationResultCapability(myInterface, result);
-                        newResult.InitialiseParent(myInterface);
                     }
 
                     // Check whether we have to use Pagination. If so, we first attempt to create an association with the Request Pagination parameters,
@@ -354,7 +360,6 @@ namespace Plugin.Application.CapabilityModel.API
                 // Construct all associated operation results...
                 string operationResultStereotype = context.GetConfigProperty(_RESTOperationResultStereotype);
                 string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
-                string defaultSuccess = ContextSlt.GetContextSlt().GetConfigProperty(_DefaultSuccessCode);
                 var myInterface = new RESTOperationCapability(this);
                 foreach (TreeNode<MEClass> node in hierarchy.Children)
                 {
@@ -368,7 +373,7 @@ namespace Plugin.Application.CapabilityModel.API
                             this._capabilityClass = null;
                             return;
                         }
-                        if (resultCap.ResultCode == defaultSuccess) this._responseCardinality = resultCap.ResponseCardinality;
+                        if (resultCap.Category == RESTOperationResultCapability.ResponseCategory.Success) this._responseCardinality = resultCap.ResponseCardinality;
                     }
                     else if (node.Data.HasStereotype(resourceStereotype))
                     {
@@ -620,14 +625,15 @@ namespace Plugin.Application.CapabilityModel.API
 
                 // Create Response Object classes for each operation result declaration...
                 string defaultSuccess = context.GetConfigProperty(_DefaultSuccessCode);
+                string altSuccess = context.GetConfigProperty(_AltSuccessCode);
                 this._responseBodyDocument = operation.ResponseDocument;
                 foreach (RESTOperationResultDeclaration result in operation.OperationResults)
                 {
                     // We need to perform a little trick in case of response body definitions: the associated Document Resource has been assigned
                     // to the Operation and not to the Operation Result. However, it must be passed to the appropriate result in order to properly
-                    // establish the association. So, we must check whether we have 'caught' the default OK response and if so, patch the Result
+                    // establish the association. So, we must check whether we have 'caught' the default- or alternative OK response and if so, patch the Result
                     // Declaration object so it holds the class reference...
-                    if (result.ResultCode == defaultSuccess)
+                    if (result.ResultCode == defaultSuccess || result.ResultCode == altSuccess)
                     {
                         MEClass newResponseClass = operation.ResponseDocument != null ? operation.ResponseDocument.CapabilityClass : null;
                         if (result.ResponseDocumentClass != newResponseClass)

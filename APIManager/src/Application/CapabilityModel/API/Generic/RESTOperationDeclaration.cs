@@ -866,6 +866,35 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Search the list of Operation Result Declarations for an entry with 'existingCode'. If found, it is replaced by a new declaration
+        /// with code 'newCode'. If existingCode is not found, the function will not perform any operations.
+        /// </summary>
+        /// <param name="existingCode">Code to replace.</param>
+        /// <param name="newCode">Code that has to replace existingCode (must be different code)</param>
+        /// <returns></returns>
+        internal RESTOperationResultDeclaration SwapOperationResult(string existingCode, string newCode)
+        {
+            RESTOperationResultDeclaration activeResult = null;
+            if (!string.IsNullOrEmpty(existingCode) && !string.IsNullOrEmpty(newCode) && existingCode != newCode && this._resultList.ContainsKey(existingCode))
+            {
+                this._resultList[existingCode].Status = RESTOperationResultDeclaration.DeclarationStatus.Deleted;
+                if (!this._resultList.ContainsKey(newCode))
+                {
+                    activeResult = new RESTOperationResultDeclaration(newCode);
+                    this._resultList.Add(newCode, activeResult);
+                }
+                else
+                {
+                    // We set the status of the 'activated' result code to 'Edited' to make sure it's processed lateron.
+                    activeResult = this._resultList[newCode];
+                    activeResult.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
+                }
+                if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+            }
+            return activeResult;
+        }
+
+        /// <summary>
         /// Helper method that initialises the Operation Result list with four default responses: Default OK, Default Client Error, 
         /// Default Server Error and Generic (default) Error.
         /// WME 20180918: We removed the default response!

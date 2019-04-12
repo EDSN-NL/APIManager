@@ -135,6 +135,28 @@ namespace Plugin.Application.CapabilityModel.API
             }
 
             /// <summary>
+            /// Helper function that takes a code and fetches the default description text for that code.
+            /// </summary>
+            /// <param name="code">Code to translate.</param>
+            /// <returns>Associated description or empty string in case of illegal codes.</returns>
+            static internal string CodeToDescription(string code)
+            {
+                ContextSlt context = ContextSlt.GetContextSlt();
+                if (code != context.GetConfigProperty(_DefaultResponseCode))
+                {
+                    var category = (RESTOperationResultCapability.ResponseCategory)(int.Parse(code[0].ToString()));
+                    var result = new RESTOperationResultDeclaration(category);
+                    List<CodeDescriptor> codes = result.GetResponseCodes();
+                    foreach (CodeDescriptor dsc in codes)
+                    {
+                        if (dsc.Code == code) return dsc.Description;
+                    }
+                    return string.Empty;
+                }
+                else return context.GetConfigProperty(_DefaultResponseDescription);
+            }
+
+            /// <summary>
             /// Helper function that takes a code and translates this into a human-friendly label.
             /// </summary>
             /// <param name="code">Code to translate.</param>
@@ -246,6 +268,19 @@ namespace Plugin.Application.CapabilityModel.API
         {
             get { return this._status; }
             set { this._status = value; }
+        }
+
+        /// <summary>
+        /// Returns 'true' if the declaration record has a valid status.
+        /// </summary>
+        internal bool IsValid
+        {
+            get
+            {
+                return this._status == DeclarationStatus.Created ||
+                       this._status == DeclarationStatus.Edited ||
+                       this._status == DeclarationStatus.Stable;
+            }
         }
 
         /// <summary>
@@ -425,6 +460,22 @@ namespace Plugin.Application.CapabilityModel.API
             this._status = this._initialStatus = DeclarationStatus.Stable;
             this._responseCardinality = new Cardinality();
             if (type == null) AssignParameterClass();   // If we did not receive an explicit class, assign implicit one.
+        }
+
+        /// <summary>
+        /// Constructor that accepts a code only. The constructor retrieves the default description for this code.
+        /// </summary>
+        /// <param name="code">HTTP Result code to be associated with this result.</param>
+        internal RESTOperationResultDeclaration(string code)
+        {
+            this._resultCode = this._originalCode = code;
+            this._description = CodeDescriptor.CodeToDescription(code);
+            this._responseDocumentClass = null;
+            this._category = (RESTOperationResultCapability.ResponseCategory)(int.Parse(code[0].ToString()));
+            this._defaultResponseCode = ContextSlt.GetContextSlt().GetConfigProperty(_DefaultResponseCode);
+            this._status = this._initialStatus = DeclarationStatus.Stable;
+            this._responseCardinality = new Cardinality();
+            AssignParameterClass();
         }
 
         /// <summary>

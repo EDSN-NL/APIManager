@@ -14,6 +14,7 @@ namespace Plugin.Application.Forms
     {
         // Configuration properties used by this module:
         private const string _DefaultSuccessCode        = "DefaultSuccessCode";
+        private const string _AltSuccessCode            = "AltSuccessCode";
         private const string _DefaultResponseCode       = "DefaultResponseCode";
 
         private RESTOperationDeclaration _operation;    // The operation we're constructing or editing.
@@ -24,6 +25,7 @@ namespace Plugin.Application.Forms
         private bool _initializing;                     // Set to 'true' during construction to suppress unwanted events.
         private RESTResourceDeclaration _parent;        // Parent resource of this operation.
         private RESTResponseCodeCollectionMgr _responseManager;     // Response code collection manager.
+        private RESTOperationResultDeclaration _currentOkResult;    // Either default OK or alternative OK .
 
         /// <summary>
         /// Returns 'true' when Operation Minor Version must be updated.
@@ -153,12 +155,25 @@ namespace Plugin.Application.Forms
             }
 
             // Load the result codes from the received operation declaration...
+            string defaultOk = ContextSlt.GetContextSlt().GetConfigProperty(_DefaultSuccessCode);
+            string altOk = ContextSlt.GetContextSlt().GetConfigProperty(_AltSuccessCode);
+            string requiredOkResult = this._operation.OperationType.TypeEnum == HTTPOperation.Type.Post? altOk: defaultOk;
+
             foreach (RESTOperationResultDeclaration resultDecl in operation.OperationResults)
             {
-                if (resultDecl.Status != RESTOperationResultDeclaration.DeclarationStatus.Invalid)
+                var listDecl = resultDecl;
+                if (listDecl.Status != RESTOperationResultDeclaration.DeclarationStatus.Invalid)
                 {
-                    ListViewItem newItem = new ListViewItem(resultDecl.ResultCode);
-                    newItem.SubItems.Add(resultDecl.Description);
+                    if (listDecl.ResultCode == requiredOkResult) this._currentOkResult = listDecl;
+                    else if (listDecl.ResultCode == defaultOk || listDecl.ResultCode == altOk)
+                    {
+                        // We have an Ok resultcode that does not match the currently selected operation. Must change!
+                        this._currentOkResult = operation.SwapOperationResult(resultDecl.ResultCode, requiredOkResult);
+                        listDecl = this._currentOkResult;
+                    }
+                    ListViewItem newItem = new ListViewItem(listDecl.ResultCode);
+                    newItem.Name = listDecl.ResultCode;
+                    newItem.SubItems.Add(listDecl.Description);
                     ResponseCodeList.Items.Add(newItem);
                 }
             }
@@ -203,6 +218,21 @@ namespace Plugin.Application.Forms
                 this._hasType = this._operation.OperationType != unknownType;
                 if (this._hasType) this._dirty = true;
                 CheckOk();
+
+                // We're going to check whether we selected a 'POST' operation, in which case we need an alternative 'Ok' result code...
+                ContextSlt context = ContextSlt.GetContextSlt();
+                string newCode = this._operation.OperationType.TypeEnum == HTTPOperation.Type.Post ? context.GetConfigProperty(_AltSuccessCode) :
+                                                                                                     context.GetConfigProperty(_DefaultSuccessCode);
+                if (this._currentOkResult.ResultCode != newCode)
+                {
+                    ResponseCodeList.Items.RemoveByKey(this._currentOkResult.ResultCode);
+                    this._currentOkResult = this._operation.SwapOperationResult(this._currentOkResult.ResultCode, newCode);
+
+                    ListViewItem newItem = new ListViewItem(this._currentOkResult.ResultCode);
+                    newItem.Name = this._currentOkResult.ResultCode;
+                    newItem.SubItems.Add(this._currentOkResult.Description);
+                    ResponseCodeList.Items.Add(newItem);
+                }
             }
 
             // Depending on the selected operation type, some parameters / settings should be enabled and/or disabled...
@@ -303,6 +333,7 @@ namespace Plugin.Application.Forms
             if (result != null && result.Status != RESTOperationResultDeclaration.DeclarationStatus.Invalid)
             {
                 ListViewItem newItem = new ListViewItem(result.ResultCode);
+                newItem.Name = result.ResultCode;
                 newItem.SubItems.Add(result.Description);
                 ResponseCodeList.Items.Add(newItem);
                 this._dirty = true;
@@ -339,7 +370,7 @@ namespace Plugin.Application.Forms
             {
                 ListViewItem key = ResponseCodeList.SelectedItems[0];
                 ContextSlt context = ContextSlt.GetContextSlt();
-                if (key.Text != context.GetConfigProperty(_DefaultSuccessCode))
+                if (key.Text != this._currentOkResult.ResultCode)
                 {
                     this._operation.DeleteOperationResult(key.Text);
                     ResponseCodeList.Items.Remove(key);
@@ -552,6 +583,7 @@ namespace Plugin.Application.Forms
                 if (ResponseCodeList.FindItemWithText(result.ResultCode) == null && this._operation.AddOperationResult(result))
                 {
                     ListViewItem newItem = new ListViewItem(result.ResultCode);
+                    newItem.Name = result.ResultCode;
                     newItem.SubItems.Add(result.Description);
                     ResponseCodeList.Items.Add(newItem);
                     this._dirty = true;
