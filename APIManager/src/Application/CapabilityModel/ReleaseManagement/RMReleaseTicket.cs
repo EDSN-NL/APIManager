@@ -61,60 +61,66 @@ namespace Plugin.Application.CapabilityModel
 
         /// <summary>
         /// Constructor that loads a Release Ticket based on an existing UML Release Ticket class and it's associated Service Ticket.
+        /// When Release Management is disabled, the constructor does not perform any actions and the class properties are set to 
+        /// suitable default values.
         /// </summary>
         /// <param name="ticketClass">Class that represents the ticket.</param>
         /// <exception cref="ArgumentException">Is thrown when the provided class is not a Service Ticket.</exception>
         internal RMReleaseTicket(MEClass releaseTicketClass, RMServiceTicket serviceTicket) : base(releaseTicketClass)
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMReleaseTicket >> Retrieving existing instance '" + releaseTicketClass.Name + "'...");
-
-            ContextSlt context = ContextSlt.GetContextSlt();
-            if (!releaseTicketClass.HasStereotype(context.GetConfigProperty(_RMReleaseStereotype)))
+            if (IsReleaseManagementEnabled)
             {
-                string message = "Plugin.Application.CapabilityModel.RMServiceTicket >> Provided class '" + releaseTicketClass.Name + "' is not a Release Ticket!";
-                Logger.WriteError(message);
-                throw new ArgumentException(message);
-            }
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.RMReleaseTicket >> Retrieving existing instance '" + releaseTicketClass.Name + "'...");
 
-            string releaseVersion = releaseTicketClass.GetTag(context.GetConfigProperty(_RMReleaseVersionNumberTag));
-            if (!int.TryParse(releaseVersion, out this._releaseVersion))
-            {
-                string message = "Plugin.Application.CapabilityModel.RMServiceTicket >> Provided class '" + releaseTicketClass.Name +
-                                 "' has an illegal version '" + releaseVersion + "'!";
-                Logger.WriteError(message);
-                throw new ArgumentException(message);
-            }
-
-            // Check whether we can find the provided Service Ticket...
-            string ticketRole = context.GetConfigProperty(_RMTicketRole);
-            bool ticketFound = false;
-            foreach (MEAssociation assoc in releaseTicketClass.AssociationList)
-            {
-                if (assoc.Destination.Role == ticketRole && assoc.Destination.EndPoint.Name == serviceTicket.GetQualifiedID())
+                ContextSlt context = ContextSlt.GetContextSlt();
+                if (!releaseTicketClass.HasStereotype(context.GetConfigProperty(_RMReleaseStereotype)))
                 {
-                    ticketFound = true;
-                    break;
+                    string message = "Plugin.Application.CapabilityModel.RMServiceTicket >> Provided class '" + releaseTicketClass.Name + "' is not a Release Ticket!";
+                    Logger.WriteError(message);
+                    throw new ArgumentException(message);
                 }
-            }
-            if (!ticketFound)
-            {
-                string message = "Plugin.Application.CapabilityModel.RMServiceTicket >> Provided Release Ticket '" + releaseTicketClass.Name +
-                                 "does not have an association with '" + serviceTicket.GetQualifiedID() + "'!";
-                Logger.WriteError(message);
-                throw new ArgumentException(message);
-            }
-            this._serviceTicket = serviceTicket;
 
-            // We now set the modification date/time of the release ticket to the current date and time and we update the release version in the service ticket...
-            this.TicketClass.SetTag(context.GetConfigProperty(_RMModificationTimestampTag), DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
-            this._serviceTicket.UpdateReleasedVersion();
+                string releaseVersion = releaseTicketClass.GetTag(context.GetConfigProperty(_RMReleaseVersionNumberTag));
+                if (!int.TryParse(releaseVersion, out this._releaseVersion))
+                {
+                    string message = "Plugin.Application.CapabilityModel.RMServiceTicket >> Provided class '" + releaseTicketClass.Name +
+                                     "' has an illegal version '" + releaseVersion + "'!";
+                    Logger.WriteError(message);
+                    throw new ArgumentException(message);
+                }
+
+                // Check whether we can find the provided Service Ticket...
+                string ticketRole = context.GetConfigProperty(_RMTicketRole);
+                bool ticketFound = false;
+                foreach (MEAssociation assoc in releaseTicketClass.AssociationList)
+                {
+                    if (assoc.Destination.Role == ticketRole && assoc.Destination.EndPoint.Name == serviceTicket.GetQualifiedID())
+                    {
+                        ticketFound = true;
+                        break;
+                    }
+                }
+                if (!ticketFound)
+                {
+                    string message = "Plugin.Application.CapabilityModel.RMServiceTicket >> Provided Release Ticket '" + releaseTicketClass.Name +
+                                     "does not have an association with '" + serviceTicket.GetQualifiedID() + "'!";
+                    Logger.WriteError(message);
+                    throw new ArgumentException(message);
+                }
+                this._serviceTicket = serviceTicket;
+
+                // We now set the modification date/time of the release ticket to the current date and time and we update the release version in the service ticket...
+                this.TicketClass.SetTag(context.GetConfigProperty(_RMModificationTimestampTag), DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+                this._serviceTicket.UpdateReleasedVersion();
+            }
         }
 
         /// <summary>
         /// The constructor creates a new release ticket based on the specified 'Service Ticket' and release version.
         /// If a release ticket with the exact same ID (and version) already exists (but associated with another service), we only add the
         /// new Service Ticket. This implies that for each service that is part of a release, we can just create a new RMReleaseTicket
-        /// object, which will all be associated with the same UML Release Ticket.
+        /// object, which will all be associated with the same UML Release Ticket. When Release Management is disabled, the
+        /// constructor does not perform any actions and the class properties are set to suitable default values.
         /// </summary>
         /// <param name="ticketID">Identifier of the ticket we want to create/connect to.</param>
         /// <param name="releaseVersion">Optional release version. When not specified, we search for the latest release and link to that
@@ -124,8 +130,10 @@ namespace Plugin.Application.CapabilityModel
         /// <exception cref="ArgumentException">Is thrown when the specified ticketID does not yield a valid ticket or when no valid PO number has been specified.</exception>
         internal RMReleaseTicket(RMServiceTicket serviceTicket, int releaseVersion = 0): base(serviceTicket.ID, serviceTicket.ProjectOrderID)
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMReleaseTicket >> Creating release for Ticket '" + 
-                             serviceTicket.ProjectName + "/" + serviceTicket.ID + "." + releaseVersion + "' for service '" + serviceTicket.TrackedService.Name + "'...");
+            if (!IsReleaseManagementEnabled) return;
+
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMReleaseTicket >> Creating release for Ticket '" +
+                 serviceTicket.ProjectName + "/" + serviceTicket.ID + "." + releaseVersion + "' for service '" + serviceTicket.TrackedService.Name + "'...");
 
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
@@ -214,31 +222,48 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
-        /// Checks whether this Release Ticket has an association with the provided Service Ticket.
+        /// A dummy ticket can only be created when Release Management is disabled. In that case, we create an empty ticket
+        /// and operations on the ticket will yield no effect. When an attempt is made to create dummy tickets while Release Management
+        /// is enabled, the base classs constructor will throw an InvalidOperationException!
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Is thrown when an attempt is made to create a dummy ticket while Release
+        /// Management is active.</exception>
+        internal RMReleaseTicket() : base()
+        {
+            this._releaseVersion = 0;
+            this._serviceTicket = null;
+        }
+
+        /// <summary>
+        /// Checks whether this Release Ticket has an association with the provided Service Ticket. When Release Management is disabled,
+        /// the function performs no operations and always returns false!
         /// </summary>
         /// <param name="svcTicket">Ticket to check.</param>
-        /// <returns>True when an association with the specified Service Ticket exists, false oterwise.</returns>
+        /// <returns>True when an association with the specified Service Ticket exists (and RM is enabled), false otherwise.</returns>
         internal bool HasServiceTicket(RMServiceTicket svcTicket)
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMReleaseTicket.HasServiceTicket >> Check for association between '" + 
-                             this.GetQualifiedID() + "' and '" + svcTicket.GetQualifiedID() + "'...");
-
-            // First of all, we retrieve all Tickets with identical qualified ID...
-            List<MEClass> ticketList =  this.TicketClass.FindAssociatedClasses(svcTicket.GetQualifiedID(),
-                                                                               ContextSlt.GetContextSlt().GetConfigProperty(_RMTicketStereotype));
-            if (ticketList.Count > 0)
+            if (IsReleaseManagementEnabled)
             {
-                // At least one existing association, check whether they are associated with the same Service...
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.RMReleaseTicket.HasServiceTicket >> Found some tickets...");
-                int myServiceID = svcTicket.TrackedService.ServiceClass.ElementID;
-                foreach (MEClass ticket in ticketList)
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.RMReleaseTicket.HasServiceTicket >> Check for association between '" +
+                                 this.GetQualifiedID() + "' and '" + svcTicket.GetQualifiedID() + "'...");
+
+                // First of all, we retrieve all Tickets with identical qualified ID...
+                List<MEClass> ticketList = this.TicketClass.FindAssociatedClasses(svcTicket.GetQualifiedID(),
+                                                                                   ContextSlt.GetContextSlt().GetConfigProperty(_RMTicketStereotype));
+                if (ticketList.Count > 0)
                 {
-                    foreach(MEAssociation assoc in ticket.AssociationList)
+                    // At least one existing association, check whether they are associated with the same Service...
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.RMReleaseTicket.HasServiceTicket >> Found some tickets...");
+                    int myServiceID = svcTicket.TrackedService.ServiceClass.ElementID;
+                    foreach (MEClass ticket in ticketList)
                     {
-                        if (assoc.Destination.EndPoint.ElementID == myServiceID)
+                        foreach (MEAssociation assoc in ticket.AssociationList)
                         {
-                            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMReleaseTicket.HasServiceTicket >> Found Service association!");
-                            return true;
+                            if (assoc.Destination.EndPoint.ElementID == myServiceID)
+                            {
+                                Logger.WriteInfo("Plugin.Application.CapabilityModel.RMReleaseTicket.HasServiceTicket >> Found Service association!");
+                                return true;
+                            }
                         }
                     }
                 }
@@ -248,12 +273,15 @@ namespace Plugin.Application.CapabilityModel
 
         /// <summary>
         /// Creates a new instance of an UML Release Ticket Class in the specified package and diagram. We don't need to load all tags since this
-        /// will be coordinated by the base class.
+        /// will be coordinated by the base class. When Release Management is disabled, the function performs no operations and always returns null!
         /// </summary>
         /// <param name="ticketPackage">Package that should contain the new ticket.</param>
         /// <param name="ticketDiagram">Diagram that should show the new ticket.</param>
+        /// <returns>Created ticket class or NULL in case of errors or RM disabled.</returns>
         protected override MEClass CreateNewTicketClass(MEPackage ticketPackage, Diagram ticketDiagram)
         {
+            if (!IsReleaseManagementEnabled) return null;
+
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
 
@@ -329,37 +357,54 @@ namespace Plugin.Application.CapabilityModel
 
         /// <summary>
         /// We search through the list of Release Tickets with the same name and return the one with the highest version (or NULL when no
-        /// tickets are available).
+        /// tickets are available). When Release Management is disabled, the function always returns null!
         /// </summary>
-        /// <returns>Class representing the latest release or NULL when no match found.</returns>
+        /// <returns>Class representing the latest release or NULL when no match found (or RM disabled).</returns>
         private MEClass GetLatestVersion()
         {
             MEClass targetTicket = null;
-            ContextSlt context = ContextSlt.GetContextSlt();
-            string releaseClassStereotype = context.GetConfigProperty(_RMReleaseStereotype);
-            string versionTag = context.GetConfigProperty(_RMReleaseVersionNumberTag);
-            int foundReleaseVersion = 0;
-
-            if (TicketPackage == null) return null;     // Ticket package does not (yet) exists, nothing found!
-
-            // Locate all Classes that have the specified name fragment and stereotype. Note that the order in which the classes are 
-            // returned is unspecified...
-            foreach (MEClass ticket in TicketPackage.FindClasses(ProjectName + "/" + ID, releaseClassStereotype))
+            if (IsReleaseManagementEnabled)
             {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.RMReleaseTicket.GetPreviousRelease >> Inspecting Ticket '" + ticket.Name + "'...");
-                int thisVersion = 0;
-                if (int.TryParse(ticket.GetTag(versionTag), out thisVersion))
+                ContextSlt context = ContextSlt.GetContextSlt();
+                string releaseClassStereotype = context.GetConfigProperty(_RMReleaseStereotype);
+                string versionTag = context.GetConfigProperty(_RMReleaseVersionNumberTag);
+                int foundReleaseVersion = 0;
+
+                if (TicketPackage == null) return null;     // Ticket package does not (yet) exists, nothing found!
+
+                // Locate all Classes that have the specified name fragment and stereotype. Note that the order in which the classes are 
+                // returned is unspecified...
+                foreach (MEClass ticket in TicketPackage.FindClasses(ProjectName + "/" + ID, releaseClassStereotype))
                 {
-                    if (thisVersion > foundReleaseVersion)
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.RMReleaseTicket.GetPreviousRelease >> Inspecting Ticket '" + ticket.Name + "'...");
+                    int thisVersion = 0;
+                    if (int.TryParse(ticket.GetTag(versionTag), out thisVersion))
                     {
-                        foundReleaseVersion = thisVersion;
-                        targetTicket = ticket;
+                        if (thisVersion > foundReleaseVersion)
+                        {
+                            foundReleaseVersion = thisVersion;
+                            targetTicket = ticket;
+                        }
                     }
                 }
             }
             Logger.WriteInfo("Plugin.Application.CapabilityModel.RMReleaseTicket.GetPreviousRelease >> Returning Class '" + 
                              (targetTicket != null? targetTicket.Name: "-NOTHING-") + "'...");
             return targetTicket;
+        }
+
+        /// <summary>
+        /// Helper function that initializes class properties to suitable defaults in case Release Management is off.
+        /// </summary>
+        /// <returns>True when RM is enabled, false otherwise.</returns>
+        private bool HasRMEnabled()
+        {
+            if (!IsReleaseManagementEnabled)
+            {
+                this._releaseVersion = 0;
+                this._serviceTicket = null;
+            }
+            return IsReleaseManagementEnabled;
         }
     }
 }

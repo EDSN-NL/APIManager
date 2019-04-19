@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
 using Framework.Util;
-using Framework.Logging;
 using Framework.Context;
 using Framework.Exceptions;
 using Framework.ConfigurationManagement;

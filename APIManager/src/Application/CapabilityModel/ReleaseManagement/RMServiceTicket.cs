@@ -54,50 +54,56 @@ namespace Plugin.Application.CapabilityModel
 
         /// <summary>
         /// Constructor that loads a Service Ticket based on an existing UML Ticket class and its Tracked Service.
+        /// When Release Management is disabled, the constructor does not perform any actions and the class properties 
+        /// are set to suitable default values.
         /// </summary>
         /// <param name="ticketClass">Class that represents the ticket.</param>
         /// <param name="trackedService">the Service for which we are administering the ticket.</param>
         /// <exception cref="ArgumentException">Is thrown when the provided class is not a Service Ticket.</exception>
         internal RMServiceTicket(MEClass ticketClass, Service trackedService): base(ticketClass)
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket >> Retrieving existing instance '" + ticketClass.Name + 
-                             "' for Service '" + trackedService.Name + "...");
-
-            ContextSlt context = ContextSlt.GetContextSlt();
-            if (!ticketClass.HasStereotype(context.GetConfigProperty(_RMTicketStereotype)))
+            if (IsReleaseManagementEnabled)
             {
-                string message = "Plugin.Application.CapabilityModel.RMServiceTicket >> Provided class '" + ticketClass.Name + "' is not a Service Ticket!";
-                Logger.WriteError(message);
-                throw new ArgumentException(message);
-            }
-            this._trackedService = trackedService;
-            this._status = Ticket.Closed ? Status.Closed : Status.Open;
-            this._typeCode = EnumConversions<TypeCode>.StringToEnum(ticketClass.GetTag(context.GetConfigProperty(_RMTypeCodeTag)));
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket >> Retrieving existing instance '" + ticketClass.Name +
+                 "' for Service '" + trackedService.Name + "...");
 
-            // Check whether we can find the provided Service...
-            string serviceRole = context.GetConfigProperty(_RMServiceRole);
-            bool svcFound = false;
-            foreach (MEAssociation assoc in ticketClass.AssociationList)
-            {
-                if (assoc.Destination.Role == serviceRole && assoc.Destination.EndPoint.ElementID == trackedService.ServiceClass.ElementID)
+                ContextSlt context = ContextSlt.GetContextSlt();
+                if (!ticketClass.HasStereotype(context.GetConfigProperty(_RMTicketStereotype)))
                 {
-                    svcFound = true;
-                    break;
+                    string message = "Plugin.Application.CapabilityModel.RMServiceTicket >> Provided class '" + ticketClass.Name + "' is not a Service Ticket!";
+                    Logger.WriteError(message);
+                    throw new ArgumentException(message);
                 }
-            }
-            if (!svcFound)
-            {
-                string message = "Plugin.Application.CapabilityModel.RMServiceTicket >> Provided Service Ticket '" + ticketClass.Name +
-                                 "does not have an association with Service '" + trackedService.Name + "'!";
-                Logger.WriteError(message);
-                throw new ArgumentException(message);
+                this._trackedService = trackedService;
+                this._status = Ticket.Closed ? Status.Closed : Status.Open;
+                this._typeCode = EnumConversions<TypeCode>.StringToEnum(ticketClass.GetTag(context.GetConfigProperty(_RMTypeCodeTag)));
+
+                // Check whether we can find the provided Service...
+                string serviceRole = context.GetConfigProperty(_RMServiceRole);
+                bool svcFound = false;
+                foreach (MEAssociation assoc in ticketClass.AssociationList)
+                {
+                    if (assoc.Destination.Role == serviceRole && assoc.Destination.EndPoint.ElementID == trackedService.ServiceClass.ElementID)
+                    {
+                        svcFound = true;
+                        break;
+                    }
+                }
+                if (!svcFound)
+                {
+                    string message = "Plugin.Application.CapabilityModel.RMServiceTicket >> Provided Service Ticket '" + ticketClass.Name +
+                                     "does not have an association with Service '" + trackedService.Name + "'!";
+                    Logger.WriteError(message);
+                    throw new ArgumentException(message);
+                }
             }
         }
 
         /// <summary>
         /// The constructor checks whether a ticket with the specified ID already exists for the specified service. If not, it is created as a new
         /// ticket instance. If the ticket is already there, we simply collect the meta data.
-        /// The constructor also creates the necessary package and diagrams when these do not yet exist.
+        /// The constructor also creates the necessary package and diagrams when these do not yet exist. When Release Management is disabled, the
+        /// constructor does not perform any actions and the class properties are set to suitable default values.
         /// </summary>
         /// <param name="ticketID">Identifier of the ticket we want to create/connect to.</param>
         /// <param name="projectOrderID=">Project Order Identifier associated with the ticket.</param>
@@ -105,25 +111,30 @@ namespace Plugin.Application.CapabilityModel
         /// <exception cref="ArgumentException">Is thrown when the specified ticketID does not yield a valid ticket or when no valid PO number has been specified.</exception>
         internal RMServiceTicket(string ticketID, string projectOrderID, Service trackedService): base(ticketID, projectOrderID)
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket >> Creating instance for Ticket '" + ticketID +
-                             "' and Service '" + trackedService.Name + "'...");
-            ContextSlt context = ContextSlt.GetContextSlt();
-            this._trackedService = trackedService;
-
-            // This will either receive an existing ticket of force creation of a new one...
-            LoadTicketClass(trackedService.DeclarationPkg, ContextSlt.GetContextSlt().GetConfigProperty(_RMTicketStereotype));
-            if (IsExistingTicket)
+            if (IsReleaseManagementEnabled)
             {
-                // In case of loading an existing ticket, make sure to read our in-memory properties...
-                this._status = Ticket.Closed ? Status.Closed : Status.Open;
-                this._typeCode = EnumConversions<TypeCode>.StringToEnum(this.TicketClass.GetTag(context.GetConfigProperty(_RMTypeCodeTag)));
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket >> Creating instance for Ticket '" + ticketID +
+                 "' and Service '" + trackedService.Name + "'...");
+
+                ContextSlt context = ContextSlt.GetContextSlt();
+                this._trackedService = trackedService;
+
+                // This will either receive an existing ticket of force creation of a new one...
+                LoadTicketClass(trackedService.DeclarationPkg, ContextSlt.GetContextSlt().GetConfigProperty(_RMTicketStereotype));
+                if (IsExistingTicket)
+                {
+                    // In case of loading an existing ticket, make sure to read our in-memory properties...
+                    this._status = Ticket.Closed ? Status.Closed : Status.Open;
+                    this._typeCode = EnumConversions<TypeCode>.StringToEnum(this.TicketClass.GetTag(context.GetConfigProperty(_RMTypeCodeTag)));
+                }
             }
         }
 
         /// <summary>
         /// The constructor receives a remote Ticket as an argument and checks whether the ticket already exists for the specified service. 
         /// If not, it is created as a new ticket instance. If the ticket is already there, we simply collect the meta data.
-        /// The constructor also creates the necessary package and diagrams when these do not yet exist.
+        /// The constructor also creates the necessary package and diagrams when these do not yet exist. When Release Management is disabled, the
+        /// constructor does not perform any actions and the class properties are set to suitable default values.
         /// </summary>
         /// <param name="remoteTicket">Ticket instance from remote ticket server.</param>
         /// <param name="projectOrderID=">Project Order Identifier associated with the ticket.</param>
@@ -131,19 +142,37 @@ namespace Plugin.Application.CapabilityModel
         /// <exception cref="ArgumentException">Is thrown when the specified ticketID does not yield a valid ticket or when no valid PO number has been specified.</exception>
         internal RMServiceTicket(Ticket remoteTicket, string projectOrderID, Service trackedService) : base(remoteTicket, projectOrderID)
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket >> Creating instance for Ticket '" + remoteTicket.ID +
-                             "' and Service '" + trackedService.Name + "'...");
-            ContextSlt context = ContextSlt.GetContextSlt();
-            this._trackedService = trackedService;
-
-            // This will either receive an existing ticket of force creation of a new one...
-            LoadTicketClass(trackedService.DeclarationPkg, ContextSlt.GetContextSlt().GetConfigProperty(_RMTicketStereotype));
-            if (IsExistingTicket)
+            if (IsReleaseManagementEnabled)
             {
-                // In case of loading an existing ticket, make sure to read our in-memory properties...
-                this._status = Ticket.Closed ? Status.Closed : Status.Open;
-                this._typeCode = EnumConversions<TypeCode>.StringToEnum(this.TicketClass.GetTag(context.GetConfigProperty(_RMTypeCodeTag)));
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket >> Creating instance for Ticket '" + remoteTicket.ID +
+                                 "' and Service '" + trackedService.Name + "'...");
+
+                ContextSlt context = ContextSlt.GetContextSlt();
+                this._trackedService = trackedService;
+
+                // This will either receive an existing ticket of force creation of a new one...
+                LoadTicketClass(trackedService.DeclarationPkg, ContextSlt.GetContextSlt().GetConfigProperty(_RMTicketStereotype));
+                if (IsExistingTicket)
+                {
+                    // In case of loading an existing ticket, make sure to read our in-memory properties...
+                    this._status = Ticket.Closed ? Status.Closed : Status.Open;
+                    this._typeCode = EnumConversions<TypeCode>.StringToEnum(this.TicketClass.GetTag(context.GetConfigProperty(_RMTypeCodeTag)));
+                }
             }
+        }
+
+        /// <summary>
+        /// A dummy ticket can only be created when Release Management is disabled. In that case, we create an empty ticket
+        /// and operations on the ticket will yield no effect. When an attempt is made to create dummy tickets while Release Management
+        /// is enabled, the base class constructor will throw an InvalidOperationException!
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Is thrown when an attempt is made to create a dummy ticket while Release
+        /// Management is active.</exception>
+        internal RMServiceTicket(): base()
+        {
+            this._trackedService = null;
+            this._status = Status.Unknown;
+            this._typeCode = TypeCode.Unknown;
         }
 
         /// <summary>
@@ -159,11 +188,15 @@ namespace Plugin.Application.CapabilityModel
         /// <summary>
         /// Creates a new instance of an UML Ticket Class in the specified package and diagram. We don't need to load all tags since this
         /// will be coordinated by te base class.
+        /// When Release Management is disabled, the function does not perform any operations and always returns NULL;
         /// </summary>
         /// <param name="ticketPackage">Package that should contain the new ticket.</param>
         /// <param name="ticketDiagram">Diagram that should show the new ticket.</param>
+        /// <returns>The created UNL Ticket Classs or null in case of errors or RM is disabled.</returns>
         protected override MEClass CreateNewTicketClass(MEPackage ticketPackage, Diagram ticketDiagram)
         {
+            if (!IsRMEnabled()) return null;
+
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
             var diagramAssocList = new List<MEAssociation>();
@@ -229,73 +262,99 @@ namespace Plugin.Application.CapabilityModel
 
         /// <summary>
         /// Updates the model with the current 'release version' of our tracked service. Typically, this is called from a Release Ticket constructor at the moment 
-        /// that the release is actually registered.
+        /// that the release is actually registered. When Release Management is off, the function does not perform any operations.
         /// </summary>
         internal void UpdateReleasedVersion()
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket.UpdateReleasedVersion >> Syncing version...");
-            ContextSlt context = ContextSlt.GetContextSlt();
-            string version = this._trackedService.Version.Item1 + "." +
-                             this._trackedService.Version.Item2 + "." +
-                             this._trackedService.BuildNumber;
-            TicketClass.SetTag(context.GetConfigProperty(_RMReleasedVersionTag), version, MEClass.CreateNewTag);
+            if (IsReleaseManagementEnabled)
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket.UpdateReleasedVersion >> Syncing version...");
+                ContextSlt context = ContextSlt.GetContextSlt();
+                string version = this._trackedService.Version.Item1 + "." +
+                                 this._trackedService.Version.Item2 + "." +
+                                 this._trackedService.BuildNumber;
+                TicketClass.SetTag(context.GetConfigProperty(_RMReleasedVersionTag), version, MEClass.CreateNewTag);
+            }
         }
 
         /// <summary>
         /// Copies relevant attributes from the (Jira) ticket to our UML ticket class.
+        /// When Release Management is off, the function does not perform any operations.
         /// </summary>
         internal override void UpdateTicket()
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket.UpdateTicket >> Syncing ticket data...");
-            ContextSlt context = ContextSlt.GetContextSlt();
-            base.UpdateTicket();   // First of all, we copy the generic properties.
-            string version = this._trackedService.Version.Item1 + "." + 
-                             this._trackedService.Version.Item2 + "." + 
-                             this._trackedService.BuildNumber;
+            if (IsReleaseManagementEnabled)
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket.UpdateTicket >> Syncing ticket data...");
+                ContextSlt context = ContextSlt.GetContextSlt();
+                base.UpdateTicket();   // First of all, we copy the generic properties.
+                string version = this._trackedService.Version.Item1 + "." +
+                                 this._trackedService.Version.Item2 + "." +
+                                 this._trackedService.BuildNumber;
 
-            TicketClass.SetTag(context.GetConfigProperty(_RMExternalPriorityTag), Ticket.Priority);
-            TicketClass.SetTag(context.GetConfigProperty(_RMExternalStatusCodeTag), Ticket.Status);
-            TicketClass.SetTag(context.GetConfigProperty(_RMTypeCodeTag), EnumConversions<TypeCode>.EnumToString(this._typeCode), MEClass.CreateNewTag);
-            TicketClass.SetTag(context.GetConfigProperty(_RMReleasedVersionTag), version, MEClass.CreateNewTag);
-            TicketClass.SetTag(context.GetConfigProperty(_RMCreationTimestampTag), Ticket.CreationTimestamp.ToString());
-            TicketClass.SetTag(context.GetConfigProperty(_RMModificationTimestampTag), Ticket.UpdateTimestamp.ToString());
+                TicketClass.SetTag(context.GetConfigProperty(_RMExternalPriorityTag), Ticket.Priority);
+                TicketClass.SetTag(context.GetConfigProperty(_RMExternalStatusCodeTag), Ticket.Status);
+                TicketClass.SetTag(context.GetConfigProperty(_RMTypeCodeTag), EnumConversions<TypeCode>.EnumToString(this._typeCode), MEClass.CreateNewTag);
+                TicketClass.SetTag(context.GetConfigProperty(_RMReleasedVersionTag), version, MEClass.CreateNewTag);
+                TicketClass.SetTag(context.GetConfigProperty(_RMCreationTimestampTag), Ticket.CreationTimestamp.ToString());
+                TicketClass.SetTag(context.GetConfigProperty(_RMModificationTimestampTag), Ticket.UpdateTimestamp.ToString());
+            }
         }
 
         /// <summary>
         /// Find the end of the ticket timeline, which must be the only ticket in our ticket package that does not have a child 
         /// relationship (e.g. the end of the chain).
         /// To find this, we iterate through all tickets in the package and check outgoing timeline associations.
+        /// When Release Management is off, the function does not perform any operations and always returns null.
         /// </summary>
         /// <returns>End of the timeline or NULL when nothing there yet.</returns>
         private MEClass GetTimelineTail(MEPackage ticketPackage)
         {
             MEClass tail = null;
-            ContextSlt context = ContextSlt.GetContextSlt();
-            string ticketClassStereotype = context.GetConfigProperty(_RMTicketStereotype);
-            string parentRole = context.GetConfigProperty(_RMTimelineParentRole);
-
-            foreach (MEClass ticket in ticketPackage.GetClasses(ticketClassStereotype))
+            if (IsReleaseManagementEnabled)
             {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket.GetTimelineTail >> Inspecting Ticket '" + ticket.Name + "'...");
-                bool isParent = false;
-                foreach (MEAssociation assoc in ticket.AssociationList)
+                ContextSlt context = ContextSlt.GetContextSlt();
+                string ticketClassStereotype = context.GetConfigProperty(_RMTicketStereotype);
+                string parentRole = context.GetConfigProperty(_RMTimelineParentRole);
+
+                foreach (MEClass ticket in ticketPackage.GetClasses(ticketClassStereotype))
                 {
-                    if (assoc.Source.Role == parentRole)
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket.GetTimelineTail >> Inspecting Ticket '" + ticket.Name + "'...");
+                    bool isParent = false;
+                    foreach (MEAssociation assoc in ticket.AssociationList)
                     {
-                        isParent = true;
+                        if (assoc.Source.Role == parentRole)
+                        {
+                            isParent = true;
+                            break;
+                        }
+                    }
+
+                    // There should be exactly ONE ticket without this parent role, so the moment we found it, we're done.
+                    if (!isParent)
+                    {
+                        tail = ticket;
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket.GetTimelineTail >> Found tail '" + ticket.Name + "'...");
                         break;
                     }
                 }
-
-                // There should be exactly ONE ticket without this parent role, so the moment we found it, we're done.
-                if (!isParent)
-                {
-                    tail = ticket;
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.RMServiceTicket.GetTimelineTail >> Found tail '" + ticket.Name + "'...");
-                    break;
-                }
             }
             return tail;
+        }
+
+        /// <summary>
+        /// Helper function that initializes class properties to suitable defaults in case Release Management is off.
+        /// </summary>
+        /// <returns>True when RM is enabled, false otherwise.</returns>
+        private bool HasRMEnabled()
+        {
+            if (!IsReleaseManagementEnabled)
+            {
+                this._trackedService = null;
+                this._status = Status.Unknown;
+                this._typeCode = TypeCode.Unknown;
+            }
+            return IsReleaseManagementEnabled;
         }
     }
 }

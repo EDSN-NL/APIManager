@@ -26,6 +26,7 @@ namespace Framework.ConfigurationManagement
         private const string _NoChanges = "No changes";     // Check GIT response status for 'no changes made'.
         private const string _CertError = "unknown certificate check failure";  // Check GIT response status for 'certificate errors'.
         private const string _RemoteName = "origin";
+        private const string _Conflict = "conflicts prevent checkout";          // Failed to switch to a branch 'cause of conflicts.
 
         private static readonly CMRepositorySlt _repositorySlt = new CMRepositorySlt();     // The singleton repository instance.
 
@@ -261,13 +262,8 @@ namespace Framework.ConfigurationManagement
             Branch target = null;
             if (this._gitRepository != null)
             {
-                target = this._gitRepository.Branches[targetBranch];
-                if (target != null)
-                {
-                    Commands.Checkout(this._gitRepository, target);
-                    this._currentBranch = target;
-                }
-                else
+                target = DoCheckout(targetBranch);
+                if (target == null)
                 {
                     // Branch is not in our 'current branches' list, but it might exist on remote...
                     try
@@ -285,6 +281,7 @@ namespace Framework.ConfigurationManagement
                             Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.GotoBranch >> " + msg);
                             throw new ArgumentException(msg);
                         }
+                        this._currentBranch = target;
                     }
                     catch (Exception exc)
                     {
@@ -325,15 +322,13 @@ namespace Framework.ConfigurationManagement
             HasRepository("Merge");
 
             // Since we must merge with target, make sure we're on that target...
-            Branch target = this._gitRepository.Branches[targetBranch];
+            Branch target = DoCheckout(targetBranch);
             if (target == null)
             {
                 string message = "Branch '" + targetBranch + "' not found!";
                 Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.Merge >> " + message);
                 throw new ArgumentException(message);
             }
-            Commands.Checkout(this._gitRepository, target);
-            this._currentBranch = target;
 
             Branch branch = this._gitRepository.Branches[thisBranch];
             if (branch == null)
@@ -431,16 +426,13 @@ namespace Framework.ConfigurationManagement
             HasRepository("RemoveBranch");
 
             // First of all, switch to the target branch so we're sure not to delete our current head!
-            Branch target = this._gitRepository.Branches[targetBranch];
+            Branch target = DoCheckout(targetBranch);
             if (target == null)
             {
                 string msg = "Target branch '" + targetBranch + "' could not be found on a remove branch operation!";
                 Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.RemoveBranch >> " + msg);
                 throw new ArgumentException(msg);
             }
-
-            Commands.Checkout(this._gitRepository, target);
-            this._currentBranch = target;
 
             Branch deleteBranch = this._gitRepository.Branches[thisBranch];
             if (deleteBranch != null)
@@ -453,7 +445,7 @@ namespace Framework.ConfigurationManagement
         /// <summary>
         /// The function activates the child-branch with given name. If the branch does not yet exist, it is created. On return, the branch has been
         /// made the active branch in the repository (checked-out).
-        /// The new branch is created from the specified parent branch and is pushed to remote.
+        /// The new branch is created from the specified parent branch and is pushed to remote (if not yet existing).
         /// </summary>
         /// <param name="childBranch">Name of branch to activate.</param>
         /// <param name="parentBranch">Name of the branch from which we create the child.</param>
@@ -471,23 +463,23 @@ namespace Framework.ConfigurationManagement
             Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.SetBranch >> Going to switch to child branch '" + childBranch + "'...");
             if (this._currentBranch != null && this._currentBranch.FriendlyName == childBranch) return;     // We're already on the correct branch!
 
+            Branch parent, branch;
             try
             {
-                // First of all, make sure that we are on the correct parent (to get the HEAD right)...
-                Branch parent = this._gitRepository.Branches[parentBranch];
-                if (parent == null)
-                {
-                    string msg = "Specified parent branch '" + parentBranch + "' does not exist!";
-                    Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.SetBranch >> " + msg);
-                    throw new ArgumentException(msg);
-                }
-                if (this._currentBranch == null || this._currentBranch.FriendlyName != parentBranch)
-                    this._currentBranch = Commands.Checkout(this._gitRepository, parent);  // Assign to current in case something goes wrong below!
-   
-                Branch branch = this._gitRepository.Branches[childBranch];
+                // If the branch already exists, we can switch to it directly....
+                branch = DoCheckout(childBranch);
                 if (branch == null)
                 {
-                    Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.SetChildBranch >> New branch!");
+                    // Branch does not exist, switch to parent before creating it...
+                    parent = DoCheckout(parentBranch);
+                    if (parent == null)
+                    {
+                        string msg = "Specified parent branch '" + parentBranch + "' does not exist!";
+                        Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.SetBranch >> " + msg);
+                        throw new ArgumentException(msg);
+                    }
+
+                    Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.SetChildBranch >> Creating new branch '" + childBranch + "'...");
                     branch = this._gitRepository.CreateBranch(childBranch);
                     if (branch == null)
                     {
@@ -495,14 +487,14 @@ namespace Framework.ConfigurationManagement
                         Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.SetBranch >> " + msg);
                         throw new ArgumentException(msg);
                     }
+                    DoCheckout(childBranch);
+                    this._remote.UpdateBranches();          // Instructs remote to track this new branch as well.
                 }
-                this._currentBranch = Commands.Checkout(this._gitRepository, branch);
-                this._remote.UpdateBranches();          // Instructs remote to track this new branch as well.
             }
             catch (Exception exc)
             {
                 string message = "Failed to switch to branch '" + childBranch + "' because: " + exc.Message;
-                Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.SetChildBranch >> " + message);
+                Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.SetChildBranch >> " + message + Environment.NewLine + exc.ToString());
                 throw new ArgumentException(message, exc);
             }
         }
@@ -566,6 +558,42 @@ namespace Framework.ConfigurationManagement
                 this._hasRepository = false;
             }
 
+        }
+
+        /// <summary>
+        /// Helper function that attempts to perform a checkout of the specified branch. It first attempts a 'regular' checkout. If this results
+        /// in conflict errors, the function performs a 'forced checkout', which will effectively discard the conflicting files.
+        /// If we're already on the requested branch, the function does not perform any operations and simply returns the current branch.
+        /// Note that the function DOES set the 'Current Branch' class property to the checked-out branch!
+        /// </summary>
+        /// <param name="branchName">Branch to be checked-out.</param>
+        /// <returns>Checked-out branch or NULL if a branch with the specified name does not exist.</returns>
+        private Branch DoCheckout(string branchName)
+        {
+            Branch target = this._gitRepository.Branches[branchName];
+            if (target != null)
+            {
+                // If the current branch is equal to the requeted branch, do nothing since our branch is already checked-out!
+                if (this._currentBranch != null && this._currentBranch.FriendlyName == branchName) return this._currentBranch;
+
+                try
+                {
+                    Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.DoCheckout >> Checkout branch '" + target.FriendlyName + "'...");
+                    target = Commands.Checkout(this._gitRepository, target.FriendlyName);
+                }
+                catch (Exception exc)
+                {
+                    if (exc.Message.Contains(_Conflict))
+                    {
+                        Logger.WriteWarning("Can't checkout branch '" + target.FriendlyName + "', attempting brute-force...!");
+                        var checkoutOptions = new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force };
+                        target = Commands.Checkout(this._gitRepository, target, checkoutOptions);
+                    }
+                    else throw;
+                }
+            }
+            if (target != null) this._currentBranch = target;
+            return target;
         }
 
         /// <summary>

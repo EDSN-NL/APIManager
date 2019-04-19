@@ -98,6 +98,7 @@ namespace Plugin.Application.Forms
                 ListViewItem newItem = new ListViewItem(dsc.Name);
                 newItem.SubItems.Add(dsc.Description);
                 newItem.SubItems.Add(dsc.IsCMEnabled? "yes": "no");
+                newItem.SubItems.Add(dsc.IsRMEnabled ? "yes" : "no");
                 ResponseCodeList.Items.Add(newItem);
             }
 
@@ -287,6 +288,7 @@ namespace Plugin.Application.Forms
                 _name = string.Empty,
                 _description = string.Empty,
                 _useCM = false,
+                _useRM = false,
                 _GITIgnore = string.Empty,
                 _identity = null,
                 _remotePassword = null,
@@ -307,6 +309,7 @@ namespace Plugin.Application.Forms
                         ListViewItem newItem = new ListViewItem(dialog.Properties._name);
                         newItem.SubItems.Add(dialog.Properties._description);
                         newItem.SubItems.Add(dialog.Properties._useCM ? "yes" : "no");
+                        newItem.SubItems.Add(dialog.Properties._useRM ? "yes" : "no");
                         ResponseCodeList.Items.Add(newItem);
                     }
                     else MessageBox.Show("A repository with this name already exists!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -357,6 +360,7 @@ namespace Plugin.Application.Forms
                             myItem.SubItems[0].Text = dialog.Properties._name;
                             myItem.SubItems[1].Text = dialog.Properties._description;
                             myItem.SubItems[2].Text = dialog.Properties._useCM ? "yes" : "no";
+                            myItem.SubItems[3].Text = dialog.Properties._useRM ? "yes" : "no";
                         }
                         else MessageBox.Show("Renaming repository resulted in duplicate name, please try again!", 
                                              "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);

@@ -48,7 +48,7 @@ namespace Plugin.Application.CapabilityModel
         /// <summary>
         /// The name of the capability is defined by the name of the capability class.
         /// </summary>
-        internal string Name { get { return this._capabilityClass.Name; } }
+        internal string Name { get { return this._capabilityClass != null? this._capabilityClass.Name: "--NONAME--"; } }
 
         /// <summary>
         /// Returns the parent Capability of this Capability (if defined). Null indicates no parent.

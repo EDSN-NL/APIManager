@@ -33,14 +33,25 @@ namespace Plugin.Application.Forms
                 // Split the tag in its separate components, which are separated by '/' characters:
                 // 'feature/<ticket-id>/<buss-function.container/<service>_V<major>P<minor>B<build>'
                 // For the tree, we will only use <ticket-id> and <service>+<version>.
+                // When RM is disabled, we have to consider tags that only have three elements (ticket-part is missing)!
                 string[] tagElements = tag.Split('/');
-                if (tagElements.Length == 4)    // To comply with our standard, a tag must contain exactly 4 fields.
+                if (tagElements.Length == 4)
                 {
                     string key = tagElements[1];
                     TreeNode myNode;
                     if (!FeatureTags.Nodes.ContainsKey(key)) myNode = FeatureTags.Nodes.Add(key, key);
                     else myNode = FeatureTags.Nodes[key];
                     TreeNode childNode = new TreeNode(tagElements[3]);
+                    childNode.Tag = tag;
+                    myNode.Nodes.Add(childNode);
+                }
+                else if (tagElements.Length == 3)    // When RM is disabled, the 'ticket part' is missing.
+                {
+                    string key = tagElements[1];     // This will be the business function and container now.
+                    TreeNode myNode;
+                    if (!FeatureTags.Nodes.ContainsKey(key)) myNode = FeatureTags.Nodes.Add(key, key);
+                    else myNode = FeatureTags.Nodes[key];
+                    TreeNode childNode = new TreeNode(tagElements[2]);
                     childNode.Tag = tag;
                     myNode.Nodes.Add(childNode);
                 }

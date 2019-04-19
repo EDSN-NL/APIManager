@@ -1,5 +1,6 @@
 ﻿using System;
 using Atlassian.Jira;
+using Framework.Logging;
 
 namespace Framework.ConfigurationManagement
 {
@@ -8,6 +9,8 @@ namespace Framework.ConfigurationManagement
     /// </summary>
     sealed internal class Ticket
     {
+        private const string _NoTicket = "Empty";   // Used as default contents when RM is not active.
+
         private string _ticketID;           // Ticket key.
         private string _projectID;          // Identifier of project containing the ticket.
         private string _projectName;        // Name of project containing the ticket.
@@ -71,6 +74,34 @@ namespace Framework.ConfigurationManagement
             this._assignee = issue.Assignee;
             this._created = (DateTime)issue.Created;
             this._updated = (DateTime)issue.Updated;
+        }
+
+        /// <summary>
+        /// The default constructor is used when RM is not active. We create a dummy ticket in this case.
+        /// When we attempt to use the default constructor while RM is active, the constructor throws an InvalidOperationException!
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the default constructor is used while RM is enabled.</exception>
+        internal Ticket()
+        {
+            if (!CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor().IsRMEnabled)
+            {
+                this._ticketID = _NoTicket;
+                this._projectID = _NoTicket;
+                this._projectName = _NoTicket;
+                this._type = _NoTicket;
+                this._status = _NoTicket;
+                this._priority = _NoTicket;
+                this._summary = _NoTicket;
+                this._assignee = _NoTicket;
+                this._created = DateTime.Now;
+                this._updated = DateTime.Now;
+            }
+            else
+            {
+                string msg = "Attempt to create a dummy Ticket while Release Management is enabled!";
+                Logger.WriteError("Framework.ConfigurationManagement.Ticket >> " + msg);
+                throw new InvalidOperationException(msg);
+            }
         }
     }
 }

@@ -57,6 +57,7 @@ namespace Plugin.Application.Forms
             this.label3_3 = new System.Windows.Forms.Label();
             this.EMailAddress = new System.Windows.Forms.TextBox();
             this.GenericBox = new System.Windows.Forms.GroupBox();
+            this.ReleaseMgmtIndicator = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.JIRAGroup = new System.Windows.Forms.GroupBox();
@@ -191,9 +192,9 @@ namespace Plugin.Application.Forms
             this.ConfigurationMgmtIndicator.AutoSize = true;
             this.ConfigurationMgmtIndicator.Location = new System.Drawing.Point(237, 21);
             this.ConfigurationMgmtIndicator.Name = "ConfigurationMgmtIndicator";
-            this.ConfigurationMgmtIndicator.Size = new System.Drawing.Size(244, 17);
+            this.ConfigurationMgmtIndicator.Size = new System.Drawing.Size(175, 17);
             this.ConfigurationMgmtIndicator.TabIndex = 2;
-            this.ConfigurationMgmtIndicator.Text = "Use Configuration Management for this project";
+            this.ConfigurationMgmtIndicator.Text = "Use Configuration Management";
             this.ConfigurationMgmtIndicator.UseVisualStyleBackColor = true;
             this.ConfigurationMgmtIndicator.CheckedChanged += new System.EventHandler(this.ConfigurationMgmtIndicator_CheckedChanged);
             // 
@@ -299,6 +300,7 @@ namespace Plugin.Application.Forms
             // 
             // GenericBox
             // 
+            this.GenericBox.Controls.Add(this.ReleaseMgmtIndicator);
             this.GenericBox.Controls.Add(this.EAProjectDescription);
             this.GenericBox.Controls.Add(this.label1_2);
             this.GenericBox.Controls.Add(this.ConfigurationMgmtIndicator);
@@ -310,6 +312,17 @@ namespace Plugin.Application.Forms
             this.GenericBox.TabIndex = 1;
             this.GenericBox.TabStop = false;
             this.GenericBox.Text = "General settings";
+            // 
+            // ReleaseMgmtIndicator
+            // 
+            this.ReleaseMgmtIndicator.AutoSize = true;
+            this.ReleaseMgmtIndicator.Location = new System.Drawing.Point(418, 21);
+            this.ReleaseMgmtIndicator.Name = "ReleaseMgmtIndicator";
+            this.ReleaseMgmtIndicator.Size = new System.Drawing.Size(152, 17);
+            this.ReleaseMgmtIndicator.TabIndex = 4;
+            this.ReleaseMgmtIndicator.Text = "Use Release Management";
+            this.ReleaseMgmtIndicator.UseVisualStyleBackColor = true;
+            this.ReleaseMgmtIndicator.CheckedChanged += new System.EventHandler(this.ReleaseMgmtIndicator_CheckedChanged);
             // 
             // label5
             // 
@@ -342,7 +355,7 @@ namespace Plugin.Application.Forms
             this.JIRAGroup.Size = new System.Drawing.Size(615, 109);
             this.JIRAGroup.TabIndex = 4;
             this.JIRAGroup.TabStop = false;
-            this.JIRAGroup.Text = "JIRA Access";
+            this.JIRAGroup.Text = "Release Management (JIRA)";
             // 
             // JiraPassword
             // 
@@ -469,5 +482,6 @@ namespace Plugin.Application.Forms
         private TextBox JiraURL;
         private Label label4_1;
         private ToolTip JiraTooltip;
+        private CheckBox ReleaseMgmtIndicator;
     }
 }

@@ -187,28 +187,36 @@ namespace Plugin.Application.CapabilityModel
                     Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext >> Service branch is: '" +
                                      (string.IsNullOrEmpty(this._branchName) ? "NO-BRANCH" : this._branchName) + "'.");
 
-                    // We should also have an open Ticket, except in case of new services (in which case the ticket must be an argument
-                    // to the constructor). A ticket argument always has precedence over a stored ticket!
-                    if (ticket != null)
+                    if (RMTicket.IsRMEnabled())
                     {
-                        Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext >> Received (new) ticket ID '" + ticket.ID + "'...");
-                        this._ticket = ticket;
-                        this._trackedService.ServiceClass.SetTag(ticketIDTagName, ticket.GetQualifiedID(), true);
-                    }
-                    else
-                    {
-                        string ticketID = this._trackedService.ServiceClass.GetTag(ticketIDTagName);
-                        if (!string.IsNullOrEmpty(ticketID))
+                        // We might also have an open Ticket, except in case of new services (in which case the ticket must be an argument
+                        // to the constructor) or when RM i disabled. A ticket argument always has precedence over a stored ticket!
+                        if (ticket != null)
                         {
-                            Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext >> Existing Ticket ID is: '" + ticketID + "'...");
-                            this._ticket = GetTicket(ticketID);
+                            Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext >> Received (new) ticket ID '" + ticket.ID + "'...");
+                            this._trackedService.ServiceClass.SetTag(ticketIDTagName, ticket.GetQualifiedID(), true);
                         }
                         else
                         {
-                            string msg = "Plugin.Application.ConfigurationManagement.CMContext >> Ticket missing in service '" + trackedService.Name + "'!";
-                            Logger.WriteError(msg);
-                            throw new InvalidOperationException(msg);
+                            string ticketID = this._trackedService.ServiceClass.GetTag(ticketIDTagName);
+                            if (!string.IsNullOrEmpty(ticketID))
+                            {
+                                Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext >> Existing Ticket ID is: '" + ticketID + "'...");
+                                this._ticket = GetTicket(ticketID);
+                            }
+                            else
+                            {
+                                string msg = "Plugin.Application.ConfigurationManagement.CMContext >> Ticket missing in service '" + trackedService.Name + "'!";
+                                Logger.WriteError(msg);
+                                throw new InvalidOperationException(msg);
+                            }
                         }
+                    }
+                    else
+                    {
+                        Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext >> Release Management is off, removing ticket info...");
+                        this._trackedService.ServiceClass.SetTag(ticketIDTagName, string.Empty, true);
+                        this._ticket = new RMServiceTicket();   // Create a dummy ticket.
                     }
                 }
             }
@@ -270,19 +278,24 @@ namespace Plugin.Application.CapabilityModel
             ContextSlt context = ContextSlt.GetContextSlt();
             string ticketIDTagName = context.GetConfigProperty(_RMTicketFQNTag);
             RMServiceTicket currentTicket = this._ticket;
-            this._ticket = ticket;
-            this._trackedService.ServiceClass.SetTag(ticketIDTagName, ticket.GetQualifiedID(), true);
 
             // Nothing to do if CM not active or already in checked-out state...
             if (!CMEnabledService || this._configurationMgmtState == CMState.CheckedOut) return;
 
-            if (!ticket.Valid)
+            if (RMTicket.IsRMEnabled())
             {
-                this._ticket = currentTicket;   // Restore original ticket.
-                string message = "Plugin.Application.ConfigurationManagement.CMContext.CheckoutService >> No valid ticket presented to checkout!";
-                Logger.WriteError(message);
-                throw new ArgumentException(message);
+                this._ticket = ticket;
+                this._trackedService.ServiceClass.SetTag(ticketIDTagName, ticket.GetQualifiedID(), true);
+                if (!ticket.Valid)
+                {
+                    this._ticket = currentTicket;   // Restore original ticket.
+                    string message = "Plugin.Application.ConfigurationManagement.CMContext.CheckoutService >> No valid ticket presented to checkout!";
+                    Logger.WriteError(message);
+                    throw new ArgumentException(message);
+                }
             }
+            // When RM is not active, make sure to remove ticket info from the service...
+            else this._trackedService.ServiceClass.SetTag(ticketIDTagName, string.Empty, true);
 
             if (IsValidTransition(CMState.CheckedOut))
             {
@@ -409,7 +422,7 @@ namespace Plugin.Application.CapabilityModel
         /// Branch- and ticket names are always copied from the existing service.
         /// </summary>
         /// <param name="existingServiceClass">Originating service.</param>
-        /// <param name="newServiceClass"></param>
+        /// <param name="newServiceClass">Service that will receive the copied data.</param>
         /// <param name="forceCreated">Optional, when set to 'true', the new service will forced to state 'Created'.</param>
         internal static void CopyState(MEClass existingServiceClass, MEClass newServiceClass, bool forceCreated = false)
         {
@@ -819,15 +832,16 @@ namespace Plugin.Application.CapabilityModel
         /// Helper function that creates a feature branch name using the current service state and ticket.
         /// The created name has format:
         /// prefix/ticket-id/business-funct.containerpkg/service-name[_operational-state]_Vmajor-vsnPminor-vsn
+        /// When Release Management is disabled, we skip the ticket-id part.
         /// </summary>
         /// <returns>Branch name.</returns>
         private string GetFeatureBranchName()
         {
-            string branchName = string.Empty;
-            string prefix = ContextSlt.GetContextSlt().GetConfigProperty(_CMFeatureBranchPrefix) + "/";
+            string branchName = ContextSlt.GetContextSlt().GetConfigProperty(_CMFeatureBranchPrefix) + "/";
             string operationalState = this._trackedService.NonDefaultOperationalState; // Returns eiter empty string or non-default value as a string.
 
-            branchName = prefix + this._ticket.ID + "/" + this._trackedService.BusinessFunctionID + "." + this._trackedService.ContainerPkg.Name + "/";
+            if (RMTicket.IsRMEnabled()) branchName += this._ticket.ID + "/";
+            branchName += this._trackedService.BusinessFunctionID + "." + this._trackedService.ContainerPkg.Name + "/";
             branchName += (operationalState == string.Empty) ? this._trackedService.Name : this._trackedService.Name + "_" + operationalState;
             branchName += "_V" + this._trackedService.Version.Item1.ToString() + "P" + this._trackedService.Version.Item2;
 
@@ -839,6 +853,7 @@ namespace Plugin.Application.CapabilityModel
         /// Helper function that create a valid feature tag name based on current service state.
         /// The created name has format:
         /// prefix/ticket-id/business-funct.containerpkg/service-name[_operational-state]_Vmajor-vsnPminor-vsnBbuild-nr
+        /// When Release Management is disabled, we skip the ticket-id part.
         /// </summary>
         /// <returns>Tagname or empty string in case of missing ticket.</returns>
         private string GetFeatureTagName()
@@ -867,6 +882,7 @@ namespace Plugin.Application.CapabilityModel
         /// When projectOrderID has not been specified we expect to find an existing ticket. In this case, we throw an ArgumentException when 
         /// we can't find one. Also, when we DO find a ticket and the specified projectOrderID does not match the ticket, we will throw 
         /// an InvalidOperation.
+        /// When Release Management is disabled, the function returns a dummy ticket.
         /// </summary>
         /// <param name="ticketName">Ticket identifier.</param>
         /// <param name="projectOrderID">Optional project order, required for creation of new tickets.</param>
@@ -877,6 +893,13 @@ namespace Plugin.Application.CapabilityModel
         private RMServiceTicket GetTicket(string ticketName, string projectOrderID = null)
         {
             Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.GetTicket >> Retrieving ticket with ID '" + ticketName + "'...");
+
+            if (!RMServiceTicket.IsRMEnabled())
+            {
+                Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.GetTicket >> Release Management is disabled, creating dummy ticket!");
+                return new RMServiceTicket();
+            }
+
             ContextSlt context = ContextSlt.GetContextSlt();
             RMServiceTicket ticket = null;
             string ticketStereotype = context.GetConfigProperty(_RMTicketStereotype);

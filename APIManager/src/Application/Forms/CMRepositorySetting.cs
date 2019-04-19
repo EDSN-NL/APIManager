@@ -28,6 +28,7 @@ namespace Plugin.Application.Forms
             EAProjectName.Text                      = properties._name;
             EAProjectDescription.Text               = properties._description;
             ConfigurationMgmtIndicator.Checked      = properties._useCM;
+            ReleaseMgmtIndicator.Checked            = properties._useRM;
             RepoPathName.Text                       = properties._localPath;
             GITIgnoreEntries.Text                   = properties._GITIgnore;
             RepositoryBaseURL.Text                  = properties._remoteURL != null ? properties._remoteURL.AbsoluteUri : string.Empty; 
@@ -35,14 +36,13 @@ namespace Plugin.Application.Forms
             EMailAddress.Text                       = properties._identity != null? properties._identity.Email: string.Empty;
             Password.Text                           = CryptString.ToPlainString(properties._remotePassword);
             RepositoryNamespace.Text                = properties._remoteNamespace != null? properties._remoteNamespace.OriginalString: string.Empty;
-
-            RemoteConfigManagement.Enabled          = properties._useCM;
-            GITIgnoreEntries.Enabled                = properties._useCM;
-            JIRAGroup.Enabled                       = properties._useCM;
-
             JiraURL.Text                            = properties._jiraURL != null ? properties._jiraURL.AbsoluteUri : string.Empty;
             JiraUserName.Text                       = properties._jiraUser;
             JiraPassword.Text                       = CryptString.ToPlainString(properties._jiraPassword);
+
+            RemoteConfigManagement.Enabled = properties._useCM;
+            GITIgnoreEntries.Enabled = properties._useCM;
+            JIRAGroup.Enabled = properties._useRM;
 
             this._hasName = !string.IsNullOrEmpty(properties._name);
             this._hasRootPath = !string.IsNullOrEmpty(properties._localPath);
@@ -64,7 +64,22 @@ namespace Plugin.Application.Forms
         {
             RemoteConfigManagement.Enabled = ConfigurationMgmtIndicator.Checked;
             GITIgnoreEntries.Enabled = ConfigurationMgmtIndicator.Checked;
-            JIRAGroup.Enabled = ConfigurationMgmtIndicator.Checked;
+            if (!ConfigurationMgmtIndicator.Checked)
+            {
+                ReleaseMgmtIndicator.Checked = false;
+                JIRAGroup.Enabled = false;
+            }
+        }
+
+        /// <summary>
+        /// This event is raised when the 'use RM' indicator changes state. This affects some of our dialogs.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ReleaseMgmtIndicator_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ConfigurationMgmtIndicator.Checked) JIRAGroup.Enabled = ReleaseMgmtIndicator.Checked;
+            else ReleaseMgmtIndicator.Checked = false;
         }
 
         /// <summary>
@@ -78,6 +93,7 @@ namespace Plugin.Application.Forms
             this._repositoryProperties._name          = EAProjectName.Text;
             this._repositoryProperties._description   = EAProjectDescription.Text;
             this._repositoryProperties._useCM         = ConfigurationMgmtIndicator.Checked;
+            this._repositoryProperties._useRM         = ReleaseMgmtIndicator.Checked;
             this._repositoryProperties._GITIgnore     = GITIgnoreEntries.Text;
 
             // Check repository root path, should not end with separator (should not happen since user can not type the path, just to be save...)
@@ -92,7 +108,6 @@ namespace Plugin.Application.Forms
                 {
                     // Absolute URL's will always end with a '/', no matter whether the user has entered this.
                     this._repositoryProperties._remoteURL = new Uri(RepositoryBaseURL.Text, UriKind.Absolute);
-                    this._repositoryProperties._jiraURL = new Uri(JiraURL.Text, UriKind.Absolute);
 
                     if (!string.IsNullOrEmpty(UserName.Text) && !string.IsNullOrEmpty(EMailAddress.Text))
                         this._repositoryProperties._identity = new Identity(UserName.Text, EMailAddress.Text);
@@ -109,9 +124,20 @@ namespace Plugin.Application.Forms
                             thePath = thePath.Substring(1, thePath.Length - 1);
                         this._repositoryProperties._remoteNamespace = new Uri(thePath, UriKind.Relative);
                     }
-
-                    this._repositoryProperties._jiraUser = JiraUserName.Text;
-                    if (!string.IsNullOrEmpty(JiraPassword.Text)) this._repositoryProperties._jiraPassword = CryptString.ToSecureString(JiraPassword.Text);
+                    if (ReleaseMgmtIndicator.Checked)
+                    {
+                        this._repositoryProperties._useRM = true;
+                        this._repositoryProperties._jiraURL = new Uri(JiraURL.Text, UriKind.Absolute);
+                        this._repositoryProperties._jiraUser = JiraUserName.Text;
+                        if (!string.IsNullOrEmpty(JiraPassword.Text)) this._repositoryProperties._jiraPassword = CryptString.ToSecureString(JiraPassword.Text);
+                    }
+                    else
+                    {
+                        this._repositoryProperties._jiraURL = null;
+                        this._repositoryProperties._jiraUser = null;
+                        this._repositoryProperties._jiraPassword = null;
+                        this._repositoryProperties._useRM = false;
+                    }
                 }
                 catch (Exception)
                 {
@@ -124,6 +150,7 @@ namespace Plugin.Application.Forms
                     this._repositoryProperties._jiraUser = null;
                     this._repositoryProperties._jiraPassword = null;
                     this._repositoryProperties._useCM = false;
+                    this._repositoryProperties._useRM = false;
                 }
             }
             else // NO Configuration management, clear all unused properties...
@@ -135,6 +162,8 @@ namespace Plugin.Application.Forms
                 this._repositoryProperties._remoteNamespace = null;
                 this._repositoryProperties._jiraUser        = null;
                 this._repositoryProperties._jiraPassword    = null;
+                this._repositoryProperties._useRM           = false;
+                this._repositoryProperties._useCM           = false;
             }
         }
 

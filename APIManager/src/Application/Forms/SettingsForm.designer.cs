@@ -108,6 +108,7 @@
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.OpenAPIGeneration = new System.Windows.Forms.GroupBox();
             this.GENUseMajorVersionOnly = new System.Windows.Forms.CheckBox();
+            this.IsRMEnabled = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.CodeLists.SuspendLayout();
             this.LogFile.SuspendLayout();
             this.ServiceModel.SuspendLayout();
@@ -812,7 +813,8 @@
             this.ResponseCodeList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.RepositoryName,
             this.Description,
-            this.IsCMEnabled});
+            this.IsCMEnabled,
+            this.IsRMEnabled});
             this.ResponseCodeList.FullRowSelect = true;
             this.ResponseCodeList.GridLines = true;
             this.ResponseCodeList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
@@ -832,12 +834,12 @@
             // Description
             // 
             this.Description.Text = "Description";
-            this.Description.Width = 236;
+            this.Description.Width = 231;
             // 
             // IsCMEnabled
             // 
-            this.IsCMEnabled.Text = "CM Enabled";
-            this.IsCMEnabled.Width = 84;
+            this.IsCMEnabled.Text = "CM?";
+            this.IsCMEnabled.Width = 44;
             // 
             // DeleteRepository
             // 
@@ -908,6 +910,11 @@
             this.GENUseMajorVersionOnly.TabIndex = 0;
             this.GENUseMajorVersionOnly.Text = "Use major version only";
             this.GENUseMajorVersionOnly.UseVisualStyleBackColor = true;
+            // 
+            // IsRMEnabled
+            // 
+            this.IsRMEnabled.Text = "RM?";
+            this.IsRMEnabled.Width = 44;
             // 
             // SettingsForm
             // 
@@ -1049,5 +1056,6 @@
         private System.Windows.Forms.CheckBox AllOfSupport;
         private System.Windows.Forms.GroupBox OpenAPIGeneration;
         private System.Windows.Forms.CheckBox GENUseMajorVersionOnly;
+        private System.Windows.Forms.ColumnHeader IsRMEnabled;
     }
 }

@@ -25,7 +25,8 @@ namespace Framework.ConfigurationManagement
             internal string _name;
             internal string _description;
             internal string _localPath;
-            internal bool _useCM;
+            internal bool _useCM;           // Configuration Management (GIT)
+            internal bool _useRM;           // Release Management (JIRA)
 
             // GIT settings...
             internal string _GITIgnore;
@@ -47,7 +48,8 @@ namespace Framework.ConfigurationManagement
         private string _repoName;               // Corresponds with the name of the modelling repository.
         private string _description;            // Generic, descriptive text for this repository.
         private string _localRootPath;          // Absolute path to local repository;
-        private bool _useCM;                    // Set to 'true' to enable Configuration MAnagement for this repository.
+        private bool _useCM;                    // Set to 'true' to enable Configuration Management for this repository.
+        private bool _useRM;                    // Set to 'true' to enable Release Management for this repository.
         private string _GITIgnore;              // List of tokens to be ignored by GIT.
 
         private Uri _remoteURL;                 // URL to access remote repository (root).
@@ -90,12 +92,39 @@ namespace Framework.ConfigurationManagement
         }
 
         /// <summary>
-        /// Get- or set the 'CM enabled' indicator
+        /// Get- or set the 'CM enabled' indicator.
+        /// Note: When CM is disabled, RM will be disabled as well!
         /// </summary>
         internal bool IsCMEnabled
         {
             get { return this._useCM; }
-            set { if (value != this._useCM) { this._useCM = value; this._dirty = true; } }
+            set
+            {
+                if (value != this._useCM)
+                {
+                    this._useCM = value;
+                    if (this._useCM == false) this._useRM = false;
+                    this._dirty = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get- or set the 'RM enabled' indicator
+        /// Note: When CM is disabled, RM will be disabled as well! This also implies that you can NOT set RM to true 
+        /// as long as CM is disabled.
+        /// </summary>
+        internal bool IsRMEnabled
+        {
+            get { return this._useRM; }
+            set
+            {
+                if (value != this._useRM && this._useCM)
+                {
+                    this._useRM = value;
+                    this._dirty = true;
+                }
+            }
         }
 
         /// <summary>
@@ -190,6 +219,7 @@ namespace Framework.ConfigurationManagement
                     _name               = this.Name,
                     _description        = this.Description,
                     _useCM              = this.IsCMEnabled,
+                    _useRM              = this.IsRMEnabled,
                     _localPath          = this.LocalRootPath,
                     _GITIgnore          = this.GITIgnoreList,
                     _remoteURL          = this.RemoteURL,
@@ -208,6 +238,7 @@ namespace Framework.ConfigurationManagement
                 this.Name                       = value._name;
                 this.Description                = value._description;
                 this.IsCMEnabled                = value._useCM;
+                this.IsRMEnabled                = value._useRM;
                 this.LocalRootPath              = value._localPath;
                 this.GITIgnoreList              = value._GITIgnore;
                 this.RemoteURL                  = value._remoteURL;
@@ -255,11 +286,12 @@ namespace Framework.ConfigurationManagement
             }
 
             currentNode = configNode.SelectSingleNode("@useCM");
-            if (currentNode != null)
-            {
-                this._useCM = currentNode.InnerText.ToLower().Contains("true");
-                Logger.WriteInfo("Framework.ConfigurationManagement.RepositoryDescriptor.DeserializeConfiguration >> Use CM Indicator set to: " + this._useCM);
-            }
+            this._useCM = currentNode != null ? currentNode.InnerText.ToLower().Contains("true") : false;
+            Logger.WriteInfo("Framework.ConfigurationManagement.RepositoryDescriptor.DeserializeConfiguration >> Use CM Indicator set to: " + this._useCM);
+
+            currentNode = configNode.SelectSingleNode("@useRM");
+            this._useRM = currentNode != null ? currentNode.InnerText.ToLower().Contains("true") : false;
+            Logger.WriteInfo("Framework.ConfigurationManagement.RepositoryDescriptor.DeserializeConfiguration >> Use RM Indicator set to: " + this._useRM);
 
             currentNode = configNode.SelectSingleNode("RootPath");
             if (currentNode != null)
@@ -384,6 +416,10 @@ namespace Framework.ConfigurationManagement
                 useCMInd.Value = this._useCM ? "true" : "false";
                 configNode.Attributes.Append(useCMInd);
 
+                XmlAttribute useRMInd = xmlConfig.CreateAttribute("useRM");
+                useRMInd.Value = this._useRM ? "true" : "false";
+                configNode.Attributes.Append(useRMInd);
+
                 XmlNode rootPathNode = xmlConfig.CreateElement("RootPath");
                 rootPathNode.AppendChild(xmlConfig.CreateTextNode(this._localRootPath));
                 configNode.AppendChild(rootPathNode);
@@ -426,7 +462,10 @@ namespace Framework.ConfigurationManagement
                     XmlNode namespaceNode = xmlConfig.CreateElement("RepositoryNamespace");
                     namespaceNode.AppendChild(xmlConfig.CreateTextNode(this._remoteNamespace.ToString()));
                     remoteNode.AppendChild(namespaceNode);
+                }
 
+                if (this._useRM)
+                {
                     XmlNode jiraRemote = xmlConfig.CreateElement("JiraRemote");
                     configNode.AppendChild(jiraRemote);
 

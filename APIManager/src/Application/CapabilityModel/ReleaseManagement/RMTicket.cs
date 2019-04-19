@@ -29,6 +29,7 @@ namespace Plugin.Application.CapabilityModel
         private Diagram _myDiagram;                         // Diagram containing our ticket classes.
         private bool _isInitialized;                        // Set to true after full initialization.
         private bool _isExistingTicket;                     // Set to true if an UML ticket already exists.
+        private bool _hasRM;                                // Set to true when Release Management is enabled.
 
         /// <summary>
         /// Returns the qualified Ticket Identifier, the format of which depends on the actual ticket implementation (service- and
@@ -50,6 +51,11 @@ namespace Plugin.Application.CapabilityModel
         /// Returns true when the UML ticket is an existing ticket.
         /// </summary>
         internal bool IsExistingTicket { get { return this._isExistingTicket; } }
+
+        /// <summary>
+        /// Returns true when release management is enabled for the local repository, false otherwise.
+        /// </summary>
+        internal bool IsReleaseManagementEnabled { get { return this._hasRM; } }
 
         /// <summary>
         /// Returns the (Jira) project name associated with the ticket or an empty string in case no valid ticket exists.
@@ -88,12 +94,14 @@ namespace Plugin.Application.CapabilityModel
         protected Diagram TicketDiagram { get { return this._myDiagram; } }
 
         /// <summary>
-        /// Returns 'true' when this Ticket object is associated with a valid remote (Jira) ticket.
+        /// Returns 'true' when this Ticket object is associated with a valid remote (Jira) ticket. When RM is disabled, we always
+        /// consider the ticket to be valid.
         /// </summary>
-        internal bool Valid { get { return this._ticket != null && this._isInitialized; } }
+        internal bool Valid { get { return !this._hasRM || (this._ticket != null && this._isInitialized); } }
 
         /// <summary>
-        /// Constructor that creates an RMTicket class based on an existing UML Ticket class.
+        /// Constructor that creates an RMTicket class based on an existing UML Ticket class. When Release Management is disabled, the
+        /// constructor does not perform any actions and the class properties are set to suitable default values.
         /// </summary>
         /// <param name="ticketClass">Class that represents the ticket.</param>
         internal RMTicket(MEClass ticketClass)
@@ -101,19 +109,23 @@ namespace Plugin.Application.CapabilityModel
             Logger.WriteInfo("Plugin.Application.CapabilityModel.RMTicket >> Retrieving existing instance '" + ticketClass.Name + "'...");
 
             ContextSlt context = ContextSlt.GetContextSlt();
-            this._projectOrderID = ticketClass.GetTag(context.GetConfigProperty(_RMProjectOrderIDTag));
-            this._ticketClass = ticketClass;
-            this._ticketPackage = ticketClass.OwningPackage;
-            this._ticket = TicketServerSlt.GetTicketServerSlt().GetTicket(ticketClass.GetTag(context.GetConfigProperty(_RMTicketIDTag)));
-            this._isInitialized = true;
-            this._isExistingTicket = true;
+            if (HasRMEnabled())
+            {
+                this._projectOrderID = ticketClass.GetTag(context.GetConfigProperty(_RMProjectOrderIDTag));
+                this._ticketClass = ticketClass;
+                this._ticketPackage = ticketClass.OwningPackage;
+                this._ticket = TicketServerSlt.GetTicketServerSlt().GetTicket(ticketClass.GetTag(context.GetConfigProperty(_RMTicketIDTag)));
+                this._isInitialized = true;
+                this._isExistingTicket = true;
+            }
         }
 
         /// <summary>
         /// The constructor creates a basic object containing the Jira ticket. Subsequent calls are required to actually create the
         /// ticket administration within the model repository (or read it in case of existing tickets). We left this out of the 
         /// constructor since context depends on the ticket implementation classes and these might require additional work until 
-        /// they can actually initiate package/class retrieval or creation.
+        /// they can actually initiate package/class retrieval or creation. When Release Management is disabled, the
+        /// constructor does not perform any actions and the class properties are set to suitable default values.
         /// </summary>
         /// <param name="ticketID">Identifier of the ticket we want to create/connect to.</param>
         /// <param name="projectOrderID=">Project Order Identifier associated with the ticket.</param>
@@ -123,29 +135,32 @@ namespace Plugin.Application.CapabilityModel
             Logger.WriteInfo("Plugin.Application.CapabilityModel.RMTicket >> Creating new instance for Ticket '" + ticketID +
                              "' and project '" + projectOrderID + "'...");
 
-            this._isInitialized = false;
-            this._isExistingTicket = false;
-            this._projectOrderID = projectOrderID;
-            this._ticket = TicketServerSlt.GetTicketServerSlt().GetTicket(ticketID);
-            this._isExistingTicket = this._ticket != null;
-
-            // We don't know these yet and we depend on the specialized class to help us initializing them...
-            this._ticketClass = null;
-            this._ticketPackage = null;
-            this._myDiagram = null;
-
-            if (!this._isExistingTicket)
+            if (HasRMEnabled())
             {
-                string message = "Plugin.Application.CapabilityModel.RMTicket >> Ticket '" + ticketID + "' does not exist!";
-                Logger.WriteError(message);
-                throw new ArgumentException(message);
-            }
+                this._isInitialized = false;
+                this._isExistingTicket = false;
+                this._projectOrderID = projectOrderID;
+                this._ticket = TicketServerSlt.GetTicketServerSlt().GetTicket(ticketID);
+                this._isExistingTicket = this._ticket != null;
 
-            if (string.IsNullOrEmpty(projectOrderID))
-            {
-                string message = "Plugin.Application.CapabilityModel.RMTicket >> No valid PO ID for Ticket '" + ticketID + "'!";
-                Logger.WriteError(message);
-                throw new ArgumentException(message);
+                // We don't know these yet and we depend on the specialized class to help us initializing them...
+                this._ticketClass = null;
+                this._ticketPackage = null;
+                this._myDiagram = null;
+
+                if (!this._isExistingTicket)
+                {
+                    string message = "Plugin.Application.CapabilityModel.RMTicket >> Ticket '" + ticketID + "' does not exist!";
+                    Logger.WriteError(message);
+                    throw new ArgumentException(message);
+                }
+
+                if (string.IsNullOrEmpty(projectOrderID))
+                {
+                    string message = "Plugin.Application.CapabilityModel.RMTicket >> No valid PO ID for Ticket '" + ticketID + "'!";
+                    Logger.WriteError(message);
+                    throw new ArgumentException(message);
+                }
             }
         }
 
@@ -153,7 +168,8 @@ namespace Plugin.Application.CapabilityModel
         /// The constructor creates a basic object containing the Jira ticket. Subsequent calls are required to actually create the
         /// ticket administration within the model repository (or read it in case of existing tickets). We left this out of the 
         /// constructor since context depends on the ticket implementation classes and these might require additional work until 
-        /// they can actually initiate package/class retrieval or creation.
+        /// they can actually initiate package/class retrieval or creation. When Release Management is disabled, the
+        /// constructor does not perform any actions and the class properties are set to suitable default values.
         /// </summary>
         /// <param name="remoteTicket">The associated Jira Ticket.</param>
         /// <param name="projectOrderID=">Project Order Identifier associated with the ticket.</param>
@@ -163,22 +179,42 @@ namespace Plugin.Application.CapabilityModel
             Logger.WriteInfo("Plugin.Application.CapabilityModel.RMTicket >> Creating new instance for Ticket '" + remoteTicket.ID +
                              "' and project '" + projectOrderID + "'...");
 
-            this._isInitialized = false;
-            this._isExistingTicket = false;
-            this._projectOrderID = projectOrderID;
-            this._ticket = remoteTicket;
-            this._isExistingTicket = true;
-
-            // We don't know these yet and we depend on the specialized class to help us initializing them...
-            this._ticketClass = null;
-            this._ticketPackage = null;
-            this._myDiagram = null;
-
-            if (string.IsNullOrEmpty(projectOrderID))
+            if (HasRMEnabled())
             {
-                string message = "Plugin.Application.CapabilityModel.RMTicket >> No valid PO ID for Ticket '" + remoteTicket.ID + "'!";
-                Logger.WriteError(message);
-                throw new ArgumentException(message);
+                this._isInitialized = false;
+                this._isExistingTicket = false;
+                this._projectOrderID = projectOrderID;
+                this._ticket = remoteTicket;
+                this._isExistingTicket = true;
+
+                // We don't know these yet and we depend on the specialized class to help us initializing them...
+                this._ticketClass = null;
+                this._ticketPackage = null;
+                this._myDiagram = null;
+
+                if (string.IsNullOrEmpty(projectOrderID))
+                {
+                    string message = "Plugin.Application.CapabilityModel.RMTicket >> No valid PO ID for Ticket '" + remoteTicket.ID + "'!";
+                    Logger.WriteError(message);
+                    throw new ArgumentException(message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// A dummy ticket can only be created when Release Management is disabled. In that case, we create an empty ticket
+        /// and operations on the ticket will yield no effect. When an attempt is made to create dummy tickets while Release Management
+        /// is enabled, the constructor will throw an InvalidOperationException!
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Is thrown when an attempt is made to create a dummy ticket while Release
+        /// Management is active.</exception>
+        internal RMTicket()
+        {
+            if (HasRMEnabled()) // Will perform the test as well as initializing properties to default values.
+            {
+                string msg = "Attempt to create a dummy RMTicket while Release Management is enabled!";
+                Logger.WriteError("Plugin.Application.CapabilityModel.RMTicket >> " + msg);
+                throw new InvalidOperationException(msg);
             }
         }
 
@@ -257,13 +293,24 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
+        /// Static convenience function that checks whether Release Management is active for the current repository. 
+        /// </summary>
+        /// <returns>True when RM is active, false otherwise.</returns>
+        internal static bool IsRMEnabled()
+        {
+            return CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor().IsRMEnabled;
+        }
+
+        /// <summary>
         /// Checks whether the specified ID identifies a valid ticket. Valid tickets exist at the server and have a status of 'open'.
+        /// When Release Management is disabled, the function returns false.
         /// </summary>
         /// <param name="ticketID">Ticket ID to validate.</param>
-        /// <returns>True in case of valid ID, false otherwise.</returns>
+        /// <returns>True in case of valid ID (and RM is enabled), false otherwise.</returns>
         internal static bool IsValidID(string ticketID)
         {
-            return TicketServerSlt.GetTicketServerSlt().GetTicket(ticketID) != null;
+            return CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor().IsRMEnabled &&
+                   TicketServerSlt.GetTicketServerSlt().GetTicket(ticketID) != null;
         }
 
         /// <summary>
@@ -290,6 +337,8 @@ namespace Plugin.Application.CapabilityModel
         /// <exception cref="ArgumentException">Is thrown in case we are not able to create a valid ticket environment.</exception>
         protected void LoadTicketClass(MEPackage parentPackage, string ticketStereotype)
         {
+            if (!this._hasRM) return;   // Don't bother initializing stuff in case Release Management is out.
+
             ContextSlt context = ContextSlt.GetContextSlt();
             string ticketPackageStereotype = context.GetConfigProperty(_RMPackageStereotype);
             string ticketPackageName = context.GetConfigProperty(_RMPackageName);
@@ -330,6 +379,28 @@ namespace Plugin.Application.CapabilityModel
             }
             UpdateTicket(); // Assure that ticket metadata is in sync with the remote ticket.
             this._isInitialized = true;
+        }
+
+        /// <summary>
+        /// Helper function that checks whether Release Management is enabled. If so, the function returns 'true'.
+        /// If not, the function sets the local properties to suitable defaults and returns false.
+        /// The return value is a copy of the value that the function assigned to 'this._hasRM'.
+        /// </summary>
+        /// <returns>True when RM is enabled, false when not.</returns>
+        private bool HasRMEnabled()
+        {
+            this._hasRM = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor().IsRMEnabled;
+            if (!this._hasRM)
+            {
+                this._ticket = new Ticket();
+                this._ticketPackage = null;
+                this._ticketClass = null;
+                this._projectOrderID = this._ticket.ProjectID;
+                this._myDiagram = null;
+                this._isExistingTicket = false;
+                this._isInitialized = true;
+            }
+            return this._hasRM;
         }
     }
 }
