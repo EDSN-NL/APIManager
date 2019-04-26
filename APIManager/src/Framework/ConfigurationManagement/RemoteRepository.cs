@@ -188,23 +188,31 @@ namespace Framework.ConfigurationManagement
         }
 
         /// <summary>
-        /// Pull all changed data from the tracked branches on my remote repository and merge on my current branch.
+        /// Pull all changed data from the tracked branches on my remote repository and merge on my current branch. If the pull failed due to
+        /// a 'Merge Head not found' exception, we simply assume that the branch has never been pushed before and thus the pull is unnecessary.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the pull resulted in merge conflicts.</exception>
         internal void Pull()
         {
             Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository.Pull >> Going to pull from remote...");
 
-            var pullOptions = new PullOptions();
-            pullOptions.FetchOptions = new FetchOptions();
-            pullOptions.FetchOptions.CredentialsProvider = (url, user, cred) => _remoteCredentials;
-            Signature authorSig = new Signature(this._myIdentity, DateTime.Now);
-            MergeResult result = Commands.Pull(this._repository, authorSig, pullOptions);
-            if (result.Status == MergeStatus.Conflicts)
+            try
             {
-                string message = "Unable to pull from remote due to merge conflicts!";
-                Logger.WriteError("Framework.ConfigurationManagement.RemoteRepository.Pull >> " + message);
-                throw new InvalidOperationException(message);
+                var pullOptions = new PullOptions();
+                pullOptions.FetchOptions = new FetchOptions();
+                pullOptions.FetchOptions.CredentialsProvider = (url, user, cred) => _remoteCredentials;
+                Signature authorSig = new Signature(this._myIdentity, DateTime.Now);
+                MergeResult result = Commands.Pull(this._repository, authorSig, pullOptions);
+                if (result.Status == MergeStatus.Conflicts)
+                {
+                    string message = "Unable to pull from remote due to merge conflicts!";
+                    Logger.WriteError("Framework.ConfigurationManagement.RemoteRepository.Pull >> " + message);
+                    throw new InvalidOperationException(message);
+                }
+            }
+            catch (LibGit2Sharp.MergeFetchHeadNotFoundException)
+            {
+                Logger.WriteWarning("Pulling the current branch from remote did not yield any results. Branch has probably never been pushed!");
             }
         }
 

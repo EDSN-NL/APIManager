@@ -577,19 +577,21 @@ namespace Plugin.Application.CapabilityModel
                 RMReleaseTicket releaseTicket = new RMReleaseTicket(this._ticket);
                 Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.ReleaseService >> Created release ticket '" + releaseTicket.GetQualifiedID() + "'...");
 
+                // Make sure that our branch is up to date before attempting to merge...
+                this._repository.GotoBranch(this._branchName);
+                this._repository.Pull();
+
                 if (!this._snapshotCreated)
                 {
                     Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.ReleaseService >> We have not yet committed a snapshot...");         
                     CreateSnapshot();
+                    this._repository.AddToStagingArea(this._commitPath);         // Update our staging area with the created snapshot.
                     this._repository.CommitStagingArea("Created release with tag '" + tagName + "'.", false);
                     this._snapshotCreated = true;
                 }
 
                 Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.ReleaseService >> Merging and Pushing to remote with tag '" +
                                  tagName + "' and message '" + message + "'...");
-                // Make sure that our branch is up to date before attempting to merge...
-                this._repository.GotoBranch(this._branchName);
-                this._repository.Pull();
                 this._repository.Merge(this._branchName, this._repository.ReleaseBranchName);
                 this._repository.Push(tagName, message);
 
@@ -817,14 +819,10 @@ namespace Plugin.Application.CapabilityModel
             string snapshotName = Path.GetTempPath() + this._trackedService.Name + context.GetConfigProperty(_XMIFileSuffix);
             this._trackedService.DeclarationPkg.ExportPackage(snapshotName);    // Create the snapshot.
             string zipFile = Compression.FileZip(snapshotName, true);           // Compress generated XMI and delete original XMI (huge savings in size). 
-
             SetupDirectories();                                                 // Make sure we have a place to store the snapshot.
-            this._repository.Pull();  
-
             string destFile = this._snapshotPath + "/" + this._trackedService.Name + context.GetConfigProperty(_CompressedFileSuffix);
             File.Copy(zipFile, destFile, true);                                 // Copy instead of move, since this allows overwrite existing files!
             File.Delete(zipFile);
-            this._repository.AddToStagingArea(this._commitPath);                // Update our staging area (should include the snapshot).
             this._snapshotCreated = true;
         }
 
