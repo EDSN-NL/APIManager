@@ -97,7 +97,7 @@ namespace Framework.Util.SchemaManagement.JSON
         }
 
         /// <summary>
-        /// Helper function that returns the schema name of the association. If the name ends with 'Type' (should not happen), this is removed.
+        /// Helper function that returns the schema name of the association.
         /// If the name represents a list, we append 'List' to the name.
         /// </summary>
         /// <returns>Association role name to be used in schemas.</returns>
@@ -106,7 +106,8 @@ namespace Framework.Util.SchemaManagement.JSON
             string name = base.RoleName;
             if (this._isList && !name.EndsWith("List"))
             {
-                if (name.EndsWith("Type")) name = name.Substring(0, name.LastIndexOf("Type"));
+                // If a role name ends with 'type', this is probably as intended and we must leave it alone!
+                //if (name.EndsWith("Type")) name = name.Substring(0, name.LastIndexOf("Type"));
                 name += "List";
             }
             return name;
