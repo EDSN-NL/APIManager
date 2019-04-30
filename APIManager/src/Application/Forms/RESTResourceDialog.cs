@@ -17,6 +17,7 @@ namespace Plugin.Application.Forms
         private RESTResourceDeclaration _resource;      // The resource declaration descriptor that we're creating / editing.
         private bool _isEdit;                           // True means we're editing a path expression, false when creating a new one.
         private bool _initializing;                     // Set to 'true' during construction to suppress unwanted events.
+        private string _myName;                         // The (initial) name assigned to this resource.
 
         // Preconditions for enabling the OK button...
         private bool _hasType;
@@ -46,7 +47,13 @@ namespace Plugin.Application.Forms
             this.Text = this._isEdit ? "Edit Resource" : "Create new Resource";
             this._resource = resource;
 
+            // We can not create operations directly during resource create 'cause of incomplete state!
+            AddOperation.Enabled = this._isEdit;
+            DeleteOperation.Enabled = this._isEdit;
+            EditOperation.Enabled = this._isEdit;
+
             ResourceNameFld.Text = this._isEdit ? resource.Name : string.Empty;
+            this._myName = ResourceNameFld.Text;
             if (resource.Parameter != null)
             {
                 ParameterName.Text = resource.Parameter.Name;
@@ -251,6 +258,9 @@ namespace Plugin.Application.Forms
         /// </summary>
         private void ValidateName()
         {
+            // If name has not been changed from the initial name, do nothing.
+            if (this._myName != string.Empty && this._myName == ResourceNameFld.Text) return;
+
             string errorText = string.Empty;
             bool isOk = true;
             this._hasName = false;

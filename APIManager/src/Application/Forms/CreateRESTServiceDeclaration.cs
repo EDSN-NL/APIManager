@@ -19,6 +19,7 @@ namespace Plugin.Application.Forms
         private bool _hasValidName;     // True when a valid API name has been entered;
         private bool _hasProjectID;     // True when a project ID has been entered;
         private bool _hasTicket;        // True when we have selected a valid ticket;
+        private bool _hasRM;            // True when Release Management has been enabled;
 
         /// <summary>
         /// The MetaData property returns a set of user-specified metadata for the new API...
@@ -90,17 +91,33 @@ namespace Plugin.Application.Forms
             }
             if (repoDescriptor != null && repoDescriptor.IsCMEnabled)
             {
-                this._hasProjectID = false;
-                this._hasTicket = false;
+                this._hasRM = RMTicket.IsRMEnabled();
+                if (this._hasRM)
+                {
+                    this._hasProjectID = false;
+                    this._hasTicket = false;
+                }
+                else
+                {
+                    // No RM, disable the (part of the) Administration section and pretend we have a valid ticket & projectID
+                    // (this will enable the Ok button on name only).
+                    TicketIDFld.Enabled = false;
+                    ProjectIDFld.Enabled = false;
+                    this._hasTicket = true;
+                    this._hasProjectID = true;
+                    this._remoteTicket = new Ticket();  // Create a dummy ticket.
+                }
                 this._hasValidName = false;
             }
             else
             {
-                // No CM, disable the Administration section and pretend we have a valid ticket & projectID
+                // No CM, disable (part of the) Administration section and pretend we have a valid ticket & projectID
                 // (this will enable the Ok button on name only).
-                TicketBox.Enabled = false;
+                TicketIDFld.Enabled = false;
+                ProjectIDFld.Enabled = false;
                 this._hasTicket = true;
                 this._hasProjectID = true;
+                this._hasRM = false;
             }
 
             // Initialize the drop-down box with all Operational States, with the exception of 'Deprecated'...

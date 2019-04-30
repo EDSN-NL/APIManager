@@ -20,6 +20,7 @@ namespace Framework.ConfigurationManagement
         private const string _RemoteName                            = "origin";
         private const string _TagExists                             = "tag already exists";
         private const string _NonFastForwardableRef                 = "cannot push non-fastforwardable reference";
+        private const string _UnknownCertificate                    = "unknown certificate check failure";
 
         // Configuration settings used by this module...
         private const string _CMGitLabAPIURLSuffix                  = "CMGitLabAPIURLSuffix";
@@ -190,9 +191,10 @@ namespace Framework.ConfigurationManagement
         /// <summary>
         /// Pull all changed data from the tracked branches on my remote repository and merge on my current branch. If the pull failed due to
         /// a 'Merge Head not found' exception, we simply assume that the branch has never been pushed before and thus the pull is unnecessary.
+        /// <paramref name="retry">Hidden parameter, set to 'true' when calling in a retry. Avoids endless loops</paramref>
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the pull resulted in merge conflicts.</exception>
-        internal void Pull()
+        internal void Pull(bool retry = false)
         {
             Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository.Pull >> Going to pull from remote...");
 
@@ -212,7 +214,16 @@ namespace Framework.ConfigurationManagement
             }
             catch (LibGit2Sharp.MergeFetchHeadNotFoundException)
             {
-                Logger.WriteWarning("Pulling the current branch from remote did not yield any results. Branch has probably never been pushed!");
+                Logger.WriteInfo("Framework.ConfigurationManagement.RemoteRepository.Pull >> Pulling the current branch from remote did not yield any results. Branch has probably never been pushed!");
+            }
+            catch (LibGit2Sharp.LibGit2SharpException exc)
+            {
+                if (exc.Message.Contains(_UnknownCertificate) && !retry)
+                {
+                    Logger.WriteWarning("Got a spurious 'unknown certificate check' error, retrying...");
+                    Pull(true);
+                }
+                else throw;
             }
         }
 
