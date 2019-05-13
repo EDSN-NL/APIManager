@@ -213,8 +213,8 @@ namespace Plugin.Application.Forms
             // CreateSOAPServiceDeclaration
             // 
             this.AcceptButton = this.Ok;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
             this.ClientSize = new System.Drawing.Size(586, 207);
             this.Controls.Add(this.ServiceDetailsBox);

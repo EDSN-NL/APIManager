@@ -910,10 +910,13 @@ namespace SparxEA.Model
                 {
                     if (String.Compare(t.Name, tagName, StringComparison.OrdinalIgnoreCase) == 0)
                     {
-                        t.Value = tagValue;
-                        t.Update();
-                        this._element.TaggedValues.Refresh();
-                        ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
+                        if (t.Value != tagValue)
+                        {
+                            t.Value = tagValue;
+                            t.Update();
+                            this._element.TaggedValues.Refresh();
+                            ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
+                        }
                         return;
                     }
                 }
@@ -926,6 +929,15 @@ namespace SparxEA.Model
                     newTag.Update();
                     this._element.TaggedValues.Refresh();
                     ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
+                }
+            }
+            catch (System.Runtime.InteropServices.COMException exc)
+            {
+                if (exc.Message.Contains("locked"))
+                {
+                    Logger.WriteWarning("Unable to update tag '" + this._element.Name + "." + tagName + "' because of locking error, retrying in 10 seconds!");
+                    new Sleeper(10000).Wait();
+                    SetTag(tagName, tagValue, createIfNotExist);
                 }
             }
             catch (Exception exc)

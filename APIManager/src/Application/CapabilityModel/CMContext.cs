@@ -405,7 +405,7 @@ namespace Plugin.Application.CapabilityModel
                     UpdateCMState(CMState.Committed);           // Must be updated before we proceed with the release!
                     if (commitScope == CommitScope.Release) ReleaseService(message);
                     retVal = true;
-                } else UpdateCMState(CMState.Committed);         // Even though there were no changes, we still consider this a successfull commit.
+                } else UpdateCMState(commitScope == CommitScope.Release? CMState.Released: CMState.Committed);  // Even though there were no changes, we still consider this a successfull commit.
             }
             else
             {

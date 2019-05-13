@@ -182,11 +182,11 @@ namespace Plugin.Application.Forms
             this.label3.TabIndex = 0;
             this.label3.Text = "Existing:";
             // 
-            // EnableCM
+            // CMEnable
             // 
             this.AcceptButton = this.Ok;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
             this.ClientSize = new System.Drawing.Size(387, 158);
             this.Controls.Add(this.VersionBox);
@@ -197,7 +197,7 @@ namespace Plugin.Application.Forms
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "EnableCM";
+            this.Name = "CMEnable";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Enable Configuration Management";
             this.TicketBox.ResumeLayout(false);

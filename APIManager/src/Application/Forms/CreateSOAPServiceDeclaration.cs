@@ -15,8 +15,9 @@ namespace Plugin.Application.Forms
         private Ticket _remoteTicket;       // Remote ticket as selected by the user.
         private bool _hasValidOperations;   // True when at least one valid operation name has been entered.
         private bool _hasTicket;            // True when a valid ticket ID has been entered.
-        private bool _hasValidName;         // True when a valid API name has been entered;
-        private bool _hasProjectID;         // True when a project ID has been entered;
+        private bool _hasValidName;         // True when a valid API name has been entered.
+        private bool _hasProjectID;         // True when a project ID has been entered.
+        private bool _hasRM;                // True when Release Management has been enabled.
 
         /// <summary>
         /// Name of the service as entered by the user (includes major version as well).
@@ -81,18 +82,20 @@ namespace Plugin.Application.Forms
             }
             OperationalState.SelectedItem = EnumConversions<OperationalState>.EnumToString(Service._DefaultOperationalState);
 
-            if (CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor().IsCMEnabled)
+            this._hasRM = RMTicket.IsRMEnabled();
+            if (this._hasRM)
             {
                 this._hasProjectID = false;
                 this._hasTicket = false;
             }
             else
             {
-                // No CM, disable the Administration section and pretend we have a valid ticket & projectID
+                // No RM, disable the (part of the) Administration section and pretend we have a valid ticket & projectID
                 // (this will enable the Ok button on name only).
                 TicketBox.Enabled = false;
                 this._hasTicket = true;
                 this._hasProjectID = true;
+                this._remoteTicket = new Ticket();  // Create a dummy ticket.
             }
             Ok.Enabled = false;
         }

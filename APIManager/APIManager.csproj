@@ -360,6 +360,7 @@
     <Compile Include="src\Framework\SchemaManagement\SchemaAttribute.cs" />
     <Compile Include="src\Framework\SchemaManagement\Facet.cs" />
     <Compile Include="src\Framework\SchemaManagement\PrimitiveType.cs" />
+    <Compile Include="src\Framework\Util\Sleeper.cs" />
     <Compile Include="src\Framework\Util\Cardinality.cs" />
     <Compile Include="src\Framework\Util\CryptString.cs" />
     <Compile Include="src\Framework\Util\Compression.cs" />

@@ -201,7 +201,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
             {
                 string schemaError = this._schema.LastError;
                 string message = (schemaError != string.Empty) ? schemaError + " -> " + exc.Message : exc.Message;
-                Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAssociations >> Caught an exception: " + message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAssociations >> Caught an exception: " + message + Environment.NewLine + exc.ToString());
                 if (this._panel != null) this._panel.WriteError(this._panelIndex + 2, "Caught an exception:" + Environment.NewLine + message);
                 this._lastError = message;
             }
@@ -250,6 +250,14 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
 
                     // Assures that we have an attribute classifier definition and we know where to store it and where to document it...
                     ClassifierContext classifierCtx = ProcessClassifier(classifier);
+                    if (classifierCtx == null)
+                    {
+                        string message = "Unable to obtain a proper classifier '" + classifier.Name + "' for '" + node.Name + "." + attribute.Name + "'; Skipping attribute!";
+                        Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> " + message);
+                        if (this._panel != null) this._panel.WriteInfo(this._panelIndex + 3, message);
+                        continue;
+                    }
+
                     DocContext classifierDocCtx = this._commonDocContext;
                     if (!classifierCtx.IsInCommonDocContext) classifierDocCtx = this._currentOperationDocContext;
                     Schema targetSchema = (classifierCtx.IsInCommonSchema) ? this._commonSchema : this._schema;
@@ -380,7 +388,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
             {
                 string schemaError = this._schema.LastError;
                 string message = (schemaError != string.Empty) ? schemaError + " -> " + exc.Message : exc.Message;
-                Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Caught an exception: " + message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Caught an exception: " + message + Environment.NewLine + exc.ToString());
                 if (this._panel != null) this._panel.WriteError(this._panelIndex + 2, "Caught an exception: " + Environment.NewLine + message);
                 this._lastError = message;
             }
@@ -499,7 +507,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
             {
                 string schemaError = this._schema.LastError;
                 string message = (schemaError != string.Empty) ? schemaError + " -> " + exc.Message : exc.Message;
-                Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.processClass >> Caught an exception: " + message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.processClass >> Caught an exception: " + message + Environment.NewLine + exc.ToString());
                 if (this._panel != null) this._panel.WriteError(this._panelIndex + 1, "Caught an exception:" + Environment.NewLine + message);
                 this._lastError = message;
             }
@@ -513,7 +521,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         /// Subsequently, the type designator is stored in the classifier cache using the unique key in order to mark this classifier as 'resolved'.
         /// </summary>
         /// <param name="classifier">The classifier element.</param>
-        /// <returns>Classifier Context</returns>
+        /// <returns>Classifier Context or NULL if context could not be obtained.</returns>
         private ClassifierContext ProcessClassifier(MEDataType classifier)
         {
             // In case of primitive types, we do not have to create an explicit type definition since these will be translated to "built-in" XSD primitives!
@@ -553,7 +561,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessClassifier >> New classifier, going to create definition and store in cache...");
                 context = DefineClassifier(classifier, scope);
-                this._cache.AddClassifierContext(classifKey, context);  // Remember as processed so we do not perform any redundant work.
+                if (context != null) this._cache.AddClassifierContext(classifKey, context);  // Remember as processed so we do not perform any redundant work.
             }
             return context;
         }
@@ -588,6 +596,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                     if (this._panel != null) this._panel.WriteInfo(this._panelIndex + 3, "Processing Union: '" + target.Name + "', using classifier: '" + classifier.Name + "'..");
 
                     ClassifierContext classifierCtx = ProcessClassifier(classifier); // Assures that we have a classifier definition.
+                    if (classifierCtx == null) return null;
 
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessUnion >> Attribute, default= '" + attribute.DefaultValue +
                                      "', minOcc = '" + cardinality.ToString() + "'.");
@@ -633,7 +642,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
             {
                 string schemaError = this._schema.LastError;
                 string message = (schemaError != string.Empty) ? schemaError + " -> " + exc.Message : exc.Message;
-                Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessUnion >> Caught an exception: " + message);
+                Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessUnion >> Caught an exception: " + message + Environment.NewLine + exc.ToString());
                 if (this._panel != null) this._panel.WriteError(this._panelIndex + 1, "Caught an exception: " + Environment.NewLine + message);
                 this._lastError = message;
             }

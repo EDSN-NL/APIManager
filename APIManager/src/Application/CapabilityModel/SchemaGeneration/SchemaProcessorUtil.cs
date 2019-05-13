@@ -93,6 +93,15 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                              scope + ":" + classifier.Name + "...");
 
             Tuple<MEDataType.MetaDataType, string> typeDescriptor = classifier.GetPrimitiveTypeName();
+            if (typeDescriptor == null)
+            {
+                string message = "Can not obtain a [primitive] type for classifier '" + classifier.Name + "; type hierarchy might be incomplete or corrupted!";
+                Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.DefineClassifier >> " + message);
+                if (this._panel != null) this._panel.WriteError(this._panelIndex + 1, message);
+                this._lastError = "Could not determine classifier type for classifier: " + classifier.Name;
+                return null;
+            }
+
             string typeName = typeDescriptor.Item2;
             var hierarchy = new SortedList<uint, MEClass>();
             ContextSlt context = ContextSlt.GetContextSlt();

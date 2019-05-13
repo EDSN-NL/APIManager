@@ -37,7 +37,6 @@ namespace Plugin.Application.Events.Util
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
             string errorMsg = string.Empty;
             Service myService = null;
-            bool releaseLocked = false;
 
             // Perform some precondition tests...
             if (!svcContext.Valid) errorMsg = "Illegal or corrupt context, operation aborted!";
@@ -54,6 +53,7 @@ namespace Plugin.Application.Events.Util
             try
             {
                 myService = svcContext.GetServiceInstance();
+                bool isRMEnabled = RMTicket.IsRMEnabled();
                 if (myService.IsValidCMState(CMContext.CMState.Committed))
                 {
                     if (myService.ConfigurationMgmtState != CMContext.CMState.Committed)
@@ -62,13 +62,16 @@ namespace Plugin.Application.Events.Util
                         {
                             if (dialog.ShowDialog() == DialogResult.OK)
                             {
-                                if (dialog.CommitScope == CMContext.CommitScope.Release && (releaseLocked = svcContext.LockReleaseHistory() == false))
+                                if (isRMEnabled)
                                 {
-                                    errorMsg = "Unable to lock the release history package!";
-                                    Logger.WriteError("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> " + errorMsg);
-                                    MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    svcContext.UnlockModel();
-                                    return;
+                                    if (dialog.CommitScope == CMContext.CommitScope.Release && !svcContext.LockReleaseHistory())
+                                    {
+                                        errorMsg = "Unable to lock the release history package!";
+                                        Logger.WriteError("Plugin.Application.Events.API.CommitServiceEvent.HandleEvent >> " + errorMsg);
+                                        MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                        svcContext.UnlockModel();
+                                        return;
+                                    }
                                 }
 
                                 if (myService.Commit(dialog.Annotation, dialog.CommitScope))
@@ -94,7 +97,7 @@ namespace Plugin.Application.Events.Util
             }
             myService.Paint(context.CurrentDiagram);
             svcContext.UnlockModel();
-            if (releaseLocked) svcContext.UnlockReleaseHistory();
+            svcContext.UnlockReleaseHistory();
         }
     }
 }

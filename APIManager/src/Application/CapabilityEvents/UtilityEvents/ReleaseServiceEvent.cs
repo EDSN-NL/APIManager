@@ -37,11 +37,12 @@ namespace Plugin.Application.Events.Util
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
             string errorMsg = string.Empty;
             Service myService = null;
+            bool isRMEnabled = RMTicket.IsRMEnabled();
 
             // Perform a series of precondition tests...
             if (!svcContext.Valid) errorMsg = "Illegal or corrupt context, operation aborted!";
             else if (!svcContext.LockModel()) errorMsg = "Unable to lock the model!";
-            else if (!svcContext.LockReleaseHistory()) errorMsg = "Unable to lock the release history package!";
+            else if (isRMEnabled && !svcContext.LockReleaseHistory()) errorMsg = "Unable to lock the release history package!";
 
             if (errorMsg != string.Empty)
             {

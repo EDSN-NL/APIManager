@@ -16,10 +16,10 @@ namespace Plugin.Application.Forms
         private MEPackage _parent;      // Package in which we're creating the new API.
         private SortedList<string, RESTResourceDeclaration> _resourceList;
         private Ticket _remoteTicket;   // True when a valid ticket ID has been entered.
-        private bool _hasValidName;     // True when a valid API name has been entered;
-        private bool _hasProjectID;     // True when a project ID has been entered;
-        private bool _hasTicket;        // True when we have selected a valid ticket;
-        private bool _hasRM;            // True when Release Management has been enabled;
+        private bool _hasValidName;     // True when a valid API name has been entered.
+        private bool _hasProjectID;     // True when a project ID has been entered.
+        private bool _hasTicket;        // True when we have selected a valid ticket.
+        private bool _hasRM;            // True when Release Management has been enabled.
 
         /// <summary>
         /// The MetaData property returns a set of user-specified metadata for the new API...

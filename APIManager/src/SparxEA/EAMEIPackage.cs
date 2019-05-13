@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Forms;
 using System.Xml;
 using System.Collections.Generic;
 using EA;
@@ -6,6 +7,7 @@ using Framework.Context;
 using Framework.Logging;
 using Framework.Model;
 using Framework.Controller;
+using Framework.Util;
 
 namespace SparxEA.Model
 {
@@ -30,7 +32,7 @@ namespace SparxEA.Model
         private const string _MetaTypeUnion                 = "MetaTypeUnion";
 
         private EA.Package _package;                        // EA Package representation.
-        private bool _isLocked;                             // Keep track of successfull locking.
+        private bool _useLocks;                             // Is set to 'true' when we're using repository security.
 
         // Provide access to the EA instance for use by partner entities...
         internal EA.Package PackageInstance           { get { return this._package; } }
@@ -49,7 +51,7 @@ namespace SparxEA.Model
                 this._elementID = packageID;
                 this._globalID = this._package.PackageGUID;
 				this._aliasName = this._package.Alias ?? string.Empty;
-                this._isLocked = false;
+                this._useLocks = ((EAModelImplementation)this._model).Repository.IsSecurityEnabled;
 
                 // Register this package in the package tree. If the package has a parent, we attempt to link to it...
                 // In EA an empty package ID is represented by value '0', we use '-1' instead.
@@ -76,7 +78,7 @@ namespace SparxEA.Model
                 this._elementID = this._package.PackageID;
                 this._globalID = packageGUID;
                 this._aliasName = this._package.Alias ?? string.Empty;
-                this._isLocked = false;
+                this._useLocks = ((EAModelImplementation)this._model).Repository.IsSecurityEnabled;
 
                 // Register this package in the package tree. If the package has a parent, we attempt to link to it...
                 // In EA an empty package ID is represented by value '0', we use '-1' instead.
@@ -103,7 +105,7 @@ namespace SparxEA.Model
                 this._elementID = this._package.PackageID;
                 this._globalID = this._package.PackageGUID;
 				this._aliasName = this._package.Alias ?? string.Empty;
-                this._isLocked = false;
+                this._useLocks = ((EAModelImplementation)this._model).Repository.IsSecurityEnabled;
 
                 // Register this package in the package tree. If the package has a parent, we attempt to link to it...
                 // In EA an empty package ID is represented by value '0', we use '-1' instead.
@@ -949,11 +951,12 @@ namespace SparxEA.Model
         {
             MEPackage.LockStatus status = MEPackage.LockStatus.Unlocked;
             lockedUser = string.Empty;
-            if (this._isLocked) return MEPackage.LockStatus.LockedByMe;             // This particular package has been locked earlier.
+
             try
             {
+                if (!this._useLocks) return MEPackage.LockStatus.Unlocked;          // When security is disabled, treat as always unlocked.
+
                 EA.Repository repository = ((EAModelImplementation)this._model).Repository;
-                if (!repository.IsSecurityEnabled) return MEPackage.LockStatus.Unlocked;    // When security is disabled, treat as always unlocked.
                 string userGUID = repository.GetCurrentLoginUser(true);             // Returns the GUID of the current user (or exception when no security).
                 if (!string.IsNullOrEmpty(userGUID))                                // Just to be sure...
                 {
@@ -1018,41 +1021,32 @@ namespace SparxEA.Model
         /// <returns>True when lock is successfull, false on errors (includes locked by somebody else).</returns>
         internal override bool Lock(bool recursiveLock)
         {
-            try
+            if (this._useLocks)
             {
-                string lockedUser;
-                MEPackage.LockStatus status = IsLocked(out lockedUser);
-                if (status == MEPackage.LockStatus.Unlocked)
+                try
                 {
-                    bool result = recursiveLock ? this._package.ApplyUserLockRecursive(true, true, true) : this._package.ApplyUserLock();
-                    if (!result)
+                    string lockedUser;
+                    MEPackage.LockStatus status = IsLocked(out lockedUser);
+                    if (status == MEPackage.LockStatus.Unlocked)
                     {
-                        this._isLocked = false;
-                        Logger.WriteWarning("Failed to lock package structure because: '" + this._package.GetLastError() + "'!");
+                        bool result = recursiveLock ? this._package.ApplyUserLockRecursive(true, true, true) : this._package.ApplyUserLock();
+                        if (!result)
+                        {
+                            Logger.WriteWarning("Failed to lock package structure because: '" + this._package.GetLastError() + "'!");
+                        }
+                        return result;
                     }
-                    else this._isLocked = true;
-                    return result;
+                    else if (status == MEPackage.LockStatus.LockedByMe) return true;
+                    else Logger.WriteWarning("Unable to lock package '" + Name + "' because it is already locked by user '" + lockedUser + "'!");
                 }
-                else if (status == MEPackage.LockStatus.LockedByMe)
+                catch (Exception exc)
                 {
-                    // Package is already locked by the current user. However, since we did not perform the lock ourselves, the 'isLocked' status is set to 
-                    // false. This assures that a subsequent call to unlock will not remove the lock from the package and thus we do not alter the precondition.
-                    this._isLocked = false;
-                    return true;
+                    Logger.WriteError("SparxEA.Model.EAMEIPackage.Lock >> Failed to lock package structure because: '" + exc.ToString() + "'!");
                 }
-                else
-                {
-                    // Locked by somebody else. Nothing to do here.
-                    this._isLocked = false;
-                    return false;
-                }
+                // Locked by somebody else or error, nothing we can do here.
+                return false;
             }
-            catch (Exception exc)
-            {
-                Logger.WriteError("SparxEA.Model.EAMEIPackage.Lock >> Failed to lock package structure because: '" + exc.ToString() + "'!");
-            }
-            this._isLocked = false;
-            return false;
+            else return true;   // When locks are disabled, we always return true.
         }
 
         /// <summary>
@@ -1130,8 +1124,11 @@ namespace SparxEA.Model
                 {
                     if (String.Compare(t.Name, tagName, StringComparison.OrdinalIgnoreCase) == 0)
                     {
-                        t.Value = tagValue;
-                        t.Update();
+                        if (t.Value != tagValue)
+                        {
+                            t.Value = tagValue;
+                            t.Update();
+                        }
                         return;
                     }
                 }
@@ -1145,7 +1142,20 @@ namespace SparxEA.Model
                     this._package.Element.TaggedValues.Refresh();
                 }
             }
-            catch { /* & ignore all errors */ }
+            catch (System.Runtime.InteropServices.COMException exc)
+            {
+                if (exc.Message.Contains("locked"))
+                {
+                    Logger.WriteWarning("Unable to update tag '" + this._package.Name + "." + tagName + "' because of locking error, retrying in 10 seconds!");
+                    new Sleeper(10000).Wait();
+                    SetTag(tagName, tagValue, createIfNotExist);
+                }
+            }
+            catch (Exception exc)
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIPackage.SetTag >> Unable to update tag '" + tagName + "' in package '" + this.Name +
+                                  "' because: " + Environment.NewLine + exc.ToString());
+            }
         }
 
         /// <summary>
@@ -1158,24 +1168,33 @@ namespace SparxEA.Model
 
         /// <summary>
         /// Attempts to unlock the package and all included elements, diagrams and sub-packages. Errors are silently ignored.
-        /// When parameter 'currentPackageOnly' is set to 'true', the function only unlocks the current package. When set to
-        /// 'false', the package is unlocked recursively, including all sub-packages.
+        /// When parameter 'recursiveUnlock' is set to 'false', the function only unlocks the current package. When set to
+        /// 'true', the package is unlocked recursively, including all sub-packages.
         /// </summary>
         /// <param name="recursiveUnlock">When set to 'true' (the default), unlocks the entire package tree. When set to 'false', we 
-        /// only unlock the current package hierarchy.</param>
+        /// only unlock the current package.</param>
         internal override void Unlock(bool recursiveUnlock)
         {
-            try
+            if (this._useLocks)
             {
-                if (this._isLocked)
+                try
                 {
-                    if (recursiveUnlock) this._package.ReleaseUserLockRecursive(true,true,true); else this._package.ReleaseUserLock();
-                    this._isLocked = false;
+                    string lockedUser;
+                    MEPackage.LockStatus status = IsLocked(out lockedUser);
+                    if (status == MEPackage.LockStatus.LockedByMe)
+                    {
+                        if (recursiveUnlock) this._package.ReleaseUserLockRecursive(true, true, true); else this._package.ReleaseUserLock();
+                    }
+                    else if (status == MEPackage.LockStatus.Locked)
+                    {
+                        Logger.WriteWarning("Unable to unlock package '" + Name + "' because it is locked by user '" + lockedUser + "'!");
+                    }
                 }
-            }
-            catch (Exception exc)
-            {
-                Logger.WriteError("SparxEA.Model.EAMEIPackage.Unlock >> Failed to unlock package structure because: '" + exc.ToString() + "'!");
+                catch (Exception exc)
+                {
+                    Logger.WriteError("SparxEA.Model.EAMEIPackage.Unlock >> Failed to unlock package structure because: '" + exc.ToString() + "'!");
+
+                }
             }
         }
 
