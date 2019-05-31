@@ -5,6 +5,7 @@ using Framework.Context;
 using Framework.View;
 using Framework.Exceptions;
 using Framework.Util;
+using Framework.ConfigurationManagement;
 using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 using Plugin.Application.CapabilityModel.CodeList;
@@ -64,6 +65,7 @@ namespace Plugin.Application.Events.API
         private TreeNode<MEClass> _hierarchy;                   // Contains the hierarchy from Service down to Message Capabilities.
         private Service.ServiceArchetype  _type;                // Defines whether we're in REST or SOAP 'mode' (or Unknown).
         private bool            _lockContainer;                 // Indicates that 'lockModel' has a broader scope (container instead of decl.).
+        private bool            _hasValidRepositoryDsc;         // True when we have found a valid repository descriptor.
 
         /// <summary>
         /// Returns the collected context elements...
@@ -87,9 +89,11 @@ namespace Plugin.Application.Events.API
         /// Getters for additional properties:
         /// Valid = Context is assumed to be valid if the service class has been properly initialized or we have a release history package.
         /// Type = Returns the type of Service.
+        /// HasValidRepositoryDescriptor = Returns true if we have a valid repository descriptor.
         /// </summary>
-        internal bool Valid                             { get { return this._serviceClass != null || this._releaseHistoryPackage != null; } }
+        internal bool Valid                             { get { return this._hasValidRepositoryDsc && (this._serviceClass != null || this._releaseHistoryPackage != null); } }
         internal Service.ServiceArchetype Type          { get { return this._type; } }
+        internal bool HasValidRepositoryDescriptor      { get { return this._hasValidRepositoryDsc; } }
 
         /// <summary>
         /// Creates the context based on either selected diagram or entry in package tree. The constructor collects contextual information and
@@ -109,7 +113,10 @@ namespace Plugin.Application.Events.API
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
             Capability.FlushRegistry();             // Make sure to clean-up collected classes from previous Event, could contain stale contents!
-            
+
+            // Check whether we have a valid repository descriptor for the current project. If not, there is not much we can do...
+            this._hasValidRepositoryDsc = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor() != null;
+
             // Retrieve a bunch of configuration properties...
             string interfaceContractClassStereotype = context.GetConfigProperty(_InterfaceContractClassStereotype);
             string operationPkgStereotype           = context.GetConfigProperty(_ServiceOperationPkgStereotype);

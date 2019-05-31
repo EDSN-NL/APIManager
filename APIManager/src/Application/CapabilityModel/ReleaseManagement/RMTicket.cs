@@ -298,7 +298,8 @@ namespace Plugin.Application.CapabilityModel
         /// <returns>True when RM is active, false otherwise.</returns>
         internal static bool IsRMEnabled()
         {
-            return CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor().IsRMEnabled;
+            RepositoryDescriptor descriptor = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor();
+            return descriptor != null && descriptor.IsRMEnabled;
         }
 
         /// <summary>
@@ -309,7 +310,8 @@ namespace Plugin.Application.CapabilityModel
         /// <returns>True in case of valid ID (and RM is enabled), false otherwise.</returns>
         internal static bool IsValidID(string ticketID)
         {
-            return CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor().IsRMEnabled &&
+            RepositoryDescriptor descriptor = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor();
+            return descriptor != null && descriptor.IsRMEnabled &&
                    TicketServerSlt.GetTicketServerSlt().GetTicket(ticketID) != null;
         }
 
@@ -389,7 +391,8 @@ namespace Plugin.Application.CapabilityModel
         /// <returns>True when RM is enabled, false when not.</returns>
         private bool HasRMEnabled()
         {
-            this._hasRM = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor().IsRMEnabled;
+            RepositoryDescriptor descriptor = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor();
+            this._hasRM = descriptor != null && descriptor.IsRMEnabled;
             if (!this._hasRM)
             {
                 this._ticket = new Ticket();

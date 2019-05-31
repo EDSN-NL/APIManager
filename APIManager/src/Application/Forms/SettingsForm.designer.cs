@@ -100,6 +100,7 @@
             this.RepositoryName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Description = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.IsCMEnabled = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.IsRMEnabled = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.DeleteRepository = new System.Windows.Forms.Button();
             this.AddRepository = new System.Windows.Forms.Button();
             this.CMMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -108,7 +109,8 @@
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.OpenAPIGeneration = new System.Windows.Forms.GroupBox();
             this.GENUseMajorVersionOnly = new System.Windows.Forms.CheckBox();
-            this.IsRMEnabled = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.WSDLSettings = new System.Windows.Forms.GroupBox();
+            this.UseSOAP11Faults = new System.Windows.Forms.CheckBox();
             this.CodeLists.SuspendLayout();
             this.LogFile.SuspendLayout();
             this.ServiceModel.SuspendLayout();
@@ -123,6 +125,7 @@
             this.ConfigurationManagementGroup.SuspendLayout();
             this.CMMenuStrip.SuspendLayout();
             this.OpenAPIGeneration.SuspendLayout();
+            this.WSDLSettings.SuspendLayout();
             this.SuspendLayout();
             // 
             // UseLogfile
@@ -841,6 +844,11 @@
             this.IsCMEnabled.Text = "CM?";
             this.IsCMEnabled.Width = 44;
             // 
+            // IsRMEnabled
+            // 
+            this.IsRMEnabled.Text = "RM?";
+            this.IsRMEnabled.Width = 44;
+            // 
             // DeleteRepository
             // 
             this.DeleteRepository.Image = ((System.Drawing.Image)(resources.GetObject("DeleteRepository.Image")));
@@ -911,10 +919,25 @@
             this.GENUseMajorVersionOnly.Text = "Use major version only";
             this.GENUseMajorVersionOnly.UseVisualStyleBackColor = true;
             // 
-            // IsRMEnabled
+            // WSDLSettings
             // 
-            this.IsRMEnabled.Text = "RM?";
-            this.IsRMEnabled.Width = 44;
+            this.WSDLSettings.Controls.Add(this.UseSOAP11Faults);
+            this.WSDLSettings.Location = new System.Drawing.Point(224, 265);
+            this.WSDLSettings.Name = "WSDLSettings";
+            this.WSDLSettings.Size = new System.Drawing.Size(275, 125);
+            this.WSDLSettings.TabIndex = 18;
+            this.WSDLSettings.TabStop = false;
+            this.WSDLSettings.Text = "WSDL Settings";
+            // 
+            // UseSOAP11Faults
+            // 
+            this.UseSOAP11Faults.AutoSize = true;
+            this.UseSOAP11Faults.Location = new System.Drawing.Point(6, 22);
+            this.UseSOAP11Faults.Name = "UseSOAP11Faults";
+            this.UseSOAP11Faults.Size = new System.Drawing.Size(126, 17);
+            this.UseSOAP11Faults.TabIndex = 0;
+            this.UseSOAP11Faults.Text = "Use SOAP 1.1 Faults";
+            this.UseSOAP11Faults.UseVisualStyleBackColor = true;
             // 
             // SettingsForm
             // 
@@ -923,6 +946,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
             this.ClientSize = new System.Drawing.Size(1134, 438);
+            this.Controls.Add(this.WSDLSettings);
             this.Controls.Add(this.OpenAPIGeneration);
             this.Controls.Add(this.ConfigurationManagementGroup);
             this.Controls.Add(this.JSONSpecifics);
@@ -971,6 +995,8 @@
             this.CMMenuStrip.ResumeLayout(false);
             this.OpenAPIGeneration.ResumeLayout(false);
             this.OpenAPIGeneration.PerformLayout();
+            this.WSDLSettings.ResumeLayout(false);
+            this.WSDLSettings.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1057,5 +1083,7 @@
         private System.Windows.Forms.GroupBox OpenAPIGeneration;
         private System.Windows.Forms.CheckBox GENUseMajorVersionOnly;
         private System.Windows.Forms.ColumnHeader IsRMEnabled;
+        private System.Windows.Forms.GroupBox WSDLSettings;
+        private System.Windows.Forms.CheckBox UseSOAP11Faults;
     }
 }

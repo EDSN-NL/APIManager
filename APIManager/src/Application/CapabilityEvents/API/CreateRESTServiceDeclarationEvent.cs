@@ -3,6 +3,7 @@ using Framework.Event;
 using Framework.Logging;
 using Framework.Model;
 using Framework.Context;
+using Framework.ConfigurationManagement;
 using Plugin.Application.Forms;
 using Plugin.Application.CapabilityModel.API;
 
@@ -37,6 +38,16 @@ namespace Plugin.Application.Events.API
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
             MEPackage containerPackage = context.CurrentPackage;
+
+            // If we don't have a valid repository descriptor, there is not much use in creating the service!
+            if (CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor() == null)
+            {
+                string errorMsg = "No valid Repository Descriptor has been defined for the currently open project!";
+                Logger.WriteError("Plugin.Application.Events.API.CreateServiceDeclarationEvent.HandleEvent >> " + errorMsg);
+                MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             if (model.LockModel(containerPackage))
             {
                 using (var dialog = new CreateRESTServiceDeclaration(containerPackage))

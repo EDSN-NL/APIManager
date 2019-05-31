@@ -28,7 +28,9 @@ namespace Plugin.Application.Events.API
 
             if (!svcContext.Valid)
             {
-                Logger.WriteError("Plugin.Application.Events.API.CopyServiceDeclarationEvent.HandleEvent >> Illegal or corrupt context, event aborted!");
+                string errorMsg = (!svcContext.HasValidRepositoryDescriptor)? "No valid Repository Descriptor has been defined for the currently open project!":
+                                                                              "Illegal or corrupt context, operation aborted!";
+                Logger.WriteError("Plugin.Application.Events.API.CopyServiceDeclarationEvent.HandleEvent >> " + errorMsg);
                 return;
             }
 

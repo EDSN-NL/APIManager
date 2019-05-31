@@ -44,7 +44,11 @@ namespace Plugin.Application.CapabilityModel.API
                 {
                     // Since multi-line strings don't work here, we replace line breaks by two spaces.
                     string documentation = MEChangeLog.GetDocumentationAsText(itf.CapabilityClass, "  ");
-                    wr.WriteValue(documentation);
+                    //wr.WriteValue(documentation);
+                    wr.WriteValue("API Version: " +
+                                  itf.RootService.Version.Item1 + "." +
+                                  itf.RootService.Version.Item2 + "." +
+                                  itf.RootService.BuildNumber + " - " + documentation);
                 }
                 WriteTermsOfService(wr, itf);
                 WriteContactInfo(wr, itf);

@@ -83,7 +83,8 @@ namespace Framework.ConfigurationManagement
         /// <exception cref="InvalidOperationException">Thrown when the default constructor is used while RM is enabled.</exception>
         internal Ticket()
         {
-            if (!CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor().IsRMEnabled)
+            RepositoryDescriptor descriptor = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor();
+            if (descriptor == null || !descriptor.IsRMEnabled)
             {
                 this._ticketID = _NoTicket;
                 this._projectID = _NoTicket;

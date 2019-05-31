@@ -44,7 +44,8 @@ namespace Plugin.Application.Events.Util
 
             if (!svcContext.Valid)
             {
-                errorMsg = "Illegal or corrupt context, operation aborted!";
+                if (!svcContext.HasValidRepositoryDescriptor) errorMsg = "No valid Repository Descriptor has been defined for the currently open project!";
+                else errorMsg = "Illegal or corrupt context, operation aborted!";
                 Logger.WriteError("Plugin.Application.Events.API.RemoveTagsEvent.HandleEvent >> " + errorMsg);
                 MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;

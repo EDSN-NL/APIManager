@@ -26,7 +26,8 @@ namespace Framework.ConfigurationManagement
         private const string _NoChanges = "No changes";     // Check GIT response status for 'no changes made'.
         private const string _CertError = "unknown certificate check failure";  // Check GIT response status for 'certificate errors'.
         private const string _RemoteName = "origin";
-        private const string _Conflict = "conflicts prevent checkout";          // Failed to switch to a branch 'cause of conflicts.
+        private const string _Conflicts = "conflicts prevent checkout";          // Failed to switch to a branch 'cause of conflicts.
+        private const string _Conflict = "conflict prevents checkout";          // Failed to switch to a branch 'cause of conflicts.
 
         private static readonly CMRepositorySlt _repositorySlt = new CMRepositorySlt();     // The singleton repository instance.
 
@@ -583,7 +584,8 @@ namespace Framework.ConfigurationManagement
                 }
                 catch (Exception exc)
                 {
-                    if (exc.Message.Contains(_Conflict))
+                    Logger.WriteInfo("Framework.ConfigurationManagement.CMRepositorySlt.DoCheckout >> Got an exception:" + Environment.NewLine + exc.Message);
+                    if (exc.Message.Contains(_Conflict) || exc.Message.Contains(_Conflicts))
                     {
                         Logger.WriteWarning("Can't checkout branch '" + target.FriendlyName + "', attempting brute-force...!");
                         var checkoutOptions = new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force };

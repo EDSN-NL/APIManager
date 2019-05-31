@@ -422,6 +422,24 @@ namespace APIManager.SparxEA.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;!--
+        /// Schema for the SOAP/1.1 envelope
+        ///
+        ///Portions © 2001 DevelopMentor. 
+        ///© 2001 W3C (Massachusetts Institute of Technology, Institut National de Recherche en Informatique et en Automatique, Keio University). All Rights Reserved.  
+        /// 
+        ///This document is governed by the W3C Software License [1] as described in the FAQ [2].
+        ///[1] http://www.w3.org/Consortium/Legal/copyright-software-19980720
+        ///[2] http://www.w3.org/Consortium/Legal/IPR-FAQ-20000620.html#DTD 
+        ///By obtaining, using and/or copying this work, you (the licen [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string SoapEnvelope_v11 {
+            get {
+                return ResourceManager.GetString("SoapEnvelope_v11", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 
         ///   ========================================================================================
         ///   @CAPABILITYTYPE@ &apos;@CAPABILITY@&apos; for service: &apos;@SERVICE@&apos;

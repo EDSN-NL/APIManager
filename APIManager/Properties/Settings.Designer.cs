@@ -406,5 +406,17 @@ namespace APIManager.SparxEA.Properties {
                 this["GENUseMajorVersionOnly"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UseSOAP11Faults {
+            get {
+                return ((bool)(this["UseSOAP11Faults"]));
+            }
+            set {
+                this["UseSOAP11Faults"] = value;
+            }
+        }
     }
 }

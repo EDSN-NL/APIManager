@@ -574,6 +574,9 @@
     <None Include="resources\GITLicenseTemplate.txt" />
     <None Include="resources\OpenAPI20Header.txt" />
     <None Include="packages.config" />
+    <None Include="resources\SoapEnvelope_v11.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="resources\SOAPSchemaHeaderOCPP.txt" />
     <None Include="resources\SOAPSchemaHeaderEnexis.txt" />
     <None Include="resources\SOAPInterfaceHeaderOCPP.txt" />

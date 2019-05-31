@@ -32,7 +32,8 @@ namespace Plugin.Application.Events.Util
             // Perform a series of precondition tests...
             if (!svcContext.Valid)
             {
-                errorMsg = "Illegal or corrupt context, operation aborted!";
+                if (!svcContext.HasValidRepositoryDescriptor) errorMsg = "No valid Repository Descriptor has been defined for the currently open project!";
+                else errorMsg = "Illegal or corrupt context, operation aborted!";
                 isError = true;
             }
             else if (!Service.UpdateAllowed(svcContext.ServiceClass)) errorMsg = "Service must be in checked-out state for documentation to be updated!";

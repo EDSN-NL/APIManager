@@ -9,6 +9,7 @@ namespace Plugin.Application.Forms
     {
         private Tuple<int, int> _newVersion;
         private Ticket _remoteTicket;
+        private bool _hasRM;                // True when Release Management has been enabled.
 
         /// <summary>
         /// Getters for the various dialog properties...
@@ -26,8 +27,21 @@ namespace Plugin.Application.Forms
             this._newVersion = new Tuple<int, int>(service.Version.Item1, service.Version.Item2);
             ExistingVersionFld.Text = service.Version.Item1 + "." + service.Version.Item2;
             NewVersionFld.Text = service.Version.Item1 + "." + (service.Version.Item2);
-            Ok.Enabled = false;
-            this._remoteTicket = null;
+
+            this._hasRM = RMTicket.IsRMEnabled();
+            if (!this._hasRM)
+            {
+                // No RM, disable the (part of the) Administration section and pretend we have a valid ticket & projectID
+                // (this will enable the Ok button on name only).
+                TicketBox.Enabled = false;
+                this._remoteTicket = new Ticket();  // Create a dummy ticket.
+                Ok.Enabled = true;
+            }
+            else
+            {
+                Ok.Enabled = false;
+                this._remoteTicket = null;
+            }
         }
 
         /// <summary>

@@ -55,15 +55,14 @@ namespace Plugin.Application.Events.API
             ContextSlt context = ContextSlt.GetContextSlt();
             var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
 
-
-
             string errorMsg = string.Empty;
             bool isError = false;
 
             // Perform a series of precondition tests...
             if (!svcContext.Valid)
             {
-                errorMsg = "Illegal or corrupt context, operation aborted!";
+                if (!svcContext.HasValidRepositoryDescriptor) errorMsg = "No valid Repository Descriptor has been defined for the currently open project!";
+                else errorMsg = "Illegal or corrupt context, operation aborted!";
                 isError = true;
             }
             else if (svcContext.Type != Service.ServiceArchetype.SOAP) errorMsg = "Operation only suitable for SOAP Services!";

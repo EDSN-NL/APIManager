@@ -46,6 +46,7 @@ namespace Plugin.Application.Forms
             PersistentLocks.Checked                 = context.GetBoolSetting(FrameworkSettings._PersistentModelLocks);
             AllOfSupport.Checked                    = context.GetBoolSetting(FrameworkSettings._JSONAllOfSupport);
             GENUseMajorVersionOnly.Checked          = context.GetBoolSetting(FrameworkSettings._GENUseMajorVersionOnly);
+            UseSOAP11Faults.Checked                 = context.GetBoolSetting(FrameworkSettings._WSDLUseSoap11Faults);
             RAAPIKeys.Text                          = context.GetStringSetting(FrameworkSettings._RESTAuthAPIKeys);
             RESTHostName.Text                       = context.GetStringSetting(FrameworkSettings._RESTHostName);
             RESTSchemes.Text                        = context.GetStringSetting(FrameworkSettings._RESTSchemes);
@@ -143,6 +144,7 @@ namespace Plugin.Application.Forms
             context.SetBoolSetting(FrameworkSettings._PersistentModelLocks, PersistentLocks.Checked);
             context.SetBoolSetting(FrameworkSettings._JSONAllOfSupport, AllOfSupport.Checked);
             context.SetBoolSetting(FrameworkSettings._GENUseMajorVersionOnly, GENUseMajorVersionOnly.Checked);
+            context.SetBoolSetting(FrameworkSettings._WSDLUseSoap11Faults, UseSOAP11Faults.Checked);
 
             context.SetStringSetting(FrameworkSettings._DiagramSaveType, this._imageType);
             context.SetStringSetting(FrameworkSettings._InterfaceContractType, this._interfaceType);

@@ -40,7 +40,11 @@ namespace Plugin.Application.Events.Util
             Service myService = null;
 
             // Perform some precondition tests...
-            if (!svcContext.Valid) errorMsg = "Illegal or corrupt context, operation aborted!";
+            if (!svcContext.Valid)
+            {
+                if (!svcContext.HasValidRepositoryDescriptor) errorMsg = "No valid Repository Descriptor has been defined for the currently open project!";
+                else errorMsg = "Illegal or corrupt context, operation aborted!";
+            }
             else if (!svcContext.LockModel()) errorMsg = "Unable to lock the model!";
 
             if (errorMsg != string.Empty)

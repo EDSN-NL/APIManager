@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Text;
 using System.Collections.Generic;
 using Framework.Logging;
 using Framework.Model;
@@ -23,13 +25,18 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _InterfaceContractTypeTag      = "InterfaceContractTypeTag";
         private const string _InterfaceDefaultSOAPContract  = "InterfaceDefaultSOAPContract";
         private const string _SchemaUseRelativePathName     = "SchemaUseRelativePathName";
+        private const string _SOAP11EnvelopeNamespace       = "SOAP11EnvelopeNamespace";
+        private const string _SOAP11EnvelopeSchemaFilename  = "SOAP11EnvelopeSchemaFilename";
+
+        private bool _useSOAP11Faults;
 
         // Interface building blocks...
         private static string _interfaceLeader              = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
         private static string _localToken                   = "itf";
+        private static string _FaultMessageName             = "GenericFaultMessage";
         private static string _interfaceSkeleton            =
 @"<definitions xmlns=""http://schemas.xmlsoap.org/wsdl/"" 
-   xmlns:xs=""http://www.w3.org/2001/XMLSchema""
+   xmlns:xs=""http://www.w3.org/2001/XMLSchema"" @SOAP11FAULTNAMESPACE@
    xmlns:soap=""http://schemas.xmlsoap.org/wsdl/soap/"" @JMSNAMESPACE@
    targetNamespace=""@MYNAMESPACE@""
    xmlns:itf=""@MYNAMESPACE@""@NAMESPACEDECL@>
@@ -93,7 +100,10 @@ namespace Plugin.Application.CapabilityModel.API
                 string jmsToken = context.GetConfigProperty(_JMSNamespaceToken);
                 ContractType contractType = GetInterfaceContractTag(itf.CapabilityClass);
                 this._currentAccessLevel = GetInterfaceAccessLevel(itf.CapabilityClass);
+                this._useSOAP11Faults = context.GetBoolSetting(FrameworkSettings._WSDLUseSoap11Faults);
                 string headerTemplate = context.GetResourceString(FrameworkSettings._SOAPInterfaceHeader);
+                string SOAP11FaultNamespace = context.GetConfigProperty(_SOAP11EnvelopeNamespace);
+                string SOAP11FaultEnvelopeNS = this._useSOAP11Faults? "\n   xmlns:tns=\"" + SOAP11FaultNamespace + "\"": string.Empty;
 
                 this._interfaceDeclaration = _interfaceLeader + "\n<!--" + BuildHeader(headerTemplate) + "-->\n" + _interfaceSkeleton;
                 if (contractType == ContractType.Topic)
@@ -111,6 +121,7 @@ namespace Plugin.Application.CapabilityModel.API
                 }
 
                 this._interfaceDeclaration = this._interfaceDeclaration.Replace("@MYNAMESPACE@", this._currentService.GetFQN("SOAPInterface", null, -1));
+                this._interfaceDeclaration = this._interfaceDeclaration.Replace("@SOAP11FAULTNAMESPACE@", SOAP11FaultEnvelopeNS);
                 this._interfaceDeclaration = this._interfaceDeclaration.Replace("@ITFNAME@", Conversions.ToPascalCase(this._currentCapability.AssignedRole));
                 this._interfaceDeclaration = this._interfaceDeclaration.Replace("@NAMESPACEDECL@", BuildNamespaceDecl());
                 this._interfaceDeclaration = this._interfaceDeclaration.Replace("@IMPORTDECL@", BuildImportDecl());
@@ -138,12 +149,20 @@ namespace Plugin.Application.CapabilityModel.API
         private string BuildImportDecl()
         {
             string namespaceDecl = string.Empty;
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string schemaLocation = (context.GetConfigProperty(_SchemaUseRelativePathName) == "true") ? string.Empty : this._currentService.ServiceBuildPath + "/";
             foreach (ProcessingContext ctx in this._operationContextList)
             {
-                string schemaLocation = (ContextSlt.GetContextSlt().GetConfigProperty(_SchemaUseRelativePathName) == "true") ? string.Empty : this._currentService.ServiceBuildPath + "/";
-                schemaLocation += ctx.Operation.BaseFileName + ".xsd";
-                namespaceDecl += "\n         <xs:import schemaLocation=\"" + schemaLocation + "\" namespace=\"" +
+                string schemaFile = schemaLocation + ctx.Operation.BaseFileName + ".xsd";
+                namespaceDecl += "\n         <xs:import schemaLocation=\"" + schemaFile + "\" namespace=\"" +
                                  this._currentService.GetFQN("SOAPOperation", ctx.Operation.Name, -1) + "\"/>";
+            }
+            if (this._useSOAP11Faults && CreateEnvelopeSchemaFile())
+            {
+                string SOAPFaultNS = context.GetConfigProperty(_SOAP11EnvelopeNamespace);
+                string schemaFilename = schemaLocation + context.GetConfigProperty(_SOAP11EnvelopeSchemaFilename);
+
+                namespaceDecl += "\n         <xs:import schemaLocation =\"" + schemaFilename + "\" namespace=\"" + SOAPFaultNS + "\"/>";
             }
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.APIProcessor.BuildImportDecl>> Collected: " + namespaceDecl);
             return namespaceDecl;
@@ -165,6 +184,11 @@ namespace Plugin.Application.CapabilityModel.API
                     messageDecl += "   <message name=\"" + message.Name + "\">\n      <part name=\"part1\" element=\"" +
                                     ctx.Operation.CapabilityClass.GetTag(nsTokenTag) + ":" + elementName + "\"/>\n   </message>\n\n";
                 }
+            }
+            if (this._useSOAP11Faults)
+            {
+                messageDecl += "   <message name=\"" + _FaultMessageName + 
+                               "\">\n      <part name=\"fault\" element=\"tns:Fault\"/>\n   </message>\n\n";
             }
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.APIProcessor.BuildMessageDecl >> Collected: " + messageDecl);
             return messageDecl;
@@ -195,6 +219,7 @@ namespace Plugin.Application.CapabilityModel.API
             string operationDecl = string.Empty;
             string requestMessage = string.Empty;
             string responseMessage = string.Empty;
+            string faultMessage = string.Empty;
             foreach (ProcessingContext ctx in this._operationContextList)
             {
                 operationDecl += "\n      <operation name=\"" + ctx.Operation.AssignedRole + "\">";
@@ -215,8 +240,13 @@ namespace Plugin.Application.CapabilityModel.API
                         Logger.WriteError("Plugin.Application.CapabilityModel.API.APIProcessor.BuildOperationDecl >> " + errorMsg);
                         this._panel.WriteError(this._panelIndex, errorMsg);
                     }
+                    if (this._useSOAP11Faults)
+                    {
+                        faultMessage = "\n         <fault message=\"" + _localToken + ":" + 
+                                       _FaultMessageName + "\" name=\"" + _FaultMessageName + "\"/>";
+                    }
                 }
-                operationDecl += requestMessage + responseMessage + "\n      </operation>";  // To make sure the order is always request before response.
+                operationDecl += requestMessage + responseMessage + faultMessage + "\n      </operation>";  // To make sure the order is always request before response.
             }
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.APIProcessor.BuildOperationDecl >> Collected: " + operationDecl);
             return operationDecl;
@@ -237,6 +267,35 @@ namespace Plugin.Application.CapabilityModel.API
             serviceDecl += "\n   </service>";
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.APIProcessor.BuildServiceDecl >> Collected: " + serviceDecl);
             return serviceDecl;
+        }
+
+        /// <summary>
+        /// Helper function that retrieves the SOAP Envelope schema contents from the resource collection and writes it to a schema
+        /// file on the current CI file path.
+        /// </summary>
+        /// <returns>True when successfully created the file, false on errors.</returns>
+        private bool CreateEnvelopeSchemaFile()
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string fileName = this._currentService.ServiceCIPath + "/" + context.GetConfigProperty(_SOAP11EnvelopeSchemaFilename);
+            FileStream saveStream = null;
+            bool result = false;
+            try
+            {
+                using (saveStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    using (StreamWriter writer = new StreamWriter(saveStream, Encoding.UTF8))
+                        writer.Write(context.GetResourceString(FrameworkSettings._SOAPEnvelopeSchema));
+                }
+                result = true;
+            }
+            catch (Exception exc)
+            {
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.APIProcessor.CreateEnvelopeSchemaFile >> Error writing to '" +
+                                   fileName + "' because:" + Environment.NewLine + exc.ToString());
+            }
+            finally { if (saveStream != null) saveStream.Dispose(); }
+            return result;
         }
 
         /// <summary>
