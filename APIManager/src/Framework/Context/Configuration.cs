@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Framework.Logging;
+
+using System.Windows.Forms;
 
 namespace Framework.Context
 {
@@ -10,15 +14,17 @@ namespace Framework.Context
     /// The Configuration class provides an interface to the standard Microsoft configuration mechanism. 
     /// It accesses configuration properties from the configuration XML file (APIManager.dll.config in this case). 
     /// Since this is installed together with the DLL in ProgramFiles, it is READ ONLY!
+    /// This module creates a user-specific (roaming) configuration that is user extensible and read-write.
     /// This configuration class only contains the low-level access mechanisms for the configuration file, it does NOT contain
     /// any configuration property definitions, since these are platform- and implementation specific. Typically, the properties
     /// are maintained by the platform-specific Context implementation class.
     /// </summary>
     internal sealed class Configuration
     {
-        private static System.Configuration.Configuration _configuration = null;        // Static (read-only) configuration file (app. settings).
+        private static System.Configuration.Configuration _defaultConfig = null;    // Contains all static (=compile time) configuration keys.
+        private static System.Configuration.Configuration _currentConfig = null;    // Combines static with dynamic keys and is the actual used config!
         private bool isOpen = false;
-        private SortedList<string, string> _propertyCache;                              // We keep retrieved configuration properties in a cache.
+        private SortedList<string, string> _propertyCache;                          // We keep retrieved configuration properties in a cache to speed-up retrieval.
 
         /// <summary>
         /// Helper function that performs the actual retrieval of properties. 
@@ -34,7 +40,7 @@ namespace Framework.Context
             if (this._propertyCache.ContainsKey(key)) return this._propertyCache[key];
 
             string outputValue = string.Empty;
-            KeyValueConfigurationElement element = _configuration.AppSettings.Settings[key];
+            KeyValueConfigurationElement element = _currentConfig.AppSettings.Settings[key];
 
             // If we have an element and it contains a '%' character, we might have to perform element substitution... We check the '%' first to avoid
             // having to go through expensive regex. parsing since 90% of the configuration items don't need this.
@@ -80,7 +86,7 @@ namespace Framework.Context
             var retVal = new List<string>();
             if (!isOpen) return retVal;
 
-            foreach (KeyValueConfigurationElement kvElement in _configuration.AppSettings.Settings)
+            foreach (KeyValueConfigurationElement kvElement in _currentConfig.AppSettings.Settings)
             {
                 if (kvElement.Key.StartsWith(key) && !string.IsNullOrEmpty(kvElement.Value)) retVal.Add(kvElement.Value);
             }
@@ -95,11 +101,11 @@ namespace Framework.Context
         /// <param name="value">The new property value.</param>
         internal void SetProperty(string key, string value)
         {
-            KeyValueConfigurationElement element = _configuration.AppSettings.Settings[key];
+            KeyValueConfigurationElement element = _currentConfig.AppSettings.Settings[key];
             if (element != null && key != String.Empty)
             {
-                _configuration.AppSettings.Settings[key].Value = value;
-                _configuration.Save(ConfigurationSaveMode.Minimal);
+                _currentConfig.AppSettings.Settings[key].Value = value;
+                _currentConfig.Save(ConfigurationSaveMode.Minimal);
                 ConfigurationManager.RefreshSection("appSettings");
                 if (this._propertyCache.ContainsKey(key)) this._propertyCache[key] = value;
                 else this._propertyCache.Add(key, value);
@@ -116,16 +122,63 @@ namespace Framework.Context
                 if (!isOpen)
                 {
                     // Open DLL-specific configuration... (user-bound, roaming etc. does not work for DLL's).
-                    string configPath = this.GetType().Assembly.Location;       // Obtain pointer to the assembly.
-                    _configuration = ConfigurationManager.OpenExeConfiguration(configPath);
+                    // Below code fragment is way to primitive and does not provides the correct result. New
+                    // code is present in 'LoadConfiguration'...
+                    //string configPath = this.GetType().Assembly.Location;       // Obtain pointer to the assembly.
+                    //_currentConfig = ConfigurationManager.OpenExeConfiguration(configPath);
+                    LoadConfiguration();
                     this._propertyCache = new SortedList<string, string>();
-                    if (_configuration != null) isOpen = true;
+                    if (_currentConfig != null) isOpen = true;
                 }
             }
             catch (System.SystemException exc)
             {
                 Logger.WriteError("Framework.Context.ConfigurationSlt >> initialization failed because: " + exc.Message);
             }
+        }
+
+        /// <summary>
+        /// Helper function that creates a per-user roaming profile for the plugin (if not yet there) and maps all static configuration
+        /// keys to that profile. On return, the _defaultConfig property contains all static configuration options and the _currentConfig
+        /// contains all user-specific options.
+        /// </summary>
+        private void LoadConfiguration()
+        {
+            // Retrieves the roaming profile for this application and user.
+            System.Configuration.Configuration roamingConfig = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.PerUserRoaming);
+
+            // Since this is a DLL that is part of EA, we will now get an entry 'somewhere' three-levels down in the Sparx EA config path.
+            // We want to replace this with a 'clean' configuration file for the plugin and to support this, we have to move three-levels
+            // up the directory tree and create an explicit configuration directory there...
+            string configFileName = Path.GetFileName(roamingConfig.FilePath);
+            string configDirectory = Directory.GetParent(roamingConfig.FilePath).Parent.Parent.Parent.FullName;
+            string newConfigFilePath = configDirectory + @"\APIManager\" + configFileName;
+
+            // Next, we map the roaming configuration file to the local '_currentConfig'. This enables the application to access the 
+            // configuration file using the System.Configuration.Configuration class...
+            // ConfigurationUserLevel = None --> Specifies the application configuration file.
+            ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
+            configFileMap.ExeConfigFilename = newConfigFilePath;
+            _currentConfig = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
+
+            // Next, we retrieve the static (default) configuration file for this assembly and copy all settings that are
+            // not yet present in the user (roaming) config file...
+            string defaultConfigFilePath = string.Empty;
+            if (_defaultConfig == null)
+            {
+                defaultConfigFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                _defaultConfig = ConfigurationManager.OpenExeConfiguration(defaultConfigFilePath);
+            }
+
+            // Copy all keys from default config to roaming config...
+            foreach (KeyValueConfigurationElement configEntry in _defaultConfig.AppSettings.Settings)
+            {
+                if (!_currentConfig.AppSettings.Settings.AllKeys.Contains(configEntry.Key))
+                {
+                    _currentConfig.AppSettings.Settings.Add(configEntry.Key, configEntry.Value);
+                }
+            }
+            _currentConfig.Save();
         }
     }
 }

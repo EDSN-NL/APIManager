@@ -150,7 +150,7 @@ namespace Framework.ConfigurationManagement
             if (this._cmDescriptors.ContainsKey(key)) return this._cmDescriptors[key];
             else
             {
-                Logger.WriteWarning("We could not find a Repository Descriptor for the current project, please configure one using 'Settings/Configuration Management'!");
+                Logger.WriteWarning("We could not find a Repository Descriptor for current project ('" + key + "'), please configure one using 'Settings/Configuration Management'!");
             }
             return null;
         }

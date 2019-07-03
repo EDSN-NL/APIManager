@@ -133,29 +133,38 @@ namespace SparxEA.View
         {
             try
             {
-                foreach (MEClass cl in classList)
+                try
                 {
-                    // Make sure to skip the objects that are already there...
-                    bool isPresent = false;
-                    for (short i = 0; i < this._diagram.DiagramObjects.Count; i++)
+                    foreach (MEClass cl in classList)
                     {
-                        if (((EA.DiagramObject)this._diagram.DiagramObjects.GetAt(i)).ElementID == cl.ElementID)
+                        // Make sure to skip the objects that are already there...
+                        bool isPresent = false;
+                        for (short i = 0; i < this._diagram.DiagramObjects.Count; i++)
                         {
-                            isPresent = true;
-                            break;
+                            if (((EA.DiagramObject)this._diagram.DiagramObjects.GetAt(i)).ElementID == cl.ElementID)
+                            {
+                                isPresent = true;
+                                break;
+                            }
+                        }
+
+                        if (!isPresent)
+                        {
+                            string location = "l=" + this._left + ";r=" + (this._left + _ClassWidth) + ";t=" + this._top + ";b=" + (this._top + _ClassHeight);
+                            var diagramObject = this._diagram.DiagramObjects.AddNew(location, "") as DiagramObject;
+                            diagramObject.ElementID = cl.ElementID;
+                            diagramObject.Update();
+                            if (cl.AssociatedDiagram != null) diagramObject.ShowComposedDiagram = true;
+                            this._top += _ClassHeight / 2;
+                            this._left += _ClassWidth / 2;
                         }
                     }
-
-                    if (!isPresent)
-                    {
-                        string location = "l=" + this._left + ";r=" + (this._left + _ClassWidth) + ";t=" + this._top + ";b=" + (this._top + _ClassHeight);
-                        var diagramObject = this._diagram.DiagramObjects.AddNew(location, "") as DiagramObject;
-                        diagramObject.ElementID = cl.ElementID;
-                        diagramObject.Update();
-                        if (cl.AssociatedDiagram != null) diagramObject.ShowComposedDiagram = true;
-                        this._top += _ClassHeight / 2;
-                        this._left += _ClassWidth / 2;
-                    }
+                }
+                catch (System.Runtime.InteropServices.COMException exc)
+                {
+                    // If we add stuff to an existing diagram, we might get COM errors 'cause the element cache
+                    // is not up-to-date with the actual diagram contents. We simply ignore these (but write a message to the log, just in case)...
+                    Logger.WriteInfo("SparxEA.View.EADiagramImplementation.AddClassList >> Got a COMException:" + Environment.NewLine + exc.ToString());
                 }
             }
             catch (Exception exc)

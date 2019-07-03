@@ -45,6 +45,12 @@ namespace Plugin.Application.Events.Util
                 // For a class, all outbound associations will be processed as well (with the exception of generalization).
                 ModelSlt model = ModelSlt.GetModelSlt();
                 ModelElement element = context.GetActiveElement();
+                if (element == null)
+                {
+                    Logger.WriteInfo("Plugin.Application.Events.Util.SetMetadataEvent.handleEvent >> No active element found!");
+                    return;                            // Nothing active, can't do a thing!
+                }
+
                 if (element.Type == ModelElementType.Class)
                 {
                     if (model.LockModel(((MEClass)element).OwningPackage))

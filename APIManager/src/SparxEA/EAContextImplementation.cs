@@ -57,41 +57,50 @@ namespace SparxEA.Context
             ObjectType activeObjectType = this._repository.GetContextItemType();
             ModelElement element = null;
 
-            switch (activeObjectType)
+            try
             {
-                case ObjectType.otDiagram:
-                    //If we're on a diagram, fetch the owning package and return this...
-                    var currentDiagram = currentActiveObject as EA.Diagram;
-                    element = (currentDiagram.DiagramGUID == this._lastActiveObjectGUID) ? this._lastModelElement : new MEPackage(currentDiagram.PackageID);
-                    this._lastActiveObjectGUID = currentDiagram.DiagramGUID;
-                    break;
+                switch (activeObjectType)
+                {
+                    case ObjectType.otDiagram:
+                        //If we're on a diagram, fetch the owning package and return this...
+                        var currentDiagram = currentActiveObject as EA.Diagram;
+                        element = (currentDiagram.DiagramGUID == this._lastActiveObjectGUID) ? this._lastModelElement : new MEPackage(currentDiagram.PackageID);
+                        this._lastActiveObjectGUID = currentDiagram.DiagramGUID;
+                        break;
 
-                case ObjectType.otPackage:
-                    var currentPackage = currentActiveObject as EA.Package;
-                    element = (currentPackage.PackageGUID == this._lastActiveObjectGUID) ? this._lastModelElement : new MEPackage(currentPackage.PackageID);
-                    this._lastActiveObjectGUID = currentPackage.PackageGUID;
-                    break;
+                    case ObjectType.otPackage:
+                        var currentPackage = currentActiveObject as EA.Package;
+                        element = (currentPackage.PackageGUID == this._lastActiveObjectGUID) ? this._lastModelElement : new MEPackage(currentPackage.PackageID);
+                        this._lastActiveObjectGUID = currentPackage.PackageGUID;
+                        break;
 
-                case ObjectType.otElement:
-                    var currentElement = currentActiveObject as EA.Element;
-                    element = (currentElement.ElementGUID == this._lastActiveObjectGUID) ? this._lastModelElement : new MEClass(currentElement.ElementID);
-                    this._lastActiveObjectGUID = currentElement.ElementGUID;
-                    break;
+                    case ObjectType.otElement:
+                        var currentElement = currentActiveObject as EA.Element;
+                        element = (currentElement.ElementGUID == this._lastActiveObjectGUID) ? this._lastModelElement : new MEClass(currentElement.ElementID);
+                        this._lastActiveObjectGUID = currentElement.ElementGUID;
+                        break;
 
-                case ObjectType.otAttribute:
-                    // In this case, we return the class in which the attribute is located.
-                    var currentAttribute = currentActiveObject as EA.Attribute;
-                    element = (currentAttribute.AttributeGUID == this._lastActiveObjectGUID) ? this._lastModelElement : new MEClass(currentAttribute.ParentID);
-                    this._lastActiveObjectGUID = currentAttribute.AttributeGUID;
-                    break;
+                    case ObjectType.otAttribute:
+                        // In this case, we return the class in which the attribute is located.
+                        var currentAttribute = currentActiveObject as EA.Attribute;
+                        element = (currentAttribute.AttributeGUID == this._lastActiveObjectGUID) ? this._lastModelElement : new MEClass(currentAttribute.ParentID);
+                        this._lastActiveObjectGUID = currentAttribute.AttributeGUID;
+                        break;
 
-                default:
-                    Logger.WriteInfo("SparxEA.Context.EAContextImplementation.getActiveElement >> Unknown active object: '" + activeObjectType + "'!");
-                    element = null;
-                    this._lastActiveObjectGUID = string.Empty;
-                    break;
+                    default:
+                        Logger.WriteInfo("SparxEA.Context.EAContextImplementation.getActiveElement >> Unknown active object: '" + activeObjectType + "'!");
+                        element = null;
+                        this._lastActiveObjectGUID = string.Empty;
+                        break;
+                }
+                this._lastModelElement = element;
             }
-            this._lastModelElement = element;
+            catch (System.NullReferenceException)
+            {
+                Logger.WriteInfo("SparxEA.Context.EAContextImplementation.getActiveElement >> No valid element in focus!");
+                this._lastModelElement = null;
+                this._lastActiveObjectGUID = string.Empty;
+            }
             return element;
         }
 

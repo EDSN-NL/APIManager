@@ -574,7 +574,7 @@ namespace Framework.ConfigurationManagement
             Branch target = this._gitRepository.Branches[branchName];
             if (target != null)
             {
-                // If the current branch is equal to the requeted branch, do nothing since our branch is already checked-out!
+                // If the current branch is equal to the requested branch, do nothing since our branch is already checked-out!
                 if (this._currentBranch != null && this._currentBranch.FriendlyName == branchName) return this._currentBranch;
 
                 try

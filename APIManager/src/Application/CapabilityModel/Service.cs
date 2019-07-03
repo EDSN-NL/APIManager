@@ -75,6 +75,7 @@ namespace Plugin.Application.CapabilityModel
         private const string _CommitIDLeader                    = "CommitIDLeader";
         private const string _CMArtefactsFolderName             = "CMArtefactsFolderName";
         private const string _CMDocumentsFolderName             = "CMDocumentsFolderName";
+        private const string _CMSnapshotsFolderName             = "CMSnapshotsFolderName";
         private const string _NamespacePrefix                   = "NamespacePrefix";
 
         protected List<Capability> _serviceCapabilities;        // A list of all capabilities configured for this service.
@@ -812,8 +813,11 @@ namespace Plugin.Application.CapabilityModel
                 ContextSlt context = ContextSlt.GetContextSlt();
                 string artefactFolder = context.GetConfigProperty(_CMArtefactsFolderName);
                 string documentFolder = context.GetConfigProperty(_CMDocumentsFolderName);
+                string snapshotFolder = context.GetConfigProperty(_CMSnapshotsFolderName);
+
                 if (artefactFolder != string.Empty) artefactFolder = "/" + artefactFolder;
                 if (documentFolder != string.Empty) documentFolder = "/" + documentFolder;
+                if (snapshotFolder != string.Empty) snapshotFolder = "/" + snapshotFolder;
                 if (string.IsNullOrEmpty(this._repositoryPath)) throw new ConfigurationErrorsException("Configuration Root Path not set, aborting!");
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.initializePath >> Repository path set to '" + this._repositoryPath + "'...");
 
@@ -827,6 +831,8 @@ namespace Plugin.Application.CapabilityModel
                     Directory.CreateDirectory(this._repositoryPath + "/" + this._serviceBuildPath + artefactFolder);
                 if (this._CMContext.CMEnabledRepository && !Directory.Exists(this._repositoryPath + "/" + this._serviceBuildPath + documentFolder))
                     Directory.CreateDirectory(this._repositoryPath + "/" + this._serviceBuildPath + documentFolder);
+                if (this._CMContext.CMEnabledRepository && !Directory.Exists(this._repositoryPath + "/" + this._serviceBuildPath + snapshotFolder))
+                    Directory.CreateDirectory(this._repositoryPath + "/" + this._serviceBuildPath + snapshotFolder);
                 this._serviceBuildPath += artefactFolder;
 
                 // Even if CM is disabled for this particular service, we must still adhere to the path standard for a CM-enabled repository!

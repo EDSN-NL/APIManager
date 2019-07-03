@@ -70,7 +70,15 @@ namespace Framework.ConfigurationManagement
         internal string Name
         {
             get { return this._repoName?? string.Empty; }
-            set { if (string.IsNullOrEmpty(this._repoName) || value != this._repoName) { this._repoName = value; this._dirty = true; } }
+            set
+            {
+                string repoName = value.Trim();
+                if (string.IsNullOrEmpty(this._repoName) || repoName != this._repoName)
+                {
+                    this._repoName = repoName;
+                    this._dirty = true;
+                }
+            }
         }
 
         /// <summary>
@@ -83,7 +91,7 @@ namespace Framework.ConfigurationManagement
         }
 
         /// <summary>
-        /// Get- or set the local root path for te repository.
+        /// Get- or set the local root path for the repository.
         /// </summary>
         internal string LocalRootPath
         {

@@ -387,8 +387,8 @@ namespace Plugin.Application.CapabilityModel
                 Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.CommitService >> Committing service with message '" + message + "'...");
 
                 this._snapshotCreated = false;  // We reset this on each commit since obviously the service state has changed (hence the new commit).
-                SetupDirectories();             // Make sure we have our commit 'pointers' setup properly.
                 ActivateBranch(_NoSync);        // Make sure we are on a valid branch (but don't pull the branch just yet since this might ruin the work we just done).
+                SetupDirectoryPointers();       // Make sure we have our commit 'pointers' setup properly.
 
                 // On auto-release, we create the snapshot on commit-time so it can be committed together with the other artefacts in a 
                 // single transaction. Release will just perform a 'tagged-push' to remote...
@@ -580,12 +580,12 @@ namespace Plugin.Application.CapabilityModel
                 // Make sure that our branch is up to date before attempting to merge...
                 this._repository.GotoBranch(this._branchName);
                 this._repository.Pull();
+                SetupDirectoryPointers();
 
                 if (!this._snapshotCreated)
                 {
                     Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.ReleaseService >> We have not yet committed a snapshot...");         
                     CreateSnapshot();
-                    this._repository.AddToStagingArea(this._commitPath);         // Update our staging area with the created snapshot.
                     this._repository.CommitStagingArea("Created release with tag '" + tagName + "'.", false);
                     this._snapshotCreated = true;
                 }
@@ -629,7 +629,7 @@ namespace Plugin.Application.CapabilityModel
         {
             Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.RevertService >> Reverting to tag '" + tagName +
                              "' with a 'new version' indicator of '" + makeNewVersion + "'...");
-            SetupDirectories();    // Make sure that we have the appropriate pointers to the necessary directories...
+            SetupDirectoryPointers();    // Make sure that we have the appropriate pointers to the necessary directories...
             ContextSlt context = ContextSlt.GetContextSlt();
             string tempBranch = null;
             string servicePkgStereotype = ContextSlt.GetContextSlt().GetConfigProperty(_ServiceDeclPkgStereotype);
@@ -813,16 +813,16 @@ namespace Plugin.Application.CapabilityModel
         /// </summary>
         private void CreateSnapshot()
         {
-            Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.CreateSnapshot >> Create a snapshot of the service...");
+            Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.CreateSnapshot >> Create a snapshot of the service to '" + this._snapshotPath + "'...");
             ContextSlt context = ContextSlt.GetContextSlt();
 
             string snapshotName = Path.GetTempPath() + this._trackedService.Name + context.GetConfigProperty(_XMIFileSuffix);
             this._trackedService.DeclarationPkg.ExportPackage(snapshotName);    // Create the snapshot.
             string zipFile = Compression.FileZip(snapshotName, true);           // Compress generated XMI and delete original XMI (huge savings in size). 
-            SetupDirectories();                                                 // Make sure we have a place to store the snapshot.
             string destFile = this._snapshotPath + "/" + this._trackedService.Name + context.GetConfigProperty(_CompressedFileSuffix);
             File.Copy(zipFile, destFile, true);                                 // Copy instead of move, since this allows overwrite existing files!
             File.Delete(zipFile);
+            this._repository.AddToStagingArea(this._commitPath + "/" + context.GetConfigProperty(_CMSnapshotsFolderName));
             this._snapshotCreated = true;
         }
 
@@ -1193,14 +1193,13 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
-        /// Helper function that assures that we have a pointer to our working directory for commits as well as a valid directory for the 
-        /// creation of snapshots. We only create these 'on demand' when required.
+        /// Helper function that assures that we have a pointer to our working directories for commits as well as snapshots.
+        /// The directories must exist, since they are created during service initialisation.
         /// </summary>
-        private void SetupDirectories()
+        private void SetupDirectoryPointers()
         {
             RepositoryDescriptor repoDsc = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor();
             ContextSlt context = ContextSlt.GetContextSlt();
-
             if (this._commitPath == null)
             {
                 string artefactFolder = "/" + context.GetConfigProperty(_CMArtefactsFolderName);
@@ -1208,11 +1207,9 @@ namespace Plugin.Application.CapabilityModel
                 this._commitPath = folderIndex >= 0 ? this._trackedService.ServiceBuildPath.Substring(0, folderIndex) : this._trackedService.ServiceBuildPath;
             }
 
-            if (this._snapshotPath == null)
-            {
-                this._snapshotPath = repoDsc.LocalRootPath + "/" + this._commitPath + "/" + context.GetConfigProperty(_CMSnapshotsFolderName);
-                if (!Directory.Exists(this._snapshotPath)) Directory.CreateDirectory(this._snapshotPath);
-            }
+            // Please note that the Snapshot path is an absolute path!
+            if (this._snapshotPath == null) this._snapshotPath = repoDsc.LocalRootPath + "/" + this._commitPath + 
+                                                                 "/" + context.GetConfigProperty(_CMSnapshotsFolderName);    
         }
 
         /// <summary>

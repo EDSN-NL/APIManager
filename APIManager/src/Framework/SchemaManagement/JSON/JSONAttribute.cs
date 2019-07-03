@@ -203,9 +203,9 @@ namespace Framework.Util.SchemaManagement.JSON
         {
             string schemaString = string.Empty;
             string enumList = this._attributeClassifier.ToString();
-            if (enumList.Contains("enum"))
+            if (enumList.Contains("\"enum\":"))
             {
-                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute.GetClassifierAsJSONSchemaText >> Got me an enumeration!");
+                Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute.GetClassifierAsJSONSchemaText >> Got enumeration: '" + enumList + "'...");
                 enumList = enumList.Substring(enumList.IndexOf("\"enum\":"));
                 enumList = enumList.Substring(0, enumList.IndexOf(']') + 1);
 

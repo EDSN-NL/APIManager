@@ -225,7 +225,7 @@ namespace Framework.Util.SchemaManagement.JSON
             // This table consists of tuples <PRIM name> - <Corresponding JSON name>
             string[,] translateTable =
                  {{"anytype",           ""},
-                 {"binary",             "binary"},
+                 {"binary",             "byte"},    // Used to be format binary, but changed to byte to support Base64 encoded strings.
                  {"boolean",            ""},
                  {"date",               "date"},
                  {"datetime",           "date-time"},
