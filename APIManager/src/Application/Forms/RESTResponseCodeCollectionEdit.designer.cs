@@ -48,14 +48,18 @@ namespace Plugin.Application.Forms
             this.addToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ScopeGroup = new System.Windows.Forms.GroupBox();
+            this.APIScope = new System.Windows.Forms.RadioButton();
+            this.GlobalScope = new System.Windows.Forms.RadioButton();
             this.ResponseCodeGroup.SuspendLayout();
             this.ResponseCodeMenuStrip.SuspendLayout();
+            this.ScopeGroup.SuspendLayout();
             this.SuspendLayout();
             // 
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(219, 218);
+            this.Cancel.Location = new System.Drawing.Point(219, 274);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
             this.Cancel.TabIndex = 3;
@@ -65,7 +69,7 @@ namespace Plugin.Application.Forms
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(138, 218);
+            this.Ok.Location = new System.Drawing.Point(138, 274);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
             this.Ok.TabIndex = 4;
@@ -87,7 +91,7 @@ namespace Plugin.Application.Forms
             this.ResponseCodeGroup.Controls.Add(this.DeleteResponseCode);
             this.ResponseCodeGroup.Controls.Add(this.AddResponseCode);
             this.ResponseCodeGroup.Controls.Add(this.ResponseCodeList);
-            this.ResponseCodeGroup.Location = new System.Drawing.Point(12, 32);
+            this.ResponseCodeGroup.Location = new System.Drawing.Point(12, 88);
             this.ResponseCodeGroup.Name = "ResponseCodeGroup";
             this.ResponseCodeGroup.Size = new System.Drawing.Size(282, 180);
             this.ResponseCodeGroup.TabIndex = 2;
@@ -153,17 +157,17 @@ namespace Plugin.Application.Forms
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 9);
+            this.label2.Location = new System.Drawing.Point(15, 15);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(85, 13);
+            this.label2.Size = new System.Drawing.Size(38, 13);
             this.label2.TabIndex = 10;
-            this.label2.Text = "Collection name:";
+            this.label2.Text = "Name:";
             // 
             // CollectionNmFld
             // 
-            this.CollectionNmFld.Location = new System.Drawing.Point(103, 6);
+            this.CollectionNmFld.Location = new System.Drawing.Point(59, 12);
             this.CollectionNmFld.Name = "CollectionNmFld";
-            this.CollectionNmFld.Size = new System.Drawing.Size(191, 20);
+            this.CollectionNmFld.Size = new System.Drawing.Size(235, 20);
             this.CollectionNmFld.TabIndex = 1;
             this.CollectionNmFld.Leave += new System.EventHandler(this.CollectionNmFld_Leave);
             // 
@@ -174,28 +178,63 @@ namespace Plugin.Application.Forms
             this.deleteToolStripMenuItem,
             this.editToolStripMenuItem});
             this.ResponseCodeMenuStrip.Name = "ResponseCodeMenuStrip";
-            this.ResponseCodeMenuStrip.Size = new System.Drawing.Size(153, 92);
+            this.ResponseCodeMenuStrip.Size = new System.Drawing.Size(108, 70);
             // 
             // addToolStripMenuItem
             // 
             this.addToolStripMenuItem.Name = "addToolStripMenuItem";
-            this.addToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.addToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.addToolStripMenuItem.Text = "Add";
             this.addToolStripMenuItem.Click += new System.EventHandler(this.AddResponseCode_Click);
             // 
             // deleteToolStripMenuItem
             // 
             this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.deleteToolStripMenuItem.Text = "Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.DeleteResponseCode_Click);
             // 
             // editToolStripMenuItem
             // 
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
-            this.editToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.editToolStripMenuItem.Text = "Edit";
             this.editToolStripMenuItem.Click += new System.EventHandler(this.EditResponseCode_Click);
+            // 
+            // ScopeGroup
+            // 
+            this.ScopeGroup.Controls.Add(this.APIScope);
+            this.ScopeGroup.Controls.Add(this.GlobalScope);
+            this.ScopeGroup.Location = new System.Drawing.Point(12, 38);
+            this.ScopeGroup.Name = "ScopeGroup";
+            this.ScopeGroup.Size = new System.Drawing.Size(282, 44);
+            this.ScopeGroup.TabIndex = 11;
+            this.ScopeGroup.TabStop = false;
+            this.ScopeGroup.Text = "Scope";
+            // 
+            // APIScope
+            // 
+            this.APIScope.AutoSize = true;
+            this.APIScope.Location = new System.Drawing.Point(74, 19);
+            this.APIScope.Name = "APIScope";
+            this.APIScope.Size = new System.Drawing.Size(42, 17);
+            this.APIScope.TabIndex = 1;
+            this.APIScope.TabStop = true;
+            this.APIScope.Text = "API";
+            this.APIScope.UseVisualStyleBackColor = true;
+            this.APIScope.CheckedChanged += new System.EventHandler(this.ScopeGroup_CheckedChanged);
+            // 
+            // GlobalScope
+            // 
+            this.GlobalScope.AutoSize = true;
+            this.GlobalScope.Location = new System.Drawing.Point(12, 19);
+            this.GlobalScope.Name = "GlobalScope";
+            this.GlobalScope.Size = new System.Drawing.Size(55, 17);
+            this.GlobalScope.TabIndex = 0;
+            this.GlobalScope.TabStop = true;
+            this.GlobalScope.Text = "Global";
+            this.GlobalScope.UseVisualStyleBackColor = true;
+            this.GlobalScope.CheckedChanged += new System.EventHandler(this.ScopeGroup_CheckedChanged);
             // 
             // RESTResponseCodeCollectionEdit
             // 
@@ -203,9 +242,10 @@ namespace Plugin.Application.Forms
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(306, 260);
-            this.Controls.Add(this.CollectionNmFld);
+            this.ClientSize = new System.Drawing.Size(308, 318);
             this.Controls.Add(this.label2);
+            this.Controls.Add(this.CollectionNmFld);
+            this.Controls.Add(this.ScopeGroup);
             this.Controls.Add(this.ResponseCodeGroup);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.Ok);
@@ -218,6 +258,8 @@ namespace Plugin.Application.Forms
             this.Text = "Create or Edit Colection";
             this.ResponseCodeGroup.ResumeLayout(false);
             this.ResponseCodeMenuStrip.ResumeLayout(false);
+            this.ScopeGroup.ResumeLayout(false);
+            this.ScopeGroup.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -241,5 +283,8 @@ namespace Plugin.Application.Forms
         private ToolStripMenuItem addToolStripMenuItem;
         private ToolStripMenuItem deleteToolStripMenuItem;
         private ToolStripMenuItem editToolStripMenuItem;
+        private GroupBox ScopeGroup;
+        private RadioButton APIScope;
+        private RadioButton GlobalScope;
     }
 }

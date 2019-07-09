@@ -433,7 +433,6 @@ namespace Plugin.Application.Forms
             this.manageCollectionsToolStripMenuItem});
             this.ResponseCodeMenuStrip.Name = "ResponseCodeMenuStrip";
             this.ResponseCodeMenuStrip.Size = new System.Drawing.Size(180, 114);
-            this.ResponseCodeMenuStrip.Click += new System.EventHandler(this.EditCollections_Click);
             // 
             // addToolStripMenuItem
             // 
@@ -468,6 +467,7 @@ namespace Plugin.Application.Forms
             this.manageCollectionsToolStripMenuItem.Name = "manageCollectionsToolStripMenuItem";
             this.manageCollectionsToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.manageCollectionsToolStripMenuItem.Text = "Manage Collections";
+            this.manageCollectionsToolStripMenuItem.Click += new System.EventHandler(this.EditCollections_Click);
             // 
             // MimeBox
             // 

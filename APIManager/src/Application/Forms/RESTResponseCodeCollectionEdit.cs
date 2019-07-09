@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using Framework.Context;
+using Framework.Util;
 using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 
@@ -12,6 +13,7 @@ namespace Plugin.Application.Forms
     internal partial class RESTResponseCodeCollectionEdit : Form
     {
         private RESTResponseCodeCollection _collection;
+        private RESTResponseCodeCollection.CollectionScope _scope;
 
         /// <summary>
         /// Returns the collection name as assigned by the user.
@@ -24,6 +26,11 @@ namespace Plugin.Application.Forms
         internal RESTResponseCodeCollection Collection { get { return this._collection; } }
 
         /// <summary>
+        /// Returns the user-selected scope of the collection.
+        /// </summary>
+        internal RESTResponseCodeCollection.CollectionScope Scope { get { return this._scope; } }
+
+        /// <summary>
         /// Dialog that facilitates creation of a new Operation Result Declaration (or editing of an existing one).
         /// </summary>
         /// <param name="result">Initial declaration to use for editing.</param>
@@ -31,12 +38,13 @@ namespace Plugin.Application.Forms
         {
             InitializeComponent();
             ContextSlt context = ContextSlt.GetContextSlt();
-            this._collection = thisCollection;
 
             if (thisCollection != null)
             {
+                this._collection = thisCollection;
                 this.Text = "Edit existing Collection";
                 CollectionNmFld.Text = thisCollection.Name;
+                this._scope = thisCollection.Scope;
 
                 // Load the result codes from the existing collection...
                 foreach (RESTOperationResultDeclaration resultDecl in thisCollection.Collection)
@@ -53,10 +61,22 @@ namespace Plugin.Application.Forms
             {
                 this.Text = "Create new Collection";
                 this.Ok.Enabled = false;
+                this._collection = new RESTResponseCodeCollection();
+                this._scope = RESTResponseCodeCollection.CollectionScope.API;
             }
 
             // Assign context menus to the appropriate controls...
             ResponseCodeList.ContextMenuStrip = ResponseCodeMenuStrip;
+
+            // Find out which radio button to select for the scope...
+            foreach (Control control in ScopeGroup.Controls)
+            {
+                if (control is RadioButton && string.Compare(control.Text, this._scope.ToString(), true) == 0)
+                {
+                    ((RadioButton)control).Checked = true;
+                    break;
+                }
+            }
         }
 
         /// <summary>
@@ -89,6 +109,7 @@ namespace Plugin.Application.Forms
                 ListViewItem key = ResponseCodeList.SelectedItems[0];
                 ContextSlt context = ContextSlt.GetContextSlt();
                 this._collection.DeleteOperationResult(key.Text);
+                ResponseCodeList.Items.Remove(key);
             }
         }
 
@@ -125,6 +146,24 @@ namespace Plugin.Application.Forms
             {
                 this._collection.Name = CollectionNmFld.Text;
                 this.Ok.Enabled = true;
+            }
+        }
+
+        /// <summary>
+        /// We invoke this handler whenever one of the Control Scope radio buttons is clicked.
+        /// The function converts the selected button to an enumeration value.
+        /// </summary>
+        /// <param name="sender">Ignored</param>
+        /// <param name="e">Ignored</param>
+        private void ScopeGroup_CheckedChanged(object sender, EventArgs e)
+        {
+            foreach (Control control in ScopeGroup.Controls)
+            {
+                if (control is RadioButton && ((RadioButton)control).Checked)
+                {
+                    this._scope = EnumConversions<RESTResponseCodeCollection.CollectionScope>.StringToEnum(control.Text);
+                    break;
+                }
             }
         }
     }
