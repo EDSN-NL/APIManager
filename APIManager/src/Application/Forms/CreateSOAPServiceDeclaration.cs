@@ -182,10 +182,19 @@ namespace Plugin.Application.Forms
             {
                 foreach (string operation in operations)
                 {
-                    string validatedOperation = operation.Trim();
-                    if (!char.IsUpper(validatedOperation[0]))
+                    if (!string.IsNullOrEmpty(operation))
                     {
-                        ErrorLine.Text = "Operation name '" + operation + "' must be in PascalCase, please try again!";
+                        string validatedOperation = operation.Trim();
+                        if (!char.IsUpper(validatedOperation[0]))
+                        {
+                            ErrorLine.Text = "Operation name '" + operation + "' must be in PascalCase, please try again!";
+                            this._hasValidOperations = false;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        ErrorLine.Text = "Malformatted list of operations, please try again!";
                         this._hasValidOperations = false;
                         break;
                     }

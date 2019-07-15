@@ -103,7 +103,7 @@ namespace Plugin.Application.Forms
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(499, 164);
+            this.Cancel.Location = new System.Drawing.Point(499, 191);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
             this.Cancel.TabIndex = 3;
@@ -113,7 +113,7 @@ namespace Plugin.Application.Forms
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(418, 164);
+            this.Ok.Location = new System.Drawing.Point(418, 191);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
             this.Ok.TabIndex = 4;
@@ -122,13 +122,13 @@ namespace Plugin.Application.Forms
             // 
             // ErrorLine
             // 
-            this.ErrorLine.BackColor = System.Drawing.SystemColors.Control;
+            this.ErrorLine.BackColor = System.Drawing.SystemColors.ControlLight;
             this.ErrorLine.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.ErrorLine.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ErrorLine.ForeColor = System.Drawing.Color.Red;
-            this.ErrorLine.Location = new System.Drawing.Point(12, 171);
+            this.ErrorLine.Location = new System.Drawing.Point(12, 10);
             this.ErrorLine.Name = "ErrorLine";
-            this.ErrorLine.Size = new System.Drawing.Size(392, 16);
+            this.ErrorLine.Size = new System.Drawing.Size(562, 16);
             this.ErrorLine.TabIndex = 0;
             // 
             // TicketBox
@@ -137,7 +137,7 @@ namespace Plugin.Application.Forms
             this.TicketBox.Controls.Add(this.ProjectIDFld);
             this.TicketBox.Controls.Add(this.TicketIDFld);
             this.TicketBox.Controls.Add(this.label9);
-            this.TicketBox.Location = new System.Drawing.Point(12, 12);
+            this.TicketBox.Location = new System.Drawing.Point(12, 39);
             this.TicketBox.Name = "TicketBox";
             this.TicketBox.Size = new System.Drawing.Size(562, 53);
             this.TicketBox.TabIndex = 1;
@@ -187,7 +187,7 @@ namespace Plugin.Application.Forms
             this.ServiceDetailsBox.Controls.Add(this.CommaSeparatedLbl);
             this.ServiceDetailsBox.Controls.Add(this.ServiceNameFld);
             this.ServiceDetailsBox.Controls.Add(this.OperationNames);
-            this.ServiceDetailsBox.Location = new System.Drawing.Point(12, 71);
+            this.ServiceDetailsBox.Location = new System.Drawing.Point(12, 98);
             this.ServiceDetailsBox.Name = "ServiceDetailsBox";
             this.ServiceDetailsBox.Size = new System.Drawing.Size(562, 87);
             this.ServiceDetailsBox.TabIndex = 2;
@@ -215,7 +215,7 @@ namespace Plugin.Application.Forms
             // UseSOAPFaultsIndicator
             // 
             this.UseSOAPFaultsIndicator.AutoSize = true;
-            this.UseSOAPFaultsIndicator.Location = new System.Drawing.Point(12, 164);
+            this.UseSOAPFaultsIndicator.Location = new System.Drawing.Point(12, 191);
             this.UseSOAPFaultsIndicator.Name = "UseSOAPFaultsIndicator";
             this.UseSOAPFaultsIndicator.Size = new System.Drawing.Size(126, 17);
             this.UseSOAPFaultsIndicator.TabIndex = 5;
@@ -225,7 +225,7 @@ namespace Plugin.Application.Forms
             // UseListElementsIndicator
             // 
             this.UseListElementsIndicator.AutoSize = true;
-            this.UseListElementsIndicator.Location = new System.Drawing.Point(144, 164);
+            this.UseListElementsIndicator.Location = new System.Drawing.Point(144, 191);
             this.UseListElementsIndicator.Name = "UseListElementsIndicator";
             this.UseListElementsIndicator.Size = new System.Drawing.Size(110, 17);
             this.UseListElementsIndicator.TabIndex = 6;
@@ -238,7 +238,7 @@ namespace Plugin.Application.Forms
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(586, 205);
+            this.ClientSize = new System.Drawing.Size(586, 233);
             this.Controls.Add(this.UseListElementsIndicator);
             this.Controls.Add(this.UseSOAPFaultsIndicator);
             this.Controls.Add(this.ServiceDetailsBox);
