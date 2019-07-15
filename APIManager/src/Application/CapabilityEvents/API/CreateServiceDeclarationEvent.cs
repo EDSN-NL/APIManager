@@ -57,7 +57,9 @@ namespace Plugin.Application.Events.API
                         // Invoke the Application Service 'create' constructor in order to create the entire service structure...
                         var svc = new ApplicationService(containerPackage, dialog.ServiceName, dialog.OperationList,
                                                          context.GetConfigProperty(_ServiceDeclPkgStereotype),
-                                                         dialog.SelectedState, dialog.RemoteTicket, dialog.ProjectID);
+                                                         dialog.SelectedState, 
+                                                         dialog.UseSOAPFaults, dialog.UseListElements, 
+                                                         dialog.RemoteTicket, dialog.ProjectID);
                         if (svc.Valid)
                         {
                             svc.Paint(svc.ModelPkg.FindDiagram(svc.ModelPkg.Name));

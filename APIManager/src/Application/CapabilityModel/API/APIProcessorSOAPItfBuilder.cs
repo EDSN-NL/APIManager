@@ -100,7 +100,7 @@ namespace Plugin.Application.CapabilityModel.API
                 string jmsToken = context.GetConfigProperty(_JMSNamespaceToken);
                 ContractType contractType = GetInterfaceContractTag(itf.CapabilityClass);
                 this._currentAccessLevel = GetInterfaceAccessLevel(itf.CapabilityClass);
-                this._useSOAP11Faults = context.GetBoolSetting(FrameworkSettings._WSDLUseSoap11Faults);
+                this._useSOAP11Faults = ((ApplicationService)this._currentService).UseSOAPFaults;
                 string headerTemplate = context.GetResourceString(FrameworkSettings._SOAPInterfaceHeader);
                 string SOAP11FaultNamespace = context.GetConfigProperty(_SOAP11EnvelopeNamespace);
                 string SOAP11FaultEnvelopeNS = this._useSOAP11Faults? "\n   xmlns:tns=\"" + SOAP11FaultNamespace + "\"": string.Empty;

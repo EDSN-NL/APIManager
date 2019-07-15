@@ -73,7 +73,7 @@ namespace Plugin.Application.CapabilityModel.API
                              string declarationStereotype,
                              OperationalState initialState,
                              Ticket remoteTicket, string projectOrderID): 
-            base(containerPackage, metaData.qualifiedName, declarationStereotype, initialState, remoteTicket, projectOrderID)
+            base(containerPackage, metaData.qualifiedName, declarationStereotype, initialState, true, remoteTicket, projectOrderID)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();

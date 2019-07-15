@@ -1,9 +1,7 @@
-﻿using System;
-using System.Xml;
+﻿using System.Xml;
 using System.Xml.Schema;
 using System.Collections.Generic;
 using Framework.Logging;
-using Framework.Util;
 
 namespace Framework.Util.SchemaManagement.XML
 {
@@ -70,7 +68,7 @@ namespace Framework.Util.SchemaManagement.XML
                 {
                     this._classifier.MaxOccurs = cardinality.UpperBoundary;
                 }
-                this._classifier.MinOccurs = (cardinality.IsList && cardinality.IsOptional) ? 1 : cardinality.LowerBoundary;     // If we're in a list, there must be at least one element.
+                this._classifier.MinOccurs = (schema.UseLists && cardinality.IsList && cardinality.IsOptional) ? 1 : cardinality.LowerBoundary;     // If we're in a list, there must be at least one element.
 
                 // Add (list of) annotation(s) to the association...
                 if (annotation.Count > 0)
@@ -84,7 +82,7 @@ namespace Framework.Util.SchemaManagement.XML
                     }
                 }
 
-                if (cardinality.IsList)
+                if (schema.UseLists && cardinality.IsList)
                 {
                     Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLAssociation >> ASBIE cardinality > 1, creating an intermediate List element....");
                     var listElement = new XmlSchemaElement()

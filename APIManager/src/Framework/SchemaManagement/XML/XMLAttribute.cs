@@ -79,7 +79,7 @@ namespace Framework.Util.SchemaManagement.XML
                 {
                     this._attribute.MaxOccurs = cardinality.UpperBoundary;
                 }
-                this._attribute.MinOccurs = (cardinality.IsList && cardinality.IsOptional) ? 1 : cardinality.LowerBoundary;     // If we're in a list, there must be at least one element.
+                this._attribute.MinOccurs = (schema.UseLists && cardinality.IsList && cardinality.IsOptional) ? 1 : cardinality.LowerBoundary;     // If we're in a list, there must be at least one element.
 
                 // Add (list of) annotation(s) to the attribute...
                 if (annotation.Count > 0)
@@ -110,7 +110,7 @@ namespace Framework.Util.SchemaManagement.XML
                     this._attribute.FixedValue = fixedValue;
                 }
 
-                if (cardinality.IsList)
+                if (schema.UseLists && cardinality.IsList)
                 {
                     Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLContentAttribute >> Attribute cardinality > 1, creating an intermediate List element....");
                     var listElement = new XmlSchemaElement()

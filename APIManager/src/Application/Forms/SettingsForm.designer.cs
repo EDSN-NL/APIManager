@@ -109,8 +109,8 @@
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.OpenAPIGeneration = new System.Windows.Forms.GroupBox();
             this.GENUseMajorVersionOnly = new System.Windows.Forms.CheckBox();
-            this.WSDLSettings = new System.Windows.Forms.GroupBox();
-            this.UseSOAP11Faults = new System.Windows.Forms.CheckBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
             this.CodeLists.SuspendLayout();
             this.LogFile.SuspendLayout();
             this.ServiceModel.SuspendLayout();
@@ -125,7 +125,6 @@
             this.ConfigurationManagementGroup.SuspendLayout();
             this.CMMenuStrip.SuspendLayout();
             this.OpenAPIGeneration.SuspendLayout();
-            this.WSDLSettings.SuspendLayout();
             this.SuspendLayout();
             // 
             // UseLogfile
@@ -919,25 +918,25 @@
             this.GENUseMajorVersionOnly.Text = "Use major version only";
             this.GENUseMajorVersionOnly.UseVisualStyleBackColor = true;
             // 
-            // WSDLSettings
+            // label2
             // 
-            this.WSDLSettings.Controls.Add(this.UseSOAP11Faults);
-            this.WSDLSettings.Location = new System.Drawing.Point(224, 265);
-            this.WSDLSettings.Name = "WSDLSettings";
-            this.WSDLSettings.Size = new System.Drawing.Size(275, 125);
-            this.WSDLSettings.TabIndex = 18;
-            this.WSDLSettings.TabStop = false;
-            this.WSDLSettings.Text = "WSDL Settings";
+            this.label2.AutoSize = true;
+            this.label2.ForeColor = System.Drawing.Color.Red;
+            this.label2.Location = new System.Drawing.Point(224, 272);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(220, 13);
+            this.label2.TabIndex = 18;
+            this.label2.Text = "The \'Use SOAP 1.1 Faults\' is now maintained";
             // 
-            // UseSOAP11Faults
+            // label7
             // 
-            this.UseSOAP11Faults.AutoSize = true;
-            this.UseSOAP11Faults.Location = new System.Drawing.Point(6, 22);
-            this.UseSOAP11Faults.Name = "UseSOAP11Faults";
-            this.UseSOAP11Faults.Size = new System.Drawing.Size(126, 17);
-            this.UseSOAP11Faults.TabIndex = 0;
-            this.UseSOAP11Faults.Text = "Use SOAP 1.1 Faults";
-            this.UseSOAP11Faults.UseVisualStyleBackColor = true;
+            this.label7.AutoSize = true;
+            this.label7.ForeColor = System.Drawing.Color.Red;
+            this.label7.Location = new System.Drawing.Point(225, 289);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(115, 13);
+            this.label7.TabIndex = 19;
+            this.label7.Text = "on a per-Service basis!";
             // 
             // SettingsForm
             // 
@@ -946,7 +945,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
             this.ClientSize = new System.Drawing.Size(1134, 438);
-            this.Controls.Add(this.WSDLSettings);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.OpenAPIGeneration);
             this.Controls.Add(this.ConfigurationManagementGroup);
             this.Controls.Add(this.JSONSpecifics);
@@ -995,8 +995,6 @@
             this.CMMenuStrip.ResumeLayout(false);
             this.OpenAPIGeneration.ResumeLayout(false);
             this.OpenAPIGeneration.PerformLayout();
-            this.WSDLSettings.ResumeLayout(false);
-            this.WSDLSettings.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1083,7 +1081,7 @@
         private System.Windows.Forms.GroupBox OpenAPIGeneration;
         private System.Windows.Forms.CheckBox GENUseMajorVersionOnly;
         private System.Windows.Forms.ColumnHeader IsRMEnabled;
-        private System.Windows.Forms.GroupBox WSDLSettings;
-        private System.Windows.Forms.CheckBox UseSOAP11Faults;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label7;
     }
 }

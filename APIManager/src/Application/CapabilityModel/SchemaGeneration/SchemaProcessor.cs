@@ -198,6 +198,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             OperationCapability parent = ((MessageCapability)this._currentCapability).Parent;
                             string schemaName = this._standAlone ? this._currentCapability.Name : parent.Name;
                             this._schema = GetSchema(Schema.SchemaType.Operation, schemaName, parent.NSToken, parent.FQName, parent.VersionString);
+                            this._schema.UseLists = this._currentService.UseListElements;
                         }
                         break;
 

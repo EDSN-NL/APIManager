@@ -77,7 +77,9 @@ namespace Plugin.Application.CapabilityModel
         private const string _CMDocumentsFolderName             = "CMDocumentsFolderName";
         private const string _CMSnapshotsFolderName             = "CMSnapshotsFolderName";
         private const string _NamespacePrefix                   = "NamespacePrefix";
+        private const string _UseListElementsTag                = "UseListElementsTag";
 
+        // Properties that can be accessed by specialised services only...
         protected List<Capability> _serviceCapabilities;        // A list of all capabilities configured for this service.
         protected List<Capability> _selectedCapabilities;       // The subset of capabilities that have been selected by the user for processing.
         protected MEClass _serviceClass;                        // Services are always based on a class in the model.
@@ -100,6 +102,7 @@ namespace Plugin.Application.CapabilityModel
         private string _serviceURI;                             // Unique service identifier in URI format.
 
         private int _maxOperationID;                            // Current maximum operation ID, used to provide operations with a unique ID.
+        private bool _useListElements;                          // When true, indicates that sub-elements with cardinality >1 must be in a separate list construct.
 
         /// <summary>
         /// Get or set the service build number.
@@ -257,6 +260,12 @@ namespace Plugin.Application.CapabilityModel
         internal bool UseConfigurationMgmt { get { return this._CMContext.CMEnabledService; } }
 
         /// <summary>
+        /// Returns an indicator that, when true, states that any sub-elements with a cardinality greater then 1 must be in a separate list element
+        /// (how to do this is service-implementation dependent).
+        /// </summary>
+        internal bool UseListElements { get { return this._useListElements; } }
+
+        /// <summary>
         /// Returns true if the service hierarchy has been successfully created and/or initialized, false otherwise.
         /// </summary>
         internal bool Valid { get { return this._serviceClass != null; } }
@@ -277,11 +286,13 @@ namespace Plugin.Application.CapabilityModel
         /// <param name="qualifiedServiceName">Full name of the service, including major version suffix.</param>
         /// <param name="declarationStereotype">Defines the type of service that we're constructing.</param>
         /// <param name="initialState">Initial operational state of the service.</param>
+        /// <param name="useListElements">Indicates that sub-elements with cardinality greater then 1 must be in a separate list element.</param>
         /// <param name="remoteTicket">the ticket we use for service creation, ignored when CM is not active.</param>
         /// <param name="projectOrderID">Identifier of the project order we use for service creation, ignored when CM is not active.</param>
         /// <exception cref="ConfigurationsErrorException">Error retrieving items from configuration or configuration settings invalid.</exception>
         /// <exception cref="InvalidOperationException">Thrown when an illegal (or no) ticket is passed and CM is enabled.</exception>
-        protected Service(MEPackage containerPackage, string qualifiedServiceName, string declarationStereotype, OperationalState initialState, Ticket remoteTicket, string projectOrderID)
+        protected Service(MEPackage containerPackage, string qualifiedServiceName, string declarationStereotype, 
+                          OperationalState initialState, bool useListElements, Ticket remoteTicket, string projectOrderID)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.Service >> Creating service with name: '" + qualifiedServiceName + "' in package '" + containerPackage.Name + "'...");
 
@@ -293,6 +304,7 @@ namespace Plugin.Application.CapabilityModel
                 this._selectedCapabilities = null;
                 this._representationColor = Diagram.ClassColor.Default;
                 this._operationalState = initialState;
+                this._useListElements = useListElements;
 
                 string serviceName = qualifiedServiceName.Substring(0, qualifiedServiceName.IndexOf("_V"));
                 string version = qualifiedServiceName.Substring(qualifiedServiceName.IndexOf("_V") + 2);
@@ -338,12 +350,15 @@ namespace Plugin.Application.CapabilityModel
                 this._serviceClass.SetTag(context.GetConfigProperty(_ServiceOperationalStateTag), 
                                           EnumConversions<OperationalState>.EnumToString(initialState));
 
+                // Set the initial UseListElement tag...
+                this._serviceClass.SetTag(context.GetConfigProperty(_UseListElementsTag), this._useListElements ? "true" : "false", true);
+
                 // For the next set of initializations, order is important!
                 // Business Function ID is required for CM State and Path Names so this must go first.
                 // Configuration Management might want to clone a remote repository, which would create part of the pathnames, so this must go second
                 // (otherwise, repository creation will fail with a 'existing non-empty directory' error).
                 // Initialize Path will create the (remainder of) the necessary path structure and thus will go last.
-                // BuildURN is not really critical, but must go after LoadBusinessFunctionID since it needs that ID.
+                // BuildURI is not really critical, but must go after LoadBusinessFunctionID since it needs that ID.
                 LoadBusinessFunctionID();
                 LoadCMState(remoteTicket, projectOrderID);
                 InitializePath();
@@ -387,6 +402,16 @@ namespace Plugin.Application.CapabilityModel
 
             // Retrieve the operational state...
             this._operationalState = EnumConversions<OperationalState>.StringToEnum(this._serviceClass.GetTag(context.GetConfigProperty(_ServiceOperationalStateTag)));
+
+            // Determine value of the Use List Elements property...
+            string useListElementsStr = this._serviceClass.GetTag(context.GetConfigProperty(_UseListElementsTag));
+            if (string.IsNullOrEmpty(useListElementsStr))
+            {
+                // If the service does not yet possesses a proper List Elements tag, we'll add it...
+                this._useListElements = true;
+                this._serviceClass.SetTag(context.GetConfigProperty(_UseListElementsTag), "true", true);
+            }
+            else this._useListElements = string.Compare(useListElementsStr, "true", true) == 0 ? true : false;
 
             // Set model package (package in which the service lives) and the declaration package (the parent of my owning package)...
             this._modelPackage = this._serviceClass.OwningPackage;

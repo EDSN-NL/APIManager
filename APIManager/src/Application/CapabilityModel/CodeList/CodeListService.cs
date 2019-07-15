@@ -33,7 +33,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
                                  SortedList<string, CodeListDirector.DirectorContext> codeLists, 
                                  string declarationStereotype,
                                  OperationalState initialState = _DefaultOperationalState): 
-            base(containerPackage, qualifiedServiceName, declarationStereotype, initialState, null, null)
+            base(containerPackage, qualifiedServiceName, declarationStereotype, initialState, false, null, null)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();

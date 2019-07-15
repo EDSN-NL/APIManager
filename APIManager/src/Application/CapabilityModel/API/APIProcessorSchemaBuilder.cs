@@ -31,6 +31,7 @@ namespace Plugin.Application.CapabilityModel.API
             string schemaName = this._currentService.Name + "." + operation.Name;
             this._currentSchema = GetSchema(Schema.SchemaType.Operation, schemaName, operation.CapabilityClass.GetTag(context.GetConfigProperty(_NSTokenTag)),
                                             this._currentService.GetFQN(namespaceTag, operation.Name, -1), operation.VersionString);
+            this._currentSchema.UseLists = this._currentService.UseListElements;
             bool result = true;
             var processingContext = new ProcessingContext(operation);
             OperationDocContext docContext = DocManagerSlt.GetDocManagerSlt().GetNewOperationDocContext(this._currentSchema.NSToken, 

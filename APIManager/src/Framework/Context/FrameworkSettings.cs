@@ -51,7 +51,6 @@ namespace Framework.Context
         internal const string _SupplementaryPrefixCode        = "SupplementaryPrefixCode";      // JSON: string to use in schema to indicate element is a supplementary attribute.
         internal const string _JSONAllOfSupport               = "JSONAllOfSupport";             // JSON: support the use of 'AllOf' schema construct.
         internal const string _GENUseMajorVersionOnly         = "GENUseMajorVersionOnly";       // OpenAPI generation: use only major version in 'version' property.
-        internal const string _WSDLUseSoap11Faults            = "WSDLUseSoap11Faults";          // WSDL generation: include a generic SOAP 1.1 Fault for each operation.
 
         // These are the names of all currently defined resources:
         internal const string _CodeListHeader                 = "CodeListHeader";
@@ -117,7 +116,6 @@ namespace Framework.Context
             this._boolSettings.Add(_PersistentModelLocks, Settings.Default.PersistentModelLocks);
             this._boolSettings.Add(_JSONAllOfSupport, Settings.Default.JSONAllOfSupport);
             this._boolSettings.Add(_GENUseMajorVersionOnly, Settings.Default.GENUseMajorVersionOnly);
-            this._boolSettings.Add(_WSDLUseSoap11Faults, Settings.Default.UseSOAP11Faults);
 
             this._stringSettings.Add(_LogFileName, Settings.Default.LogfileName);
             this._stringSettings.Add(_DiagramSaveType, Settings.Default.DiagramSaveType);
@@ -407,10 +405,6 @@ namespace Framework.Context
 
                     case _GENUseMajorVersionOnly:
                         Settings.Default.GENUseMajorVersionOnly = value;
-                        break;
-
-                    case _WSDLUseSoap11Faults:
-                        Settings.Default.UseSOAP11Faults = value;
                         break;
 
                     default:

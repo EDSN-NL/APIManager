@@ -204,6 +204,7 @@ namespace Plugin.Application.CapabilityModel.API
                                                            capability.CapabilityClass.GetTag(context.GetConfigProperty(_NSTokenTag)),
                                                            this._currentService.GetFQN(namespaceTag, Conversions.ToPascalCase(capability.AssignedRole), -1),
                                                            capability.VersionString);
+                            this._commonSchema.UseLists = this._currentService.UseListElements;
                             if (generateDocumentation && useCommonDocContext)
                                 DocManagerSlt.GetDocManagerSlt().InitializeCommonDocContext(this._commonSchema.NSToken, commonSchemaName, 
                                                                                             MEChangeLog.GetDocumentationAsText(capability.CapabilityClass));

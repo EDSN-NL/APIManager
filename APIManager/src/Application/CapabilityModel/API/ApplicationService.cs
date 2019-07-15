@@ -12,11 +12,18 @@ namespace Plugin.Application.CapabilityModel.API
     internal class ApplicationService: Service
     {
         // Private configuration properties used by this service...
-        private const string _CommonDefnPos = "CommonDefnPos";
+        private const string _CommonDefnPos     = "CommonDefnPos";
+        private const string _UseSOAPFaultsTag  = "UseSOAPFaultsTag";
 
         // Keep track of classes and associations to show in the diagram...
         private List<MEClass> _diagramClassList;
         private List<MEAssociation> _diagramAssocList;
+        private bool _useSOAPFaults;
+
+        /// <summary>
+        /// Returns an indicator stating whether the generates WSDL should include a generic SOAP Fault construct or not.
+        /// </summary>
+        internal bool UseSOAPFaults { get { return this._useSOAPFaults; } }
 
         /// <summary>
         /// 'Create new instance' constructor, creates a new API service declaration underneath the specified container package. 
@@ -34,20 +41,26 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="containerPackage">Name of the container that will hold the service declaration.</param>
         /// <param name="declarationStereotype">Stereotype to be used for the service declaration package.</param>
         /// <param name="initialState">Operational state in which the service will be created.</param>
+        /// <param name="useSOAPFaults">Indicates, when true, that the service must support SOAP Faults (SOAP Service only).</param>
+        /// <param name="useListElements">Indicates, when true, that additional List elements must be inserted for all sub-elements
+        /// that have a cardinality greater then 1.</param>
         /// <param name="operationNames">List of initial operation names for the service.</param>
         /// <param name="qualifiedServiceName">Qualified name of the service (includes major version).</param>
-        /// <param name="ticketID">ID of the ticket used for creation, ignored when CM is not active.</param>
+        /// <param name="remoteTicket">Ticket used for creation, ignored when CM is not active.</param>
         /// <param name="projectOrderID">Id of the project order used for creation, ignored when CM is not active.</param>
         internal ApplicationService(MEPackage containerPackage, 
                                     string qualifiedServiceName, 
                                     List<string> operationNames, 
                                     string declarationStereotype, 
                                     OperationalState initialState,
+                                    bool useSOAPFaults, bool useListElements,
                                     Ticket remoteTicket, string projectOrderID): 
-            base(containerPackage, qualifiedServiceName, declarationStereotype, initialState, remoteTicket, projectOrderID)
+            base(containerPackage, qualifiedServiceName, declarationStereotype, initialState, 
+                 useListElements, remoteTicket, projectOrderID)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();
+            this._useSOAPFaults = useSOAPFaults;
 
             // Create a new package for the top-level 'common' definition...
             // We try to read the relative package position from configuration and if this failed, use '50' as default value.
@@ -67,9 +80,10 @@ namespace Plugin.Application.CapabilityModel.API
                 return;
             }
 
-            // We set the service archetype to 'SOAP'. 
+            // We set the service archetype to 'SOAP' and load the 'useSOAPFaults' flag...
             this._archetype = ServiceArchetype.SOAP;
             this._serviceClass.SetTag(context.GetConfigProperty(_ServiceArchetypeTag), EnumConversions<ServiceArchetype>.EnumToString(this._archetype));
+            this._serviceClass.SetTag(context.GetConfigProperty(_UseSOAPFaultsTag), this._useSOAPFaults ? "true" : "false");
 
             string newNames = string.Empty;
             bool isFirst = true;
@@ -118,6 +132,15 @@ namespace Plugin.Application.CapabilityModel.API
                                               EnumConversions<ServiceArchetype>.EnumToString(this._archetype), true);
                 }
                 else this._archetype = EnumConversions<ServiceArchetype>.StringToEnum(archetypeStr);
+
+                string useSOAPFaultsStr = this._serviceClass.GetTag(context.GetConfigProperty(_UseSOAPFaultsTag));
+                if (string.IsNullOrEmpty(useSOAPFaultsStr))
+                {
+                    // If the service does not yet possesses a proper SOAP Faults tag, we'll add it...
+                    this._useSOAPFaults = false;
+                    this._serviceClass.SetTag(context.GetConfigProperty(_UseSOAPFaultsTag), "false", true);
+                }
+                else this._useSOAPFaults = string.Compare(useSOAPFaultsStr, "true", true) == 0 ? true : false;
 
                 foreach (TreeNode<MEClass> node in hierarchy.Children) AddCapability(new InterfaceCapability(this, node));
             }

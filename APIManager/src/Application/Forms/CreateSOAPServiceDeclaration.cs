@@ -63,6 +63,17 @@ namespace Plugin.Application.Forms
         internal string ProjectID { get { return ProjectIDFld.Text; } }
 
         /// <summary>
+        /// Returns a flag indicating whether the user wants to enable SOAP Faults for this service.
+        /// </summary>
+        internal bool UseSOAPFaults { get { return UseSOAPFaultsIndicator.Checked; } }
+
+        /// <summary>
+        /// Returns a flag indicating wether the user wants to insert extra List elements for all sub-elements that have 
+        /// a cardinality >1.
+        /// </summary>
+        internal bool UseListElements { get { return UseListElementsIndicator.Checked; } }
+
+        /// <summary>
         /// Ask user for service declaration info for a service to be created underneath the specified container package.
         /// </summary>
         /// <param name="parent">Container package that will contain the new service.</param>
@@ -73,6 +84,8 @@ namespace Plugin.Application.Forms
             this._hasValidName = false;
             this._hasValidOperations = false;
             this._remoteTicket = null;
+            UseSOAPFaultsIndicator.Checked = false;
+            UseListElementsIndicator.Checked = true;
 
             // Initialize the drop-down box with all Operational States, with the exception of 'Deprecated'...
             foreach (var state in EnumConversions<OperationalState>.GetValues())

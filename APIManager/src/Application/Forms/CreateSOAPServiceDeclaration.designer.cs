@@ -46,6 +46,8 @@ namespace Plugin.Application.Forms
             this.ServiceDetailsBox = new System.Windows.Forms.GroupBox();
             this.label1 = new System.Windows.Forms.Label();
             this.OperationalState = new System.Windows.Forms.ComboBox();
+            this.UseSOAPFaultsIndicator = new System.Windows.Forms.CheckBox();
+            this.UseListElementsIndicator = new System.Windows.Forms.CheckBox();
             this.TicketBox.SuspendLayout();
             this.ServiceDetailsBox.SuspendLayout();
             this.SuspendLayout();
@@ -210,13 +212,35 @@ namespace Plugin.Application.Forms
             this.OperationalState.Sorted = true;
             this.OperationalState.TabIndex = 2;
             // 
+            // UseSOAPFaultsIndicator
+            // 
+            this.UseSOAPFaultsIndicator.AutoSize = true;
+            this.UseSOAPFaultsIndicator.Location = new System.Drawing.Point(12, 164);
+            this.UseSOAPFaultsIndicator.Name = "UseSOAPFaultsIndicator";
+            this.UseSOAPFaultsIndicator.Size = new System.Drawing.Size(126, 17);
+            this.UseSOAPFaultsIndicator.TabIndex = 5;
+            this.UseSOAPFaultsIndicator.Text = "Use SOAP 1.1 Faults";
+            this.UseSOAPFaultsIndicator.UseVisualStyleBackColor = true;
+            // 
+            // UseListElementsIndicator
+            // 
+            this.UseListElementsIndicator.AutoSize = true;
+            this.UseListElementsIndicator.Location = new System.Drawing.Point(144, 164);
+            this.UseListElementsIndicator.Name = "UseListElementsIndicator";
+            this.UseListElementsIndicator.Size = new System.Drawing.Size(110, 17);
+            this.UseListElementsIndicator.TabIndex = 6;
+            this.UseListElementsIndicator.Text = "Use List Elements";
+            this.UseListElementsIndicator.UseVisualStyleBackColor = true;
+            // 
             // CreateSOAPServiceDeclaration
             // 
             this.AcceptButton = this.Ok;
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(586, 207);
+            this.ClientSize = new System.Drawing.Size(586, 205);
+            this.Controls.Add(this.UseListElementsIndicator);
+            this.Controls.Add(this.UseSOAPFaultsIndicator);
             this.Controls.Add(this.ServiceDetailsBox);
             this.Controls.Add(this.TicketBox);
             this.Controls.Add(this.ErrorLine);
@@ -254,5 +278,7 @@ namespace Plugin.Application.Forms
         private GroupBox ServiceDetailsBox;
         private Label label1;
         private ComboBox OperationalState;
+        private CheckBox UseSOAPFaultsIndicator;
+        private CheckBox UseListElementsIndicator;
     }
 }

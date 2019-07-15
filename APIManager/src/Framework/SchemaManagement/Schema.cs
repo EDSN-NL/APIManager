@@ -26,28 +26,55 @@ namespace Framework.Util.SchemaManagement
         private SchemaType _type;       // Identifies the type of schema.
         private string _name;           // Identifying name assigned to the schema.
         private bool _isInitialized;    // Set to TRUE after initialization.
+        private bool _useLists;         // When TRUE, sub-elements with cardinality > 1 must be in a separate LIST construct.
 
         /// <summary>
-        /// Getters for properties of Schema:
-        /// NSToken = Returns the Schema Namespace token.
-        /// SchemaNamespace = Returns the full Schema Namespace URI.
-        /// SchemaVersion = Returns the version string of this Schema.
-        /// LastError = In case of building errors, this property contains the most recent error message (if any).
-        /// Name = returns the schema name.
-        /// Type = returns the schema type (Collection, Operation or Message).
-        /// IsInitialized = protected check on proper initialization.
+        /// Returns the Schema Namespace token.
         /// </summary>
         internal string NSToken         { get { return this._nsToken; } }
+
+        /// <summary>
+        /// Returns the full Schema Namespace URI.
+        /// </summary>
         internal string SchemaNamespace { get { return this._namespace; } }
+
+        /// <summary>
+        /// Returns the version string of this Schema.
+        /// </summary>
         internal string SchemaVersion   { get { return this._version; } }
+
+        /// <summary>
+        /// In case of building errors, this property contains the most recent error message (if any).
+        /// </summary>
         internal string LastError       { get { return this._lastError; } }
+
+        /// <summary>
+        /// Returns the name of the schema.
+        /// </summary>
         internal string Name            { get { return this._name; } }
+
+        /// <summary>
+        /// Get- or set the schema type (Collection, Operation or Message).
+        /// </summary>
         internal SchemaType Type
         {
             get { return this._type; }
             set { this._type = value; }
         }
+
+        /// <summary>
+        /// Check whether we are properly initialized.
+        /// </summary>
         protected bool IsInitialized    { get { return this._isInitialized; } }
+
+        /// <summary>
+        /// Get- or set the 'use lists' property which, when TRUE, forces sub-elements with cardinality > 1 into a separate LIST construct.
+        /// </summary>
+        internal bool UseLists
+        {
+            get { return this._useLists; }
+            set { this._useLists = value; }
+        }
 
         /// <summary>
         /// Creates a new ABIE type and adds the list of content- and supplementary attributes as well as a list of associated classes to this type. 
@@ -208,6 +235,8 @@ namespace Framework.Util.SchemaManagement
 
         /// <summary>
         /// Schema default constructor. Set properties to sensible defaults.
+        /// Since schemas are created dynamically, they only support a default constructor and must be initialized after construction by invoking
+        /// the 'initialize' method.
         /// </summary>
         protected Schema()
         {
@@ -218,6 +247,7 @@ namespace Framework.Util.SchemaManagement
             this._version = "1.0.0";
             this._lastError = string.Empty;
             this._isInitialized = false;
+            this._useLists = true;
         }
 
         /// <summary>
