@@ -188,6 +188,16 @@ namespace Framework.Model
         internal MEClass() : base() { }
 
         /// <summary>
+        /// Enumerator method that returns all ingress specialization associations of the current class.
+        /// </summary>
+        /// <returns>Next ingress specialization.</returns>
+        internal IEnumerable<MEAssociation> ChildAssociationList()
+        {
+            if (this._imp != null) return ((MEIClass)this._imp).ChildAssociationList();
+            else throw new MissingImplementationException("MEIClass");
+        }
+
+        /// <summary>
         /// Create a new association instance between this class and a specified target class. Note that in this case the 'source'
         /// endpoint descriptor is ONLY used to pass meta-data regarding the association. The MEClass part is IGNORED!
         /// </summary>

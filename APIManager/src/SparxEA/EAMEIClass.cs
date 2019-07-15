@@ -173,6 +173,27 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Enumerator method that returns all ingress specialization associations of the current class.
+        /// </summary>
+        /// <returns>Next ingress specialization.</returns>
+        internal override IEnumerable<MEAssociation> ChildAssociationList()
+        {
+            this._element.Connectors.Refresh();
+            string traceStereotype = ContextSlt.GetContextSlt().GetConfigProperty(_TraceAssociationStereotype);
+
+            for (short i = 0; i < this._element.Connectors.Count; i++)
+            {
+                var connector = this._element.Connectors.GetAt(i) as EA.Connector;
+                // Make sure to return only connectors that end in the current class and are generalizations...
+                if (connector.SupplierID == this._elementID && connector.Type == "Generalization")
+                {
+                    var association = this._model.GetModelElementImplementation(ModelElementType.Association, connector.ConnectorID) as EAMEIAssociation;
+                    yield return new MEAssociation(association);
+                }
+            }
+        }
+
+        /// <summary>
         /// Create a new association instance between source and target classes. Note that in this case the 'source'
         /// endpoint descriptor is ONLY used to pass meta-data regarding the association. The MEClass part is IGNORED!
         /// MessageAssociation is treated similar to Composition. alas with a different stereotype.
@@ -964,7 +985,7 @@ namespace SparxEA.Model
                             LEFT JOIN t_object o2 ON c.End_Object_ID = o2.Object_ID)
                             WHERE o.Object_ID = " + thisClass.ElementID + " AND c.Connector_Type = 'Generalization';";
 
-            var queryResult = new XmlDocument();                    // Repository query will return an XML Document.
+            var queryResult = new XmlDocument();                            // Repository query will return an XML Document.
             queryResult.LoadXml(repository.SQLQuery(query));                // Execute query and store result in XML Document.
             XmlNodeList elements = queryResult.GetElementsByTagName("Row"); // Retrieve parent class name and package in which class resides.
             var parentList = new List<MEClass>();

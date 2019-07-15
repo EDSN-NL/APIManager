@@ -25,6 +25,12 @@ namespace Framework.Model
         internal abstract IEnumerable<MEAssociation> AssociationList(MEAssociation.AssociationType type);
 
         /// <summary>
+        /// Enumerator method that returns all ingress specialization associations of the current class.
+        /// </summary>
+        /// <returns>Next ingress specialization.</returns>
+        internal abstract IEnumerable<MEAssociation> ChildAssociationList();
+
+        /// <summary>
         /// Create a new association instance between this class and a specified target class. Note that in this case the 'source'
         /// endpoint descriptor is ONLY used to pass meta-data regarding the association. The MEClass part is IGNORED!
         /// </summary>

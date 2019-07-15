@@ -138,6 +138,7 @@
     <Compile Include="src\Application\CapabilityEvents\API\AddRESTResourceEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\CreateRESTServiceDeclarationEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\API\ProcessRESTInterfaceEvent.cs" />
+    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\UBLDatatypesEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\SynchroniseServiceEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\SynchroniseRepositoryEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\EnableCMEvent.cs" />

@@ -84,6 +84,15 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Enumerator method that returns all ingress specialization associations of the current class.
+        /// </summary>
+        /// <returns>Next ingress specialization.</returns>
+        internal override IEnumerable<MEAssociation> ChildAssociationList()
+        {
+            return this._classPart.ChildAssociationList();
+        }
+
+        /// <summary>
         /// Create a new association instance between this object and a specified target class. Note that in this case the 'source'
         /// endpoint descriptor is ONLY used to pass meta-data regarding the association. The MEClass part is IGNORED!
         /// Since objects only support association and Usage types of associations, all other types will be rejected!

@@ -270,6 +270,10 @@
              <StereotypeName>Enexis ECDM::ServiceCapability</StereotypeName>
            </StereotypeList>
          </EventHandler>
+         <EventHandler ID="Move UBL 2.1 Business Data Types">
+           <!-- Iterates through all UBL 2.1 Reference Data Types and move the associated BDT's to ECDM. -->
+           <HandlerFQN>Plugin.Application.Events.Util.UBLDatatypesEvent</HandlerFQN>
+         </EventHandler>
          <EventHandler ID="Repair Attribute Order">
            <HandlerFQN>Plugin.Application.Events.Util.RepairAttributeOrderEvent</HandlerFQN>
            <StereotypeList>
@@ -572,6 +576,10 @@
              <StereotypeName>Enexis ECDM::Service</StereotypeName>
              <StereotypeName>Enexis ECDM::ServiceCapability</StereotypeName>
            </StereotypeList>
+         </EventHandler>
+         <EventHandler ID="Move UBL 2.1 Business Data Types">
+           <!-- Iterates through all UBL 2.1 Reference Data Types and move the associated BDT's to ECDM. -->
+           <HandlerFQN>Plugin.Application.Events.Util.UBLDatatypesEvent</HandlerFQN>
          </EventHandler>
          <EventHandler ID="Repair Attribute Order">
            <HandlerFQN>Plugin.Application.Events.Util.RepairAttributeOrderEvent</HandlerFQN>
