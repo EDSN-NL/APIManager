@@ -27,6 +27,9 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         private const string _PrimitiveDataTypeStereotype           = "PrimitiveDataTypeStereotype";
         private const string _AssociationStereotype                 = "AssociationStereotype";
         private const string _MessageAssociationStereotype          = "MessageAssociationStereotype";
+        private const string _IsValidFromTag                        = "IsValidFromTag";
+        private const string _IsValidUntilTag                       = "IsValidUntilTag";
+        private const string _UseValidTimestampTag                  = "UseValidTimestampTag";
 
         // Static properties that are used across a series of schema generation operations...
         private ClassCacheSlt _cache;                               // Cache singleton, used to administer processed entities across builds.
@@ -337,20 +340,35 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                         // of each attribute within the entire hierarchy.
                         int sequenceKey = attribute.SequenceKey + sequenceBase;
                         ContentAttribute contentAttrib = null;
-                        string nillableTag = attribute.GetTag(context.GetConfigProperty(_NillableTag));
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Read tag '" + context.GetConfigProperty(_NillableTag) + "' and got: '" + nillableTag + "'...");
-                        bool isNillable = !string.IsNullOrEmpty(nillableTag) && string.Compare(nillableTag, "true", true) == 0;
+                        string tagName = attribute.GetTag(context.GetConfigProperty(_NillableTag));
+                        bool isNillable = !string.IsNullOrEmpty(tagName) && string.Compare(tagName, "true", true) == 0;
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Attribute '" + 
                                          attribute.Name + "' has sequence: " + sequenceKey + " and nillable-indicator: " + isNillable);
+
+                        // Read tags related to attribute history tracing...
+                        tagName = attribute.GetTag(context.GetConfigProperty(_IsValidFromTag));
+                        bool isValidFrom = !string.IsNullOrEmpty(tagName) && string.Compare(tagName, "true", true) == 0;
+                        tagName = attribute.GetTag(context.GetConfigProperty(_IsValidUntilTag));
+                        bool isValidUntil = !string.IsNullOrEmpty(tagName) && string.Compare(tagName, "true", true) == 0;
+                        tagName = attribute.GetTag(context.GetConfigProperty(_UseValidTimestampTag));
+                        bool useValidTimestamp = !string.IsNullOrEmpty(tagName) && string.Compare(tagName, "true", true) == 0;
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Attribute '" +
+                                         attribute.Name + "' has history tags isValidFrom: " + isValidFrom + ", isValidUntil: " + isValidUntil +
+                                         " and useValidTimestamp: " + useValidTimestamp);
+
                         if (targetSchema is XMLSchema)
                         {
-                            contentAttrib = new XMLContentAttribute((XMLSchema)targetSchema, attributeName, classifierCtx.Name, sequenceKey, choiceGroup, cardinality,
-                                                                    attribute.GetDocumentation(), attribute.DefaultValue, string.Empty, isNillable);
+                            contentAttrib = new XMLContentAttribute((XMLSchema)targetSchema, attributeName, classifierCtx.Name, 
+                                                                    sequenceKey, choiceGroup, cardinality,
+                                                                    attribute.GetDocumentation(), attribute.DefaultValue, string.Empty, 
+                                                                    isNillable, isValidFrom, isValidUntil, useValidTimestamp);
                         }
                         else
                         {
-                            contentAttrib = new JSONContentAttribute((JSONSchema)targetSchema, attributeName, classifierCtx.Name, sequenceKey, choiceGroup, cardinality,
-                                                                     attribute.GetDocumentation(), attribute.DefaultValue, string.Empty, isNillable);
+                            contentAttrib = new JSONContentAttribute((JSONSchema)targetSchema, attributeName, classifierCtx.Name, 
+                                                                     sequenceKey, choiceGroup, cardinality,
+                                                                     attribute.GetDocumentation(), attribute.DefaultValue, string.Empty, 
+                                                                     isNillable, isValidFrom, isValidUntil, useValidTimestamp);
                         }
                         attribList.Add(contentAttrib);
                         if (this._useDocContext)
@@ -586,6 +604,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                              source.Name + "' as attribute '" + attributeName + "'...");
             try
             {
+                ContextSlt context = ContextSlt.GetContextSlt();
                 foreach (MEAttribute attribute in target.Attributes)
                 {
                     // The union MUST have ONE Attribute, which will be used as the classifier for the attribute we're going to add to the source class.
@@ -623,17 +642,31 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
 
                     Schema targetSchema = classifierCtx.IsInCommonSchema? this._commonSchema : this._schema;
                     ContentAttribute contentAttrib = null;
-                    string nillableTag = attribute.GetTag(ContextSlt.GetContextSlt().GetConfigProperty(_NillableTag));
-                    bool isNillable = !string.IsNullOrEmpty(nillableTag) && string.Compare(nillableTag, "true", true) == 0;
+                    string tagName = attribute.GetTag(context.GetConfigProperty(_NillableTag));
+                    bool isNillable = !string.IsNullOrEmpty(tagName) && string.Compare(tagName, "true", true) == 0;
+
+                    // Read tags related to attribute history tracing...
+                    tagName = attribute.GetTag(context.GetConfigProperty(_IsValidFromTag));
+                    bool isValidFrom = !string.IsNullOrEmpty(tagName) && string.Compare(tagName, "true", true) == 0;
+                    tagName = attribute.GetTag(context.GetConfigProperty(_IsValidUntilTag));
+                    bool isValidUntil = !string.IsNullOrEmpty(tagName) && string.Compare(tagName, "true", true) == 0;
+                    tagName = attribute.GetTag(context.GetConfigProperty(_UseValidTimestampTag));
+                    bool useValidTimestamp = !string.IsNullOrEmpty(tagName) && string.Compare(tagName, "true", true) == 0;
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessUnion >> Attribute '" +
+                                     attribute.Name + "' has history tags isValidFrom: " + isValidFrom + ", isValidUntil: " + isValidUntil +
+                                     " and useValidTimestamp: " + useValidTimestamp);
+
                     if (targetSchema is XMLSchema)
                     {
-                        contentAttrib = new XMLContentAttribute((XMLSchema)targetSchema, attributeName, classifierCtx.Name, sequenceKey, choiceGroup,
-                                                                cardinality, attribute.GetDocumentation(), defaultVal, string.Empty, isNillable);
+                        contentAttrib = new XMLContentAttribute((XMLSchema)targetSchema, attributeName, classifierCtx.Name,
+                                                                sequenceKey, choiceGroup, cardinality, attribute.GetDocumentation(), defaultVal, string.Empty, 
+                                                                isNillable, isValidFrom, isValidUntil, useValidTimestamp);
                     }
                     else
                     {
-                        contentAttrib = new JSONContentAttribute((JSONSchema)targetSchema, attributeName, classifierCtx.Name, sequenceKey, choiceGroup,
-                                                                 cardinality, attribute.GetDocumentation(), defaultVal, string.Empty, isNillable);
+                        contentAttrib = new JSONContentAttribute((JSONSchema)targetSchema, attributeName, classifierCtx.Name,
+                                                                 sequenceKey, choiceGroup, cardinality, attribute.GetDocumentation(), defaultVal, string.Empty, 
+                                                                 isNillable, isValidFrom, isValidUntil, useValidTimestamp);
                     }
                     return contentAttrib;
                 }

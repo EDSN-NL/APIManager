@@ -17,20 +17,6 @@ namespace Framework.Model
         internal enum LockStatus {Unknown, Locked, LockedByMe, Unlocked }
 
         /// <summary>
-        /// Returns a list of all classes in the package that have the 'Business Component' stereotype as well as all classes
-        /// that represent one of the known data types.
-        /// </summary>
-        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal List<MEClass> Classes
-        {
-            get
-            {
-                if (this._imp != null) return ((MEIPackage)this._imp).GetClasses();
-                else throw new MissingImplementationException("MEIPackage");
-            }
-        }
-
-        /// <summary>
         /// Returns the number of classes in the package.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
@@ -293,6 +279,17 @@ namespace Framework.Model
         internal MEProfiler FindProfiler(string nameFragment = null)
         {
             if (this._imp != null) return ((MEIPackage)this._imp).FindProfiler(nameFragment);
+            else throw new MissingImplementationException("MEIPackage");
+        }
+
+        /// <summary>
+        /// Iterator that returns each class in a package.
+        /// </summary>
+        /// <returns>Next class</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal IEnumerable<MEClass> GetClasses()
+        {
+            if (this._imp != null) return ((MEIPackage)this._imp).GetClasses();
             else throw new MissingImplementationException("MEIPackage");
         }
 

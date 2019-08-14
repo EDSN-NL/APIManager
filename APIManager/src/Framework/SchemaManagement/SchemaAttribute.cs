@@ -146,18 +146,23 @@ namespace Framework.Util.SchemaManagement
     /// </summary>
     internal abstract class ContentAttribute : SchemaAttribute
     {
-        private ChoiceGroup _choiceGroup;       // Identification of (optional) choice group that this attribute belongs to. 
-        private bool _nillable;                 // Set to 'true' to indicate that the attribute supports a NULL value.
+        internal ChoiceGroup _choiceGroup;      // Identification of (optional) choice group that this attribute belongs to. 
+        internal bool _nillable;                // Set to 'true' to indicate that the attribute supports a NULL value.
 
         /// <summary>
-        /// Getters for properties of Content Attribute:
-        /// ChoiceGroup = Returns the ChoiceGroup object associated with this attribute (NULL if undefined).
-        /// IsChoiceElement = Returns 'true' is this attribute is part of a Choice group.
-        /// IsNillable = Returns 'true' if the attribute supports a NULL value.
+        /// Returns the ChoiceGroup object associated with this attribute (NULL if undefined).
         /// </summary>
-        internal ChoiceGroup ChoiceGroup        { get { return this._choiceGroup; } }
-        internal bool IsChoiceElement           { get { return this._choiceGroup != null; } }
-        internal bool IsNillable                { get { return this._nillable; } }
+        internal ChoiceGroup ChoiceGroup { get { return this._choiceGroup; } }
+
+        /// <summary>
+        /// Returns 'true' is this attribute is part of a Choice group.
+        /// </summary>
+        internal bool IsChoiceElement { get { return this._choiceGroup != null; } }
+
+        /// <summary>
+        /// Returns 'true' if the attribute supports a NULL value.
+        /// </summary>
+        internal bool IsNillable { get { return this._nillable; } }
 
         /// <summary>
         /// Construct a new content attribute. These attributes MUST be used in the context of the associated ABIE of which they are declared as attributes.
@@ -173,6 +178,7 @@ namespace Framework.Util.SchemaManagement
         /// <param name="schema">The schema in which the attribute is created.</param>
         /// <param name="name">Name of the attribute as defined in the ABIE.</param>
         /// <param name="classifier">Classifier name as defined in the ABIE.</param>
+        /// <param name="isComplex">Set to 'true' to indicate that classifier is a complex type rather then a simple type.</param>
         /// <param name="sequenceKey">When specified (not 0), this indicates the sorting order within a list of attributes and associations.</param>
         /// <param name="choiceGroup">Optional identifier for the choice group that this attribute should go to or NULL if not defined.</param>
         /// <param name="cardinality">Attribute cardinality. Upper boundary 0 is interpreted as 'unbounded'.</param>

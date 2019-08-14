@@ -677,6 +677,19 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Iterator that returns each class in a package.
+        /// </summary>
+        /// <returns>Next class</returns>
+        internal override IEnumerable<MEClass> GetClasses()
+        {
+            this._package.Elements.Refresh();   // Assures that we're looking at the most up-to-date contents.
+            foreach (EA.Element element in this._package.Elements)
+            {
+                yield return new MEClass(element.ElementID);
+            }
+        }
+
+        /// <summary>
         /// Returns a list of all classes in the package that contain the specified stereotype. If no stereotype is specified,
         /// the method returns all Business Components and recognized Data Types.
         /// </summary>

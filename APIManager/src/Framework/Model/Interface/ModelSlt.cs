@@ -326,6 +326,21 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Convenience method that facilitates changing an element type from Class to DataType or vice versa. The method accepts the element to be
+        /// changed as well as the new stereotype for the element. Please be aware that the provided element is invalid on return since we don't
+        /// bother re-creating the changed element. Also, the scope is limited to Simple/Complex Data Types or Classes.
+        /// </summary>
+        /// <param name="element">The element to update.</param>
+        /// <param name="stereotype">The new stereotype.</param>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        /// <exception cref="ArgumentException">Is thrown when the wrong stereotype is passed.</exception>
+        internal void UpdateModelElementType(ModelElement element, string stereotype)
+        {
+            if (this._modelImp != null) this._modelImp.UpdateModelElementType(element, stereotype);
+            else throw new MissingImplementationException("ModelImplementation");
+        }
+
+        /// <summary>
         /// The private constructor is called once on initial load and assures that exactly one valid object is present at all times.
         /// </summary>
         private ModelSlt()

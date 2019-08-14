@@ -20,6 +20,7 @@ namespace Plugin.Application.Events.Util
         private const string _FacetAttStereotype                = "FacetAttStereotype";
         private const string _ContentAttStereotype              = "ContentAttStereotype";
         private const string _BusinessDataTypeEnumStereotype    = "BusinessDataTypeEnumStereotype";
+        private const string _BusinessComponentStereotype       = "BusinessComponentStereotype";
 
         /// <summary>
         /// No specific validation, we basically accept all locations.
@@ -145,8 +146,9 @@ namespace Plugin.Application.Events.Util
             ProgressPanelSlt panel = ProgressPanelSlt.GetProgressPanelSlt();
             panel.ShowPanel("Processing Package: " + thisPackage.Name, thisPackage.ClassCount);
             panel.WriteInfo(0, "Metadata assignment started.");
+            string stereotype = context.GetConfigProperty(_BusinessComponentStereotype);
 
-            foreach (MEClass currClass in thisPackage.Classes)
+            foreach (MEClass currClass in thisPackage.GetClasses(stereotype))
             {
                 panel.WriteInfo(1, "Processing Class: '" + currClass.Name + "'...");
                 ProcessClass(currClass);

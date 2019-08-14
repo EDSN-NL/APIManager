@@ -17,6 +17,12 @@ namespace Framework.Util.SchemaManagement.XML
     /// </summary>
     internal class XMLContentAttribute : ContentAttribute
     {
+        // Configuration properties used by this module...
+        private const string _DefaultValidDataTypeXSD   = "DefaultValidDataTypeXSD";
+        private const string _ExtendedValidDataTypeXSD  = "ExtendedValidDataTypeXSD";
+        private const string _ValidFromAttribName       = "ValidFromAttribName";
+        private const string _ValidUntilAttribName      = "ValidUntilAttribName";
+
         private XmlSchemaElement _attribute;    // The actual attribute in case of type = 'Content'.
 
         /// <summary>
@@ -49,6 +55,9 @@ namespace Framework.Util.SchemaManagement.XML
         /// <param name="defaultValue">Optional default value.</param>
         /// <param name="fixedValue">Optional fixed value.</param>
         /// <param name="isNillable">Set to 'true' to indicate that the attribute supports a NULL value.</param>
+        /// <param name="isValidFrom">Set to 'true' to indicate that the attribute must have an 'isValidFrom' supplementary attribute.</param>
+        /// <param name="isValidUntil">Set to 'true' to indicate that the attribute must have an 'isValidUntil' supplementary attribute.</param>
+        /// <param name="useValidTimestamp">Set to 'true' to indicate that validFrom and validUntil must use date/time instead of just date.</param>
         internal XMLContentAttribute(XMLSchema schema,
                                    string name,
                                    string classifier,
@@ -57,7 +66,7 @@ namespace Framework.Util.SchemaManagement.XML
                                    Cardinality cardinality,
                                    List<MEDocumentation> annotation,
                                    string defaultValue, string fixedValue,
-                                   bool nillable): 
+                                   bool nillable, bool isValidFrom, bool isValidUntil, bool useValidTimestamp): 
             base(schema, name, classifier, sequenceKey, choiceGroup, cardinality, annotation, defaultValue, fixedValue, nillable)
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLContentAttribute >> Creating attribute '" + name + "' with classifier '" + classifier + 
@@ -65,20 +74,45 @@ namespace Framework.Util.SchemaManagement.XML
 
             try
             {
-                this._attribute = new XmlSchemaElement()
+                this._attribute = new XmlSchemaElement() { Name = name };
+                if (isValidFrom || isValidUntil)
                 {
-                    Name = name
-                };
-                this._attribute.SchemaTypeName = new XmlQualifiedName(this.Classifier, this.ClassifierNS);
-                this._attribute.IsNillable = IsNillable;
-                if (cardinality.IsUnboundedList)
-                {
-                    this._attribute.MaxOccursString = "unbounded";
+                    ContextSlt context = ContextSlt.GetContextSlt();
+                    string dataType = context.GetConfigProperty(useValidTimestamp ? _ExtendedValidDataTypeXSD : _DefaultValidDataTypeXSD);
+                    var contentExtension = new XmlSchemaSimpleContentExtension()
+                    {
+                        BaseTypeName = new XmlQualifiedName(this.Classifier, this.ClassifierNS)
+                    };
+                    var contentModel = new XmlSchemaSimpleContent() { Content = contentExtension };
+                    this._attribute.SchemaType = new XmlSchemaComplexType() { ContentModel = contentModel };
+
+                    if (isValidFrom)
+                    {
+                        XmlSchemaAttribute attrib = new XmlSchemaAttribute()
+                        {
+                            Name = context.GetConfigProperty(_ValidFromAttribName),
+                            SchemaTypeName = new XMLPrimitiveType(schema, dataType).QualifiedType,
+                            Use = XmlSchemaUse.Optional
+                        };
+                        contentExtension.Attributes.Add(attrib);
+                    }
+
+                    if (isValidUntil)
+                    {
+                        XmlSchemaAttribute attrib = new XmlSchemaAttribute()
+                        {
+                            Name = context.GetConfigProperty(_ValidUntilAttribName),
+                            SchemaTypeName = new XMLPrimitiveType(schema, dataType).QualifiedType,
+                            Use = XmlSchemaUse.Optional
+                        };
+                        contentExtension.Attributes.Add(attrib);
+                    }
                 }
-                else
-                {
-                    this._attribute.MaxOccurs = cardinality.UpperBoundary;
-                }
+                else this._attribute.SchemaTypeName = new XmlQualifiedName(this.Classifier, this.ClassifierNS);
+
+                this._attribute.IsNillable = _nillable;
+                if (cardinality.IsUnboundedList) this._attribute.MaxOccursString = "unbounded";
+                else this._attribute.MaxOccurs = cardinality.UpperBoundary;
                 this._attribute.MinOccurs = (schema.UseLists && cardinality.IsList && cardinality.IsOptional) ? 1 : cardinality.LowerBoundary;     // If we're in a list, there must be at least one element.
 
                 // Add (list of) annotation(s) to the attribute...
@@ -100,7 +134,7 @@ namespace Framework.Util.SchemaManagement.XML
                     this._attribute.MinOccurs = 0;                // Default value implies optional use of attribute!
                     if (fixedValue != string.Empty)
                     {
-                        Logger.WriteWarning("Attribute can not have both default- and fixed values, fixed value '" + 
+                        Logger.WriteWarning("Attribute can not have both default- and fixed values, fixed value '" +
                                             fixedValue + "' has been ignored!");
                     }
                 }
@@ -132,7 +166,7 @@ namespace Framework.Util.SchemaManagement.XML
             }
             catch (System.SystemException exc)
             {
-                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLContentAttribute >> construction failed because: " + exc.Message);
+                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLContentAttribute >> construction failed because: " + exc.ToString());
             }
         }
     }

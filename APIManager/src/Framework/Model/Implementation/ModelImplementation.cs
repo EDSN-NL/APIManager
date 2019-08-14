@@ -395,6 +395,16 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Convenience method that facilitates changing an element type from Class to DataType or vice versa. The method accepts the element to be
+        /// changed as well as the new stereotype for the element. Please be aware that the provided element is invalid on return since we don't
+        /// bother re-creating the changed element. Also, the scope is limited to Simple/Complex Data Types or Classes.
+        /// </summary>
+        /// <param name="element">The element to update.</param>
+        /// <param name="stereotype">The new stereotype.</param>
+        /// <exception cref="ArgumentException">Is thrown when the wrong stereotype is passed.</exception>
+        internal abstract void UpdateModelElementType(ModelElement element, string stereotype);
+
+        /// <summary>
         /// Default constructor makes sure that the Model Element Implementation dictionary and diagram lists are created.
         /// </summary>
         protected ModelImplementation()

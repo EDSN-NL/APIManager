@@ -149,11 +149,17 @@ namespace Framework.Model
         internal abstract MEProfiler FindProfiler(string nameFragment);
 
         /// <summary>
+        /// Iterator that returns each class in a package.
+        /// </summary>
+        /// <returns>Next class</returns>
+        internal abstract IEnumerable<MEClass> GetClasses();
+
+        /// <summary>
         /// Returns a list of all classes in the package that have the specified stereotype. If no stereotype is
         /// specified, the method searches for 'Business Component' classes.
         /// </summary>
         /// <returns>List of all classes in the package (empty list when nothing found)</returns>
-        internal abstract List<MEClass> GetClasses(string stereotype = null);
+        internal abstract List<MEClass> GetClasses(string stereotype);
 
         /// <summary>
         /// Returns the number of classes in the package.

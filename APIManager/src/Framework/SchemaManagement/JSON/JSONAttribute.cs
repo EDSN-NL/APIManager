@@ -61,6 +61,7 @@ namespace Framework.Util.SchemaManagement.JSON
         /// <param name="schema">The schema in which the attribute is created.</param>
         /// <param name="attributeName">Name of the attribute as defined in the ABIE.</param>
         /// <param name="classifierName">Classifier name as defined in the ABIE.</param>
+        /// <param name="classifier">Classifier name as defined in the ABIE.</param>
         /// <param name="sequenceKey">When specified (not 0), this indicates the sorting order within a list of attributes and associations.</param>
         /// <param name="choiceGroup">Optional identifier for the choice group that this attribute should go to or NULL if not defined.</param>
         /// <param name="cardinality">Attribute cardinality. Upper boundary 0 is interpreted as 'unbounded'.</param>
@@ -68,6 +69,9 @@ namespace Framework.Util.SchemaManagement.JSON
         /// <param name="defaultValue">Optional default value.</param>
         /// <param name="fixedValue">Optional fixed value.</param>
         /// <param name="isNillable">Set to 'true' to indicate that the attribute supports a NULL value.</param>
+        /// <param name="isValidFrom">Set to 'true' to indicate that the attribute must have an 'isValidFrom' supplementary attribute.</param>
+        /// <param name="isValidUntil">Set to 'true' to indicate that the attribute must have an 'isValidUntil' supplementary attribute.</param>
+        /// <param name="useValidTimestamp">Set to 'true' to indicate that validFrom and validUntil must use date/time instead of just date.</param>
         internal JSONContentAttribute(JSONSchema schema,
                                       string attributeName,
                                       string classifierName,
@@ -76,7 +80,7 @@ namespace Framework.Util.SchemaManagement.JSON
                                       Cardinality cardinality,
                                       List<MEDocumentation> annotation,
                                       string defaultValue, string fixedValue,
-                                      bool isNillable) :
+                                      bool isNillable, bool isValidFrom, bool isValidUntil, bool useValidTimestamp) :
             base(schema, attributeName, classifierName, sequenceKey, choiceGroup, cardinality, annotation, defaultValue, fixedValue, isNillable)
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Creating attribute '" + attributeName + "' with classifier '" + classifierName +

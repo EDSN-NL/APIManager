@@ -49,6 +49,14 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         }
 
         /// <summary>
+        /// Returns 'true' if the classifier is a complex- rather then a simple type.
+        /// </summary>
+        internal bool IsComplex
+        {
+            get { return this._contentType == ContentTypeCode.Complex; }
+        }
+
+        /// <summary>
         /// Returns 'true' if the classifier is defined in the common schema.
         /// </summary>
         internal bool IsInCommonSchema

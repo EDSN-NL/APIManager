@@ -11,35 +11,35 @@ using SparxEA.View;
 
 namespace SparxEA.Model
 {
-    internal sealed class EAModelImplementation: ModelImplementation
+    internal sealed class EAModelImplementation : ModelImplementation
     {
         private Repository _repository;                                 // The actual Sparx EA Repository API.
-        private ModelSlt.RepositoryType _repositoryType;           // Registers our repository implementation.
+        private ModelSlt.RepositoryType _repositoryType;                // Registers our repository implementation.
         private static SortedList<string, MEClass> _typeCache = null;   // Keeps track of searched-for classes/types.
 
         // Configuration properties used to distinguish between different classifier [meta-]types...
-        private const string _MetaTypeComplexDataType       = "MetaTypeComplexDataType";
-        private const string _MetaTypeSimpleDataType        = "MetaTypeSimpleDataType";
-        private const string _MetaTypeEnumeration           = "MetaTypeEnumeration";
-        private const string _MetaTypeUnion                 = "MetaTypeUnion";
+        private const string _MetaTypeComplexDataType = "MetaTypeComplexDataType";
+        private const string _MetaTypeSimpleDataType = "MetaTypeSimpleDataType";
+        private const string _MetaTypeEnumeration = "MetaTypeEnumeration";
+        private const string _MetaTypeUnion = "MetaTypeUnion";
 
         // Other configuration items used by this module...
-        private const string _RootPkgName                   = "RootPkgName";
+        private const string _RootPkgName = "RootPkgName";
 
         // Some of the default stereotypes required when creating components...
-        private const string _GeneralizationStereotype      = "GeneralizationStereotype";
-        private const string _AssociationStereotype         = "AssociationStereotype";
-        private const string _MessageAssociationStereotype  = "MessageAssociationStereotype";
+        private const string _GeneralizationStereotype = "GeneralizationStereotype";
+        private const string _AssociationStereotype = "AssociationStereotype";
+        private const string _MessageAssociationStereotype = "MessageAssociationStereotype";
 
         /// <summary>
         /// Getter that returns the repository instance to interested parties (such as Model Element Implementations)
         /// </summary>
-        internal Repository Repository {get { return this._repository; }}
+        internal Repository Repository { get { return this._repository; } }
 
         /// <summary>
         /// The internal constructor is called to initialize the repository.
         /// </summary>
-        internal EAModelImplementation(Repository repository): base()
+        internal EAModelImplementation(Repository repository) : base()
         {
             this._repository = repository;
             this._repositoryType = ModelSlt.RepositoryType.Unknown;
@@ -102,7 +102,7 @@ namespace SparxEA.Model
                     {
                         classID = Convert.ToInt32(elements[0]["ElementID"].InnerText.Trim());
                         foundClass = new MEClass(classID);
-                        _typeCache.Add(key, foundClass);              
+                        _typeCache.Add(key, foundClass);
                     }
                 }
                 else
@@ -323,7 +323,7 @@ namespace SparxEA.Model
             String query = @"SELECT o2.Object_ID AS ElementID
                             FROM((t_connector c INNER JOIN t_object o ON c.Start_Object_ID = o.Object_ID)
                             LEFT JOIN t_object o2 ON c.End_Object_ID = o2.Object_ID) 
-                            WHERE o.Object_ID = " + source.ElementID + 
+                            WHERE o.Object_ID = " + source.ElementID +
                             " AND c.Connector_Type = 'Association' AND c.Stereotype " + likeClause + checkType + "'";
 
             var queryResult = new XmlDocument();                            // Repository query will return an XML Document.
@@ -352,7 +352,7 @@ namespace SparxEA.Model
             ContextSlt context = ContextSlt.GetContextSlt();
 
             if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeComplexDataType), StringComparison.OrdinalIgnoreCase) == 0 ||
-			    String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeSimpleDataType), StringComparison.OrdinalIgnoreCase) == 0)
+                String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeSimpleDataType), StringComparison.OrdinalIgnoreCase) == 0)
             {
                 dataType = new MEDataType(element.ElementID);
             }
@@ -702,7 +702,7 @@ namespace SparxEA.Model
                     searchPath += ":" + packagePath.Substring(0, pkgIndex);
                     packageName = packagePath.Substring(pkgIndex + 1);
                 }
-                Logger.WriteInfo("Framework.Model.ModelImplementation.LockPackage >> Locking package '" + 
+                Logger.WriteInfo("Framework.Model.ModelImplementation.LockPackage >> Locking package '" +
                                  packageName + "' in path '" + searchPath + "'...");
                 MEPackage lockPackage = FindPackage(searchPath, packageName);
                 if (lockPackage != null)
@@ -793,6 +793,62 @@ namespace SparxEA.Model
                 MEPackage unlockPackage = FindPackage(searchPath, packageName);
                 if (unlockPackage != null) unlockPackage.Unlock(recursiveUnLock);
                 else Logger.WriteError("Framework.Model.ModelImplementation.UnLockPackage >> Could not find package '" + packagePath + "' to unlock!");
+            }
+        }
+
+        /// <summary>
+        /// Convenience method that facilitates changing an element type from Class to DataType or vice versa. The method accepts the element to be
+        /// changed as well as the new stereotype for the element. Please be aware that the provided element is invalid on return since we don't
+        /// bother re-creating the changed element. Also, the scope is limited to Simple/Complex Data Types or Classes.
+        /// </summary>
+        /// <param name="element">The element to update.</param>
+        /// <param name="stereotype">The new stereotype.</param>
+        /// <exception cref="ArgumentException">Is thrown when the wrong stereotype is passed.</exception>
+        internal override void UpdateModelElementType(ModelElement element, string stereotype)
+        {
+            const string _ComplexBDTStereotype = "ComplexBDTStereotype";
+            const string _SimpleBDTStereotype = "SimpleBDTStereotype";
+            const string _BusinessComponentStereotype = "BusinessComponentStereotype";
+            const string _ClassType = "Class";
+            const string _DataType = "DataType";
+            //const string _ComplexBDTDBEntry             = "@STEREO;Name=BDTComplexType;FQName=Enexis ECDM::BDTComplexType;@ENDSTEREO;@STEREO;Name=LDT;FQName=Enexis ECDM::LDT;@ENDSTEREO;@STEREO;Name=BDT;FQName=Enexis ECDM::BDT;@ENDSTEREO;";
+            //const string _SimpleBDTDBEntry              = "@STEREO;Name=BDTSimpleType;FQName=Enexis ECDM::BDTSimpleType;@ENDSTEREO;@STEREO;Name=LDT;FQName=Enexis ECDM::LDT;@ENDSTEREO;@STEREO;Name=BDT;FQName=Enexis ECDM::BDT;@ENDSTEREO;";
+            //const string _ComponentDBEntry              = "@STEREO;Name=BusinessComponent;FQName=Enexis ECDM::BusinessComponent;@ENDSTEREO";
+
+            Logger.WriteInfo("Framework.Model.ModelImplementation.UpdateModelElementType >> Updating Model Element '" +
+                             element.Name + "' to type '" + stereotype + "'...");
+
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string complexBDTStereotype = context.GetConfigProperty(_ComplexBDTStereotype);
+            string simpleBDTStereotype = context.GetConfigProperty(_SimpleBDTStereotype);
+            string componentStereotype = context.GetConfigProperty(_BusinessComponentStereotype);
+
+            // We only accept a limited set of stereotypes...
+            if (stereotype == complexBDTStereotype || stereotype == simpleBDTStereotype || stereotype == componentStereotype)
+            {
+                try
+                {
+                    Logger.WriteInfo("Framework.Model.ModelImplementation.UpdateModelElementType >> Going to update the object type...");
+                    string newObjectType = stereotype == componentStereotype ? _ClassType : _DataType;
+                    String query = "UPDATE t_object SET Object_Type = '" + newObjectType + "' WHERE Object_ID = '" + element.ElementID + "'";
+                    this._repository.Execute(query);    // Undocumented feature that facilitates execution of 'random' SQL against the repository.
+
+                    EA.Element physicalElement = this._repository.GetElementByID(element.ElementID);
+                    physicalElement.StereotypeEx = stereotype;
+                    physicalElement.Update();
+                }
+                catch (Exception exc)
+                {
+                    Logger.WriteError("Framework.Model.ModelImplementation.UpdateModelElementType >> Caught an exception: " +
+                                      Environment.NewLine + exc.ToString());
+                }
+                this._repository.AdviseElementChange(element.ElementID);
+            }
+            else
+            {
+                string msg = "Received an unsupported stereotype '" + stereotype;
+                Logger.WriteError("Framework.Model.ModelImplementation.UpdateModelElementType >> " + msg);
+                throw new ArgumentException(msg);
             }
         }
     }
