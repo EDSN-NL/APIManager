@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Forms;
 using Framework.Event;
 using Framework.Logging;
@@ -78,9 +77,10 @@ namespace Plugin.Application.Events.Util
 
         /// <summary>
         /// Creates metadata for the specified class. Sets DEN and ID for the class, all attributes and all relevant outbound associations.
+        /// Note that we update a metadata tag ONLY when there is currently no content in these tags!
         /// </summary>
         /// <param name="thisClass">Class to be processed.</param>
-        void ProcessClass (MEClass thisClass)
+        void ProcessClass(MEClass thisClass)
         {
             Logger.WriteInfo("Plugin.Application.Events.Util.SetMetadataEvent.processClass >> Processing Class '" + thisClass.Name + "'...");
             var metadataCreator = new MetadataCreator();
@@ -88,10 +88,10 @@ namespace Plugin.Application.Events.Util
             string DENTag = context.GetConfigProperty(_DictionaryEntryNameTag);
             string IDTag = context.GetConfigProperty(_UniqueIDTag);
 
-            thisClass.SetTag(DENTag, metadataCreator.MakeDEN(thisClass.Name));
-            thisClass.SetTag(IDTag, metadataCreator.MakeID(thisClass));
+            if (string.IsNullOrEmpty(thisClass.GetTag(DENTag))) thisClass.SetTag(DENTag, metadataCreator.MakeDEN(thisClass.Name));
+            if (string.IsNullOrEmpty(thisClass.GetTag(IDTag))) thisClass.SetTag(IDTag, metadataCreator.MakeID(thisClass));
 
-            bool isEnum = (thisClass.HasStereotype(context.GetConfigProperty(_BusinessDataTypeEnumStereotype))) ? true : false;
+            bool isEnum = thisClass.HasStereotype(context.GetConfigProperty(_BusinessDataTypeEnumStereotype)) ? true : false;
             string facetStereotype = context.GetConfigProperty(_FacetAttStereotype);
             string contentStereotype = context.GetConfigProperty(_ContentAttStereotype);
             string supplementaryStereotype = context.GetConfigProperty(_SupplementaryAttStereotype);
@@ -104,32 +104,33 @@ namespace Plugin.Application.Events.Util
                 {
                     Logger.WriteInfo("Plugin.Application.Events.Util.SetMetadataEvent.processClass >> Enumeration, no classifier!");
                     if (!attrib.HasStereotype(facetStereotype)) attrib.AddStereotype(facetStereotype);
-                    attrib.SetTag(DENTag, metadataCreator.MakeDEN(thisClass.Name, attrib.Name, null));
+                    if (string.IsNullOrEmpty(attrib.GetTag(DENTag))) attrib.SetTag(DENTag, metadataCreator.MakeDEN(thisClass.Name, attrib.Name, null));
 
                 }
                 else if (attrib.HasStereotype(facetStereotype))
                 {
                     Logger.WriteInfo("Plugin.Application.Events.Util.SetMetadataEvent.processClass >> Facet, no classifier!");
-                    attrib.SetTag(DENTag, metadataCreator.MakeDEN(thisClass.Name, attrib.Name, null));
+                    if (string.IsNullOrEmpty(attrib.GetTag(DENTag))) attrib.SetTag(DENTag, metadataCreator.MakeDEN(thisClass.Name, attrib.Name, null));
                 }
                 else
                 {
                     // No stereotype and no facet. Check if we have ANY stereotype (we need one in order to attach the metadata)...
                     if (!attrib.HasStereotype(new List<string>(stereotypeList))) attrib.AddStereotype(contentStereotype);
-                    attrib.SetTag(DENTag, metadataCreator.MakeDEN(thisClass.Name, attrib.Name, attrib.Classifier.Name));
+                    if (string.IsNullOrEmpty(attrib.GetTag(DENTag))) attrib.SetTag(DENTag, metadataCreator.MakeDEN(thisClass.Name, attrib.Name, attrib.Classifier.Name));
                 }
-                attrib.SetTag(IDTag, metadataCreator.MakeID(attrib));
+                if (string.IsNullOrEmpty(attrib.GetTag(IDTag))) attrib.SetTag(IDTag, metadataCreator.MakeID(attrib));
             }
 
             foreach (MEAssociation assoc in thisClass.AssociationList)
             {
-                if (assoc.TypeOfAssociation == MEAssociation.AssociationType.Aggregation || 
+                if (assoc.TypeOfAssociation == MEAssociation.AssociationType.Aggregation ||
                     assoc.TypeOfAssociation == MEAssociation.AssociationType.Association ||
                     assoc.TypeOfAssociation == MEAssociation.AssociationType.Composition)
                 {
-                    assoc.SetTag(DENTag, metadataCreator.MakeDEN(thisClass.Name, assoc.Destination.Role, assoc.Destination.EndPoint.Name), 
-                                 true, MEAssociation.AssociationEnd.Association);
-                    assoc.SetTag(IDTag, metadataCreator.MakeID(assoc), true, MEAssociation.AssociationEnd.Association);
+                    if (string.IsNullOrEmpty(assoc.GetTag(DENTag)))
+                        assoc.SetTag(DENTag, metadataCreator.MakeDEN(thisClass.Name, assoc.Destination.Role, assoc.Destination.EndPoint.Name),
+                                     true, MEAssociation.AssociationEnd.Association);
+                    if (string.IsNullOrEmpty(assoc.GetTag(IDTag))) assoc.SetTag(IDTag, metadataCreator.MakeID(assoc), true, MEAssociation.AssociationEnd.Association);
                 }
             }
         }
@@ -150,8 +151,15 @@ namespace Plugin.Application.Events.Util
 
             foreach (MEClass currClass in thisPackage.GetClasses(stereotype))
             {
-                panel.WriteInfo(1, "Processing Class: '" + currClass.Name + "'...");
-                ProcessClass(currClass);
+                try
+                {
+                    panel.WriteInfo(1, "Processing Class: '" + currClass.Name + "'...");
+                    ProcessClass(currClass);
+                }
+                catch (Exception exc)
+                {
+                    panel.WriteError(2, "Processing failed because: " + exc.ToString());
+                }
                 panel.IncreaseBar(1);
             }
             panel.IncreaseBar(4);   // Just some additional steps to assure that bar is indeed at end of range (looks better ;-)
