@@ -59,7 +59,7 @@ namespace Plugin.Application.Events.Util
             try
             {
                 myService = svcContext.GetServiceInstance();
-                RMServiceTicket existingTicket = myService.Ticket;      // Current ticket assigned to the service.
+                RMServiceTicket existingTicket = myService.Ticket;
                 if (myService.IsValidCMState(CMContext.CMState.CheckedOut))
                 {
                     if (myService.ConfigurationMgmtState != CMContext.CMState.CheckedOut)

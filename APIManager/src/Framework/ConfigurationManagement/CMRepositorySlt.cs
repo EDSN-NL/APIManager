@@ -91,7 +91,7 @@ namespace Framework.ConfigurationManagement
         /// <summary>
         /// Performs a checkout of the specified tag to a temporary branch.
         /// This facilitates working with artefacts from the tag without disrupting the main flow of the CM repository. 
-        /// The function returns the temporary branch created, whic should be cleaned-up as soon as possible.
+        /// The function returns the temporary branch created, which should be cleaned-up as soon as possible.
         /// Tag must exist locally or we're throwing an 'InvalidArgument' exception.
         /// </summary>
         /// <param name="tagName">The tag to checkout</param>
@@ -131,7 +131,7 @@ namespace Framework.ConfigurationManagement
                 }
 
                 // Fall-through in case of errors...
-                GotoBranch(_CMReleaseBranchName);   // On checkout errors, return to the release branch!
+                GotoBranch(ContextSlt.GetContextSlt().GetConfigProperty(_CMReleaseBranchName));   // On checkout errors, return to the release branch!
                 if (tempBranch != null) this._gitRepository.Branches.Remove(tempBranch);
                 string msg = "Unable to checkout tag '" + tagName + "'!";
                 Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.CheckoutTag >> " + msg);
@@ -140,7 +140,7 @@ namespace Framework.ConfigurationManagement
             catch (ArgumentException) { throw; }
             catch (Exception exc)
             {
-                GotoBranch(_CMReleaseBranchName);   // On checkout errors, return to the release branch!
+                GotoBranch(ContextSlt.GetContextSlt().GetConfigProperty(_CMReleaseBranchName));   // On checkout errors, return to the release branch!
                 if (tempBranch != null) this._gitRepository.Branches.Remove(tempBranch);
                 string msg = "Unable to checkout tag '" + tagName + "' because of exception!";
                 Logger.WriteError("Framework.ConfigurationManagement.CMRepositorySlt.CheckoutTag >> " + msg + Environment.NewLine + exc.ToString());

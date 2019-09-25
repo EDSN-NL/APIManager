@@ -175,11 +175,13 @@ namespace Plugin.Application.CapabilityModel
                         Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext >> Existing Ticket ID is: '" + ticketID + "'...");
                         this._ticket = GetTicket(ticketID);
                     }
+                    else this._ticket = new RMServiceTicket();  // No valid ticket ID, create dummy ticket instead.
                 }
                 else if (noCMStateService)
                 {
                     Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext >> Service has no valid CM state, can't enable context!");
                     this._configurationMgmtState = CMState.Disabled;
+                    this._ticket = new RMServiceTicket();               // Create a default, empty, ticket.
                 }
                 else // Anything else...
                 {

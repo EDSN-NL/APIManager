@@ -379,6 +379,9 @@ namespace Plugin.Application.Events.API
             ModelSlt model = ModelSlt.GetModelSlt();
             Capability.FlushRegistry();             // Make sure to clean-up collected classes from previous Event, could contain stale contents!
 
+            // Check whether we have a valid repository descriptor for the current project. If not, there is not much we can do...
+            this._hasValidRepositoryDsc = CMRepositoryDscManagerSlt.GetRepositoryDscManagerSlt().GetCurrentDescriptor() != null;
+
             // Retrieve a bunch of configuration properties...
             string serviceDeclPkgStereotype = context.GetConfigProperty(_ServiceDeclPkgStereotype);
             string codeListDeclPkgStereotype = context.GetConfigProperty(_CodeListDeclPkgStereotype);

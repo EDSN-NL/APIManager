@@ -382,7 +382,7 @@ namespace SparxEA.Model
         internal override bool ExportPackage(string fileName, bool recursive)
         {
             int _NoFormatXML        = Convert.ToInt32(false);
-            int _UseDTD             = Convert.ToInt32(true);
+            int _NoUseDTD           = Convert.ToInt32(false);
             int _ExportDiagrams     = 1;
             int _NoPictureFormats   = -1;
 
@@ -393,7 +393,7 @@ namespace SparxEA.Model
                 EA.Project project = ((EAModelImplementation)this._model).Repository.GetProjectInterface();
                 project.ExportPackageXMIEx(this._package.PackageGUID,
                                            EnumXMIType.xmiEADefault,
-                                           _ExportDiagrams, _NoPictureFormats, _NoFormatXML, _UseDTD,
+                                           _ExportDiagrams, _NoPictureFormats, _NoFormatXML, _NoUseDTD,
                                            fileName,
                                            !recursive? Convert.ToInt32(EA.ExportPackageXMIFlag.epSaveToStub): 0);
             }
