@@ -64,6 +64,9 @@ namespace Plugin.Application.CapabilityModel
         internal const string _MaxOperationIDTag                = "MaxOperationIDTag";
         internal const string _ServiceArchetypeTag              = "ServiceArchetypeTag";
 
+        // Header used for release message in service annotation:
+        private const string _ReleaseHeader = "Feature tag for release: ";
+
         // Initial build number for new services or version reset.
         private const int _DefaultBuildNr                       = 1;
 
@@ -572,6 +575,8 @@ namespace Plugin.Application.CapabilityModel
                                       this.Name + "_V" + this._version.Item1 + "P" + this._version.Item2 + "B" + this._serviceClass.BuildNumber;
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.Commit >> CommitID = '" + commitID + "'...");
                     string commitMsg = commitID + Environment.NewLine + message;
+                    CreateLogEntry(commitID + ": " + message);
+                    if (commitScope == CMContext.CommitScope.Release) CreateLogEntry(_ReleaseHeader + this._CMContext.GetFeatureTagName());
                     result = this._CMContext.CommitService(commitMsg, commitScope);
                 }
                 else result = true;
@@ -927,6 +932,7 @@ namespace Plugin.Application.CapabilityModel
                                       this.Name + "_V" + this._version.Item1 + "P" + this._version.Item2 + "B" + this._serviceClass.BuildNumber;
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.Service.Release >> ReleaseID = '" + releaseID + "'...");
                     string releaseMsg = releaseID + Environment.NewLine + message;
+                    CreateLogEntry(_ReleaseHeader + this._CMContext.GetFeatureTagName());
                     this._CMContext.ReleaseService(releaseMsg);
                     SetColor(this._CMContext.State);
                 }

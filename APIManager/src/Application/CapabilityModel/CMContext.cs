@@ -482,6 +482,20 @@ namespace Plugin.Application.CapabilityModel
         }
 
         /// <summary>
+        /// Helper function that creates a valid feature tag name based on current service state.
+        /// The created name has format:
+        /// prefix/ticket-id/business-funct.containerpkg/service-name[_operational-state]_Vmajor-vsnPminor-vsnBbuild-nr
+        /// When Release Management is disabled, we skip the ticket-id part.
+        /// </summary>
+        /// <returns>Tagname or empty string in case of missing ticket.</returns>
+        internal string GetFeatureTagName()
+        {
+            string tagName = GetFeatureBranchName() + "B" + this._trackedService.BuildNumber;
+            Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.GetFeatureTagName >> Constructed tag '" + tagName + "'...");
+            return tagName;
+        }
+
+        /// <summary>
         /// Returns a triplet containing the most recent released version of the associated service.
         /// </summary>
         /// <returns>Returns last released version as major, minor, build-number. Or 0,0,0 when no earlier release is found. NULL is returned on errors.</returns>
@@ -847,20 +861,6 @@ namespace Plugin.Application.CapabilityModel
 
             Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.GetFeatureBranchName >> Branch created: '" + branchName + "'.");
             return branchName;
-        }
-
-        /// <summary>
-        /// Helper function that create a valid feature tag name based on current service state.
-        /// The created name has format:
-        /// prefix/ticket-id/business-funct.containerpkg/service-name[_operational-state]_Vmajor-vsnPminor-vsnBbuild-nr
-        /// When Release Management is disabled, we skip the ticket-id part.
-        /// </summary>
-        /// <returns>Tagname or empty string in case of missing ticket.</returns>
-        private string GetFeatureTagName()
-        {
-            string tagName = GetFeatureBranchName() + "B" + this._trackedService.BuildNumber;
-            Logger.WriteInfo("Plugin.Application.ConfigurationManagement.CMContext.GetFeatureTagName >> Constructed tag '" + tagName + "'...");
-            return tagName;
         }
 
         /// <summary>
