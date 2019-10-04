@@ -11,15 +11,24 @@ namespace Framework.Model
     internal class MEObject: MEClass
     {
         /// <summary>
-        /// Returns the run-time state of the object, which is represented by a list of properties and their current value.
-        /// The state only returns properties that have a value, empty ones are skipped!
+        /// Returns or loads the run-time state of the object, which is represented by a list of properties and their current value.
+        /// The state only returns properties that have a value, empty ones are skipped! When the object does not have a run-time
+        /// state, the 'get' operation returns an empty list.
+        /// For a 'set' operation, the list of provided attribute names is checked against the valid attributes of the associated class!
+        /// The existing run-time state of an object can be deleted by passing 'null' as a value, e.g. myObject.RuntimeState = null;
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present.</exception>
-        internal List<Tuple<string, string>> RunTimeState
+        /// <exception cref="ArgumentException">Illegal attributes in run-time state ('set' only).</exception>
+        internal List<Tuple<string, string>> RuntimeState
         {
             get
             {
-                if (this._imp != null) return ((MEIObject)this._imp).GetRunTimeState();
+                if (this._imp != null) return ((MEIObject)this._imp).GetRuntimeState();
+                else throw new MissingImplementationException("MEIObject");
+            }
+            set
+            {
+                if (this._imp != null) ((MEIObject)this._imp).SetRuntimeState(value);
                 else throw new MissingImplementationException("MEIObject");
             }
         }

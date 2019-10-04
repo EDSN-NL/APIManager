@@ -45,11 +45,25 @@ namespace SparxEA.Model
         internal string MetaType { get { return this._element.MetaType; } }
 
         /// <summary>
-        /// Getter that returns the run-time state of the element as a repository-specific string.
+        /// Get- or set the run-time state of the element as a repository-specific string.
         /// It is meant to be used by other EA implementation methods that require access to the
         /// meta type, without a need to directly expose the EA object.
         /// </summary>
-        internal string RunState { get { return this._element.RunState; } }
+        internal string RunState
+        {
+            get { return this._element.RunState; }
+            set
+            {
+                this._element.RunState = value;
+                this._element.Update();     // Update element internally.
+                this._element.Refresh();    // And update GUI features as well.
+            }
+        }
+
+        /// <summary>
+        /// Getter that returns the classifier ID of the element, which is valid ONLY for elements used as Objects!
+        /// </summary>
+        internal int Classifier { get { return this._element.ClassfierID; } }
 
         /// <summary>
         /// Creates a new EA Class implementation based on repository ID.
@@ -428,7 +442,7 @@ namespace SparxEA.Model
         }
 
         /// <summary>
-        /// Searches the class for an attribute with specified name and type.
+        /// Searches the class (and all parent classes) for an attribute with specified name and type.
         /// </summary>
         /// <param name="name">Name of the attribute to find.</param>
         /// <param name="type">Attribute type (Attribute, Supplementary or Facet).</param>
@@ -440,10 +454,10 @@ namespace SparxEA.Model
             string suppStereotype =  context.GetConfigProperty(_SupplementaryAttStereotype);
 
             // Reading StereotypeEX does not return fully qualified stereotype names so we remove the profile name if specified....
-            facetStereotype = (facetStereotype.Contains("::")) ? facetStereotype.Substring(facetStereotype.IndexOf("::") + 2) : facetStereotype;
-            suppStereotype = (suppStereotype.Contains("::")) ? suppStereotype.Substring(suppStereotype.IndexOf("::") + 2) : suppStereotype;
+            facetStereotype = facetStereotype.Contains("::") ? facetStereotype.Substring(facetStereotype.IndexOf("::") + 2) : facetStereotype;
+            suppStereotype = suppStereotype.Contains("::") ? suppStereotype.Substring(suppStereotype.IndexOf("::") + 2) : suppStereotype;
 
-            foreach (EA.Attribute attribute in this._element.Attributes)
+            foreach (EA.Attribute attribute in this._element.AttributesEx)
             {
                 if (attribute.Name == name)
                 {
@@ -756,6 +770,17 @@ namespace SparxEA.Model
                     else if (type != MEAssociation.AssociationType.Unknown && association.GetAssociationType() == type) return true;
                 }
             }
+            return false;
+        }
+
+        /// <summary>
+        /// Searches the class (and all parent classes) for an attribute with specified name.
+        /// </summary>
+        /// <param name="name">Name of the attribute to find.</param>
+        /// <returns>True when class (or one of the parent classes) contains an attribute with given name, false otherwise.</returns>
+        internal override bool HasAttribute(string name)
+        {
+            foreach (EA.Attribute attribute in this._element.AttributesEx) if (attribute.Name == name) return true;
             return false;
         }
 

@@ -294,7 +294,7 @@ namespace Plugin.Application.CapabilityModel.CodeList
             MEObject identifier = model.FindObject(identifierPath, context.GetConfigProperty(_EnexisIdentifierName));
             if (identifier != null)
             {
-                List<Tuple<string, string>> stateVars = identifier.RunTimeState;
+                List<Tuple<string, string>> stateVars = identifier.RuntimeState;
                 for (int i = 0; i < stateVars.Count; i++)
                 {
                     if (stateVars[i].Item1 == agencyIDToken) template = template.Replace("@AGENCYID@", stateVars[i].Item2);

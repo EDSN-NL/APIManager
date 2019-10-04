@@ -249,7 +249,7 @@ namespace Plugin.Application.Forms
                     MEObject agencyDescriptor = context.SelectIdentifier();
                     if (agencyDescriptor != null)
                     {
-                        List<Tuple<string, string>> stateVars = agencyDescriptor.RunTimeState;
+                        List<Tuple<string, string>> stateVars = agencyDescriptor.RuntimeState;
                         for (int i = 0; i < stateVars.Count; i++)
                         {
                             if (stateVars[i].Item1 == typeCodeToken && stateVars[i].Item2 == agencyIDTypeCode) correctID = true;

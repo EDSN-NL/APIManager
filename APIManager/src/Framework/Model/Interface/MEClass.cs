@@ -370,6 +370,18 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Searches the class (and all parent classes) for an attribute with specified name.
+        /// </summary>
+        /// <param name="name">Name of the attribute to find.</param>
+        /// <returns>True when class (or one of the parent classes) contains an attribute with given name, false otherwise.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal bool HasAttribute(string name)
+        {
+            if (this._imp != null) return ((MEIClass)this._imp).HasAttribute(name);
+            else throw new MissingImplementationException("MEIClass");
+        }
+
+        /// <summary>
         /// This function checks whether the class contains one or more attributes and/or associations.
         /// </summary>
         /// <returns>True is class posesses one or more attributes and/or associations.</returns>

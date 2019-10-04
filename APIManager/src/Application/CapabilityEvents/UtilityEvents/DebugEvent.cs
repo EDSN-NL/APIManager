@@ -60,11 +60,29 @@ namespace Plugin.Application.Events.Util
                 MEPackage currentPackage = context.CurrentPackage;
                 Diagram currentDiagram = context.CurrentDiagram;
 
+                List<Tuple<string, string>> rtState = new List<Tuple<string, string>>();
+                var att1 = new Tuple<string, string>("Reference", "http://www.enexis.nl/apis/data/file.yaml");
+                var att2 = new Tuple<string, string>("IsRelativeIndicator", "false");
+                //var vaut = new Tuple<string, string>("BestaatNiet", "100");
+                rtState.Add(att1);
+                rtState.Add(att2);
+                //rtState.Add(vaut);
+                MEObject myObject = currentPackage.CreateObject(currentClass.Name + "Object", currentClass, rtState);
+
+                rtState = myObject.RuntimeState;
+                string stateString = string.Empty;
+                foreach (Tuple<string,string> stateAtt in rtState)
+                {
+                    stateString += "Attribuut: '" + stateAtt.Item1 + "' --> '" + stateAtt.Item2 + "'; " + Environment.NewLine;
+                }
+
+                MessageBox.Show("Received state:" + Environment.NewLine + stateString);
+
                 //var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
                 //CapabilityModel.Service myService = svcContext.GetServiceInstance(););
 
-                MEPackage findPkg = model.FindPackage("ECDMRoot:DomainModels", "ReleaseHistory");
-                MessageBox.Show("Found my package with ID = " + (findPkg != null ? findPkg.GlobalID : "_NONE_"));
+                //MEPackage findPkg = model.FindPackage("ECDMRoot:DomainModels", "ReleaseHistory");
+                //MessageBox.Show("Found my package with ID = " + (findPkg != null ? findPkg.GlobalID : "_NONE_"));
 
                 //MakeCommonSchema();
                 //Test7() ;

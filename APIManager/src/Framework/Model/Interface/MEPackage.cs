@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Framework.Exceptions;
 using Framework.View;
 
@@ -130,6 +131,27 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Creates an instance of a class (an object) within the current package with given name. Also, the class that acts
+        /// as a classifier for the object must be provided and optionally, a run-time state. The latter is a list of one or more
+        /// attribute/value tuples, where the attribute must be a valid attribute from the specified classifier class.
+        /// Optionally, a sorting ID can be provided, which is used to specify the order of the new element amidst other
+        /// elements in the package. If omitted, the order is defined by the repository (typically, this will imply
+        /// alphabetic ordering).
+        /// </summary>
+        /// <param name="name">The name of the new object.</param>
+        /// <param name="classifier">The class for which we must create an object.</param>
+        /// <param name="runtimeState">A list of attribute/value tuples to be used to store state of the object. The attribute names MUST exist in classifier.</param>
+        /// <param name="sortID">Optional ordering ID, can be omitted if not required.</param>
+        /// <returns>Newly created object.</returns>
+        /// <exception cref="ArgumentException">Illegal or missing name or classifier or error in run-time state.</exception>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal MEObject CreateObject(string name, MEClass classifier, List<Tuple<string, string>> runtimeState, int sortID = -1)
+        {
+            if (this._imp != null) return ((MEIPackage)this._imp).CreateObject(name, classifier, runtimeState, sortID);
+            else throw new MissingImplementationException("MEIPackage");
+        }
+
+        /// <summary>
         /// Create a new package instance as a child of the current parent and with given name and stereotype.
         /// Optionally, a sorting ID can be provided, which is used to specify the order of the new package amidst the
         /// children of the parent package. If omitted, the order is defined by the repository (typically, this will imply
@@ -155,6 +177,19 @@ namespace Framework.Model
         internal void DeleteClass(MEClass thisOne)
         {
             if (this._imp != null) ((MEIPackage)this._imp).DeleteClass(thisOne);
+            else throw new MissingImplementationException("MEIPackage");
+        }
+
+        /// <summary>
+        /// Delete the specified object from the package. If the class could not be found, the operation fails silently.
+        /// Since the model element is still around, some object properties (e.g. Name, Alias, ElementID, GlobalID) will remain
+        /// to be available as long as the object is in scope. However, most other operations on the object will fail!
+        /// </summary>
+        /// <param name="thisOne">The object to be deleted.</param>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal void DeleteObject(MEObject thisOne)
+        {
+            if (this._imp != null) ((MEIPackage)this._imp).DeleteObject(thisOne);
             else throw new MissingImplementationException("MEIPackage");
         }
 

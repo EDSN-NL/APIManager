@@ -13,8 +13,17 @@ namespace Framework.Model
         /// <summary>
         /// Returns the run-time state of the object, which is represented by a list of properties and their current value.
         /// The state only returns properties that have a value, empty ones are skipped!
+        /// When no run-time state has been defined, the function returns an empty list.
         /// </summary>
-        internal abstract List<Tuple<string, string>> GetRunTimeState();
+        internal abstract List<Tuple<string, string>> GetRuntimeState();
+
+        /// <summary>
+        /// Returns the run-time state of the object, which is represented by a list of properties and their current value.
+        /// The state only returns properties that have a value, empty ones are skipped!
+        /// The existing run-time state of an object can be deleted by passing 'null' as a value, e.g. myObject.RuntimeState = null;
+        /// </summary>
+        /// <exception cref="ArgumentException">Illegal attributes in run-time state.</exception>
+        internal abstract void SetRuntimeState(List<Tuple<string, string>> runtimeState);
 
         /// <summary>
         /// Default constructor, mainly used to pass the model instance to the base constructor and set the correct type.

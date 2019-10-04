@@ -324,6 +324,16 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Searches the class (and all parent classes) for an attribute with specified name.
+        /// </summary>
+        /// <param name="name">Name of the attribute to find.</param>
+        /// <returns>True when class (or one of the parent classes) contains an attribute with given name, false otherwise.</returns>
+        internal override bool HasAttribute(string name)
+        {
+            return this._classPart.HasAttribute(name);
+        }
+
+        /// <summary>
         /// The method checks whether one or more stereotypes from the given list of stereotypes are owned by the union.
         /// </summary>
         /// <param name="stereotypes">List of stereotypes to check.</param>

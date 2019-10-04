@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Windows.Forms;
 using System.Xml;
 using System.Collections.Generic;
 using EA;
@@ -277,6 +276,65 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Creates an instance of a class (an object) within the current package with given name. Also, the class that acts
+        /// as a classifier for the object must be provided and optionally, a run-time state. The latter is a list of one or more
+        /// attribute/value tuples, where the attribute must be a valid attribute from the specified classifier class.
+        /// Optionally, a sorting ID can be provided, which is used to specify the order of the new element amidst other
+        /// elements in the package. If omitted, the order is defined by the repository (typically, this will imply
+        /// alphabetic ordering).
+        /// </summary>
+        /// <param name="name">The name of the new object.</param>
+        /// <param name="classifier">The class for which we must create an object.</param>
+        /// <param name="runtimeState">A list of attribute/value tuples to be used to store state of the object. The attribute names MUST exist in classifier.</param>
+        /// <param name="sortID">Optional ordering ID, can be omitted if not required.</param>
+        /// <returns>Newly created object.</returns>
+        /// <exception cref="ArgumentException">Illegal or missing name or classifier or error in run-time state.</exception>
+        internal override MEObject CreateObject(string name, MEClass classifier, List<Tuple<string,string>> runtimeState, int sortID)
+        {
+            EA.Element newElement = null;
+            MEObject myObject = null;
+            bool done = false;
+
+            if (string.IsNullOrEmpty(name))
+            {
+                string message = "SparxEA.Model.EAMEIPackage.createObject >> Attempt to create an object without name in package '" + this.Name + "'!";
+                Logger.WriteError(message);
+                throw new ArgumentException(message);
+            }
+            if (classifier == null)
+            {
+                string message = "SparxEA.Model.EAMEIPackage.createObject >> Attempt to create an object without an associated class in package '" + this.Name + "'!";
+                Logger.WriteError(message);
+                throw new ArgumentException(message);
+            }
+
+            // Prevent the 'AddNew' + 'Update' to generate scope switches until we're ready for them...
+            ControllerSlt.GetControllerSlt().EnableScopeSwitch = false;
+
+            try
+            {
+                newElement = this._package.Elements.AddNew(name, "Object") as EA.Element;
+                newElement.ClassfierID = classifier.ElementID;
+                newElement.ClassifierName = classifier.Name;
+                if (sortID != -1) newElement.TreePos = sortID;
+                newElement.Update();        // Update immediately to properly finish the create. Note that this triggers a Scope Switch to incomplete object!
+                this._package.Elements.Refresh();
+                myObject = new MEObject(newElement.ElementID);
+                if (runtimeState != null) myObject.RuntimeState = runtimeState;
+
+                //newElement.Update();
+                ControllerSlt.GetControllerSlt().EnableScopeSwitch = true;
+                done = true;
+                return myObject;
+            }
+            finally
+            {
+                // Assures that state is rolled-back in case of create errors.
+                if (myObject != null && !done) DeleteObject(myObject);
+            }
+        }
+
+        /// <summary>
         /// Create a new package instance as a child of the current package and with given name and stereotype.
         /// Optionally, a sorting ID can be provided, which is used to specify the order of the new package amidst the
         /// children of the parent package. If omitted, the order is defined by the repository (typically, this will imply
@@ -350,6 +408,34 @@ namespace SparxEA.Model
             }
             Logger.WriteWarning("Attempt to delete Class '" + thisOne.Name + "' from Package: '" + this._package.Name + 
                                 "' failed; Class not found!");
+        }
+
+        /// <summary>
+        /// Delete the specified object from the package. If the class could not be found, the operation fails silently.
+        /// Since the model element is still around, some object properties (e.g. Name, Alias, ElementID, GlobalID) will remain
+        /// to be available as long as the object is in scope. However, most other operations on the object will fail!
+        /// </summary>
+        /// <param name="thisOne">The object to be deleted.</param>
+        internal override void DeleteObject(MEObject thisOne)
+        {
+            Logger.WriteInfo("SparxEA.Model.EAMEIPackage.deleteObject >> Deleting object '" + thisOne.Name + "' from package '" + this._package.Name + "' with '" + this._package.Elements.Count + "' elements...");
+
+            this._package.Elements.Refresh();   // Make sure that we're looking at the most up-to-date state.
+            for (short i = 0; i < this._package.Elements.Count; i++)
+            {
+                Logger.WriteInfo("SparxEA.Model.EAMEIPackage.deleteObject >> Examining index: " + i);
+                var currElement = this._package.Elements.GetAt(i) as EA.Element;
+                Logger.WriteInfo("SparxEA.Model.EAMEIPackage.deleteObject >> Found element: '" + currElement.Name + "'...");
+                if (currElement.ElementID == thisOne.ElementID)
+                {
+                    this._package.Elements.DeleteAt(i, true); // Refresh options currently does not work.
+                    this._package.Elements.Refresh();
+                    thisOne.InValidate();                     // Make sure to mark the associated implementation as invalid!
+                    return;
+                }
+            }
+            Logger.WriteWarning("Attempt to delete Object '" + thisOne.Name + "' from Package: '" + this._package.Name +
+                                "' failed; Object not found!");
         }
 
         /// <summary>

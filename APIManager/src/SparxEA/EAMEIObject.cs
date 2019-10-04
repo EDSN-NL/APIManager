@@ -293,9 +293,10 @@ namespace SparxEA.Model
         /// The run-time state in EA is represented by a single string in which each variable is enclosed in '@VAR' / '@ENDVAR'
         /// tokens. The variable string itself consists of a variable name, a value and an operator, the latter we ignore.
         /// Fields are separated by ';' characters.
+        /// When the object does not have a run-time state, the function returns an empty list.
         /// </summary>
         /// <exception cref="InvalidOperationException">Unable to retrieve run-time state.</exception>
-        internal override List<Tuple<string, string>> GetRunTimeState()
+        internal override List<Tuple<string, string>> GetRuntimeState()
         {
             const string VarStartToken  = "@VAR;";
             const string VarEndToken    = "@ENDVAR;";
@@ -380,6 +381,16 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Searches the class (and all parent classes) for an attribute with specified name.
+        /// </summary>
+        /// <param name="name">Name of the attribute to find.</param>
+        /// <returns>True when class (or one of the parent classes) contains an attribute with given name, false otherwise.</returns>
+        internal override bool HasAttribute(string name)
+        {
+            return this._classPart.HasAttribute(name);
+        }
+
+        /// <summary>
         /// This function checks whether the class contains one or more attributes and/or associations.
         /// </summary>
         /// <returns>True is class posesses one or more attributes and/or associations.</returns>
@@ -440,6 +451,15 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Set the build number (which is represented by the "Phase" tag in the EA element).
+        /// </summary>
+        /// <param name="buildNumber">New buildnumber value.</param>
+        internal override void SetBuildNumber(int buildNumber)
+        {
+            this._classPart.SetBuildNumber(buildNumber);
+        }
+
+        /// <summary>
         /// Update the name of the Object.
         /// </summary>
         /// <param name="newName">New name to be assigned.</param>
@@ -450,12 +470,46 @@ namespace SparxEA.Model
         }
 
         /// <summary>
-        /// Set the build number (which is represented by the "Phase" tag in the EA element).
+        /// Returns the run-time state of the object, which is represented by a list of properties and their current value.
+        /// The state only returns properties that have a value, empty ones are skipped!
+        /// The existing run-time state of an object can be deleted by passing 'null' as a value, e.g. myObject.RuntimeState = null;
         /// </summary>
-        /// <param name="buildNumber">New buildnumber value.</param>
-        internal override void SetBuildNumber(int buildNumber)
+        /// <exception cref="InvalidOperationException">Unable to retrieve run-time state or invalid classifier.</exception>
+        /// <exception cref="ArgumentException">New run-time state is invalid.</exception>
+        internal override void SetRuntimeState(List<Tuple<string, string>> runtimeState)
         {
-            this._classPart.SetBuildNumber(buildNumber);
+            const string VarStartToken = "@VAR;";
+            const string VarEndToken = "@ENDVAR;";
+            const string NameToken = "Variable=";
+            const string ValueToken = ";Value=";
+
+            MEClass classifier = this._classPart.Classifier > 0 ? new MEClass(this._classPart.Classifier) : null;
+            if (classifier == null)
+            {
+                string message = "Object '" + this._name + "' does not have a valid classifier!";
+                Logger.WriteError(message);
+                throw new InvalidOperationException(message);
+            }
+
+            string newState = string.Empty;
+            if (runtimeState != null)
+            {
+                foreach (Tuple<string,string> stateElement in runtimeState)
+                {
+                    if (classifier.HasAttribute(stateElement.Item1))
+                    {
+                        newState += VarStartToken + NameToken + stateElement.Item1 + ValueToken + stateElement.Item2 + VarEndToken;
+                    }
+                    else
+                    {
+                        string message = "Attribute '" + stateElement.Item1 + "' is not an attribute of classifier '" + classifier.Name + "'!";
+                        Logger.WriteError(message);
+                        throw new ArgumentException(message);
+                    }
+                }
+            }
+            Logger.WriteInfo("SparxEA.Model.EAMEIObject.SetRuntimeState >> Created state variable: '" + newState + "'...");
+            this._classPart.RunState = newState;
         }
 
         /// <summary>

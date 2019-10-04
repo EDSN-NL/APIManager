@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Framework.Util;
 using Framework.View;
 
@@ -51,6 +52,22 @@ namespace Framework.Model
         internal abstract Diagram CreateDiagram(string name);
 
         /// <summary>
+        /// Creates an instance of a class (an object) within the current package with given name. Also, the class that acts
+        /// as a classifier for the object must be provided and optionally, a run-time state. The latter is a list of one or more
+        /// attribute/value tuples, where the attribute must be a valid attribute from the specified classifier class.
+        /// Optionally, a sorting ID can be provided, which is used to specify the order of the new element amidst other
+        /// elements in the package. If omitted, the order is defined by the repository (typically, this will imply
+        /// alphabetic ordering).
+        /// </summary>
+        /// <param name="name">The name of the new object.</param>
+        /// <param name="classifier">The class for which we must create an object.</param>
+        /// <param name="runtimeState">A list of attribute/value tuples to be used to store state of the object. The attribute names MUST exist in classifier.</param>
+        /// <param name="sortID">Optional ordering ID, can be omitted if not required.</param>
+        /// <returns>Newly created object.</returns>
+        /// <exception cref="ArgumentException">Illegal or missing name or classifier or error in run-time state.</exception>
+        internal abstract MEObject CreateObject(string name, MEClass classifier, List<Tuple<string, string>> runtimeState, int sortID);
+
+        /// <summary>
         /// Create a new package instance as a child of the current package and with given name and stereotype.
         /// Optionally, a sorting ID can be provided, which is used to specify the order of the new package amidst the
         /// children of the parent package. If omitted, the order is defined by the repository (typically, this will imply
@@ -67,6 +84,14 @@ namespace Framework.Model
         /// </summary>
         /// <param name="thisOne">The class (or data type) to be deleted.</param>
         internal abstract void DeleteClass(MEClass thisOne);
+
+        /// <summary>
+        /// Delete the specified object from the package. If the class could not be found, the operation fails silently.
+        /// Since the model element is still around, some object properties (e.g. Name, Alias, ElementID, GlobalID) will remain
+        /// to be available as long as the object is in scope. However, most other operations on the object will fail!
+        /// </summary>
+        /// <param name="thisOne">The object to be deleted.</param>
+        internal abstract void DeleteObject(MEObject thisOne);
 
         /// <summary>
         /// Delete specified package from the current package. The package to be deleted mu be a direct child of the
