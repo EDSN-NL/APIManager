@@ -11,11 +11,6 @@ namespace Plugin.Application.Forms
 {
     internal partial class RESTOperationDialog : Form
     {
-        // Configuration properties used by this module:
-        private const string _DefaultSuccessCode        = "DefaultSuccessCode";
-        private const string _AltSuccessCode            = "AltSuccessCode";
-        private const string _DefaultResponseCode       = "DefaultResponseCode";
-
         private RESTOperationDeclaration _operation;    // The operation we're constructing or editing.
         private bool _hasName;                          // Set to true if we have a valid name.
         private bool _hasType;                          // Set to true if we have a valid type.
@@ -24,7 +19,6 @@ namespace Plugin.Application.Forms
         private bool _initializing;                     // Set to 'true' during construction to suppress unwanted events.
         private RESTResourceDeclaration _parent;        // Parent resource of this operation.
         private RESTResponseCodeCollectionMgr _responseManager;     // Response code collection manager.
-        private RESTOperationResultDeclaration _currentOkResult;    // Either default OK or alternative OK .
 
         /// <summary>
         /// Returns 'true' when Operation Minor Version must be updated.
@@ -83,8 +77,6 @@ namespace Plugin.Application.Forms
             else RequestTypeName.Text = operation.RequestDocument.Name;
             ReqCardLo.Text = this._operation.RequestCardinality.LowerBoundary.ToString();
             ReqCardHi.Text = this._operation.RequestCardinality.IsUnboundedList ? "*" : operation.RequestCardinality.UpperBoundary.ToString();
-            ReqEncryption.Checked = this._operation.UseRequestEncryption;
-            ReqSigning.Checked = this._operation.UseRequestSigning;
 
             if (operation.ResponseDocument == null)
             {
@@ -95,8 +87,6 @@ namespace Plugin.Application.Forms
             else ResponseTypeName.Text = operation.ResponseDocument.Name;
             RspCardLo.Text = this._operation.ResponseCardinality.LowerBoundary.ToString();
             RspCardHi.Text = this._operation.ResponseCardinality.IsUnboundedList ? "*" : operation.ResponseCardinality.UpperBoundary.ToString();
-            RspEncryption.Checked = this._operation.UseResponseEncryption;
-            RspSigning.Checked = this._operation.UseResponseSigning;
 
             // Set remaining indicators according to current settings...
             HasPagination.Checked       = operation.PaginationIndicator;
@@ -137,7 +127,7 @@ namespace Plugin.Application.Forms
                 OperationTypeFld.Items.Add(operationType);
             }
 
-            if (operation.OperationType == unknownOperation && parent.AvailableOperationsList.Count > 0)
+            if (this._operation.OperationType == unknownOperation && parent.AvailableOperationsList.Count > 0)
                 this._operation.OperationType = parent.AvailableOperationsList[0];
 
             OperationTypeFld.SelectedIndex = 0;
@@ -154,22 +144,11 @@ namespace Plugin.Application.Forms
             }
 
             // Load the result codes from the received operation declaration...
-            string defaultOk = ContextSlt.GetContextSlt().GetConfigProperty(_DefaultSuccessCode);
-            string altOk = ContextSlt.GetContextSlt().GetConfigProperty(_AltSuccessCode);
-            string requiredOkResult = this._operation.OperationType.TypeEnum == HTTPOperation.Type.Post? altOk: defaultOk;
-
-            foreach (RESTOperationResultDeclaration resultDecl in operation.OperationResults)
+            foreach (RESTOperationResultDescriptor resultDecl in operation.OperationResults)
             {
                 var listDecl = resultDecl;
-                if (listDecl.Status != RESTOperationResultDeclaration.DeclarationStatus.Invalid)
+                if (listDecl.Status != RESTOperationResultDescriptor.DeclarationStatus.Invalid)
                 {
-                    if (listDecl.ResultCode == requiredOkResult) this._currentOkResult = listDecl;
-                    else if (listDecl.ResultCode == defaultOk || listDecl.ResultCode == altOk)
-                    {
-                        // We have an Ok resultcode that does not match the currently selected operation. Must change!
-                        this._currentOkResult = operation.SwapOperationResult(resultDecl.ResultCode, requiredOkResult);
-                        listDecl = this._currentOkResult;
-                    }
                     ListViewItem newItem = new ListViewItem(listDecl.ResultCode);
                     newItem.Name = listDecl.ResultCode;
                     newItem.SubItems.Add(listDecl.Description);
@@ -217,21 +196,6 @@ namespace Plugin.Application.Forms
                 this._hasType = this._operation.OperationType != unknownType;
                 if (this._hasType) this._dirty = true;
                 CheckOk();
-
-                // We're going to check whether we selected a 'POST' operation, in which case we need an alternative 'Ok' result code...
-                ContextSlt context = ContextSlt.GetContextSlt();
-                string newCode = this._operation.OperationType.TypeEnum == HTTPOperation.Type.Post ? context.GetConfigProperty(_AltSuccessCode) :
-                                                                                                     context.GetConfigProperty(_DefaultSuccessCode);
-                if (this._currentOkResult.ResultCode != newCode)
-                {
-                    ResponseCodeList.Items.RemoveByKey(this._currentOkResult.ResultCode);
-                    this._currentOkResult = this._operation.SwapOperationResult(this._currentOkResult.ResultCode, newCode);
-
-                    ListViewItem newItem = new ListViewItem(this._currentOkResult.ResultCode);
-                    newItem.Name = this._currentOkResult.ResultCode;
-                    newItem.SubItems.Add(this._currentOkResult.Description);
-                    ResponseCodeList.Items.Add(newItem);
-                }
             }
 
             // Depending on the selected operation type, some parameters / settings should be enabled and/or disabled...
@@ -328,8 +292,8 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void AddResponseCode_Click(object sender, EventArgs e)
         {
-            RESTOperationResultDeclaration result = this._operation.AddOperationResult();
-            if (result != null && result.Status != RESTOperationResultDeclaration.DeclarationStatus.Invalid)
+            RESTOperationResultDescriptor result = this._operation.AddOperationResult();
+            if (result != null && result.Status != RESTOperationResultDescriptor.DeclarationStatus.Invalid)
             {
                 ListViewItem newItem = new ListViewItem(result.ResultCode);
                 newItem.Name = result.ResultCode;
@@ -357,8 +321,7 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
-        /// This event is raised when the user selects a response code for deletion. This is only allowed for response
-        /// codes that have been added by the user, i.e. the default HTTP 200 can NOT be deleted.
+        /// This event is raised when the user selects a response code for deletion.
         /// The response code record is marked as 'deleted'.
         /// </summary>
         /// <param name="sender">Ignored.</param>
@@ -368,14 +331,9 @@ namespace Plugin.Application.Forms
             if (ResponseCodeList.SelectedItems.Count > 0)
             {
                 ListViewItem key = ResponseCodeList.SelectedItems[0];
-                ContextSlt context = ContextSlt.GetContextSlt();
-                if (key.Text != this._currentOkResult.ResultCode)
-                {
-                    this._operation.DeleteOperationResult(key.Text);
-                    ResponseCodeList.Items.Remove(key);
-                    this._dirty = true;
-                }
-                else MessageBox.Show("You are not allowed to remove this response code!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this._operation.DeleteOperationResult(key.Text);
+                ResponseCodeList.Items.Remove(key);
+                this._dirty = true;
             }
         }
 
@@ -403,8 +361,7 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
-        /// This event is raised when the user selects a response code for edit. All codes can be edited, however, the user
-        /// can NOT change the name of the default response (HTTP 200). Only the associated response data type can be changed.
+        /// This event is raised when the user selects a response code for edit.
         /// </summary>
         /// <param name="sender">Ignored.</param>
         /// <param name="e">Ignored.</param>
@@ -415,17 +372,13 @@ namespace Plugin.Application.Forms
                 ListViewItem key = ResponseCodeList.SelectedItems[0];
                 ContextSlt context = ContextSlt.GetContextSlt();
                 string originalKey = key.Text;
-                if (key.Text != context.GetConfigProperty(_DefaultSuccessCode))
+                RESTOperationResultDescriptor result = this._operation.EditOperationResult(key.Text);
+                if (result != null)
                 {
-                    RESTOperationResultDeclaration result = this._operation.EditOperationResult(key.Text);
-                    if (result != null)
-                    {
-                        key.SubItems[0].Text = result.ResultCode;
-                        key.SubItems[1].Text = result.Description;
-                        this._dirty = true;
-                    }
+                    key.SubItems[0].Text = result.ResultCode;
+                    key.SubItems[1].Text = result.Description;
+                    this._dirty = true;
                 }
-                else MessageBox.Show("You are not allowed to edit this response code!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -439,16 +392,6 @@ namespace Plugin.Application.Forms
         {
             if (this._initializing) return;   // Ignore event during initialization.
             this._operation.PaginationIndicator = HasPagination.Checked;
-            if (this._operation.RequestDocument != null)
-            {
-                this._operation.UseRequestEncryption = ReqEncryption.Checked;
-                this._operation.UseRequestSigning = ReqSigning.Checked;
-            }
-            if (this._operation.ResponseDocument != null)
-            {
-                this._operation.UseResponseEncryption = RspEncryption.Checked;
-                this._operation.UseResponseSigning = RspSigning.Checked;
-            }
             this._operation.UseHeaderParametersIndicator = UseHeaderParameters.Checked;
             this._dirty = true;
         }
@@ -577,7 +520,7 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored</param>
         private void UseCollection_Click(object sender, EventArgs e)
         {
-            foreach (RESTOperationResultDeclaration result in this._responseManager.GetCollectionContents())
+            foreach (RESTOperationResultDescriptor result in this._responseManager.GetCollectionContents())
             {
                 if (ResponseCodeList.FindItemWithText(result.ResultCode) == null && this._operation.AddOperationResult(result))
                 {

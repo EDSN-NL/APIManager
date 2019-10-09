@@ -30,6 +30,7 @@ namespace Plugin.Application.Forms
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RESTResponseCodeDialog));
             this.Cancel = new System.Windows.Forms.Button();
             this.Ok = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
@@ -43,37 +44,47 @@ namespace Plugin.Application.Forms
             this.ResponseCode = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.ResponseDescription = new System.Windows.Forms.TextBox();
-            this.DefaultResponse = new System.Windows.Forms.CheckBox();
             this.ResponseRefTypeBox = new System.Windows.Forms.GroupBox();
-            this.IsDocument = new System.Windows.Forms.RadioButton();
-            this.IsCustomType = new System.Windows.Forms.RadioButton();
-            this.IsDefaultResponseType = new System.Windows.Forms.RadioButton();
-            this.IsExternalLink = new System.Windows.Forms.RadioButton();
             this.IsNone = new System.Windows.Forms.RadioButton();
+            this.IsExternalLink = new System.Windows.Forms.RadioButton();
+            this.IsDefaultResponseType = new System.Windows.Forms.RadioButton();
+            this.IsCustomType = new System.Windows.Forms.RadioButton();
+            this.IsDocument = new System.Windows.Forms.RadioButton();
+            this.LocalReferenceBox = new System.Windows.Forms.GroupBox();
+            this.RspCardinalityGroup = new System.Windows.Forms.GroupBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.RspCardHi = new System.Windows.Forms.TextBox();
+            this.RspCardLo = new System.Windows.Forms.TextBox();
+            this.RemoveResponse = new System.Windows.Forms.Button();
+            this.SelectResponse = new System.Windows.Forms.Button();
+            this.ResponseTypeName = new System.Windows.Forms.TextBox();
+            this.ExternalLinkBox = new System.Windows.Forms.GroupBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.SelectTarget = new System.Windows.Forms.Button();
+            this.ExternalLink = new System.Windows.Forms.TextBox();
             this.CategoryBox.SuspendLayout();
             this.ResponseRefTypeBox.SuspendLayout();
+            this.LocalReferenceBox.SuspendLayout();
+            this.RspCardinalityGroup.SuspendLayout();
+            this.ExternalLinkBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(275, 259);
+            this.Cancel.Location = new System.Drawing.Point(304, 346);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
-            this.Cancel.TabIndex = 4;
+            this.Cancel.TabIndex = 6;
             this.Cancel.Text = "Cancel";
             this.Cancel.UseVisualStyleBackColor = true;
             // 
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(194, 259);
+            this.Ok.Location = new System.Drawing.Point(223, 346);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
-            this.Ok.TabIndex = 5;
+            this.Ok.TabIndex = 7;
             this.Ok.Text = "Ok";
             this.Ok.UseVisualStyleBackColor = true;
             // 
@@ -95,7 +106,7 @@ namespace Plugin.Application.Forms
             this.CategoryBox.Controls.Add(this.IsInformational);
             this.CategoryBox.Location = new System.Drawing.Point(12, 12);
             this.CategoryBox.Name = "CategoryBox";
-            this.CategoryBox.Size = new System.Drawing.Size(99, 139);
+            this.CategoryBox.Size = new System.Drawing.Size(90, 166);
             this.CategoryBox.TabIndex = 1;
             this.CategoryBox.TabStop = false;
             this.CategoryBox.Text = "Category";
@@ -157,36 +168,36 @@ namespace Plugin.Application.Forms
             this.IsInformational.AutoSize = true;
             this.IsInformational.Location = new System.Drawing.Point(6, 19);
             this.IsInformational.Name = "IsInformational";
-            this.IsInformational.Size = new System.Drawing.Size(85, 17);
+            this.IsInformational.Size = new System.Drawing.Size(46, 17);
             this.IsInformational.TabIndex = 1;
             this.IsInformational.TabStop = true;
             this.IsInformational.Tag = "Informational";
-            this.IsInformational.Text = "Informational";
+            this.IsInformational.Text = "Info.";
             this.IsInformational.UseVisualStyleBackColor = true;
             this.IsInformational.CheckedChanged += new System.EventHandler(this.Category_CheckedChanged);
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(4, 160);
+            this.label3.Location = new System.Drawing.Point(12, 245);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(112, 13);
+            this.label3.Size = new System.Drawing.Size(66, 13);
             this.label3.TabIndex = 0;
-            this.label3.Text = "HTTP response code:";
+            this.label3.Text = "HTTP code:";
             // 
             // ResponseCode
             // 
             this.ResponseCode.FormattingEnabled = true;
-            this.ResponseCode.Location = new System.Drawing.Point(122, 157);
+            this.ResponseCode.Location = new System.Drawing.Point(84, 242);
             this.ResponseCode.Name = "ResponseCode";
-            this.ResponseCode.Size = new System.Drawing.Size(228, 21);
-            this.ResponseCode.TabIndex = 2;
+            this.ResponseCode.Size = new System.Drawing.Size(295, 21);
+            this.ResponseCode.TabIndex = 4;
             this.ResponseCode.SelectedIndexChanged += new System.EventHandler(this.ResponseCode_SelectedIndexChanged);
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(53, 187);
+            this.label4.Location = new System.Drawing.Point(15, 272);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(63, 13);
             this.label4.TabIndex = 0;
@@ -194,22 +205,12 @@ namespace Plugin.Application.Forms
             // 
             // ResponseDescription
             // 
-            this.ResponseDescription.Location = new System.Drawing.Point(122, 184);
+            this.ResponseDescription.Location = new System.Drawing.Point(84, 269);
+            this.ResponseDescription.Multiline = true;
             this.ResponseDescription.Name = "ResponseDescription";
-            this.ResponseDescription.Size = new System.Drawing.Size(228, 20);
-            this.ResponseDescription.TabIndex = 3;
+            this.ResponseDescription.Size = new System.Drawing.Size(295, 71);
+            this.ResponseDescription.TabIndex = 5;
             this.ResponseDescription.Leave += new System.EventHandler(this.DescriptionNameFld_Leave);
-            // 
-            // DefaultResponse
-            // 
-            this.DefaultResponse.AutoSize = true;
-            this.DefaultResponse.Location = new System.Drawing.Point(7, 236);
-            this.DefaultResponse.Name = "DefaultResponse";
-            this.DefaultResponse.Size = new System.Drawing.Size(147, 17);
-            this.DefaultResponse.TabIndex = 7;
-            this.DefaultResponse.Text = "Default response override";
-            this.DefaultResponse.UseVisualStyleBackColor = true;
-            this.DefaultResponse.CheckedChanged += new System.EventHandler(this.DefaultResponse_CheckedChanged);
             // 
             // ResponseRefTypeBox
             // 
@@ -218,92 +219,179 @@ namespace Plugin.Application.Forms
             this.ResponseRefTypeBox.Controls.Add(this.IsDefaultResponseType);
             this.ResponseRefTypeBox.Controls.Add(this.IsCustomType);
             this.ResponseRefTypeBox.Controls.Add(this.IsDocument);
-            this.ResponseRefTypeBox.Location = new System.Drawing.Point(122, 12);
+            this.ResponseRefTypeBox.Location = new System.Drawing.Point(108, 12);
             this.ResponseRefTypeBox.Name = "ResponseRefTypeBox";
-            this.ResponseRefTypeBox.Size = new System.Drawing.Size(228, 139);
-            this.ResponseRefTypeBox.TabIndex = 8;
+            this.ResponseRefTypeBox.Size = new System.Drawing.Size(284, 92);
+            this.ResponseRefTypeBox.TabIndex = 2;
             this.ResponseRefTypeBox.TabStop = false;
-            this.ResponseRefTypeBox.Text = "Response payload";
-            // 
-            // IsDocument
-            // 
-            this.IsDocument.AutoSize = true;
-            this.IsDocument.Location = new System.Drawing.Point(6, 19);
-            this.IsDocument.Name = "IsDocument";
-            this.IsDocument.Size = new System.Drawing.Size(74, 17);
-            this.IsDocument.TabIndex = 0;
-            this.IsDocument.TabStop = true;
-            this.IsDocument.Text = "Document";
-            this.IsDocument.UseVisualStyleBackColor = true;
-            // 
-            // IsCustomType
-            // 
-            this.IsCustomType.AutoSize = true;
-            this.IsCustomType.Location = new System.Drawing.Point(6, 42);
-            this.IsCustomType.Name = "IsCustomType";
-            this.IsCustomType.Size = new System.Drawing.Size(129, 17);
-            this.IsCustomType.TabIndex = 1;
-            this.IsCustomType.TabStop = true;
-            this.IsCustomType.Text = "Custom response type";
-            this.IsCustomType.UseVisualStyleBackColor = true;
-            // 
-            // IsDefaultResponseType
-            // 
-            this.IsDefaultResponseType.AutoSize = true;
-            this.IsDefaultResponseType.Location = new System.Drawing.Point(6, 65);
-            this.IsDefaultResponseType.Name = "IsDefaultResponseType";
-            this.IsDefaultResponseType.Size = new System.Drawing.Size(128, 17);
-            this.IsDefaultResponseType.TabIndex = 2;
-            this.IsDefaultResponseType.TabStop = true;
-            this.IsDefaultResponseType.Text = "Default response type";
-            this.IsDefaultResponseType.UseVisualStyleBackColor = true;
-            // 
-            // IsExternalLink
-            // 
-            this.IsExternalLink.AutoSize = true;
-            this.IsExternalLink.Location = new System.Drawing.Point(6, 88);
-            this.IsExternalLink.Name = "IsExternalLink";
-            this.IsExternalLink.Size = new System.Drawing.Size(82, 17);
-            this.IsExternalLink.TabIndex = 3;
-            this.IsExternalLink.TabStop = true;
-            this.IsExternalLink.Text = "External link";
-            this.IsExternalLink.UseVisualStyleBackColor = true;
+            this.ResponseRefTypeBox.Text = "Response payload type";
             // 
             // IsNone
             // 
             this.IsNone.AutoSize = true;
-            this.IsNone.Location = new System.Drawing.Point(6, 111);
+            this.IsNone.Location = new System.Drawing.Point(8, 65);
             this.IsNone.Name = "IsNone";
             this.IsNone.Size = new System.Drawing.Size(51, 17);
-            this.IsNone.TabIndex = 4;
+            this.IsNone.TabIndex = 5;
             this.IsNone.TabStop = true;
+            this.IsNone.Tag = "None";
             this.IsNone.Text = "None";
             this.IsNone.UseVisualStyleBackColor = true;
+            this.IsNone.CheckedChanged += new System.EventHandler(this.PayloadType_CheckedChanged);
+            // 
+            // IsExternalLink
+            // 
+            this.IsExternalLink.AutoSize = true;
+            this.IsExternalLink.Location = new System.Drawing.Point(8, 42);
+            this.IsExternalLink.Name = "IsExternalLink";
+            this.IsExternalLink.Size = new System.Drawing.Size(82, 17);
+            this.IsExternalLink.TabIndex = 3;
+            this.IsExternalLink.TabStop = true;
+            this.IsExternalLink.Tag = "Link";
+            this.IsExternalLink.Text = "External link";
+            this.IsExternalLink.UseVisualStyleBackColor = true;
+            this.IsExternalLink.CheckedChanged += new System.EventHandler(this.PayloadType_CheckedChanged);
+            // 
+            // IsDefaultResponseType
+            // 
+            this.IsDefaultResponseType.AutoSize = true;
+            this.IsDefaultResponseType.Location = new System.Drawing.Point(122, 42);
+            this.IsDefaultResponseType.Name = "IsDefaultResponseType";
+            this.IsDefaultResponseType.Size = new System.Drawing.Size(128, 17);
+            this.IsDefaultResponseType.TabIndex = 4;
+            this.IsDefaultResponseType.TabStop = true;
+            this.IsDefaultResponseType.Tag = "DefaultResponse";
+            this.IsDefaultResponseType.Text = "Default response type";
+            this.IsDefaultResponseType.UseVisualStyleBackColor = true;
+            this.IsDefaultResponseType.CheckedChanged += new System.EventHandler(this.PayloadType_CheckedChanged);
+            // 
+            // IsCustomType
+            // 
+            this.IsCustomType.AutoSize = true;
+            this.IsCustomType.Location = new System.Drawing.Point(122, 19);
+            this.IsCustomType.Name = "IsCustomType";
+            this.IsCustomType.Size = new System.Drawing.Size(129, 17);
+            this.IsCustomType.TabIndex = 2;
+            this.IsCustomType.TabStop = true;
+            this.IsCustomType.Tag = "CustomResponse";
+            this.IsCustomType.Text = "Custom response type";
+            this.IsCustomType.UseVisualStyleBackColor = true;
+            this.IsCustomType.CheckedChanged += new System.EventHandler(this.PayloadType_CheckedChanged);
+            // 
+            // IsDocument
+            // 
+            this.IsDocument.AutoSize = true;
+            this.IsDocument.Location = new System.Drawing.Point(8, 19);
+            this.IsDocument.Name = "IsDocument";
+            this.IsDocument.Size = new System.Drawing.Size(74, 17);
+            this.IsDocument.TabIndex = 1;
+            this.IsDocument.TabStop = true;
+            this.IsDocument.Tag = "Document";
+            this.IsDocument.Text = "Document";
+            this.IsDocument.UseVisualStyleBackColor = true;
+            this.IsDocument.CheckedChanged += new System.EventHandler(this.PayloadType_CheckedChanged);
+            // 
+            // LocalReferenceBox
+            // 
+            this.LocalReferenceBox.Controls.Add(this.RspCardinalityGroup);
+            this.LocalReferenceBox.Controls.Add(this.RemoveResponse);
+            this.LocalReferenceBox.Controls.Add(this.SelectResponse);
+            this.LocalReferenceBox.Controls.Add(this.ResponseTypeName);
+            this.LocalReferenceBox.Location = new System.Drawing.Point(108, 110);
+            this.LocalReferenceBox.Name = "LocalReferenceBox";
+            this.LocalReferenceBox.Size = new System.Drawing.Size(284, 68);
+            this.LocalReferenceBox.TabIndex = 8;
+            this.LocalReferenceBox.TabStop = false;
+            this.LocalReferenceBox.Text = "Document / Custom response type";
+            // 
+            // RspCardinalityGroup
+            // 
+            this.RspCardinalityGroup.Controls.Add(this.label7);
+            this.RspCardinalityGroup.Controls.Add(this.RspCardHi);
+            this.RspCardinalityGroup.Controls.Add(this.RspCardLo);
+            this.RspCardinalityGroup.Location = new System.Drawing.Point(206, 12);
+            this.RspCardinalityGroup.Name = "RspCardinalityGroup";
+            this.RspCardinalityGroup.Size = new System.Drawing.Size(70, 47);
+            this.RspCardinalityGroup.TabIndex = 6;
+            this.RspCardinalityGroup.TabStop = false;
+            this.RspCardinalityGroup.Text = "Cardinality";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.Location = new System.Drawing.Point(25, 13);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(21, 20);
+            this.label7.TabIndex = 0;
+            this.label7.Text = "...";
+            // 
+            // RspCardHi
+            // 
+            this.RspCardHi.Location = new System.Drawing.Point(45, 19);
+            this.RspCardHi.Name = "RspCardHi";
+            this.RspCardHi.Size = new System.Drawing.Size(20, 20);
+            this.RspCardHi.TabIndex = 2;
+            // 
+            // RspCardLo
+            // 
+            this.RspCardLo.Location = new System.Drawing.Point(6, 19);
+            this.RspCardLo.Name = "RspCardLo";
+            this.RspCardLo.Size = new System.Drawing.Size(20, 20);
+            this.RspCardLo.TabIndex = 1;
+            // 
+            // RemoveResponse
+            // 
+            this.RemoveResponse.Image = ((System.Drawing.Image)(resources.GetObject("RemoveResponse.Image")));
+            this.RemoveResponse.Location = new System.Drawing.Point(39, 27);
+            this.RemoveResponse.Name = "RemoveResponse";
+            this.RemoveResponse.Size = new System.Drawing.Size(25, 25);
+            this.RemoveResponse.TabIndex = 2;
+            this.RemoveResponse.UseVisualStyleBackColor = true;
+            // 
+            // SelectResponse
+            // 
+            this.SelectResponse.Image = ((System.Drawing.Image)(resources.GetObject("SelectResponse.Image")));
+            this.SelectResponse.Location = new System.Drawing.Point(8, 27);
+            this.SelectResponse.Name = "SelectResponse";
+            this.SelectResponse.Size = new System.Drawing.Size(25, 25);
+            this.SelectResponse.TabIndex = 1;
+            this.SelectResponse.UseVisualStyleBackColor = true;
+            // 
+            // ResponseTypeName
+            // 
+            this.ResponseTypeName.Location = new System.Drawing.Point(70, 30);
+            this.ResponseTypeName.Name = "ResponseTypeName";
+            this.ResponseTypeName.ReadOnly = true;
+            this.ResponseTypeName.Size = new System.Drawing.Size(130, 20);
+            this.ResponseTypeName.TabIndex = 0;
+            // 
+            // ExternalLinkBox
+            // 
+            this.ExternalLinkBox.Controls.Add(this.ExternalLink);
+            this.ExternalLinkBox.Controls.Add(this.label2);
+            this.ExternalLinkBox.Location = new System.Drawing.Point(12, 184);
+            this.ExternalLinkBox.Name = "ExternalLinkBox";
+            this.ExternalLinkBox.Size = new System.Drawing.Size(380, 52);
+            this.ExternalLinkBox.TabIndex = 9;
+            this.ExternalLinkBox.TabStop = false;
+            this.ExternalLinkBox.Text = "External link";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(43, 213);
+            this.label2.Location = new System.Drawing.Point(6, 25);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(73, 13);
-            this.label2.TabIndex = 9;
-            this.label2.Text = "Target object:";
+            this.label2.Size = new System.Drawing.Size(30, 13);
+            this.label2.TabIndex = 0;
+            this.label2.Text = "Link:";
             // 
-            // textBox1
+            // ExternalLink
             // 
-            this.textBox1.Location = new System.Drawing.Point(122, 210);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(192, 20);
-            this.textBox1.TabIndex = 10;
-            // 
-            // SelectTarget
-            // 
-            this.SelectTarget.Location = new System.Drawing.Point(320, 210);
-            this.SelectTarget.Name = "SelectTarget";
-            this.SelectTarget.Size = new System.Drawing.Size(30, 23);
-            this.SelectTarget.TabIndex = 11;
-            this.SelectTarget.Text = "...";
-            this.SelectTarget.UseVisualStyleBackColor = true;
+            this.ExternalLink.Location = new System.Drawing.Point(42, 22);
+            this.ExternalLink.Name = "ExternalLink";
+            this.ExternalLink.Size = new System.Drawing.Size(325, 20);
+            this.ExternalLink.TabIndex = 1;
             // 
             // RESTResponseCodeDialog
             // 
@@ -311,12 +399,10 @@ namespace Plugin.Application.Forms
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(364, 301);
-            this.Controls.Add(this.SelectTarget);
-            this.Controls.Add(this.textBox1);
-            this.Controls.Add(this.label2);
+            this.ClientSize = new System.Drawing.Size(405, 389);
+            this.Controls.Add(this.ExternalLinkBox);
+            this.Controls.Add(this.LocalReferenceBox);
             this.Controls.Add(this.ResponseRefTypeBox);
-            this.Controls.Add(this.DefaultResponse);
             this.Controls.Add(this.ResponseDescription);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.ResponseCode);
@@ -335,6 +421,12 @@ namespace Plugin.Application.Forms
             this.CategoryBox.PerformLayout();
             this.ResponseRefTypeBox.ResumeLayout(false);
             this.ResponseRefTypeBox.PerformLayout();
+            this.LocalReferenceBox.ResumeLayout(false);
+            this.LocalReferenceBox.PerformLayout();
+            this.RspCardinalityGroup.ResumeLayout(false);
+            this.RspCardinalityGroup.PerformLayout();
+            this.ExternalLinkBox.ResumeLayout(false);
+            this.ExternalLinkBox.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -355,15 +447,22 @@ namespace Plugin.Application.Forms
         private ComboBox ResponseCode;
         private Label label4;
         private TextBox ResponseDescription;
-        private CheckBox DefaultResponse;
         private GroupBox ResponseRefTypeBox;
         private RadioButton IsNone;
         private RadioButton IsExternalLink;
         private RadioButton IsDefaultResponseType;
         private RadioButton IsCustomType;
         private RadioButton IsDocument;
+        private GroupBox LocalReferenceBox;
+        private GroupBox RspCardinalityGroup;
+        private Label label7;
+        private TextBox RspCardHi;
+        private TextBox RspCardLo;
+        private Button RemoveResponse;
+        private Button SelectResponse;
+        private TextBox ResponseTypeName;
+        private GroupBox ExternalLinkBox;
+        private TextBox ExternalLink;
         private Label label2;
-        private TextBox textBox1;
-        private Button SelectTarget;
     }
 }

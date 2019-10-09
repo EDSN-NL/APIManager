@@ -12,26 +12,24 @@ namespace Plugin.Application.Forms
     internal partial class RESTResponseCodeDialog : Form
     {
         // Configuration codes used by this module:
-        private const string _DefaultSuccessCode            = "DefaultSuccessCode";
-        private const string _DefaultSuccessEditCode        = "DefaultSuccessEditCode";
-        private const string _APISupportModelPathName       = "APISupportModelPathName";
+        private const string _APISupportModelPathName = "APISupportModelPathName";
 
-        private RESTOperationResultDeclaration _result;     // The result declaration that we're building.
-        private List<RESTOperationResultDeclaration.CodeDescriptor> _codeList;      // Currently active set of response code definitions.
+        private RESTOperationResultDescriptor _result;     // The result declaration that we're building.
+        private List<RESTOperationResultDescriptor.CodeDescriptor> _codeList;      // Currently active set of response code definitions.
 
-        internal RESTOperationResultDeclaration OperationResult { get { return this._result; } }
+        internal RESTOperationResultDescriptor OperationResult { get { return this._result; } }
 
         /// <summary>
         /// Dialog that facilitates creation of a new Operation Result Declaration (or editing of an existing one).
         /// </summary>
         /// <param name="result">Initial declaration to use for editing.</param>
-        internal RESTResponseCodeDialog(RESTOperationResultDeclaration result)
+        internal RESTResponseCodeDialog(RESTOperationResultDescriptor result)
         {
             InitializeComponent();
             ContextSlt context = ContextSlt.GetContextSlt();
             this._result = result;
 
-            // Initialize the proper radio button according to the current category...
+            // Initialize the proper category button according to our current category...
             switch (result.Category)
             {
                 case RESTOperationResultCapability.ResponseCategory.Informational:
@@ -53,29 +51,52 @@ namespace Plugin.Application.Forms
                 case RESTOperationResultCapability.ResponseCategory.ServerError:
                     IsServerError.Checked = true;
                     break;
-                
-                case RESTOperationResultCapability.ResponseCategory.Default:
-                    DefaultResponse.Checked = true;
-                    break;
 
                 // Safety catch: we should NOT invoke this dialog with Unknown categories. If we DO try this, the
                 // result declaration is reset to 'Informational'....
                 default:
-                    this._result = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Informational);
+                    this._result = new RESTOperationResultDescriptor(RESTOperationResultCapability.ResponseCategory.Informational);
                     ResponseDescription.Text = this._result.Description;
                     IsInformational.Checked = true;
                     break;
             }
 
-            // Initialize the drop-down box with all possible codes for given category...
-            // We skip the 'default OK' code since this may not be changed.
-            this._codeList = this._result.GetResponseCodes();
-            string defaultOK = context.GetConfigProperty(_DefaultSuccessCode);
-            foreach (RESTOperationResultDeclaration.CodeDescriptor dsc in this._codeList)
+            // Select the current payload type for this response code and load the payload 'name' field accordingly...
+            switch (result.PayloadType)
             {
-                if (dsc.Code != defaultOK) ResponseCode.Items.Add(dsc.Label);
+                case RESTOperationResultDescriptor.ResultPayloadType.CustomResponse:
+                    PayloadBox.Text = result.ResponsePayloadClass != null? result.ResponsePayloadClass.Name: string.Empty;
+                    IsCustomType.Checked = true;
+                    break;
+
+                case RESTOperationResultDescriptor.ResultPayloadType.DefaultResponse:
+                    PayloadBox.Text = result.ResponsePayloadClass != null? result.ResponsePayloadClass.Name: string.Empty;
+                    IsDefaultResponseType.Checked = true;
+                    break;
+
+                case RESTOperationResultDescriptor.ResultPayloadType.Document:
+                    PayloadBox.Text = result.ResponsePayloadClass != null ? result.ResponsePayloadClass.Name : string.Empty;
+                    IsDocument.Checked = true;
+                    break;
+
+                case RESTOperationResultDescriptor.ResultPayloadType.Link:
+                    PayloadBox.Text = !string.IsNullOrEmpty(result.ExternalReference) ? result.ExternalReference : string.Empty;
+                    IsExternalLink.Checked = true;
+                    break;
+
+                default:
+                    PayloadBox.Text = string.Empty;
+                    IsNone.Checked = true;
+                    break;
             }
-            ResponseCode.SelectedItem = RESTOperationResultDeclaration.CodeDescriptor.CodeToLabel(this._result.ResultCode);
+
+            // Initialize the drop-down box with all possible codes for given category...
+            this._codeList = this._result.GetResponseCodes();
+            foreach (RESTOperationResultDescriptor.CodeDescriptor dsc in this._codeList)
+            {
+                ResponseCode.Items.Add(dsc.Label);
+            }
+            ResponseCode.SelectedItem = RESTOperationResultDescriptor.CodeDescriptor.CodeToLabel(this._result.ResultCode);
             ResponseDescription.Text = (result != null && !string.IsNullOrEmpty(result.Description)) ? result.Description : string.Empty;
         }
 
@@ -88,9 +109,8 @@ namespace Plugin.Application.Forms
         private void ResponseCode_SelectedIndexChanged(object sender, EventArgs e)
         {
             int index = ResponseCode.SelectedIndex;
-            this._result.ResultCode = RESTOperationResultDeclaration.CodeDescriptor.LabelToCode(ResponseCode.Items[index].ToString());
+            this._result.ResultCode = RESTOperationResultDescriptor.CodeDescriptor.LabelToCode(ResponseCode.Items[index].ToString());
             ResponseDescription.Text = this._result.Description;
-            DefaultResponse.Checked = false;
         }
 
         /// <summary>
@@ -115,7 +135,6 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void Category_CheckedChanged(object sender, EventArgs e)
         {
-            DefaultResponse.Checked = false;
             RESTOperationResultCapability.ResponseCategory oldCategory = this._result.Category;
             RESTOperationResultCapability.ResponseCategory newCategory = this._result.Category;
             foreach (Control control in CategoryBox.Controls)
@@ -130,41 +149,76 @@ namespace Plugin.Application.Forms
             if (newCategory != oldCategory)
             {
                 // Changing the category means that we're going to replace the current result object by a new one according to 
-                // the newly selected category. This also resets the descripion and code...
-                this._result = new RESTOperationResultDeclaration(newCategory);
-                if (this._result.Category == RESTOperationResultCapability.ResponseCategory.Success)
-                    this._result.ResultCode = ContextSlt.GetContextSlt().GetConfigProperty(_DefaultSuccessEditCode); 
+                // the newly selected category. This also resets the payload type, descripion and code...
+                this._result = new RESTOperationResultDescriptor(newCategory);
                 this._codeList = this._result.GetResponseCodes();
-                string defaultOK = ContextSlt.GetContextSlt().GetConfigProperty(_DefaultSuccessCode);
                 ResponseCode.Items.Clear();
-                foreach (RESTOperationResultDeclaration.CodeDescriptor dsc in this._codeList)
-                {
-                    if (dsc.Code != defaultOK) ResponseCode.Items.Add(dsc.Label);
-                }
-                ResponseCode.SelectedItem = RESTOperationResultDeclaration.CodeDescriptor.CodeToLabel(this._result.ResultCode);
+                foreach (RESTOperationResultDescriptor.CodeDescriptor dsc in this._codeList) ResponseCode.Items.Add(dsc.Label);
+                ResponseCode.SelectedItem = RESTOperationResultDescriptor.CodeDescriptor.CodeToLabel(this._result.ResultCode);
                 ResponseDescription.Text = this._result.Description;
+                PayloadBox.Text = string.Empty;
+
+                // Select the current payload type for this response code...
+                switch (this._result.PayloadType)
+                {
+                    case RESTOperationResultDescriptor.ResultPayloadType.CustomResponse:
+                        IsCustomType.Checked = true;
+                        break;
+
+                    case RESTOperationResultDescriptor.ResultPayloadType.DefaultResponse:
+                        IsDefaultResponseType.Checked = true;
+                        break;
+
+                    case RESTOperationResultDescriptor.ResultPayloadType.Document:
+                        IsDocument.Checked = true;
+                        break;
+
+                    case RESTOperationResultDescriptor.ResultPayloadType.Link:
+                        IsExternalLink.Checked = true;
+                        break;
+
+                    default:
+                        IsNone.Checked = true;
+                        break;
+                }
             }
         }
 
         /// <summary>
-        /// This event is raised when the user changes the value of the 'default response' checkbox.
-        /// Existing response codes are cleared and we load the default response.
-        /// When the user unselected the check box, we switch to the 'Informational' response category.
+        /// This event is raised when the user clicks the 'select payload' button. Actions depend on the currently
+        /// selected payload type.
         /// </summary>
-        /// <param name="sender">Ignored.</param>
-        /// <param name="e">Ignored.</param>
-        private void DefaultResponse_CheckedChanged(object sender, EventArgs e)
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void SelectPayload_Click(object sender, EventArgs e)
         {
-            if (DefaultResponse.Checked)
+
+        }
+
+        private void PayloadType_CheckedChanged(object sender, EventArgs e)
+        {
+            RESTOperationResultDescriptor.ResultPayloadType oldType = this._result.PayloadType;
+            RESTOperationResultDescriptor.ResultPayloadType newType = this._result.PayloadType;
+            foreach (Control control in ResponseRefTypeBox.Controls)
             {
-                this._result = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Default);
-                if (!string.IsNullOrEmpty(ResponseDescription.Text)) this._result.Description = ResponseDescription.Text;
-                else ResponseDescription.Text = this._result.Description;
+                if (control is RadioButton && ((RadioButton)control).Checked)
+                {
+                    newType = EnumConversions<RESTOperationResultDescriptor.ResultPayloadType>.StringToEnum(control.Tag.ToString());
+                    break;
+                }
             }
-            else
+
+            if (newType != oldType)
             {
-                this._result = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Informational);
-                IsInformational.Checked = true;
+                this._result.PayloadType = newType;
+                if (newType != RESTOperationResultDescriptor.ResultPayloadType.None)
+                {
+                    if (newType == RESTOperationResultDescriptor.ResultPayloadType.Link)
+                        PayloadBox.Text = !string.IsNullOrEmpty(this._result.ExternalReference) ? this._result.ExternalReference : string.Empty;
+                    else
+                        PayloadBox.Text = this._result.ResponsePayloadClass != null ? this._result.ResponsePayloadClass.Name : string.Empty;
+                }
+                else PayloadBox.Text = string.Empty;
             }
         }
     }

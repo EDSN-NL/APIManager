@@ -56,7 +56,7 @@ namespace Plugin.Application.CapabilityModel.API
         private bool _useRspSigning;                                // Ok-response body must be signed.
         private bool _useReqEncryption;                             // Any request body must be encrypted.
         private bool _useRspEncryption;                             // Ok-response body must be encrypted.
-        private SortedList<string, RESTOperationResultDeclaration> _resultList;     // Set of result declarations (one for each unique HTTP result code).
+        private SortedList<string, RESTOperationResultDescriptor> _resultList;     // Set of result declarations (one for each unique HTTP result code).
         private List<string> _producedMIMEList;                     // Non-standard MIME types produced by the operation.
         private List<string> _consumedMIMEList;                     // Non-standard MIME types consumed by the operation.
         private string _summaryText;                                // Short description of operation.
@@ -119,9 +119,9 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Returns the list of operation result declarations...
         /// </summary>
-        internal List<RESTOperationResultDeclaration> OperationResults
+        internal List<RESTOperationResultDescriptor> OperationResults
         {
-            get { return new List<RESTOperationResultDeclaration>(this._resultList.Values); }
+            get { return new List<RESTOperationResultDescriptor>(this._resultList.Values); }
         }
 
         /// <summary>
@@ -463,7 +463,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._producedMIMEList = operation.ProducedMIMEList;
             this._consumedMIMEList = operation.ConsumedMIMEList;
             this._queryParams = new SortedList<string, RESTParameterDeclaration>();
-            this._resultList = new SortedList<string, RESTOperationResultDeclaration>();
+            this._resultList = new SortedList<string, RESTOperationResultDescriptor>();
             this._useHeaderParameters = operation.UseHeaderParameters;
             this._useLinkHeaders = operation.UseLinkHeaders;
             this._summaryText = string.Empty;
@@ -512,7 +512,7 @@ namespace Plugin.Application.CapabilityModel.API
 
             // Build the list of result declarations...
             foreach (RESTOperationResultCapability result in operation.OperationResultList)
-                this._resultList.Add(result.ResultCode, new RESTOperationResultDeclaration(result));
+                this._resultList.Add(result.ResultCode, new RESTOperationResultDescriptor(result));
 
             // Load information regarding request- and response bodies...
             this._requestDocument = operation.RequestBodyDocument;
@@ -549,23 +549,23 @@ namespace Plugin.Application.CapabilityModel.API
         /// is overwritten and set to 'edited'.
         /// </summary>
         /// <returns>Newly created result record or NULL in case of errors or duplicates or user cancel.</returns>
-        internal RESTOperationResultDeclaration AddOperationResult()
+        internal RESTOperationResultDescriptor AddOperationResult()
         {
-            var newResult = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Unknown);
+            var newResult = new RESTOperationResultDescriptor(RESTOperationResultCapability.ResponseCategory.Unknown);
             using (var dialog = new RESTResponseCodeDialog(newResult))
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     if (!this._resultList.ContainsKey(dialog.OperationResult.ResultCode))
                     {
-                        dialog.OperationResult.Status = RESTOperationResultDeclaration.DeclarationStatus.Created;
+                        dialog.OperationResult.Status = RESTOperationResultDescriptor.DeclarationStatus.Created;
                         this._resultList.Add(dialog.OperationResult.ResultCode, dialog.OperationResult);
                         if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                         newResult = dialog.OperationResult;
                     }
-                    else if (this._resultList[dialog.OperationResult.ResultCode].Status == RESTOperationResultDeclaration.DeclarationStatus.Deleted)
+                    else if (this._resultList[dialog.OperationResult.ResultCode].Status == RESTOperationResultDescriptor.DeclarationStatus.Deleted)
                     {
-                        dialog.OperationResult.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
+                        dialog.OperationResult.Status = RESTOperationResultDescriptor.DeclarationStatus.Edited;
                         this._resultList[dialog.OperationResult.ResultCode] = dialog.OperationResult;
                         if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                         newResult = dialog.OperationResult;
@@ -588,18 +588,18 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="result">The Operation Result to insert.</param>
         /// <returns>True if successfully inserted, false on duplicate code.</returns>
-        internal bool AddOperationResult(RESTOperationResultDeclaration result)
+        internal bool AddOperationResult(RESTOperationResultDescriptor result)
         {
             bool operResult = true;
             if (!this._resultList.ContainsKey(result.ResultCode))
             {
-                result.Status = RESTOperationResultDeclaration.DeclarationStatus.Created;
+                result.Status = RESTOperationResultDescriptor.DeclarationStatus.Created;
                 this._resultList.Add(result.ResultCode, result);
                 if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
             }
-            else if (this._resultList[result.ResultCode].Status == RESTOperationResultDeclaration.DeclarationStatus.Deleted)
+            else if (this._resultList[result.ResultCode].Status == RESTOperationResultDescriptor.DeclarationStatus.Deleted)
             {
-                result.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
+                result.Status = RESTOperationResultDescriptor.DeclarationStatus.Edited;
                 this._resultList[result.ResultCode] = result;
                 if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
             }
@@ -756,7 +756,7 @@ namespace Plugin.Application.CapabilityModel.API
         {
             if (this._resultList.ContainsKey(code))
             {
-                this._resultList[code].Status = RESTOperationResultDeclaration.DeclarationStatus.Deleted;
+                this._resultList[code].Status = RESTOperationResultDescriptor.DeclarationStatus.Deleted;
                 if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
             }
         }
@@ -768,10 +768,10 @@ namespace Plugin.Application.CapabilityModel.API
         /// is overwritten and set to 'edited'.
         /// </summary>
         /// <returns>Updated result record or NULL in case of errors or duplicates or user cancel.</returns>
-        internal RESTOperationResultDeclaration EditOperationResult(string code)
+        internal RESTOperationResultDescriptor EditOperationResult(string code)
         {
             string originalKey = code;
-            RESTOperationResultDeclaration result = null;
+            RESTOperationResultDescriptor result = null;
             if (this._resultList.ContainsKey(code))
             {
                 result = this._resultList[code];
@@ -782,7 +782,7 @@ namespace Plugin.Application.CapabilityModel.API
                         if (dialog.OperationResult.ResultCode == originalKey || !this._resultList.ContainsKey(dialog.OperationResult.ResultCode))
                         {
                             result = dialog.OperationResult;
-                            result.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
+                            result.Status = RESTOperationResultDescriptor.DeclarationStatus.Edited;
 
                             if (result.ResultCode != originalKey)
                             {
@@ -872,22 +872,22 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="existingCode">Code to replace.</param>
         /// <param name="newCode">Code that has to replace existingCode (must be different code)</param>
         /// <returns></returns>
-        internal RESTOperationResultDeclaration SwapOperationResult(string existingCode, string newCode)
+        internal RESTOperationResultDescriptor SwapOperationResult(string existingCode, string newCode)
         {
-            RESTOperationResultDeclaration activeResult = null;
+            RESTOperationResultDescriptor activeResult = null;
             if (!string.IsNullOrEmpty(existingCode) && !string.IsNullOrEmpty(newCode) && existingCode != newCode && this._resultList.ContainsKey(existingCode))
             {
-                this._resultList[existingCode].Status = RESTOperationResultDeclaration.DeclarationStatus.Deleted;
+                this._resultList[existingCode].Status = RESTOperationResultDescriptor.DeclarationStatus.Deleted;
                 if (!this._resultList.ContainsKey(newCode))
                 {
-                    activeResult = new RESTOperationResultDeclaration(newCode);
+                    activeResult = new RESTOperationResultDescriptor(newCode);
                     this._resultList.Add(newCode, activeResult);
                 }
                 else
                 {
                     // We set the status of the 'activated' result code to 'Edited' to make sure it's processed lateron.
                     activeResult = this._resultList[newCode];
-                    activeResult.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
+                    activeResult.Status = RESTOperationResultDescriptor.DeclarationStatus.Edited;
                 }
                 if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
             }
@@ -901,9 +901,9 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         private void CreateDefaultResults()
         {
-            this._resultList = new SortedList<string, RESTOperationResultDeclaration>();
-            var defaultOk = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Success);
-            var defaultResponse = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Default);
+            this._resultList = new SortedList<string, RESTOperationResultDescriptor>();
+            var defaultOk = new RESTOperationResultDescriptor(RESTOperationResultCapability.ResponseCategory.Success);
+            var defaultResponse = new RESTOperationResultDescriptor(RESTOperationResultCapability.ResponseCategory.Default);
             this._resultList.Add(defaultOk.ResultCode, defaultOk);
 
             /************* No more default responses (for now)

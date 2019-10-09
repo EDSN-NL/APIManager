@@ -35,7 +35,7 @@ namespace Plugin.Application.CapabilityModel.API
 
         private MEClass _collectionClass;                           // UML representation of the collection.
         private MEPackage _package;                                 // The package in which the collection lives.
-        private List<RESTOperationResultDeclaration> _collection;   // The actual collection.
+        private List<RESTOperationResultDescriptor> _collection;   // The actual collection.
         private MEDataType _attribClassifier;                       // Classifier to be used for attributes.
         private CollectionScope _scope;                             // Scope of this collection.
         private string _name;                                       // Collection name, identical to collectionClass name (when one is present).
@@ -61,7 +61,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Returns the list of Operation Result Declaration objects that comprises the collection.
         /// </summary>
-        internal List<RESTOperationResultDeclaration> Collection { get { return this._collection; } }
+        internal List<RESTOperationResultDescriptor> Collection { get { return this._collection; } }
 
         /// <summary>
         /// Either loads an existing collection with specified name from the specified package, or creates a new, empty, collection
@@ -88,7 +88,7 @@ namespace Plugin.Application.CapabilityModel.API
             else if (package.Name == context.GetConfigProperty(_ServiceModelPkgName) &&
                      package.HasStereotype(context.GetConfigProperty(_ServiceModelPkgStereotype))) this._scope = CollectionScope.API;
 
-            this._collection = new List<RESTOperationResultDeclaration>();
+            this._collection = new List<RESTOperationResultDescriptor>();
             this._attribClassifier = ModelSlt.GetModelSlt().FindDataType(context.GetConfigProperty(_CoreDataTypesPathName),
                                                                          context.GetConfigProperty(_RESTResponseCodeAttributeClassifier));
             string collectionStereotype = context.GetConfigProperty(_RESTResponseCodeCollectionStereotype);
@@ -106,7 +106,7 @@ namespace Plugin.Application.CapabilityModel.API
                 foreach (MEAttribute attrib in this._collectionClass.Attributes)
                 {
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Adding '" + attrib.Name + "'...");
-                    this._collection.Add(new RESTOperationResultDeclaration(attrib.Name, attrib.Annotation));
+                    this._collection.Add(new RESTOperationResultDescriptor(attrib.Name, attrib.Annotation));
                 }
             }
             else
@@ -131,7 +131,7 @@ namespace Plugin.Application.CapabilityModel.API
 
             ContextSlt context = ContextSlt.GetContextSlt();
             this._isLocked = false;
-            this._collection = new List<RESTOperationResultDeclaration>();
+            this._collection = new List<RESTOperationResultDescriptor>();
             this._collectionClass = collectionClass;
             this._package = collectionClass.OwningPackage;
             this._name = collectionClass.Name;
@@ -155,7 +155,7 @@ namespace Plugin.Application.CapabilityModel.API
             foreach (MEAttribute attrib in this._collectionClass.Attributes)
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Adding '" + attrib.Name + "'...");
-                this._collection.Add(new RESTOperationResultDeclaration(attrib.Name, attrib.Annotation));
+                this._collection.Add(new RESTOperationResultDescriptor(attrib.Name, attrib.Annotation));
             }
 
             // Now we're trying to determine the scope of this collection...
@@ -178,7 +178,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._package = null;
             this._scope = CollectionScope.Unknown;
             this._name = string.Empty;
-            this._collection = new List<RESTOperationResultDeclaration>();
+            this._collection = new List<RESTOperationResultDescriptor>();
             this._attribClassifier = ModelSlt.GetModelSlt().FindDataType(context.GetConfigProperty(_CoreDataTypesPathName),
                                                                          context.GetConfigProperty(_RESTResponseCodeAttributeClassifier));
 
@@ -196,9 +196,9 @@ namespace Plugin.Application.CapabilityModel.API
         /// it has a unique code.
         /// </summary>
         /// <returns>Newly created result record or NULL in case of errors or duplicates or user cancel.</returns>
-        internal RESTOperationResultDeclaration AddOperationResult()
+        internal RESTOperationResultDescriptor AddOperationResult()
         {
-            var newResult = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Unknown);
+            var newResult = new RESTOperationResultDescriptor(RESTOperationResultCapability.ResponseCategory.Unknown);
             ModelSlt model = ModelSlt.GetModelSlt();
             ContextSlt context = ContextSlt.GetContextSlt();
             using (var dialog = new RESTResponseCodeDialog(newResult))
@@ -234,7 +234,7 @@ namespace Plugin.Application.CapabilityModel.API
         internal void DeleteOperationResult(string code)
         {
             if (this._scope == CollectionScope.Global) this._package.Lock(false);
-            foreach (RESTOperationResultDeclaration decl in this._collection)
+            foreach (RESTOperationResultDescriptor decl in this._collection)
             {
                 if (decl.ResultCode == code)
                 {
@@ -281,12 +281,12 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <returns>Updated result record or NULL in case of errors or duplicates or user cancel.</returns>
         /// <exception cref="ArgumentException">Thrown when the received code does not match an existing attribute.</exception>
-        internal RESTOperationResultDeclaration EditOperationResult(string code)
+        internal RESTOperationResultDescriptor EditOperationResult(string code)
         {
-            RESTOperationResultDeclaration originalDecl = null;
-            RESTOperationResultDeclaration newDecl = null;
+            RESTOperationResultDescriptor originalDecl = null;
+            RESTOperationResultDescriptor newDecl = null;
             MEAttribute myAttribute = null;                 // will be used to persist the declaration in the model.
-            foreach (RESTOperationResultDeclaration decl in this._collection)
+            foreach (RESTOperationResultDescriptor decl in this._collection)
             {
                 if (decl.ResultCode == code)
                 {
@@ -445,7 +445,7 @@ namespace Plugin.Application.CapabilityModel.API
                             if (this._collection.Count > 0)
                             {
                                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> We already have some attributes, move to new class...");
-                                foreach (RESTOperationResultDeclaration attrib in this._collection)
+                                foreach (RESTOperationResultDescriptor attrib in this._collection)
                                 {
                                     this._collectionClass.CreateAttribute(attrib.ResultCode, this._attribClassifier,
                                                                           AttributeType.Attribute, null, new Cardinality(Cardinality._Mandatory),

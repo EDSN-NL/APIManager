@@ -193,7 +193,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// function returns an empty list.
         /// </summary>
         /// <returns>List of Operation Result Declaration objects (can be empty).</returns>
-        internal List<RESTOperationResultDeclaration> GetCollectionContents()
+        internal List<RESTOperationResultDescriptor> GetCollectionContents()
         {
             if (_collectionList.Count > 0)
             {
@@ -204,7 +204,7 @@ namespace Plugin.Application.CapabilityModel.API
                     if (dialog.ShowDialog() == DialogResult.OK) return _collectionList[dialog.SelectedCollection].Collection;
                 }
             }
-            return new List<RESTOperationResultDeclaration>();
+            return new List<RESTOperationResultDescriptor>();
         }
     }
 }

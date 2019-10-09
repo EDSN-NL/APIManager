@@ -49,7 +49,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="myCollection">Resource collection that acts as parent for the operation.</param>
         /// <param name="operation">Operation declaration object, created by user and containing all necessary information.</param>
-        internal RESTOperationResultCapabilityImp(RESTOperationCapability parentOperation, RESTOperationResultDeclaration result): base(parentOperation.RootService)
+        internal RESTOperationResultCapabilityImp(RESTOperationCapability parentOperation, RESTOperationResultDescriptor result): base(parentOperation.RootService)
         {
             try
             {
@@ -59,7 +59,7 @@ namespace Plugin.Application.CapabilityModel.API
                 ModelSlt model = ModelSlt.GetModelSlt();
                 this._category = result.Category;
                 this._resultCode = result.ResultCode;
-                this._responseBodyClass = result.ResponseDocumentClass;
+                this._responseBodyClass = result.ResponsePayloadClass;
                 this._responseCardinality = result.ResponseCardinality;
                 this._assignedRole = context.GetConfigProperty(_OperationResultPrefix) + Conversions.ToPascalCase(this._resultCode);
                 this._capabilityClass = parentOperation.OperationPackage.CreateClass(this._assignedRole + "Type", context.GetConfigProperty(_RESTOperationResultStereotype));
@@ -72,13 +72,13 @@ namespace Plugin.Application.CapabilityModel.API
                                                           AttributeType.Attribute, this._resultCode, new Cardinality(Cardinality._Mandatory), true);
                     MEChangeLog.SetRTFDocumentation(this._capabilityClass, result.Description);
 
-                    if (result.ResponseDocumentClass != null)
+                    if (result.ResponsePayloadClass != null)
                     {
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp (declaration) >> Associating with response type '" + result.ResponseDocumentClass.Name + "'...");
-                        string roleName = RESTUtil.GetAssignedRoleName(result.ResponseDocumentClass.Name);
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp (declaration) >> Associating with response type '" + result.ResponsePayloadClass.Name + "'...");
+                        string roleName = RESTUtil.GetAssignedRoleName(result.ResponsePayloadClass.Name);
                         if (roleName.EndsWith("Type")) roleName = roleName.Substring(0, roleName.IndexOf("Type"));
                         string cardinality = result.ResponseCardinality.ToString();
-                        var typeEndpoint = new EndpointDescriptor(result.ResponseDocumentClass, cardinality, roleName, null, true);
+                        var typeEndpoint = new EndpointDescriptor(result.ResponsePayloadClass, cardinality, roleName, null, true);
                         model.CreateAssociation(myEndpoint, typeEndpoint, MEAssociation.AssociationType.MessageAssociation);
                     }
                 }
@@ -184,7 +184,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// Operation Result Declaration object that contains the (updated) information for the Result.
         /// </summary>
         /// <param name="result">Updated Operation Result properties.</param>
-        internal void Edit(RESTOperationResultDeclaration result)
+        internal void Edit(RESTOperationResultDescriptor result)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             string newRoleName = context.GetConfigProperty(_OperationResultPrefix) + Conversions.ToPascalCase(result.ResultCode);
@@ -285,12 +285,12 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="newDocument">Optional new Document Resource to be used as response.</param>
         /// <param name="hasMultipleResponses">When true, the cardinality of the new association will be '1..n' instead of '1'.</param>
-        private void UpdateResponseDocument(RESTOperationResultDeclaration result)
+        private void UpdateResponseDocument(RESTOperationResultDescriptor result)
         {
             // First of all, check whether result.ResponseDocumentClass is associated with an error response. In this case,
             // we should ignore this update request!
-            if (result.ResponseDocumentClass != null && 
-                result.ResponseDocumentClass.Name == ContextSlt.GetContextSlt().GetConfigProperty(_OperationResultClassName))
+            if (result.ResponsePayloadClass != null && 
+                result.ResponsePayloadClass.Name == ContextSlt.GetContextSlt().GetConfigProperty(_OperationResultClassName))
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp.UpdateResponseDocument >> Ignored error response!");
                 return;
@@ -311,7 +311,7 @@ namespace Plugin.Application.CapabilityModel.API
             }
 
             // If document changed, remove the existing association...
-            bool responseDocChanged = result.ResponseDocumentClass != this._responseBodyClass;
+            bool responseDocChanged = result.ResponsePayloadClass != this._responseBodyClass;
             if (responseDocChanged && this._responseBodyClass != null && resourceAssoc != null)
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp.UpdateResponseDocument >> Removing existing association with '" + this._responseBodyClass.Name + "'...");
@@ -327,16 +327,16 @@ namespace Plugin.Application.CapabilityModel.API
                 resourceAssoc.SetCardinality(this._responseCardinality, MEAssociation.AssociationEnd.Destination);
             }
 
-            if (responseDocChanged && result.ResponseDocumentClass != null)
+            if (responseDocChanged && result.ResponsePayloadClass != null)
             {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp.UpdateResponseDocument >> Associating with new response type '" + result.ResponseDocumentClass.Name + "'...");
-                string roleName = RESTUtil.GetAssignedRoleName(result.ResponseDocumentClass.Name);
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultCapabilityImp.UpdateResponseDocument >> Associating with new response type '" + result.ResponsePayloadClass.Name + "'...");
+                string roleName = RESTUtil.GetAssignedRoleName(result.ResponsePayloadClass.Name);
                 if (roleName.EndsWith("Type")) roleName = roleName.Substring(0, roleName.IndexOf("Type"));
                 string cardinality = result.ResponseCardinality.ToString();
-                var typeEndpoint = new EndpointDescriptor(result.ResponseDocumentClass, cardinality, roleName, null, true);
+                var typeEndpoint = new EndpointDescriptor(result.ResponsePayloadClass, cardinality, roleName, null, true);
                 var myEndpoint = new EndpointDescriptor(this.CapabilityClass, "1", Name, null, false);
                 ModelSlt.GetModelSlt().CreateAssociation(myEndpoint, typeEndpoint, MEAssociation.AssociationType.MessageAssociation);
-                this._responseBodyClass = result.ResponseDocumentClass;
+                this._responseBodyClass = result.ResponsePayloadClass;
                 this._responseCardinality = result.ResponseCardinality;
             }
         }

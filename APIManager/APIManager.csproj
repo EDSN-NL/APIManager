@@ -172,7 +172,7 @@
     <Compile Include="src\Application\CapabilityModel\API\APIProcessor.cs" />
     <Compile Include="src\Application\CapabilityModel\API\APIProcessorSOAPItfBuilder.cs" />
     <Compile Include="src\Application\CapabilityModel\API\APIProcessorSchemaBuilder.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTOperationResultDeclaration.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTOperationResultDescriptor.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Generic\RESTResourceDeclaration.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Generic\RESTOperationDeclaration.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Generic\RESTParameterDeclaration.cs" />

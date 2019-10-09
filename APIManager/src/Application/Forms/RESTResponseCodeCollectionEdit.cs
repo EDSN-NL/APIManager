@@ -47,9 +47,9 @@ namespace Plugin.Application.Forms
                 this._scope = thisCollection.Scope;
 
                 // Load the result codes from the existing collection...
-                foreach (RESTOperationResultDeclaration resultDecl in thisCollection.Collection)
+                foreach (RESTOperationResultDescriptor resultDecl in thisCollection.Collection)
                 {
-                    if (resultDecl.Status != RESTOperationResultDeclaration.DeclarationStatus.Invalid)
+                    if (resultDecl.Status != RESTOperationResultDescriptor.DeclarationStatus.Invalid)
                     {
                         ListViewItem newItem = new ListViewItem(resultDecl.ResultCode);
                         newItem.SubItems.Add(resultDecl.Description);
@@ -88,8 +88,8 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void AddResponseCode_Click(object sender, EventArgs e)
         {
-            RESTOperationResultDeclaration result = this._collection.AddOperationResult();
-            if (result != null && result.Status != RESTOperationResultDeclaration.DeclarationStatus.Invalid)
+            RESTOperationResultDescriptor result = this._collection.AddOperationResult();
+            if (result != null && result.Status != RESTOperationResultDescriptor.DeclarationStatus.Invalid)
             {
                 ListViewItem newItem = new ListViewItem(result.ResultCode);
                 newItem.SubItems.Add(result.Description);
@@ -125,7 +125,7 @@ namespace Plugin.Application.Forms
                 ListViewItem key = ResponseCodeList.SelectedItems[0];
                 ContextSlt context = ContextSlt.GetContextSlt();
                 string originalKey = key.Text;
-                RESTOperationResultDeclaration result = this._collection.EditOperationResult(key.Text);
+                RESTOperationResultDescriptor result = this._collection.EditOperationResult(key.Text);
                 if (result != null)
                 {
                     key.SubItems[0].Text = result.ResultCode;

@@ -221,7 +221,7 @@ namespace Plugin.Application.CapabilityModel.API
                     // Create Response Object classes for each operation result declaration...
                     string defaultSuccess = context.GetConfigProperty(_DefaultSuccessCode);
                     string altSuccess = context.GetConfigProperty(_AltSuccessCode);
-                    foreach (RESTOperationResultDeclaration result in operation.OperationResults)
+                    foreach (RESTOperationResultDescriptor result in operation.OperationResults)
                     {
                         if (result.IsValid)  // Make sure to process only valid records!
                         {
@@ -231,7 +231,7 @@ namespace Plugin.Application.CapabilityModel.API
                                 // We assign the associated document class with the result parameter so it will be linked to the result class.
                                 // We must differentiate between default success and alternative success codes.
                                 result.ResponseCardinality = operation.ResponseCardinality;
-                                result.ResponseDocumentClass = this._responseBodyDocument.CapabilityClass;
+                                result.ResponsePayloadClass = this._responseBodyDocument.CapabilityClass;
                             }
                             RESTOperationResultCapability newResult = new RESTOperationResultCapability(myInterface, result);
                             newResult.InitialiseParent(myInterface);
@@ -627,7 +627,7 @@ namespace Plugin.Application.CapabilityModel.API
                 string defaultSuccess = context.GetConfigProperty(_DefaultSuccessCode);
                 string altSuccess = context.GetConfigProperty(_AltSuccessCode);
                 this._responseBodyDocument = operation.ResponseDocument;
-                foreach (RESTOperationResultDeclaration result in operation.OperationResults)
+                foreach (RESTOperationResultDescriptor result in operation.OperationResults)
                 {
                     // We need to perform a little trick in case of response body definitions: the associated Document Resource has been assigned
                     // to the Operation and not to the Operation Result. However, it must be passed to the appropriate result in order to properly
@@ -636,15 +636,15 @@ namespace Plugin.Application.CapabilityModel.API
                     if (result.ResultCode == defaultSuccess || result.ResultCode == altSuccess)
                     {
                         MEClass newResponseClass = operation.ResponseDocument != null ? operation.ResponseDocument.CapabilityClass : null;
-                        if (result.ResponseDocumentClass != newResponseClass)
+                        if (result.ResponsePayloadClass != newResponseClass)
                         {
-                            result.ResponseDocumentClass = newResponseClass;
-                            result.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
+                            result.ResponsePayloadClass = newResponseClass;
+                            result.Status = RESTOperationResultDescriptor.DeclarationStatus.Edited;
                         }
                         if (result.ResponseCardinality != operation.ResponseCardinality)
                         {
                             result.ResponseCardinality = operation.ResponseCardinality;
-                            result.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
+                            result.Status = RESTOperationResultDescriptor.DeclarationStatus.Edited;
                         }
                     }
                     UpdateOperationResult(result);
@@ -806,23 +806,23 @@ namespace Plugin.Application.CapabilityModel.API
         /// Depending on the result status, a new entry is created, an existing entry removed or an existing entry is updated.
         /// </summary>
         /// <param name="result">Operation Result declaration metadata.</param>
-        private void UpdateOperationResult(RESTOperationResultDeclaration result)
+        private void UpdateOperationResult(RESTOperationResultDescriptor result)
         {
             string defaultResponse = ContextSlt.GetContextSlt().GetConfigProperty(_DefaultResponseCode);
             var myInterface = new RESTOperationCapability(this);
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdateOperationResult >> Updating result code '" + result.ResultCode + "'...");
 
             // Invalid status should be ignored...
-            if (result.Status == RESTOperationResultDeclaration.DeclarationStatus.Invalid) return;
+            if (result.Status == RESTOperationResultDescriptor.DeclarationStatus.Invalid) return;
             else
             {
-                if (result.Status == RESTOperationResultDeclaration.DeclarationStatus.Created)
+                if (result.Status == RESTOperationResultDescriptor.DeclarationStatus.Created)
                 {
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdateOperationResult >> Creating new result object...");
                     RESTOperationResultCapability newResult = new RESTOperationResultCapability(myInterface, result);
                     newResult.InitialiseParent(myInterface);
                 }
-                else if (result.Status == RESTOperationResultDeclaration.DeclarationStatus.Deleted)
+                else if (result.Status == RESTOperationResultDescriptor.DeclarationStatus.Deleted)
                 {
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdateOperationResult >> Removing result object...");
                     foreach (Capability cap in GetChildren())
@@ -834,7 +834,7 @@ namespace Plugin.Application.CapabilityModel.API
                         }
                     }
                 }
-                else if (result.Status == RESTOperationResultDeclaration.DeclarationStatus.Edited)
+                else if (result.Status == RESTOperationResultDescriptor.DeclarationStatus.Edited)
                 {
                     foreach (Capability cap in GetChildren())
                     {
