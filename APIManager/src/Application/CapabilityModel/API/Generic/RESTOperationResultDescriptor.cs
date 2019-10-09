@@ -7,17 +7,46 @@ using Framework.Util;
 
 namespace Plugin.Application.CapabilityModel.API
 {
-    internal sealed class RESTOperationResultDeclaration: IEquatable<RESTOperationResultDeclaration>
+    internal sealed class RESTOperationResultDescriptor: IEquatable<RESTOperationResultDescriptor>
     {
-        // The status is used to track operations on the declaration.
+        // The status is used to track operational state of the descriptor.
         internal enum DeclarationStatus { Invalid, Created, Stable, Edited, Deleted }
+
+        // This enumeration is used to associate a type of response payload with the result code.
+        internal enum ResultPayloadType
+        {
+            Unknown,            // Not defined yet.
+            None,               // No payload, only a response code.
+            Document,           // Associated with a Document resource.
+            Link,               // Associated with an external (absolute) URL.
+            CustomResponse,     // A custom class to be used as the payload.
+            DefaultResponse     // Default error response payload.
+        }
+
+        // Identifies the various HTTP Operation Result categories (Unknown is added only to specify an 'unknown' category and must never
+        // be used in actual responses)...
+        // We explicitly assign numeric values to the enumeration so that they match the HTTP prefix codes.
+        internal enum ResponseCategory
+        {
+            Unknown = 0,        // 
+            Informational = 1,  // Request received, continuing process.
+            Success = 2,        // The action was successfully received, understood, and accepted.
+            Redirection = 3,    // Further action must be taken in order to complete the request.
+            ClientError = 4,    // The request contains bad syntax or cannot be fulfilled.
+            ServerError = 5,    // The server failed to fulfill an apparently valid request.
+            Default             // Will cover all not-explicitly-defined result categories/codes.
+        }
+
+        internal static string _DefaultCode     = "default";
+        internal static string _DefaultCodeText = "Default catch-all response code";
 
         // Conversion tables for each HTTP Response category..
         private static readonly string[,] _InformationResponses =
             { {"100", "Continue"},
               {"101", "Switching Protocols"},
               {"102", "Processing"},
-              {"103", "Early Hints"} };
+              {"103", "Early Hints"},
+              {_DefaultCode, _DefaultCodeText } };
 
         private static readonly string[,] _SuccessResponses =
             { {"200", "OK"},
@@ -29,7 +58,8 @@ namespace Plugin.Application.CapabilityModel.API
               {"206", "Partial Content"},
               {"207", "Multi-Status"},
               {"208", "Already Reported"},
-              {"226", "IM Used"} };
+              {"226", "IM Used"},
+              {_DefaultCode, _DefaultCodeText } };
 
         private static readonly string[,] _RedirectionResponses =
             { {"300", "Multiple Choices"},
@@ -39,7 +69,8 @@ namespace Plugin.Application.CapabilityModel.API
               {"304", "Not Modified"},
               {"305", "Use Proxy"},
               {"307", "Temporary Redirect"},
-              {"308", "Permanent Redirect"} };
+              {"308", "Permanent Redirect"},
+              {_DefaultCode, _DefaultCodeText } };
 
         private static readonly string[,] _ClientErrorResponses =
             { {"400", "Bad Request"},
@@ -68,7 +99,8 @@ namespace Plugin.Application.CapabilityModel.API
               {"428", "Precondition Required"},
               {"429", "Too Many Requests"},
               {"431", "Request Header Fields Too Large"},
-              {"451", "Unavailable For Legal Reasons"} };
+              {"451", "Unavailable For Legal Reasons"},
+              {_DefaultCode, _DefaultCodeText } };
 
         private static readonly string[,] _ServerErrorResponses =
             { {"500", "Internal Server Error"},
@@ -81,15 +113,11 @@ namespace Plugin.Application.CapabilityModel.API
               {"507", "Insufficient Storage"},
               {"508", "Loop Detected"},
               {"510", "Not Extended"},
-              {"511", "Network Authentication Required"} };
+              {"511", "Network Authentication Required"},
+              {_DefaultCode, _DefaultCodeText } };
 
         // Configuration properties used by this module...
         private const string _OperationResultPrefix         = "OperationResultPrefix";
-        private const string _DefaultResponseCode           = "DefaultResponseCode";
-        private const string _DefaultResponseDescription    = "DefaultResponseDescription";
-        private const string _DefaultSuccessCode            = "DefaultSuccessCode";
-        private const string _DefaultClientErrorCode        = "DefaultClientErrorCode";
-        private const string _DefaultServerErrorCode        = "DefaultServerErrorCode";
         private const string _APISupportModelPathName       = "APISupportModelPathName";
         private const string _CoreDataTypesPathName         = "CoreDataTypesPathName";
         private const string _RESTOperationResultStereotype = "RESTOperationResultStereotype";
@@ -103,7 +131,6 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         internal sealed class CodeDescriptor
         {
-
             private string _code;           // Actual HTTP Code.
             private string _description;    // Descriptive text for the code.
 
@@ -130,8 +157,7 @@ namespace Plugin.Application.CapabilityModel.API
             static internal string LabelToCode(string label)
             {
                 ContextSlt context = ContextSlt.GetContextSlt();
-                return (label == context.GetConfigProperty(_DefaultResponseDescription))? context.GetConfigProperty(_DefaultResponseCode):
-                                                                                          label.Substring(0, label.IndexOf(" - "));
+                return label.Substring(0, label.IndexOf(" - "));
             }
 
             /// <summary>
@@ -141,19 +167,18 @@ namespace Plugin.Application.CapabilityModel.API
             /// <returns>Associated description or empty string in case of illegal codes.</returns>
             static internal string CodeToDescription(string code)
             {
-                ContextSlt context = ContextSlt.GetContextSlt();
-                if (code != context.GetConfigProperty(_DefaultResponseCode))
+                try
                 {
-                    var category = (RESTOperationResultCapability.ResponseCategory)(int.Parse(code[0].ToString()));
-                    var result = new RESTOperationResultDeclaration(category);
+                    // Since this is non-numeric, we must test this one explicitly...
+                    if (code == _DefaultCode) return _DefaultCodeText;
+
+                    var category = (RESTOperationResultCapability.ResponseCategory)int.Parse(code[0].ToString());
+                    var result = new RESTOperationResultDescriptor(category);
                     List<CodeDescriptor> codes = result.GetResponseCodes();
-                    foreach (CodeDescriptor dsc in codes)
-                    {
-                        if (dsc.Code == code) return dsc.Description;
-                    }
+                    foreach (CodeDescriptor dsc in codes) if (dsc.Code == code) return dsc.Description;
                     return string.Empty;
                 }
-                else return context.GetConfigProperty(_DefaultResponseDescription);
+                catch { return string.Empty; }
             }
 
             /// <summary>
@@ -163,28 +188,18 @@ namespace Plugin.Application.CapabilityModel.API
             /// <returns>Associated label or empty string in case of illegal codes.</returns>
             static internal string CodeToLabel(string code)
             {
-                ContextSlt context = ContextSlt.GetContextSlt();
-                if (code != context.GetConfigProperty(_DefaultResponseCode))
-                {
-                    var category = (RESTOperationResultCapability.ResponseCategory)(int.Parse(code[0].ToString()));
-                    var result = new RESTOperationResultDeclaration(category);
-                    List<CodeDescriptor> codes = result.GetResponseCodes();
-                    foreach (CodeDescriptor dsc in codes)
-                    {
-                        if (dsc.Code == code) return code + " - " + dsc.Description;
-                    }
-                    return string.Empty;
-                }
-                else return context.GetConfigProperty(_DefaultResponseDescription);
+                string description = CodeToDescription(code);
+                return description != string.Empty ? code + " - " + description : string.Empty;
             }
         }
 
-        private string _defaultResponseCode;        // Contains the OpenAPI default response code (typically, this is 'default').
         private RESTOperationResultCapability.ResponseCategory _category;   // Operation result category code.
         private string _resultCode;                 // Either an HTTP result code or default OpenAPI response code.
         private string _originalCode;               // In case of Edit: if we replace the code by a new one, this contains the original code.
         private string _description;                // Descriptive text to go with the response.
-        private MEClass _responseDocumentClass;     // In case of response schemas, this class represents the Document Resource that is associated with that schema.
+        private ResultPayloadType _payloadType;     // Identifies the type of payload associated with this response code.
+        private string _externalReference;          // URL of an external payload to be imported (not supported for all interface descriptors).
+        private MEClass _responsePayloadClass;      // Contains the class that is assigned to this response as a payload.
         private Cardinality _responseCardinality;   // Cardinality of response document (only if _responseDocumentClass has been defined).
         private DeclarationStatus _status;          // Status of this declaration record.
         private DeclarationStatus _initialStatus;   // Original status of this declaration record.
@@ -204,7 +219,33 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Get of set the cardinality of the response object (only valid in case a response document has been defined).
+        /// Get or set an external reference associated with this response code. This must be an URL referencing some external schema fragment.
+        /// </summary>
+        internal string ExternalReference
+        {
+            get { return this._externalReference; }
+            set
+            {
+                if (this._externalReference != value)
+                {
+                    this._externalReference = value;
+                    if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
+                    else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get- or set the type of payload associated with this response code.
+        /// </summary>
+        internal ResultPayloadType PayloadType
+        {
+            get { return this._payloadType; }
+            set { SetPayloadType(value); }
+        }
+
+        /// <summary>
+        /// Get of set the cardinality of the response object.
         /// </summary>
         internal Cardinality ResponseCardinality
         {
@@ -226,17 +267,17 @@ namespace Plugin.Application.CapabilityModel.API
         internal string OriginalCode { get { return this._originalCode; } }
 
         /// <summary>
-        /// Returns or loads the optional Document Resource class that represents the response schema.
+        /// Returns or loads the class that must be used as response payload.
         /// Returns NULL if no such resource is defined.
         /// </summary>
-        internal MEClass ResponseDocumentClass
+        internal MEClass ResponsePayloadClass
         {
-            get { return this._responseDocumentClass; }
+            get { return this._responsePayloadClass; }
             set
             {
-                if (this._responseDocumentClass != value)
+                if (this._responsePayloadClass != value)
                 {
-                    this._responseDocumentClass = value;
+                    this._responsePayloadClass = value;
                     if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
                     else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 }
@@ -293,7 +334,7 @@ namespace Plugin.Application.CapabilityModel.API
         public override bool Equals(object obj)
         {
             if (obj == null) return false;
-            var objElement = obj as RESTOperationResultDeclaration;
+            var objElement = obj as RESTOperationResultDescriptor;
             return (objElement != null) && Equals(objElement);
         }
 
@@ -303,7 +344,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="other">The Operation Result Declaration to compare against.</param>
         /// <returns>True if same object, false otherwise.</returns>
-        public bool Equals(RESTOperationResultDeclaration other)
+        public bool Equals(RESTOperationResultDescriptor other)
         {
             return other != null && other._resultCode == this._resultCode;
         }
@@ -325,7 +366,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="elementa">First Operation Result Declaration to compare.</param>
         /// <param name="elementb">Second Operation Result Declaration to compare.</param>
         /// <returns>True if the Operation Result Declarations are equal.</returns>
-        public static bool operator ==(RESTOperationResultDeclaration elementa, RESTOperationResultDeclaration elementb)
+        public static bool operator ==(RESTOperationResultDescriptor elementa, RESTOperationResultDescriptor elementb)
         {
             // Tricky to implement correctly. These first statements make sure that we check whether we are actually
             // dealing with identical objects and/or whether one or both are NULL.
@@ -342,7 +383,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="elementa">First Operation Result Declaration to compare.</param>
         /// <param name="elementb">Second Operation Result Declaration to compare.</param>
         /// <returns>True if the Operation Declarations are different.</returns>
-        public static bool operator !=(RESTOperationResultDeclaration elementa, RESTOperationResultDeclaration elementb)
+        public static bool operator !=(RESTOperationResultDescriptor elementa, RESTOperationResultDescriptor elementb)
         {
             return !(elementa == elementb);
         }
@@ -353,33 +394,32 @@ namespace Plugin.Application.CapabilityModel.API
         /// to set the 'cardinality indicator' to the appropriate value.
         /// </summary>
         /// <param name="resultCap">Operation Result Capability to use for initialisation.</param>
-        internal RESTOperationResultDeclaration(RESTOperationResultCapability resultCap)
+        internal RESTOperationResultDescriptor(RESTOperationResultCapability resultCap)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
-            this._defaultResponseCode = context.GetConfigProperty(_DefaultResponseCode);
             this._category = resultCap.Category;
             this._description = MEChangeLog.GetDocumentationAsText(resultCap.CapabilityClass);
             this._status = DeclarationStatus.Stable;
             this._initialStatus = DeclarationStatus.Stable;
-            this._responseDocumentClass = resultCap.ResponseBodyClass;
+            this._responsePayloadClass = resultCap.ResponseBodyClass;
+            this._externalReference = null;
             this._responseCardinality = new Cardinality();
             this._resultCode = this._originalCode = resultCap.ResultCode;
+            this._payloadType = ResultPayloadType.Unknown;
 
             // If we have a response type, we locate the association and inspect its target cardinality...
-            if (this._responseDocumentClass != null)
+            if (this._responsePayloadClass != null)
             {
-                string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
                 foreach (MEAssociation association in resultCap.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
                 {
-                    if (association.Destination.EndPoint.HasStereotype(resourceStereotype) &&
-                        association.Destination.EndPoint.Name == this._responseDocumentClass.Name)
+                    if (association.Destination.EndPoint.Name == this._responsePayloadClass.Name)
                     {
                         this._responseCardinality = association.GetCardinality(MEAssociation.AssociationEnd.Destination);
                         break;
                     }
                 }
             }
-            else AssignParameterClass();    // If we did not get an explicit class from the result capabilty, we assign our default!
+            else DefineResponsePayloadType();    // If we did not get an explicit class from the result capabilty, we assign our default!
         }
 
         /// <summary>
@@ -391,15 +431,15 @@ namespace Plugin.Application.CapabilityModel.API
         /// All others - descriptor containing 'default' code and default category-dependent description.
         /// </summary>
         /// <param name="category">The HTTP Result Code category (first digit in response code).</param>
-        internal RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory category)
+        internal RESTOperationResultDescriptor(RESTOperationResultCapability.ResponseCategory category)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultDeclaration >> Default constructor using category '" + category.ToString() + "'...");
 
             ContextSlt context = ContextSlt.GetContextSlt();
-            this._defaultResponseCode = context.GetConfigProperty(_DefaultResponseCode);
             this._category = category;
             this._responseCardinality = new Cardinality();
             this._status = this._initialStatus = DeclarationStatus.Stable;
+            this._externalReference = null;
 
             switch (category)
             {
@@ -409,7 +449,7 @@ namespace Plugin.Application.CapabilityModel.API
                     break;
 
                 case RESTOperationResultCapability.ResponseCategory.Success:
-                    this._resultCode = context.GetConfigProperty(_DefaultSuccessCode);
+                    this._resultCode = "200";
                     this._description = GetResponseDescription();
                     break;
 
@@ -419,63 +459,70 @@ namespace Plugin.Application.CapabilityModel.API
                     break;
 
                 case RESTOperationResultCapability.ResponseCategory.ClientError:
-                    this._resultCode = context.GetConfigProperty(_DefaultClientErrorCode);
+                    this._resultCode = "400";
                     this._description = GetResponseDescription();
                     break;
 
                 case RESTOperationResultCapability.ResponseCategory.ServerError:
-                    this._resultCode = context.GetConfigProperty(_DefaultServerErrorCode);
+                    this._resultCode = "500";
                     this._description = GetResponseDescription();
                     break;
 
                 case RESTOperationResultCapability.ResponseCategory.Default:
-                    this._resultCode = this._defaultResponseCode;
-                    this._description = context.GetConfigProperty(_DefaultResponseDescription);
+                    this._resultCode = _DefaultCode;
+                    this._description = _DefaultCodeText;
                     break;
 
                 default:
-                    this._resultCode = this._defaultResponseCode;
-                    this._description = string.Empty;
+                    this._resultCode = _DefaultCode;
+                    this._description = _DefaultCodeText;
                     this._status = this._initialStatus = DeclarationStatus.Invalid;
                     break;
             }
             this._originalCode = this._resultCode;
-            AssignParameterClass();                     // Assign default response class.
+            DefineResponsePayloadType();
         }
 
         /// <summary>
-        /// Constructor that accepts code, description and an optional data-type response. In case of normal successfull completion of a request that
-        /// accepts response parameters, an OK Result Declaration must be created that contains a class that specifies these parameters.
+        /// Constructor that accepts code, description and an optional payload (either a link or a class). 
+        /// In case of normal successfull completion of a request that accepts response parameters, an OK Result Declaration 
+        /// must be created that contains a class that specifies these parameters.
+        /// Note that externalRef and payloadClass are mutually exclusive and when both are specified, payloadClass has precedence.
         /// </summary>
         /// <param name="code">HTTP Result code to be associated with this result.</param>
-        /// <param name="description">Textual descr</param>
-        /// <param name="type"></param>
-        internal RESTOperationResultDeclaration(string code, string description, MEClass type = null)
+        /// <param name="description">Textual description.</param>
+        /// <param name="externalRef">Optional URL that identifies an 'external' payload reference.</param>
+        /// <param name="payloadClass">An optional response body payload class.</param>
+        internal RESTOperationResultDescriptor(string code, string description, string externalRef = null, MEClass payloadClass = null)
         {
             this._resultCode = this._originalCode = code;
             this._description = description;
-            this._responseDocumentClass = type;
-            this._category = (RESTOperationResultCapability.ResponseCategory)(int.Parse(code[0].ToString()));
-            this._defaultResponseCode = ContextSlt.GetContextSlt().GetConfigProperty(_DefaultResponseCode);
+            this._responsePayloadClass = payloadClass;
+            this._externalReference = externalRef;
+            this._category = (code == _DefaultCode)? 
+                RESTOperationResultCapability.ResponseCategory.Default :
+               (RESTOperationResultCapability.ResponseCategory)int.Parse(code[0].ToString());
             this._status = this._initialStatus = DeclarationStatus.Stable;
             this._responseCardinality = new Cardinality();
-            if (type == null) AssignParameterClass();   // If we did not receive an explicit class, assign implicit one.
+            DefineResponsePayloadType();
         }
 
         /// <summary>
         /// Constructor that accepts a code only. The constructor retrieves the default description for this code.
         /// </summary>
         /// <param name="code">HTTP Result code to be associated with this result.</param>
-        internal RESTOperationResultDeclaration(string code)
+        internal RESTOperationResultDescriptor(string code)
         {
             this._resultCode = this._originalCode = code;
             this._description = CodeDescriptor.CodeToDescription(code);
-            this._responseDocumentClass = null;
-            this._category = (RESTOperationResultCapability.ResponseCategory)(int.Parse(code[0].ToString()));
-            this._defaultResponseCode = ContextSlt.GetContextSlt().GetConfigProperty(_DefaultResponseCode);
+            this._responsePayloadClass = null;
+            this._externalReference = null;
+            this._category = (code == _DefaultCode) ?
+                RESTOperationResultCapability.ResponseCategory.Default :
+               (RESTOperationResultCapability.ResponseCategory)int.Parse(code[0].ToString());
             this._status = this._initialStatus = DeclarationStatus.Stable;
             this._responseCardinality = new Cardinality();
-            AssignParameterClass();
+            DefineResponsePayloadType();
         }
 
         /// <summary>
@@ -501,13 +548,13 @@ namespace Plugin.Application.CapabilityModel.API
                     MEAttribute newAttrib = resultClass.CreateAttribute(context.GetConfigProperty(_ResultCodeAttributeName), classifier,
                                                                         AttributeType.Attribute, this._resultCode, new Cardinality(Cardinality._Mandatory), true);
                     resultClass.Annotation = this._description;
-                    if (this._responseDocumentClass != null)
+                    if (this._responsePayloadClass != null)
                     {
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultDeclaration.AssignResultClass >> Associating with response type '" + this._responseDocumentClass.Name + "'...");
-                        string roleName = Conversions.ToPascalCase(this._responseDocumentClass.Name);
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultDeclaration.AssignResultClass >> Associating with response type '" + this._responsePayloadClass.Name + "'...");
+                        string roleName = Conversions.ToPascalCase(this._responsePayloadClass.Name);
                         if (roleName.EndsWith("Type")) roleName = roleName.Substring(0, roleName.IndexOf("Type"));
                         var parentEndpoint = new EndpointDescriptor(resultClass, "1", resultClass.Name, null, false);
-                        var typeEndpoint = new EndpointDescriptor(this._responseDocumentClass, "1", roleName, null, true);
+                        var typeEndpoint = new EndpointDescriptor(this._responsePayloadClass, "1", roleName, null, true);
                         model.CreateAssociation(parentEndpoint, typeEndpoint, MEAssociation.AssociationType.MessageAssociation);
                     }
                 }
@@ -553,71 +600,132 @@ namespace Plugin.Application.CapabilityModel.API
                     break;
 
                 default:
-                    ContextSlt context = ContextSlt.GetContextSlt();
-                    resultList.Add(new CodeDescriptor(context.GetConfigProperty(_DefaultResponseCode), 
-                                                      context.GetConfigProperty(_DefaultResponseDescription)));
+                    resultList.Add(new CodeDescriptor(_DefaultCode, _DefaultCodeText));
                     break;
             }
             return resultList;
         }
 
         /// <summary>
-        /// Helper method that, in case of an error response, locates the default error response parameter class and assigns this to the response
-        /// declaration object. If the result declaration already constains a Parameter Class, the method does nothing.
+        /// Helper method that attempts to define the response type for this operation result and, in case of default response,
+        /// locates the default error response parameter class and assigns this to the response declaration object. 
         /// </summary>
-        private void AssignParameterClass()
+        private void DefineResponsePayloadType()
         {
-            if (this._responseDocumentClass == null &&
-                (this._category == RESTOperationResultCapability.ResponseCategory.ClientError ||
-                 this._category == RESTOperationResultCapability.ResponseCategory.ServerError))
+            ContextSlt context = ContextSlt.GetContextSlt();
+            if (this._resultCode == _DefaultCode) this._payloadType = ResultPayloadType.DefaultResponse;
+            else if (this._responsePayloadClass == null)
             {
-                ContextSlt context = ContextSlt.GetContextSlt();
+                if (string.IsNullOrEmpty(this._externalReference)) 
+                {
+                    if (this._category == RESTOperationResultCapability.ResponseCategory.ClientError ||
+                        this._category == RESTOperationResultCapability.ResponseCategory.ServerError)
+                    {
+                        this._payloadType = ResultPayloadType.DefaultResponse;
+                    }
+                    else this._payloadType = ResultPayloadType.None;
+                }
+                else this._payloadType = ResultPayloadType.Link;
+            }
+            else
+            {
+                string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
+                string defaultResponseName = context.GetConfigProperty(_OperationResultClassName);
+                if (this._responsePayloadClass.HasStereotype(resourceStereotype)) this._payloadType = ResultPayloadType.Document;
+                else if (this._responsePayloadClass.Name == defaultResponseName) this._payloadType = ResultPayloadType.DefaultResponse;
+                else this._payloadType = ResultPayloadType.CustomResponse;
+            }
+
+            if (this._payloadType == ResultPayloadType.DefaultResponse && this._responsePayloadClass == null)
+            {
                 ModelSlt model = ModelSlt.GetModelSlt();
-                MEClass resultParam = model.FindClass(context.GetConfigProperty(_APISupportModelPathName), context.GetConfigProperty(_OperationResultClassName));
-                if (resultParam != null) this._responseDocumentClass = resultParam;
-                else Logger.WriteError("Plugin.Application.Forms.RESTOperationResultDeclaration.AssignParameterClass >> Unable to find '" +
+                this._responsePayloadClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName), context.GetConfigProperty(_OperationResultClassName));
+                if (this._responsePayloadClass == null)
+                    Logger.WriteError("Plugin.Application.Forms.RESTOperationResultDeclaration.AssignParameterClass >> Unable to find '" +
                                        context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_OperationResultClassName));
             }
         }
 
         /// <summary>
-        /// Returns the description that belongs the current category and code. In case of 'Default' category,
-        /// the function returns the 'Default Response Description'.
+        /// Returns the description that belongs the current category and code.
         /// </summary>
         /// <returns>Description for current category + code.</returns>
         private string GetResponseDescription()
         {
+            string description = string.Empty;
             switch (this._category)
             {
                 case RESTOperationResultCapability.ResponseCategory.Informational:
                     for (int i = 0; i < _InformationResponses.GetLength(0); i++)
-                        if (string.Compare(_InformationResponses[i, 0], this._resultCode, true) == 0) return _InformationResponses[i, 1];
+                        if (string.Compare(_InformationResponses[i, 0], this._resultCode, true) == 0) description= _InformationResponses[i, 1];
                     break;
 
                 case RESTOperationResultCapability.ResponseCategory.Success:
                     for (int i = 0; i < _SuccessResponses.GetLength(0); i++)
-                        if (string.Compare(_SuccessResponses[i, 0], this._resultCode, true) == 0) return _SuccessResponses[i, 1];
+                        if (string.Compare(_SuccessResponses[i, 0], this._resultCode, true) == 0) description = _SuccessResponses[i, 1];
                     break;
 
                 case RESTOperationResultCapability.ResponseCategory.Redirection:
                     for (int i = 0; i < _RedirectionResponses.GetLength(0); i++)
-                        if (string.Compare(_RedirectionResponses[i, 0], this._resultCode, true) == 0) return _RedirectionResponses[i, 1];
+                        if (string.Compare(_RedirectionResponses[i, 0], this._resultCode, true) == 0) description = _RedirectionResponses[i, 1];
                     break;
 
                 case RESTOperationResultCapability.ResponseCategory.ClientError:
                     for (int i = 0; i < _ClientErrorResponses.GetLength(0); i++)
-                        if (string.Compare(_ClientErrorResponses[i, 0], this._resultCode, true) == 0) return _ClientErrorResponses[i, 1];
+                        if (string.Compare(_ClientErrorResponses[i, 0], this._resultCode, true) == 0) description = _ClientErrorResponses[i, 1];
                     break;
 
                 case RESTOperationResultCapability.ResponseCategory.ServerError:
                     for (int i = 0; i < _ServerErrorResponses.GetLength(0); i++)
-                        if (string.Compare(_ServerErrorResponses[i, 0], this._resultCode, true) == 0) return _ServerErrorResponses[i, 1];
+                        if (string.Compare(_ServerErrorResponses[i, 0], this._resultCode, true) == 0) description = _ServerErrorResponses[i, 1];
                     break;
 
                 default:
+                    description = _DefaultCodeText;
                     break;
             }
-            return ContextSlt.GetContextSlt().GetConfigProperty(_DefaultResponseDescription);
+            return description;
+        }
+
+        /// <summary>
+        /// Helper function that is used to assign a (new) value to the Result Payload Type field. Depending on the type,
+        /// we might expect additional information (such as external classes) to be assigned as well before we can consider
+        /// this to be a valid response code.
+        /// </summary>
+        /// <param name="newType">The new type to be assigned. If new type is equal to existing type, no operations are performed.</param>
+        private void SetPayloadType(ResultPayloadType newType)
+        {
+            if (this._payloadType != newType)
+            {
+                this._payloadType = newType;
+                switch (newType)
+                {
+                    case ResultPayloadType.CustomResponse:
+                    case ResultPayloadType.Document:
+                    case ResultPayloadType.Link:
+                        this._externalReference = string.Empty;
+                        this._responsePayloadClass = null;
+                        this._status = DeclarationStatus.Invalid;   // We must assign a valid payload/link to get a valid response.
+                        break;
+
+                    case ResultPayloadType.DefaultResponse:
+                        if (this._category == RESTOperationResultCapability.ResponseCategory.ClientError ||
+                            this._category == RESTOperationResultCapability.ResponseCategory.ServerError)
+                            DefineResponsePayloadType();
+                        else this._responsePayloadClass = null;
+                        this._externalReference = string.Empty;
+                        if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
+                        else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                        break;
+
+                    case ResultPayloadType.None:
+                        this._externalReference = string.Empty;
+                        this._responsePayloadClass = null;
+                        if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
+                        else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                        break;
+                }
+            }
         }
     }
 }
