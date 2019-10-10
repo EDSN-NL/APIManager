@@ -143,8 +143,10 @@ namespace Framework.Context
         /// </summary>
         internal virtual void Initialize()
         {
-            this._settings = new FrameworkSettings();
+            // WATCH OUT: Configuration loads or re-loads the user profile and is REQUIRED for FrameworkSettings. These thus
+            // must be loaded in the order specified below!
             this._configuration = new Configuration();
+            this._settings = new FrameworkSettings();
             this._currentDiagram = null;
             this._currentClass = null;
             this._currentPackage = null;

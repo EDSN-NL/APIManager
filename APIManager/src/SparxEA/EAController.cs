@@ -35,6 +35,7 @@ namespace APIManager.SparxEA
         public EAController() : base()
         {
             // Can't do much here since the repository is not available yet.
+            //MessageBox.Show("Starting EA...");  // Uncomment this to create a 'breakpoint' during startup.
         }
 
         /// <summary>

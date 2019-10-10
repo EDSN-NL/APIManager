@@ -5,8 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Framework.Logging;
-
-using System.Windows.Forms;
+using APIManager.SparxEA.Properties;        // Addresses the "settings" environment so we can retrieve run-time settings.
 
 namespace Framework.Context
 {
@@ -121,11 +120,6 @@ namespace Framework.Context
             {
                 if (!isOpen)
                 {
-                    // Open DLL-specific configuration... (user-bound, roaming etc. does not work for DLL's).
-                    // Below code fragment is way to primitive and does not provides the correct result. New
-                    // code is present in 'LoadConfiguration'...
-                    //string configPath = this.GetType().Assembly.Location;       // Obtain pointer to the assembly.
-                    //_currentConfig = ConfigurationManager.OpenExeConfiguration(configPath);
                     LoadConfiguration();
                     this._propertyCache = new SortedList<string, string>();
                     if (_currentConfig != null) isOpen = true;
@@ -133,7 +127,7 @@ namespace Framework.Context
             }
             catch (System.SystemException exc)
             {
-                Logger.WriteError("Framework.Context.ConfigurationSlt >> initialization failed because: " + exc.Message);
+                Logger.WriteError("Framework.Context.ConfigurationSlt >> initialization failed because: " + exc.ToString());
             }
         }
 
@@ -144,25 +138,41 @@ namespace Framework.Context
         /// </summary>
         private void LoadConfiguration()
         {
-            // Retrieves the roaming profile for this application and user.
-            System.Configuration.Configuration roamingConfig = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.PerUserRoaming);
+            // Retrieves the applicable profile for this application and user. This can be either roaming- or local depending on configuration.
+            // This profile contains all user-defined settings ('userSettings' section), NOT the static properties!
+            var userConfig = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.PerUserRoamingAndLocal);
 
             // Since this is a DLL that is part of EA, we will now get an entry 'somewhere' three-levels down in the Sparx EA config path.
-            // We want to replace this with a 'clean' configuration file for the plugin and to support this, we have to move three-levels
-            // up the directory tree and create an explicit configuration directory there...
-            string configFileName = Path.GetFileName(roamingConfig.FilePath);
-            string configDirectory = Directory.GetParent(roamingConfig.FilePath).Parent.Parent.Parent.FullName;
+            // Since this location depends on the version of EA that is currently installed, we want to make a copy of the settings
+            // in order to be able to restore them when new EA versions are installed.
+            string configFileName = Path.GetFileName(userConfig.FilePath);
+            string configDirectory = Directory.GetParent(userConfig.FilePath).Parent.Parent.Parent.FullName;
             string newConfigFilePath = configDirectory + @"\APIManager\" + configFileName;
+            string userConfigBackup = configDirectory + @"\APIManager\userConfigBackup";
 
-            // Next, we map the roaming configuration file to the local '_currentConfig'. This enables the application to access the 
-            // configuration file using the System.Configuration.Configuration class...
-            // ConfigurationUserLevel = None --> Specifies the application configuration file.
+            // If our current configuration returns a missing file, this implies that we either have never been here before, or we
+            // have installed a new application release that has its own configuration (which has not been defined yet).
+            // Let's see whether we have a backup that we can re-use...
+            if (!userConfig.HasFile)
+            {
+                if (File.Exists(userConfigBackup))
+                {
+                    // We don't have an application config file, but we DO have a top-level backup. 
+                    // Copy this backup to the profile path and re-initialize...
+                    Directory.CreateDirectory(Directory.GetParent(userConfig.FilePath).FullName);
+                    File.Copy(userConfigBackup, userConfig.FilePath);
+                    Settings.Default.Reload();      // Make sure that the newly loaded configuration is actually used.
+                }
+            }
+            else userConfig.SaveAs(userConfigBackup); // If we have a user config, save as a backup.
+
+            // Next, we create a new mapped configuration as part of user space and copy all static properties to it...
             ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
             configFileMap.ExeConfigFilename = newConfigFilePath;
             _currentConfig = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
 
             // Next, we retrieve the static (default) configuration file for this assembly and copy all settings that are
-            // not yet present in the user (roaming) config file...
+            // not yet present in the user config file...
             string defaultConfigFilePath = string.Empty;
             if (_defaultConfig == null)
             {
@@ -170,7 +180,7 @@ namespace Framework.Context
                 _defaultConfig = ConfigurationManager.OpenExeConfiguration(defaultConfigFilePath);
             }
 
-            // Copy all keys from default config to roaming config...
+            // Copy all keys from default config to user config...
             foreach (KeyValueConfigurationElement configEntry in _defaultConfig.AppSettings.Settings)
             {
                 if (!_currentConfig.AppSettings.Settings.AllKeys.Contains(configEntry.Key))
