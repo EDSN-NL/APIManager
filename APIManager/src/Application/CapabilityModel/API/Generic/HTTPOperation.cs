@@ -148,6 +148,8 @@ namespace Plugin.Application.CapabilityModel.API
                     if (enumName != "Unknown" && allowedOperations.Contains(enumName)) operationList.Add(new HTTPOperation(enumName));
                 }
             }
+            var comparer = new HTTPComparer();
+            operationList.Sort(comparer);
             return operationList;
         }
 
@@ -204,6 +206,17 @@ namespace Plugin.Application.CapabilityModel.API
                 }
             }
             this._type = type;
+        }
+
+        /// <summary>
+        /// Private helper class that we use to sort arrays of HTTP objects.
+        /// </summary>
+        private class HTTPComparer : IComparer<HTTPOperation>
+        {
+            int IComparer<HTTPOperation>.Compare(HTTPOperation x, HTTPOperation y)
+            {
+                return string.Compare(x.TypeName, y.TypeName);
+            }
         }
     }
 }

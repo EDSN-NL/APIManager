@@ -213,10 +213,22 @@ namespace Plugin.Application.Forms
                 int index = OperationTypeFld.SelectedIndex;
                 HTTPOperation oldType = this._operation.OperationType;
                 HTTPOperation unknownType = new HTTPOperation();
-                this._operation.OperationType = OperationTypeFld.Items[index] as HTTPOperation;
-                this._hasType = this._operation.OperationType != unknownType;
-                if (this._hasType) this._dirty = true;
-                CheckOk();
+                HTTPOperation newType = OperationTypeFld.Items[index] as HTTPOperation;
+
+                // If we attempt to 'Put' a Collection, we issue a warning since this should affect the entire collection,
+                // not just a single element....
+                if (this._parent.Archetype == RESTResourceCapability.ResourceArchetype.Collection && newType.TypeEnum == HTTPOperation.Type.Put)
+                {
+                    if (MessageBox.Show("A 'PUT' operation typically replaces the ENTIRE collection, are you sure this is intended?",
+                                        "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                    {
+                        this._operation.OperationType = newType;
+                        this._hasType = this._operation.OperationType != unknownType;
+                        if (this._hasType) this._dirty = true;
+                        CheckOk();
+                    }
+                    else return;
+                }
 
                 // We're going to check whether we selected a 'POST' operation, in which case we need an alternative 'Ok' result code...
                 ContextSlt context = ContextSlt.GetContextSlt();

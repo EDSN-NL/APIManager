@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Framework.Logging;
 using APIManager.SparxEA.Properties;        // Addresses the "settings" environment so we can retrieve run-time settings.
@@ -20,8 +19,7 @@ namespace Framework.Context
     /// </summary>
     internal sealed class Configuration
     {
-        private static System.Configuration.Configuration _defaultConfig = null;    // Contains all static (=compile time) configuration keys.
-        private static System.Configuration.Configuration _currentConfig = null;    // Combines static with dynamic keys and is the actual used config!
+        private static System.Configuration.Configuration _currentConfig = null;    // Static configuration options for the running program.
         private bool isOpen = false;
         private SortedList<string, string> _propertyCache;                          // We keep retrieved configuration properties in a cache to speed-up retrieval.
 
@@ -132,9 +130,7 @@ namespace Framework.Context
         }
 
         /// <summary>
-        /// Helper function that creates a per-user roaming profile for the plugin (if not yet there) and maps all static configuration
-        /// keys to that profile. On return, the _defaultConfig property contains all static configuration options and the _currentConfig
-        /// contains all user-specific options.
+        /// Helper function that assures that we have a user-specific profile as well as a static configuration.
         /// </summary>
         private void LoadConfiguration()
         {
@@ -147,7 +143,6 @@ namespace Framework.Context
             // in order to be able to restore them when new EA versions are installed.
             string configFileName = Path.GetFileName(userConfig.FilePath);
             string configDirectory = Directory.GetParent(userConfig.FilePath).Parent.Parent.Parent.FullName;
-            string newConfigFilePath = configDirectory + @"\APIManager\" + configFileName;
             string userConfigBackup = configDirectory + @"\APIManager\userConfigBackup";
 
             // If our current configuration returns a missing file, this implies that we either have never been here before, or we
@@ -166,29 +161,8 @@ namespace Framework.Context
             }
             else userConfig.SaveAs(userConfigBackup); // If we have a user config, save as a backup.
 
-            // Next, we create a new mapped configuration as part of user space and copy all static properties to it...
-            ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
-            configFileMap.ExeConfigFilename = newConfigFilePath;
-            _currentConfig = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
-
-            // Next, we retrieve the static (default) configuration file for this assembly and copy all settings that are
-            // not yet present in the user config file...
-            string defaultConfigFilePath = string.Empty;
-            if (_defaultConfig == null)
-            {
-                defaultConfigFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                _defaultConfig = ConfigurationManager.OpenExeConfiguration(defaultConfigFilePath);
-            }
-
-            // Copy all keys from default config to user config...
-            foreach (KeyValueConfigurationElement configEntry in _defaultConfig.AppSettings.Settings)
-            {
-                if (!_currentConfig.AppSettings.Settings.AllKeys.Contains(configEntry.Key))
-                {
-                    _currentConfig.AppSettings.Settings.Add(configEntry.Key, configEntry.Value);
-                }
-            }
-            _currentConfig.Save();
+            // Next, we assign our static configuration to the static configuration file for our assembly....
+            _currentConfig = ConfigurationManager.OpenExeConfiguration(System.Reflection.Assembly.GetExecutingAssembly().Location);
         }
     }
 }
