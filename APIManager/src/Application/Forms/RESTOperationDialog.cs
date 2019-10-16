@@ -229,6 +229,13 @@ namespace Plugin.Application.Forms
                     }
                     else return;
                 }
+                else
+                {
+                    this._operation.OperationType = newType;
+                    this._hasType = this._operation.OperationType != unknownType;
+                    if (this._hasType) this._dirty = true;
+                    CheckOk();
+                }
 
                 // We're going to check whether we selected a 'POST' operation, in which case we need an alternative 'Ok' result code...
                 ContextSlt context = ContextSlt.GetContextSlt();

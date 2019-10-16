@@ -271,6 +271,7 @@ namespace Plugin.Application.Forms
             this.FilterParameterList.FullRowSelect = true;
             this.FilterParameterList.GridLines = true;
             this.FilterParameterList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.FilterParameterList.HideSelection = false;
             this.FilterParameterList.Location = new System.Drawing.Point(11, 19);
             this.FilterParameterList.MultiSelect = false;
             this.FilterParameterList.Name = "FilterParameterList";
@@ -374,6 +375,7 @@ namespace Plugin.Application.Forms
             this.ResponseCodeList.FullRowSelect = true;
             this.ResponseCodeList.GridLines = true;
             this.ResponseCodeList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.ResponseCodeList.HideSelection = false;
             this.ResponseCodeList.Location = new System.Drawing.Point(12, 19);
             this.ResponseCodeList.MultiSelect = false;
             this.ResponseCodeList.Name = "ResponseCodeList";
@@ -433,6 +435,7 @@ namespace Plugin.Application.Forms
             this.manageCollectionsToolStripMenuItem});
             this.ResponseCodeMenuStrip.Name = "ResponseCodeMenuStrip";
             this.ResponseCodeMenuStrip.Size = new System.Drawing.Size(180, 114);
+            this.ResponseCodeMenuStrip.Click += new System.EventHandler(this.EditCollections_Click);
             // 
             // addToolStripMenuItem
             // 
@@ -467,7 +470,6 @@ namespace Plugin.Application.Forms
             this.manageCollectionsToolStripMenuItem.Name = "manageCollectionsToolStripMenuItem";
             this.manageCollectionsToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.manageCollectionsToolStripMenuItem.Text = "Manage Collections";
-            this.manageCollectionsToolStripMenuItem.Click += new System.EventHandler(this.EditCollections_Click);
             // 
             // MimeBox
             // 
