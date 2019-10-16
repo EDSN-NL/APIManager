@@ -395,9 +395,7 @@ namespace SparxEA.Model
             this._package.Elements.Refresh();   // Make sure that we're looking at the most up-to-date state.
             for (short i = 0; i < this._package.Elements.Count; i++)
             {
-                Logger.WriteInfo("SparxEA.Model.EAMEIPackage.deleteClass >> Examining index: " + i);
                 var currElement = this._package.Elements.GetAt(i) as EA.Element;
-                Logger.WriteInfo("SparxEA.Model.EAMEIPackage.deleteClass >> Found element: '" + currElement.Name + "'...");
                 if (currElement.ElementID == thisOne.ElementID)
                 {
                     this._package.Elements.DeleteAt(i, true); // Refresh options currently does not work.

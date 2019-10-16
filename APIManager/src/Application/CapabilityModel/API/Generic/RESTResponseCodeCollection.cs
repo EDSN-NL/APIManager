@@ -26,20 +26,33 @@ namespace Plugin.Application.CapabilityModel.API
         internal enum CollectionScope { Unknown, Global, API, Operation }
 
         // Configuration properties used by this module:
-        private const string _RESTResponseCodeCollectionStereotype  = "RESTResponseCodeCollectionStereotype";
+        private const string _RCCStereotype                         = "RCCStereotype";
+        private const string _RCDStereotype                         = "RCDStereotype";
         private const string _CoreDataTypesPathName                 = "CoreDataTypesPathName";
-        private const string _RESTResponseCodeAttributeClassifier   = "RESTResponseCodeAttributeClassifier";
         private const string _ServiceModelPkgName                   = "ServiceModelPkgName";
         private const string _ServiceOperationPkgStereotype         = "ServiceOperationPkgStereotype";
         private const string _ServiceModelPkgStereotype             = "ServiceModelPkgStereotype";
+        private const string _RCCIDTag                              = "RCCIDTag";
+        private const string _RCCScopeTag                           = "RCCScopeTag";
 
         private MEClass _collectionClass;                           // UML representation of the collection.
-        private MEPackage _package;                                 // The package in which the collection lives.
-        private List<RESTOperationResultDescriptor> _collection;   // The actual collection.
-        private MEDataType _attribClassifier;                       // Classifier to be used for attributes.
+        private MEPackage _owningPackage;                           // The package in which the collection lives.
+        private RESTOperationCapability _operation;                 // For operation-scoped collections, this is the parent operation.
+        private List<RESTOperationResultDescriptor> _collection;    // The actual collection.
         private CollectionScope _scope;                             // Scope of this collection.
         private string _name;                                       // Collection name, identical to collectionClass name (when one is present).
         private bool _isLocked;                                     // Set to 'true' when global scope and locked.
+        private string _collectionID;                               // Collection identifier.
+
+        /// <summary>
+        /// Returns the list of Operation Result Descriptors that comprises the collection.
+        /// </summary>
+        internal List<RESTOperationResultDescriptor> Collection { get { return this._collection; } }
+
+        /// <summary>
+        /// Returns the unique collection identifier.
+        /// </summary>
+        internal string CollectionID { get { return this.CollectionID; } }
 
         /// <summary>
         /// Get or Set the name of the collection. Note that, if we assign a name to an object that is not yet associated with
@@ -54,25 +67,27 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Returns the package in which the collection lives.
+        /// </summary>
+        internal MEPackage OwningPackage { get { return this._owningPackage; } }
+
+        /// <summary>
         /// Returns the collection scope.
         /// </summary>
         internal CollectionScope Scope {  get { return this._scope; } }
 
         /// <summary>
-        /// Returns the list of Operation Result Declaration objects that comprises the collection.
-        /// </summary>
-        internal List<RESTOperationResultDescriptor> Collection { get { return this._collection; } }
-
-        /// <summary>
         /// Either loads an existing collection with specified name from the specified package, or creates a new, empty, collection
-        /// in the specified package.
+        /// in the specified package. If we find an existing collection, the constructor also initialises all associated Result Code
+        /// Descriptors.
         /// </summary>
+        /// <param name="operation">For operation-scoped collections, this is the parent operation. Must be NULL for template collections.</param>
         /// <param name="collectionName">Name to be assigned to the collection.</param>
         /// <param name="package">Package that must contain the collection. The location of the package determines the scope of the
         /// collection: if this is a ServiceModel package, the scope is 'API'. If the package is an Operation-type, the scope is 'Operation'
         /// and all others are considered 'Global'.</param>
         /// <exception cref="InvalidOperationException">Is thrown when we can't find the attribute classifier.</exception>
-        internal RESTResponseCodeCollection(string collectionName, MEPackage package)
+        internal RESTResponseCodeCollection(RESTOperationCapability operation, string collectionName, MEPackage package)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Creating instance '" +
                              collectionName + "' in Package '" + package.Parent.Name + "/" + package.Name + "'...");
@@ -80,40 +95,42 @@ namespace Plugin.Application.CapabilityModel.API
             ContextSlt context = ContextSlt.GetContextSlt();
 
             // first of all, we're trying to determine the scope of this collection...
-            this._package = package;
-            this._scope = CollectionScope.Global;       // True until proven otherwise.
+            this._owningPackage = package;
             this._name = collectionName;
             this._isLocked = false;
-            if (package.HasStereotype(context.GetConfigProperty(_ServiceOperationPkgStereotype))) this._scope = CollectionScope.Operation;
-            else if (package.Name == context.GetConfigProperty(_ServiceModelPkgName) &&
-                     package.HasStereotype(context.GetConfigProperty(_ServiceModelPkgStereotype))) this._scope = CollectionScope.API;
-
             this._collection = new List<RESTOperationResultDescriptor>();
-            this._attribClassifier = ModelSlt.GetModelSlt().FindDataType(context.GetConfigProperty(_CoreDataTypesPathName),
-                                                                         context.GetConfigProperty(_RESTResponseCodeAttributeClassifier));
-            string collectionStereotype = context.GetConfigProperty(_RESTResponseCodeCollectionStereotype);
+            this._operation = operation;
 
-            if (this._attribClassifier == null)
-            {
-                string msg = "Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Unable to find classifier for collection attributes!";
-                Logger.WriteError(msg);
-                throw new InvalidOperationException(msg);
-            }
+            string collectionStereotype = context.GetConfigProperty(_RCCStereotype);
+            string responseDescriptorStereotype = context.GetConfigProperty(_RCDStereotype);
             this._collectionClass = package.FindClass(collectionName, collectionStereotype);
             if (this._collectionClass != null)
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Found existing class!");
-                foreach (MEAttribute attrib in this._collectionClass.Attributes)
+                foreach (MEAssociation assoc in this._collectionClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
                 {
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Adding '" + attrib.Name + "'...");
-                    this._collection.Add(new RESTOperationResultDescriptor(attrib.Name, attrib.Annotation));
+                    if (assoc.Destination.EndPoint.HasStereotype(responseDescriptorStereotype))
+                    {
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Found Response Code Descriptor '" + 
+                                         assoc.Destination.EndPoint.Name + "'...");
+                        this._collection.Add(new RESTOperationResultDescriptor(this, assoc.Destination.EndPoint));
+                    }
                 }
+                this._collectionID = this._collectionClass.GetTag(context.GetConfigProperty(_RCCIDTag));
+                this._scope = EnumConversions<CollectionScope>.StringToEnum(this._collectionClass.GetTag(context.GetConfigProperty(_RCCScopeTag)));
             }
             else
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> No class yet, creating one...");
+                this._scope = CollectionScope.Global; 
+                if (package.HasStereotype(context.GetConfigProperty(_ServiceOperationPkgStereotype))) this._scope = CollectionScope.Operation;
+                else if (package.Name == context.GetConfigProperty(_ServiceModelPkgName) &&
+                         package.HasStereotype(context.GetConfigProperty(_ServiceModelPkgStereotype))) this._scope = CollectionScope.API;
+
                 LockCollection();
                 this._collectionClass = package.CreateClass(collectionName, collectionStereotype);
+                this._collectionClass.SetTag(context.GetConfigProperty(_RCCIDTag), this._collectionClass.ElementID.ToString(), true);
+                this._collectionClass.SetTag(context.GetConfigProperty(_RCCScopeTag), EnumConversions<CollectionScope>.EnumToString(this._scope));                
                 UnlockCollection();
             }
         }
@@ -121,10 +138,11 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// This constructor is called with an existing Collection class and initialises the collection from that class.
         /// </summary>
+        /// <param name="operation">For operation-scoped collections, this is the parent operation. Must be NULL for template collections.</param>
         /// <param name="collectionClass">Collection class.</param>
         /// <exception cref="InvalidOperationException">Thrown when a collection class is passed that is not of the correct stereotype or 
         /// when we can't find the correct attribute classifier.</exception>
-        internal RESTResponseCodeCollection(MEClass collectionClass)
+        internal RESTResponseCodeCollection(RESTOperationCapability operation, MEClass collectionClass)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Creating instance from class '" +
                               collectionClass.Name + "'...");
@@ -133,38 +151,34 @@ namespace Plugin.Application.CapabilityModel.API
             this._isLocked = false;
             this._collection = new List<RESTOperationResultDescriptor>();
             this._collectionClass = collectionClass;
-            this._package = collectionClass.OwningPackage;
+            this._owningPackage = collectionClass.OwningPackage;
             this._name = collectionClass.Name;
-            this._attribClassifier = ModelSlt.GetModelSlt().FindDataType(context.GetConfigProperty(_CoreDataTypesPathName),
-                                                                         context.GetConfigProperty(_RESTResponseCodeAttributeClassifier));
+            this._operation = operation;
 
-            string collectionStereotype = context.GetConfigProperty(_RESTResponseCodeCollectionStereotype);
-            if (!collectionClass.HasStereotype(collectionStereotype))
+            string responseDescriptorStereotype = context.GetConfigProperty(_RCDStereotype);
+            if (!collectionClass.HasStereotype(context.GetConfigProperty(_RCCStereotype)))
             {
                 string msg = "Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Attempt to create collection from wrong classifier '" + collectionClass.Name + "'!";
                 Logger.WriteError(msg);
                 throw new InvalidOperationException(msg);
             }
-            if (this._attribClassifier == null)
-            {
-                string msg = "Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Unable to find classifier for collection attributes!";
-                Logger.WriteError(msg);
-                throw new InvalidOperationException(msg);
-            }
 
-            foreach (MEAttribute attrib in this._collectionClass.Attributes)
-            {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Adding '" + attrib.Name + "'...");
-                this._collection.Add(new RESTOperationResultDescriptor(attrib.Name, attrib.Annotation));
-            }
+            this._collectionID = this._collectionClass.GetTag(context.GetConfigProperty(_RCCIDTag));
+            this._scope = EnumConversions<CollectionScope>.StringToEnum(this._collectionClass.GetTag(context.GetConfigProperty(_RCCScopeTag)));
 
-            // Now we're trying to determine the scope of this collection...
-            this._scope = CollectionScope.Global;       // True until proven otherwise.
-            if (this._package.HasStereotype(context.GetConfigProperty(_ServiceOperationPkgStereotype))) this._scope = CollectionScope.Operation;
-            else if (this._package.Name == context.GetConfigProperty(_ServiceModelPkgName) &&
-                     this._package.HasStereotype(context.GetConfigProperty(_ServiceModelPkgStereotype))) this._scope = CollectionScope.API;
+            foreach (MEAssociation assoc in this._collectionClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+            {
+                if (assoc.Destination.EndPoint.HasStereotype(responseDescriptorStereotype))
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Found Response Code Descriptor '" +
+                                     assoc.Destination.EndPoint.Name + "'...");
+                    this._collection.Add(new RESTOperationResultDescriptor(this, assoc.Destination.EndPoint));
+                }
+            }
         }
 
+        /******
+         *  DO WE NEED THIS????
         /// <summary>
         /// Default contstructor, creates an empty collection that does not contain any information. In order to turn this into a valid
         /// collection, the scope must be set (using the 'SetScope' function).
@@ -179,41 +193,36 @@ namespace Plugin.Application.CapabilityModel.API
             this._scope = CollectionScope.Unknown;
             this._name = string.Empty;
             this._collection = new List<RESTOperationResultDescriptor>();
-            this._attribClassifier = ModelSlt.GetModelSlt().FindDataType(context.GetConfigProperty(_CoreDataTypesPathName),
-                                                                         context.GetConfigProperty(_RESTResponseCodeAttributeClassifier));
-
-            if (this._attribClassifier == null)
-            {
-                string msg = "Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Unable to find classifier for collection attributes!";
-                Logger.WriteError(msg);
-                throw new InvalidOperationException(msg);
-            }
+            this._collectionID = null;
+            this._operation = null;
         }
+        *******/
 
         /// <summary>
-        /// This function is invoked to add a new result code to this collection. It displays the Response Code Dialog, which
-        /// facilitates the user in creating a new result object. The created object is added to the result list for this collection as long as
-        /// it has a unique code.
+        /// This function is invoked to add a new result descriptor to this collection. It displays the Response Code Dialog, which
+        /// facilitates the user in creating a new result descriptor. When it is indeed a new response, the created descriptor is added to 
+        /// the result list for this collection, otherwise the function does not perform any operations.
         /// </summary>
-        /// <returns>Newly created result record or NULL in case of errors or duplicates or user cancel.</returns>
+        /// <returns>Newly created result record or NULL in case of errors, duplicates or user cancel.</returns>
         internal RESTOperationResultDescriptor AddOperationResult()
         {
-            var newResult = new RESTOperationResultDescriptor(RESTOperationResultCapability.ResponseCategory.Unknown);
-            ModelSlt model = ModelSlt.GetModelSlt();
             ContextSlt context = ContextSlt.GetContextSlt();
-            using (var dialog = new RESTResponseCodeDialog(newResult))
+            RESTOperationResultDescriptor newResult = null;
+            using (var dialog = new RESTResponseCodeDialog(this, null))
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     if (!this._collection.Contains(dialog.OperationResult))
                     {
-                        this._collection.Add(dialog.OperationResult);
                         newResult = dialog.OperationResult;
+                        this._collection.Add(newResult);
                         if (this._collectionClass != null)
                         {
-                            this._collectionClass.CreateAttribute(dialog.OperationResult.ResultCode, this._attribClassifier,
-                                                                  AttributeType.Attribute, null, new Cardinality(Cardinality._Mandatory),
-                                                                  false, dialog.OperationResult.Description);
+                            LockCollection();
+                            var parentEndpoint = new EndpointDescriptor(this._collectionClass, "1", "collection", null, false);
+                            var descriptorEndpoint = new EndpointDescriptor(newResult.DescriptorClass, "1", newResult.ResultCode, null, true);
+                            this._collectionClass.CreateAssociation(parentEndpoint, descriptorEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                            UnlockCollection();
                         }
                     }
                     else
@@ -233,26 +242,21 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="code">Operation Result Code to be deleted.</param>
         internal void DeleteOperationResult(string code)
         {
-            if (this._scope == CollectionScope.Global) this._package.Lock(false);
+            LockCollection();
             foreach (RESTOperationResultDescriptor decl in this._collection)
             {
                 if (decl.ResultCode == code)
                 {
+                    decl.Invalidate();
                     this._collection.Remove(decl);
-                    if (this._collectionClass != null)
-                    {
-                        MEAttribute delAttr = this._collectionClass.FindAttribute(code);
-                        if (delAttr != null) this._collectionClass.DeleteAttribute(delAttr);
-                    }
-                    if (this._scope == CollectionScope.Global) this._package.Unlock(false);
-                    return; // Must not continue the loop since collection has been modified!
+                    break;
                 }
             }
-            if (this._scope == CollectionScope.Global) this._package.Unlock(false);
+            UnlockCollection();
         }
 
         /// <summary>
-        /// This function is invoked when the collection has to be destroyed. The associated class is removed from the package.
+        /// This function is invoked when the entire collection has to be destroyed. All UML classes are removed as well.
         /// Any exceptions are ignored and on return, the collection is no longer valid.
         /// </summary>
         internal void DeleteResources()
@@ -260,10 +264,11 @@ namespace Plugin.Application.CapabilityModel.API
             try
             {
                 LockCollection();
-                this._package.DeleteClass(this._collectionClass);
+                foreach (RESTOperationResultDescriptor decl in this._collection) decl.Invalidate();
+                this._owningPackage.DeleteClass(this._collectionClass);
                 UnlockCollection();
                 this._collection = null;
-                this._package = null;
+                this._owningPackage = null;
                 this._collectionClass = null;
                 this._name = string.Empty;
             }
@@ -358,7 +363,7 @@ namespace Plugin.Application.CapabilityModel.API
         {
             if (this._scope == CollectionScope.Global && !this._isLocked)
             {
-                this._package.Lock();
+                this._owningPackage.Lock();
                 this._isLocked = true;
             }
         }
@@ -376,7 +381,7 @@ namespace Plugin.Application.CapabilityModel.API
         {
             if (this._scope == CollectionScope.Unknown)
             {
-                this._package = package;
+                this._owningPackage = package;
                 this._scope = scope;
                 SetName(this._name);
             }
@@ -395,7 +400,7 @@ namespace Plugin.Application.CapabilityModel.API
         {
             if (this._scope == CollectionScope.Global && this._isLocked)
             {
-                this._package.Unlock();
+                this._owningPackage.Unlock();
                 this._isLocked = false;
             }
         }
@@ -403,7 +408,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Rename the collection. If another collection class already exists with the specified name, an exception will be thrown!
         /// And if the class does not yet exists, it is created with the given name and all currently collected Response Codes will be
-        /// added as attributes of the class. If we have incorrect / inconsistent state (no package and scope are known yet), the
+        /// moved to the new class. If we have incorrect / inconsistent state (no package and scope are known yet), the
         /// operation is ignored but we'll store the name for later reference.
         /// </summary>
         /// <param name="name">(new) name for the class.</param>
@@ -413,7 +418,7 @@ namespace Plugin.Application.CapabilityModel.API
             ContextSlt context = ContextSlt.GetContextSlt();
             string collectionStereotype = context.GetConfigProperty(_RESTResponseCodeCollectionStereotype);
             this._name = name;
-            if (this._package != null)
+            if (this._owningPackage != null)
             {
                 // First of all, check spurious name assignments (nothing to do in that case)...
                 if (this._collectionClass != null && this._collectionClass.Name == name) return;
@@ -421,7 +426,7 @@ namespace Plugin.Application.CapabilityModel.API
                 try
                 {
                     LockCollection();
-                    MEClass newClass = this._package.FindClass(name, collectionStereotype);
+                    MEClass newClass = this._owningPackage.FindClass(name, collectionStereotype);
                     if (newClass != null)
                     {
                         string msg = "Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection.SetName >> New name '" + this._collectionClass.Name + "' already exists!";
@@ -440,7 +445,7 @@ namespace Plugin.Application.CapabilityModel.API
                         else
                         {
                             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> No class yet, creating one...");
-                            this._collectionClass = this._package.CreateClass(name, collectionStereotype);
+                            this._collectionClass = this._owningPackage.CreateClass(name, collectionStereotype);
 
                             if (this._collection.Count > 0)
                             {

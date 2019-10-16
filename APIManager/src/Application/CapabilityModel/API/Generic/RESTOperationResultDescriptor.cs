@@ -129,78 +129,13 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _ResourceClassStereotype       = "ResourceClassStereotype";
         private const string _OperationResultClassName      = "OperationResultClassName";
 
-        /// <summary>
-        /// Helper class that facilitates translation between code, description and human friendly labels.
-        /// </summary>
-        internal sealed class CodeDescriptor
-        {
-            private string _code;           // Actual HTTP Code.
-            private string _description;    // Descriptive text for the code.
-
-            internal string Code            { get { return this._code; } }
-            internal string Description     { get { return this._description; } }
-            internal string Label           { get { return this._code + " - " + this._description; } }
-
-            /// <summary>
-            /// Create a new CodeDescriptor object based on Code and Description.
-            /// </summary>
-            /// <param name="code">HTTP Response Code.</param>
-            /// <param name="description">Associated description.</param>
-            internal CodeDescriptor (string code, string description)
-            {
-                this._code = code;
-                this._description = description;
-            }
-
-            /// <summary>
-            /// Helper function that returns the original Code for a given Label.
-            /// </summary>
-            /// <param name="label">Label to convert.</param>
-            /// <returns>Code that corresponds with the label.</returns>
-            static internal string LabelToCode(string label)
-            {
-                ContextSlt context = ContextSlt.GetContextSlt();
-                return label.Substring(0, label.IndexOf(" - "));
-            }
-
-            /// <summary>
-            /// Helper function that takes a code and fetches the default description text for that code.
-            /// </summary>
-            /// <param name="code">Code to translate.</param>
-            /// <returns>Associated description or empty string in case of illegal codes.</returns>
-            static internal string CodeToDescription(string code)
-            {
-                try
-                {
-                    // Since this is non-numeric, we must test this one explicitly...
-                    if (code == _DefaultCode) return _DefaultCodeText;
-
-                    var category = (RESTOperationResultCapability.ResponseCategory)int.Parse(code[0].ToString());
-                    var result = new RESTOperationResultDescriptor(category);
-                    List<CodeDescriptor> codes = result.GetResponseCodes();
-                    foreach (CodeDescriptor dsc in codes) if (dsc.Code == code) return dsc.Description;
-                    return string.Empty;
-                }
-                catch { return string.Empty; }
-            }
-
-            /// <summary>
-            /// Helper function that takes a code and translates this into a human-friendly label.
-            /// </summary>
-            /// <param name="code">Code to translate.</param>
-            /// <returns>Associated label or empty string in case of illegal codes.</returns>
-            static internal string CodeToLabel(string code)
-            {
-                string description = CodeToDescription(code);
-                return description != string.Empty ? code + " - " + description : string.Empty;
-            }
-        }
-
         private ResponseCategory _category;         // Operation result category code.
         private string _resultCode;                 // Either an HTTP result code or default OpenAPI response code.
         private string _originalCode;               // In case of Edit: if we replace the code by a new one, this contains the original code.
         private string _description;                // Descriptive text to go with the response.
         private bool _isTemplate;                   // Partial response code definition to be used as a template to create other instances.
+        private RESTResponseCodeCollection _collection; // The collection to which this descriptor belongs.
+        private MEClass _descriptorClass;           // Associated UML class representing this descriptor.
         private ResultPayloadType _payloadType;     // Identifies the type of payload associated with this response code.
         private string _externalReference;          // URL of an external payload to be imported (not supported for all interface descriptors).
         private MEClass _responsePayloadClass;      // Contains the class that is assigned to this response as a payload.
@@ -221,6 +156,11 @@ namespace Plugin.Application.CapabilityModel.API
             get { return this._description; }
             set { this._description = value; }
         }
+
+        /// <summary>
+        /// Returns the UML class used to represent this descriptor.
+        /// </summary>
+        internal MEClass DescriptorClass { get { return this._descriptorClass; } }
 
         /// <summary>
         /// Get or set an external reference associated with this response code. This must be an URL referencing some external schema fragment.
@@ -398,6 +338,17 @@ namespace Plugin.Application.CapabilityModel.API
             return !(elementa == elementb);
         }
 
+        /// <summary>
+        /// This constructor creates an Operation Result Descriptor from an exising UML descriptor class. The constructor
+        /// also receives the Response Code Collection that acts as 'parent' for this descriptor.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="descriptorClass"></param>
+        internal RESTOperationResultDescriptor(RESTResponseCodeCollection parent, MEClass descriptorClass)
+        {
+            // TO BE IMPLEMENTED!
+        }
+
         /*********************
         /// <summary>
         /// This constructor creates a new operation result declaration descriptor using an existing Operation Result Capability.
@@ -442,8 +393,9 @@ namespace Plugin.Application.CapabilityModel.API
         /// ServerError - Default server error code, standard Error body and default Server Error description.
         /// All others - descriptor containing 'default' code and default category-dependent description.
         /// </summary>
+        /// <param name="parent">The collection that 'owns' this result descriptor.</param>
         /// <param name="category">The HTTP Result Code category (first digit in response code).</param>
-        internal RESTOperationResultDescriptor(ResponseCategory category)
+        internal RESTOperationResultDescriptor(RESTResponseCodeCollection parent,  ResponseCategory category)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultDeclaration >> Default constructor using category '" + category.ToString() + "'...");
 
@@ -452,6 +404,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._responseCardinality = new Cardinality();
             this._status = this._initialStatus = DeclarationStatus.Stable;
             this._externalReference = null;
+            this._collection = parent;
 
             switch (category)
             {
@@ -501,11 +454,12 @@ namespace Plugin.Application.CapabilityModel.API
         /// must be created that contains a class that specifies these parameters.
         /// Note that externalRef and payloadClass are mutually exclusive and when both are specified, payloadClass has precedence.
         /// </summary>
+        /// <param name="parent">The collection that 'owns' this result descriptor.</param>
         /// <param name="code">HTTP Result code to be associated with this result.</param>
         /// <param name="description">Textual description.</param>
         /// <param name="externalRef">Optional URL that identifies an 'external' payload reference.</param>
         /// <param name="payloadClass">An optional response body payload class.</param>
-        internal RESTOperationResultDescriptor(string code, string description, string externalRef = null, MEClass payloadClass = null)
+        internal RESTOperationResultDescriptor(RESTResponseCodeCollection parent, string code, string description, string externalRef = null, MEClass payloadClass = null)
         {
             this._resultCode = this._originalCode = code;
             this._description = description;
@@ -514,6 +468,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._category = (code == _DefaultCode)? 
                 ResponseCategory.Default :
                (ResponseCategory)int.Parse(code[0].ToString());
+            this._collection = parent;
             this._status = this._initialStatus = DeclarationStatus.Stable;
             this._responseCardinality = new Cardinality();
             DefineResponsePayloadType();
@@ -522,8 +477,9 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Constructor that accepts a code only. The constructor retrieves the default description for this code.
         /// </summary>
+        /// <param name="parent">The collection that 'owns' this result descriptor.</param>
         /// <param name="code">HTTP Result code to be associated with this result.</param>
-        internal RESTOperationResultDescriptor(string code)
+        internal RESTOperationResultDescriptor(RESTResponseCodeCollection parent, string code)
         {
             this._resultCode = this._originalCode = code;
             this._description = CodeDescriptor.CodeToDescription(code);
@@ -532,6 +488,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._category = (code == _DefaultCode) ?
                 ResponseCategory.Default :
                (ResponseCategory)int.Parse(code[0].ToString());
+            this._collection = parent;
             this._status = this._initialStatus = DeclarationStatus.Stable;
             this._responseCardinality = new Cardinality();
             DefineResponsePayloadType();
@@ -616,6 +573,21 @@ namespace Plugin.Application.CapabilityModel.API
                     break;
             }
             return resultList;
+        }
+
+        /// <summary>
+        /// This function is invoked on deletion of the response descriptor from the parent collection. The function deletes the associated
+        /// UML class and removes all context. On return, the object should NOT be used any more!
+        /// </summary>
+        internal void Invalidate()
+        {
+            this._collection.OwningPackage.DeleteClass(this._descriptorClass);
+            this._responsePayloadClass = null;
+            this._externalReference = null;
+            this._category = ResponseCategory.Unknown;
+            this._collection = null;
+            this._status = this._initialStatus = DeclarationStatus.Invalid;
+            this._responseCardinality = null;
         }
 
         /// <summary>
@@ -738,6 +710,73 @@ namespace Plugin.Application.CapabilityModel.API
                         break;
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Helper class that facilitates translation between code, description and human friendly labels.
+    /// </summary>
+    internal sealed class CodeDescriptor
+    {
+        private string _code;           // Actual HTTP Code.
+        private string _description;    // Descriptive text for the code.
+
+        internal string Code { get { return this._code; } }
+        internal string Description { get { return this._description; } }
+        internal string Label { get { return this._code + " - " + this._description; } }
+
+        /// <summary>
+        /// Create a new CodeDescriptor object based on Code and Description.
+        /// </summary>
+        /// <param name="code">HTTP Response Code.</param>
+        /// <param name="description">Associated description.</param>
+        internal CodeDescriptor(string code, string description)
+        {
+            this._code = code;
+            this._description = description;
+        }
+
+        /// <summary>
+        /// Helper function that returns the original Code for a given Label.
+        /// </summary>
+        /// <param name="label">Label to convert.</param>
+        /// <returns>Code that corresponds with the label.</returns>
+        static internal string LabelToCode(string label)
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            return label.Substring(0, label.IndexOf(" - "));
+        }
+
+        /// <summary>
+        /// Helper function that takes a code and fetches the default description text for that code.
+        /// </summary>
+        /// <param name="code">Code to translate.</param>
+        /// <returns>Associated description or empty string in case of illegal codes.</returns>
+        static internal string CodeToDescription(string code)
+        {
+            try
+            {
+                // Since this is non-numeric, we must test this one explicitly...
+                if (code == _DefaultCode) return _DefaultCodeText;
+
+                var category = (RESTOperationResultCapability.ResponseCategory)int.Parse(code[0].ToString());
+                var result = new RESTOperationResultDescriptor(category);
+                List<CodeDescriptor> codes = result.GetResponseCodes();
+                foreach (CodeDescriptor dsc in codes) if (dsc.Code == code) return dsc.Description;
+                return string.Empty;
+            }
+            catch { return string.Empty; }
+        }
+
+        /// <summary>
+        /// Helper function that takes a code and translates this into a human-friendly label.
+        /// </summary>
+        /// <param name="code">Code to translate.</param>
+        /// <returns>Associated label or empty string in case of illegal codes.</returns>
+        static internal string CodeToLabel(string code)
+        {
+            string description = CodeToDescription(code);
+            return description != string.Empty ? code + " - " + description : string.Empty;
         }
     }
 }

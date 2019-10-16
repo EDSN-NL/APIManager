@@ -31,14 +31,6 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _RESTUseHeaderParametersTag        = "RESTUseHeaderParametersTag";
         private const string _RESTUseLinkHeaderTag              = "RESTUseLinkHeaderTag";
 
-        // Configuration properties for signing and encryption:
-        private const string _SigningClassName                  = "SigningClassName";
-        private const string _EncryptionClassName               = "EncryptionClassName";
-        private const string _RequestSigningRoleName            = "RequestSigningRoleName";
-        private const string _ResponseSigningRoleName           = "ResponseSigningRoleName";
-        private const string _RequestEncryptionRoleName         = "RequestEncryptionRoleName";
-        private const string _ResponseEncryptionRoleName        = "ResponseEncryptionRoleName";
-
         private RESTResourceCapability _parent;                 // Parent resource capability that owns this operation.
         private HTTPOperation _operationType;                   // The HTTP operation type associated with the operation.
         private List<string> _producedMIMETypes;                // List of non-standard MIME types produced by the operation.
@@ -50,10 +42,6 @@ namespace Plugin.Application.CapabilityModel.API
         private bool _useHeaderParameters;                      // Set to 'true' when operation muse use configured Header Parameters.
         private bool _useLinkHeaders;                           // Set to 'true' when the response must contain a definition for Link Headers.
         private bool _usePagination;                            // Set to 'true' when the operation uses pagination.
-        private bool _useReqEncryption;                         // Set to 'true' when the operations uses request encryption. 
-        private bool _useRspEncryption;                         // Set to 'true' when the operations uses response encryption. 
-        private bool _useReqSigning;                            // Set to 'true' when the operations uses request signing. 
-        private bool _useRspSigning;                            // Set to 'true' when the operations uses response encryption. 
 
         /// <summary>
         /// Getters for class properties:

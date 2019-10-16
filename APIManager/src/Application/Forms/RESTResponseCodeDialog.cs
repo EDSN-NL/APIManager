@@ -14,80 +14,89 @@ namespace Plugin.Application.Forms
         // Configuration codes used by this module:
         private const string _APISupportModelPathName = "APISupportModelPathName";
 
-        private RESTOperationResultDescriptor _result;     // The result declaration that we're building.
-        private List<RESTOperationResultDescriptor.CodeDescriptor> _codeList;      // Currently active set of response code definitions.
+        private RESTOperationResultDescriptor _result;                          // The Descriptor that we're building.
+        private List<RESTOperationResultDescriptor.CodeDescriptor> _codeList;   // Currently active set of response code definitions.
+        private RESTResponseCodeCollection _collection;                         // The collection that will hold the descriptor.
 
         internal RESTOperationResultDescriptor OperationResult { get { return this._result; } }
 
         /// <summary>
-        /// Dialog that facilitates creation of a new Operation Result Declaration (or editing of an existing one).
+        /// Dialog that facilitates creation of a new Operation Result Descriptor (or editing of an existing one).
+        /// When we want to create a new descriptor, pass 'NULL' to 'descriptor'.
         /// </summary>
-        /// <param name="result">Initial declaration to use for editing.</param>
-        internal RESTResponseCodeDialog(RESTOperationResultDescriptor result)
+        /// <param name="collection">The collection that will 'own' the new descriptor.</param>
+        /// <param name="descriptor">Initial declaration to use for editing.</param>
+        internal RESTResponseCodeDialog(RESTResponseCodeCollection collection, RESTOperationResultDescriptor descriptor)
         {
             InitializeComponent();
             ContextSlt context = ContextSlt.GetContextSlt();
-            this._result = result;
+            this._result = descriptor;
+            this._collection = collection;
 
-            // Initialize the proper category button according to our current category...
-            switch (result.Category)
+            if (descriptor == null)
             {
-                case RESTOperationResultCapability.ResponseCategory.Informational:
-                    IsInformational.Checked = true;
-                    break;
-
-                case RESTOperationResultCapability.ResponseCategory.Success:
-                    IsSuccess.Checked = true;
-                    break;
-
-                case RESTOperationResultCapability.ResponseCategory.Redirection:
-                    IsRedirection.Checked = true;
-                    break;
-
-                case RESTOperationResultCapability.ResponseCategory.ClientError:
-                    IsClientError.Checked = true;
-                    break;
-
-                case RESTOperationResultCapability.ResponseCategory.ServerError:
-                    IsServerError.Checked = true;
-                    break;
-
-                // Safety catch: we should NOT invoke this dialog with Unknown categories. If we DO try this, the
-                // result declaration is reset to 'Informational'....
-                default:
-                    this._result = new RESTOperationResultDescriptor(RESTOperationResultCapability.ResponseCategory.Informational);
-                    ResponseDescription.Text = this._result.Description;
-                    IsInformational.Checked = true;
-                    break;
+                DO SOMETHING
             }
-
-            // Select the current payload type for this response code and load the payload 'name' field accordingly...
-            switch (result.PayloadType)
+            else
             {
-                case RESTOperationResultDescriptor.ResultPayloadType.CustomResponse:
-                    PayloadBox.Text = result.ResponsePayloadClass != null? result.ResponsePayloadClass.Name: string.Empty;
-                    IsCustomType.Checked = true;
-                    break;
+                switch (descriptor.Category)
+                {
+                    case RESTOperationResultDescriptor.ResponseCategory.Informational:
+                        IsInformational.Checked = true;
+                        break;
 
-                case RESTOperationResultDescriptor.ResultPayloadType.DefaultResponse:
-                    PayloadBox.Text = result.ResponsePayloadClass != null? result.ResponsePayloadClass.Name: string.Empty;
-                    IsDefaultResponseType.Checked = true;
-                    break;
+                    case RESTOperationResultDescriptor.ResponseCategory.Success:
+                        IsSuccess.Checked = true;
+                        break;
 
-                case RESTOperationResultDescriptor.ResultPayloadType.Document:
-                    PayloadBox.Text = result.ResponsePayloadClass != null ? result.ResponsePayloadClass.Name : string.Empty;
-                    IsDocument.Checked = true;
-                    break;
+                    case RESTOperationResultDescriptor.ResponseCategory.Redirection:
+                        IsRedirection.Checked = true;
+                        break;
 
-                case RESTOperationResultDescriptor.ResultPayloadType.Link:
-                    PayloadBox.Text = !string.IsNullOrEmpty(result.ExternalReference) ? result.ExternalReference : string.Empty;
-                    IsExternalLink.Checked = true;
-                    break;
+                    case RESTOperationResultDescriptor.ResponseCategory.ClientError:
+                        IsClientError.Checked = true;
+                        break;
 
-                default:
-                    PayloadBox.Text = string.Empty;
-                    IsNone.Checked = true;
-                    break;
+                    case RESTOperationResultDescriptor.ResponseCategory.ServerError:
+                        IsServerError.Checked = true;
+                        break;
+
+                    // The 'unknown' category is used for first-time creation of new descriptors. Use some sensible defaults here.
+                    default:
+                        this._result = new RESTOperationResultDescriptor(RESTOperationResultDescriptor.ResponseCategory.Informational);
+                        ResponseDescription.Text = this._result.Description;
+                        IsInformational.Checked = true;
+                        break;
+                }
+
+                // Select the current payload type for this response code and load the payload 'name' field accordingly...
+                switch (descriptor.PayloadType)
+                {
+                    case RESTOperationResultDescriptor.ResultPayloadType.CustomResponse:
+                        PayloadBox.Text = descriptor.ResponsePayloadClass != null ? descriptor.ResponsePayloadClass.Name : string.Empty;
+                        IsCustomType.Checked = true;
+                        break;
+
+                    case RESTOperationResultDescriptor.ResultPayloadType.DefaultResponse:
+                        PayloadBox.Text = descriptor.ResponsePayloadClass != null ? descriptor.ResponsePayloadClass.Name : string.Empty;
+                        IsDefaultResponseType.Checked = true;
+                        break;
+
+                    case RESTOperationResultDescriptor.ResultPayloadType.Document:
+                        PayloadBox.Text = descriptor.ResponsePayloadClass != null ? descriptor.ResponsePayloadClass.Name : string.Empty;
+                        IsDocument.Checked = true;
+                        break;
+
+                    case RESTOperationResultDescriptor.ResultPayloadType.Link:
+                        PayloadBox.Text = !string.IsNullOrEmpty(descriptor.ExternalReference) ? descriptor.ExternalReference : string.Empty;
+                        IsExternalLink.Checked = true;
+                        break;
+
+                    default:
+                        PayloadBox.Text = string.Empty;
+                        IsNone.Checked = true;
+                        break;
+                }
             }
 
             // Initialize the drop-down box with all possible codes for given category...
@@ -97,7 +106,7 @@ namespace Plugin.Application.Forms
                 ResponseCode.Items.Add(dsc.Label);
             }
             ResponseCode.SelectedItem = RESTOperationResultDescriptor.CodeDescriptor.CodeToLabel(this._result.ResultCode);
-            ResponseDescription.Text = (result != null && !string.IsNullOrEmpty(result.Description)) ? result.Description : string.Empty;
+            ResponseDescription.Text = (descriptor != null && !string.IsNullOrEmpty(descriptor.Description)) ? descriptor.Description : string.Empty;
         }
 
         /// <summary>
