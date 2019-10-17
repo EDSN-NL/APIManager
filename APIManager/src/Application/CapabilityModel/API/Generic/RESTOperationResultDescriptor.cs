@@ -135,7 +135,6 @@ namespace Plugin.Application.CapabilityModel.API
         private string _description;                // Descriptive text to go with the response.
         private bool _isTemplate;                   // Partial response code definition to be used as a template to create other instances.
         private RESTResponseCodeCollection _collection; // The collection to which this descriptor belongs.
-        private MEClass _descriptorClass;           // Associated UML class representing this descriptor.
         private ResultPayloadType _payloadType;     // Identifies the type of payload associated with this response code.
         private string _externalReference;          // URL of an external payload to be imported (not supported for all interface descriptors).
         private MEClass _responsePayloadClass;      // Contains the class that is assigned to this response as a payload.
@@ -156,11 +155,6 @@ namespace Plugin.Application.CapabilityModel.API
             get { return this._description; }
             set { this._description = value; }
         }
-
-        /// <summary>
-        /// Returns the UML class used to represent this descriptor.
-        /// </summary>
-        internal MEClass DescriptorClass { get { return this._descriptorClass; } }
 
         /// <summary>
         /// Get or set an external reference associated with this response code. This must be an URL referencing some external schema fragment.
@@ -244,6 +238,7 @@ namespace Plugin.Application.CapabilityModel.API
             {
                 if (this._resultCode != value)
                 {
+            ALS RESULTCODE EEN ANDERE WAARDE KRIJGT MOET OOK HET ATTRIBUUT IN DE COLLECTIE WORDEN AANGEPAST EN OOK ALLE ASSOCIATIES!!!!!!
                     this._resultCode = value;
                     this._description = GetResponseDescription();
                     if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
@@ -339,14 +334,15 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This constructor creates an Operation Result Descriptor from an exising UML descriptor class. The constructor
+        /// This constructor creates an Operation Result Descriptor from an UML Attribute. The constructor
         /// also receives the Response Code Collection that acts as 'parent' for this descriptor.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="descriptorClass"></param>
-        internal RESTOperationResultDescriptor(RESTResponseCodeCollection parent, MEClass descriptorClass)
+        /// <param name="parent">Collection that 'owns' this operation result descriptor.</param>
+        /// <param name="resultAttribute">UML attribute that describes this result descriptor.</param>
+        internal RESTOperationResultDescriptor(RESTResponseCodeCollection parent, MEAttribute resultAttribute)
         {
             // TO BE IMPLEMENTED!
+            // note: y/n template is defined by scope of parent.
         }
 
         /*********************
@@ -495,6 +491,19 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Convert the Operation Result Descriptor into an attribute of the Collection UML Class. When the attribute has a payload
+        /// class, an association between the collection and that payload class is also created, where the association role corresponds
+        /// with the operation result code.
+        /// When the collection already contains an attribute with the same code, this is removed first (as is the optional association
+        /// with the payload class).
+        /// </summary>
+        /// <returns>Newly created attribute.</returns>
+        internal void CreateAttributeInCollection()
+        {
+
+        }
+
+        /// <summary>
         /// This helper function transforms the current operation declaration to an Operation Result Class. The class is created as a child of the 
         /// specified owning package.
         /// </summary>
@@ -576,12 +585,13 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This function is invoked on deletion of the response descriptor from the parent collection. The function deletes the associated
-        /// UML class and removes all context. On return, the object should NOT be used any more!
+        /// This function is invoked on deletion of the response descriptor from the parent collection. The function deletes associations
+        /// between the paren collection and payload classes 'owned' by this result and it removes the UML attribute from the collection
+        /// class. On return, one should NOT use this descriptor anymore!
         /// </summary>
         internal void Invalidate()
         {
-            this._collection.OwningPackage.DeleteClass(this._descriptorClass);
+            // DO DELETE STUFF HERE
             this._responsePayloadClass = null;
             this._externalReference = null;
             this._category = ResponseCategory.Unknown;

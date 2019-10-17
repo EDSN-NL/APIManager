@@ -50,6 +50,11 @@ namespace Plugin.Application.CapabilityModel.API
         internal List<RESTOperationResultDescriptor> Collection { get { return this._collection; } }
 
         /// <summary>
+        /// Returns the UML class used to represent the collection within the model.
+        /// </summary>
+        internal MEClass CollectionClass { get { return this._collectionClass; } }
+
+        /// <summary>
         /// Returns the unique collection identifier.
         /// </summary>
         internal string CollectionID { get { return this.CollectionID; } }
@@ -106,18 +111,19 @@ namespace Plugin.Application.CapabilityModel.API
             this._collectionClass = package.FindClass(collectionName, collectionStereotype);
             if (this._collectionClass != null)
             {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Found existing class!");
-                foreach (MEAssociation assoc in this._collectionClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
-                {
-                    if (assoc.Destination.EndPoint.HasStereotype(responseDescriptorStereotype))
-                    {
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Found Response Code Descriptor '" + 
-                                         assoc.Destination.EndPoint.Name + "'...");
-                        this._collection.Add(new RESTOperationResultDescriptor(this, assoc.Destination.EndPoint));
-                    }
-                }
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Found existing collection class!");
+                string attribStereotype = context.GetConfigProperty(_RCDStereotype);
                 this._collectionID = this._collectionClass.GetTag(context.GetConfigProperty(_RCCIDTag));
                 this._scope = EnumConversions<CollectionScope>.StringToEnum(this._collectionClass.GetTag(context.GetConfigProperty(_RCCScopeTag)));
+                foreach (MEAttribute attrib in this._collectionClass.Attributes)
+                {
+                    if (attrib.HasStereotype(attribStereotype))
+                    {
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Found Response Code Descriptor '" +
+                                         attrib.Name + "'...");
+                        this._collection.Add(new RESTOperationResultDescriptor(this, attrib));
+                    }
+                }
             }
             else
             {
@@ -155,7 +161,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._name = collectionClass.Name;
             this._operation = operation;
 
-            string responseDescriptorStereotype = context.GetConfigProperty(_RCDStereotype);
+            string attribStereotype = context.GetConfigProperty(_RCDStereotype);
             if (!collectionClass.HasStereotype(context.GetConfigProperty(_RCCStereotype)))
             {
                 string msg = "Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Attempt to create collection from wrong classifier '" + collectionClass.Name + "'!";
@@ -165,42 +171,20 @@ namespace Plugin.Application.CapabilityModel.API
 
             this._collectionID = this._collectionClass.GetTag(context.GetConfigProperty(_RCCIDTag));
             this._scope = EnumConversions<CollectionScope>.StringToEnum(this._collectionClass.GetTag(context.GetConfigProperty(_RCCScopeTag)));
-
-            foreach (MEAssociation assoc in this._collectionClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+            foreach (MEAttribute attrib in this._collectionClass.Attributes)
             {
-                if (assoc.Destination.EndPoint.HasStereotype(responseDescriptorStereotype))
+                if (attrib.HasStereotype(attribStereotype))
                 {
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Found Response Code Descriptor '" +
-                                     assoc.Destination.EndPoint.Name + "'...");
-                    this._collection.Add(new RESTOperationResultDescriptor(this, assoc.Destination.EndPoint));
+                                     attrib.Name + "'...");
+                    this._collection.Add(new RESTOperationResultDescriptor(this, attrib));
                 }
             }
         }
 
-        /******
-         *  DO WE NEED THIS????
-        /// <summary>
-        /// Default contstructor, creates an empty collection that does not contain any information. In order to turn this into a valid
-        /// collection, the scope must be set (using the 'SetScope' function).
-        /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown when we can't find the correct attribute classifier.</exception>
-        internal RESTResponseCodeCollection()
-        {
-            ContextSlt context = ContextSlt.GetContextSlt();
-            this._isLocked = false;
-            this._collectionClass = null;
-            this._package = null;
-            this._scope = CollectionScope.Unknown;
-            this._name = string.Empty;
-            this._collection = new List<RESTOperationResultDescriptor>();
-            this._collectionID = null;
-            this._operation = null;
-        }
-        *******/
-
         /// <summary>
         /// This function is invoked to add a new result descriptor to this collection. It displays the Response Code Dialog, which
-        /// facilitates the user in creating a new result descriptor. When it is indeed a new response, the created descriptor is added to 
+        /// facilitates the user in creating a new result descriptor. When it is indeed a new result, the created descriptor is added to 
         /// the result list for this collection, otherwise the function does not perform any operations.
         /// </summary>
         /// <returns>Newly created result record or NULL in case of errors, duplicates or user cancel.</returns>
@@ -219,9 +203,7 @@ namespace Plugin.Application.CapabilityModel.API
                         if (this._collectionClass != null)
                         {
                             LockCollection();
-                            var parentEndpoint = new EndpointDescriptor(this._collectionClass, "1", "collection", null, false);
-                            var descriptorEndpoint = new EndpointDescriptor(newResult.DescriptorClass, "1", newResult.ResultCode, null, true);
-                            this._collectionClass.CreateAssociation(parentEndpoint, descriptorEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                            newResult.CreateAttributeInCollection();
                             UnlockCollection();
                         }
                     }
@@ -237,7 +219,7 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Deletes an operation result from the collection. If the collection does not contain the code, the operation fails silently.
+        /// Deletes an operation result from the collection. If the collection does not contain the specified result code, the operation fails silently.
         /// </summary>
         /// <param name="code">Operation Result Code to be deleted.</param>
         internal void DeleteOperationResult(string code)
@@ -256,7 +238,7 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This function is invoked when the entire collection has to be destroyed. All UML classes are removed as well.
+        /// This function is invoked when the entire collection has to be destroyed.
         /// Any exceptions are ignored and on return, the collection is no longer valid.
         /// </summary>
         internal void DeleteResources()
@@ -264,7 +246,6 @@ namespace Plugin.Application.CapabilityModel.API
             try
             {
                 LockCollection();
-                foreach (RESTOperationResultDescriptor decl in this._collection) decl.Invalidate();
                 this._owningPackage.DeleteClass(this._collectionClass);
                 UnlockCollection();
                 this._collection = null;
@@ -288,51 +269,30 @@ namespace Plugin.Application.CapabilityModel.API
         /// <exception cref="ArgumentException">Thrown when the received code does not match an existing attribute.</exception>
         internal RESTOperationResultDescriptor EditOperationResult(string code)
         {
-            RESTOperationResultDescriptor originalDecl = null;
-            RESTOperationResultDescriptor newDecl = null;
-            MEAttribute myAttribute = null;                 // will be used to persist the declaration in the model.
-            foreach (RESTOperationResultDescriptor decl in this._collection)
+            RESTOperationResultDescriptor originalDesc = null;
+            RESTOperationResultDescriptor newDesc = null;
+            foreach (RESTOperationResultDescriptor desc in this._collection)
             {
-                if (decl.ResultCode == code)
+                if (desc.ResultCode == code)
                 {
-                    originalDecl = decl;
+                    originalDesc = desc;
                     break;
                 }
             }
 
-            if (originalDecl != null)
+            if (originalDesc != null)
             {
-                if (this._collectionClass != null)
-                {
-                    foreach (MEAttribute attrib in this._collectionClass.Attributes)
-                    {
-                        if (attrib.Name == code)
-                        {
-                            myAttribute = attrib;
-                            break;
-                        }
-                    }
-
-                    if (myAttribute == null)
-                    {
-                        string msg = "Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection.EditOperationResult >> Can't find existing attribute '" + this._collectionClass.Name + "." + code + "'!";
-                        Logger.WriteError(msg);
-                        throw new ArgumentException(msg);
-                    }
-                }
-
-                using (var dialog = new RESTResponseCodeDialog(originalDecl))
+                using (var dialog = new RESTResponseCodeDialog(this, originalDesc))
                 {
                     if (dialog.ShowDialog() == DialogResult.OK)
                     {
-                        if (dialog.OperationResult.ResultCode == originalDecl.ResultCode || !this._collection.Contains(dialog.OperationResult))
+                        if (dialog.OperationResult.ResultCode == originalDesc.ResultCode || !this._collection.Contains(dialog.OperationResult))
                         {
-                            newDecl = dialog.OperationResult;
-                            if (myAttribute != null) myAttribute.Annotation = dialog.OperationResult.Description;
-                            if (newDecl.ResultCode != originalDecl.ResultCode)
+                            newDesc = dialog.OperationResult;
+                            if (newDesc.ResultCode != originalDesc.ResultCode)
                             {
-                                this._collection.Remove(originalDecl);
-                                this._collection.Add(newDecl);
+                                this._collection.Remove(originalDesc);
+                                this._collection.Add(newDesc);
                                 if (myAttribute != null) myAttribute.Name = newDecl.ResultCode;
                             }
                             else originalDecl.Description = newDecl.Description; 

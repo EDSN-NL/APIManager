@@ -331,7 +331,7 @@ namespace SparxEA.Model
         /// <summary>
         /// Creates a new attribute in the current class.
         /// <param name="name">Name of the attribute.</param>
-        /// <param name="classifier">Attribute classifier (type of the attribute).</param>
+        /// <param name="classifier">Attribute classifier (type of the attribute). If NULL, classifier will be 'none'.</param>
         /// <param name="type">The type of attribute to create (regular, supplementary or facet)</param>
         /// <param name="defaultValue">An optional default value to be assignd to the attribute.</param>
         /// <param name="cardinality">Specifies lower and upper boundary of cardinality.</param>
@@ -348,7 +348,7 @@ namespace SparxEA.Model
                 Logger.WriteError(message);
                 throw new ArgumentException(message);
             }
-            if (classifier == null || classifier.Type == ModelElementType.Unknown)
+            if (classifier.Type == ModelElementType.Unknown)
             {
                 string message = "SparxEA.Model.EAMEIClass.createAttribute >> Attempt to create attribute '" + attribName + "' with illegal classifier in class '" + this.Name + "'!";
                 Logger.WriteError(message);
@@ -360,7 +360,7 @@ namespace SparxEA.Model
             newAttribute.Update();    // Update immediately to properly finish the creation!
             this._element.Attributes.Refresh();
 
-            // We use 'type' to determine the appropriate stereotype...
+            // We use 'type' to determine the appropriate stereotype. In case of 'unknown', stereotype will be left empty!
             switch (type)
             {
                 case AttributeType.Facet:
@@ -371,14 +371,20 @@ namespace SparxEA.Model
                     newAttribute.StereotypeEx = context.GetConfigProperty(_SupplementaryAttStereotype);
                     break;
 
-                default:
+                case AttributeType.Attribute:
                     newAttribute.StereotypeEx = context.GetConfigProperty(_ContentAttStereotype);
+                    break;
+
+                default:
                     break;
             }
 
             if (!string.IsNullOrEmpty(defaultValue)) newAttribute.Default = defaultValue;
-            newAttribute.ClassifierID = classifier.ElementID;
-            newAttribute.Type = classifier.Name;
+            if (classifier != null)
+            {
+                newAttribute.ClassifierID = classifier.ElementID;
+                newAttribute.Type = classifier.Name;
+            }
             newAttribute.LowerBound = cardinality.LowerBoundary.ToString();
             newAttribute.UpperBound = cardinality.IsUnboundedList? "*": cardinality.UpperBoundary.ToString();
             newAttribute.Visibility = "Public";
