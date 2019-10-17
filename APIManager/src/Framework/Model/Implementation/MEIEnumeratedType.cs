@@ -16,6 +16,12 @@ namespace Framework.Model
         internal abstract List<MEAttribute> GetEnumerations();
 
         /// <summary>
+        /// Checks whether we must treat this enumeration as a simple string, i.e. ignore the list of enumeration values!
+        /// </summary>
+        /// <returns>True in case we must treat the enumeration as a simple string, false for 'normal' enum behavior.</returns>
+        internal abstract bool MustSuppressEnumeration();
+
+        /// <summary>
         /// Default constructor, initializes Model Element type and Data Type meta-type.
         /// </summary>
         /// <param name="model">Reference to the associated model implementation object.</param>

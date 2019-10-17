@@ -14,13 +14,25 @@ namespace Framework.Model
         /// If the current class does not have any enumerated values, the method searches up the hierarchy until it finds a parent that does. Searching
         /// stops at that level, e.g. the 'most specialized class that contains enumerated values' wins.
         /// </summary>
-        /// <returns>List of all attributes for the current type (can be empty if no attributes are defined).</returns>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
         internal List<MEAttribute> Enumerations
         {
             get
             {
                 if (this._imp != null) return ((MEIEnumeratedType)this._imp).GetEnumerations();
+                else throw new MissingImplementationException("MEIEnumeratedType");
+            }
+        }
+
+        /// <summary>
+        /// Checks whether we must treat this enumeration as a simple string, i.e. ignore the list of enumeration values!
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal bool MustSuppressEnumeration
+        {
+            get
+            {
+                if (this._imp != null) return ((MEIEnumeratedType)this._imp).MustSuppressEnumeration();
                 else throw new MissingImplementationException("MEIEnumeratedType");
             }
         }

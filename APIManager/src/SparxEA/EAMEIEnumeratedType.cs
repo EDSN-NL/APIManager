@@ -18,34 +18,30 @@ namespace SparxEA.Model
         /// lack of multiple inheritance).
         /// </summary>
         private EAMEIClass _classPart;
+        private bool _suppressEnumeration;                  // When 'true', we must treat this enumeration as a simple string.
 
         // Configuration properties used to check for correct stereotypes...
         private const string _SupplementaryAttStereotype    = "SupplementaryAttStereotype";
         private const string _FacetAttStereotype            = "FacetAttStereotype";
         private const string _UMLEnumerationStereotype      = "UMLEnumerationStereotype";
+        private const string _SuppressEnumTag               = "SuppressEnumTag";
 
         /// <summary>
-        /// The internal constructor is called to initialize the repository.
+        /// The internal constructor is called to initialize the enumeration.
         /// </summary>
         internal EAMEIEnumeratedType(EAModelImplementation model, int classID): base(model)
         {
             this._classPart = model.GetModelElementImplementation(ModelElementType.Class, classID) as EAMEIClass;
-            this._name = this._classPart.Name;
-            this._elementID = this._classPart.ElementID;
-            this._globalID = this._classPart.GlobalID;
-            this._aliasName = this._classPart.AliasName;
+            FinalizeInit();
         }
 
         /// <summary>
-        /// The internal constructor is called to initialize the repository.
+        /// The internal constructor is called to initialize the enumeration.
         /// </summary>
         internal EAMEIEnumeratedType(EAModelImplementation model, string classGUID) : base(model)
         {
             this._classPart = model.GetModelElementImplementation(ModelElementType.Class, classGUID) as EAMEIClass;
-            this._name = this._classPart.Name;
-            this._elementID = this._classPart.ElementID;
-            this._globalID = this._classPart.GlobalID;
-            this._aliasName = this._classPart.AliasName;
+            FinalizeInit();
         }
 
         /// <summary>
@@ -56,10 +52,7 @@ namespace SparxEA.Model
         internal EAMEIEnumeratedType(EAModelImplementation model, EA.Element element) : base(model)
         {
             this._classPart = model.GetModelElementImplementation(ModelElementType.Class, element.ElementID) as EAMEIClass;
-            this._name = this._classPart.Name;
-            this._elementID = this._classPart.ElementID;
-            this._globalID = this._classPart.GlobalID;
-            this._aliasName = this._classPart.AliasName;
+            FinalizeInit();
         }
 
         /// <summary>
@@ -457,6 +450,15 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Checks whether we must treat this enumeration as a simple string, i.e. ignore the list of enumeration values!
+        /// </summary>
+        /// <returns>True in case we must treat the enumeration as a simple string, false for 'normal' enum behavior.</returns>
+        internal override bool MustSuppressEnumeration()
+        {
+            return this._suppressEnumeration;
+        }
+
+        /// <summary>
         /// Helper function that enforces proper position numbering on each attribute of the current class. When parameter 'onlyCheck' is set
         /// to 'true', the function only checks the order, but does not change it. 
         /// In all cases, a return value of 'false' indicates that the order is wrong (but with 'onlyCheck = false', it will have been repaired.
@@ -526,6 +528,20 @@ namespace SparxEA.Model
         internal override void SetVersion(Tuple<int, int> version)
         {
             this._classPart.SetVersion(version);
+        }
+
+        /// <summary>
+        /// Helper function that contains most of the generic initialization code (keeps constructors simple).
+        /// </summary>
+        private void FinalizeInit()
+        {
+            this._name = this._classPart.Name;
+            this._elementID = this._classPart.ElementID;
+            this._globalID = this._classPart.GlobalID;
+            this._aliasName = this._classPart.AliasName;
+
+            string suppressTag = this._classPart.GetTag(ContextSlt.GetContextSlt().GetConfigProperty(_SuppressEnumTag));
+            this._suppressEnumeration = suppressTag != string.Empty && string.Compare(suppressTag, "true", true) == 0;
         }
     }
 }

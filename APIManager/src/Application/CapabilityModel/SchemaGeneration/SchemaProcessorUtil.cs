@@ -29,6 +29,8 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         private const string _SupplementaryAttStereotype            = "SupplementaryAttStereotype";
         private const string _FacetAttStereotype                    = "FacetAttStereotype";
         private const string _ServiceModelPkgName                   = "ServiceModelPkgName";
+        private const string _SuppressEnumClassifier                = "SuppressEnumClassifier";
+        private const string _CoreDataTypesPathName                 = "CoreDataTypesPathName";
 
         /// <summary>
         /// This method is invoked whenever we want to save the processed Capability to an output file. The method assures that the schema is sorted
@@ -145,26 +147,43 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
 
                     case MEDataType.MetaDataType.Enumeration:
                         {
-                            List<SupplementaryAttribute> attribList = GetSupplementaries(classifierMetadata);
-                            List<EnumerationItem> enumList = GetEnumerations(classifier);
-
-                            // For enumerations, we have to check the scope of the enumeration, since they can be restricted at message-, 
-                            // operation- or interface level, just like Classes!
-                            classifierCtx = new ClassifierContext(ClassifierContext.ContentTypeCode.Enum, classifier.Name, scope);
-                            if (this._useDocContext) targetDocCtx.AddClassifier(classifier, null, attribList, typeName, classifierCtx.Name);
-                            if (classifierCtx.IsInCommonSchema)
+                            MEEnumeratedType myEnum = classifier as MEEnumeratedType;
+                            if (myEnum != null && myEnum.MustSuppressEnumeration)
                             {
-                                this._commonSchema.AddEnumClassifier(classifierCtx.Name, classifier.GetDocumentation(), attribList, enumList);
+                                var replacementClassifier = ModelSlt.GetModelSlt().FindDataType(context.GetConfigProperty(_CoreDataTypesPathName),
+                                                                                                context.GetConfigProperty(_SuppressEnumClassifier));
+                                if (replacementClassifier != null) return DefineClassifier(replacementClassifier, scope);
+                                else
+                                {
+                                    Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.DefineClassifier >> Enumeration '" + 
+                                                      myEnum.Name + "' has 'suppress-definitions' defined but we can't find replacement classifier '" + 
+                                                      context.GetConfigProperty(_SuppressEnumClassifier) + "'!");
+                                    return null;
+                                }
                             }
                             else
                             {
-                                // If we're NOT in the common schema, but have message scope, we have to make the name unique by prefixing
-                                // it with the assigned role...
-                                if (classifierCtx.SchemaScope == ClassifierContext.ScopeCode.Message)
+                                List<SupplementaryAttribute> attribList = GetSupplementaries(classifierMetadata);
+                                List<EnumerationItem> enumList = GetEnumerations(classifier);
+
+                                // For enumerations, we have to check the scope of the enumeration, since they can be restricted at message-, 
+                                // operation- or interface level, just like Classes!
+                                classifierCtx = new ClassifierContext(ClassifierContext.ContentTypeCode.Enum, classifier.Name, scope);
+                                if (this._useDocContext) targetDocCtx.AddClassifier(classifier, null, attribList, typeName, classifierCtx.Name);
+                                if (classifierCtx.IsInCommonSchema)
                                 {
-                                    classifierCtx.Name = this._currentCapability.AssignedRole + classifier.Name;
+                                    this._commonSchema.AddEnumClassifier(classifierCtx.Name, classifier.GetDocumentation(), attribList, enumList);
                                 }
-                                this._schema.AddEnumClassifier(classifierCtx.Name, classifier.GetDocumentation(), attribList, enumList);
+                                else
+                                {
+                                    // If we're NOT in the common schema, but have message scope, we have to make the name unique by prefixing
+                                    // it with the assigned role...
+                                    if (classifierCtx.SchemaScope == ClassifierContext.ScopeCode.Message)
+                                    {
+                                        classifierCtx.Name = this._currentCapability.AssignedRole + classifier.Name;
+                                    }
+                                    this._schema.AddEnumClassifier(classifierCtx.Name, classifier.GetDocumentation(), attribList, enumList);
+                                }
                             }
                         }
                         break;
