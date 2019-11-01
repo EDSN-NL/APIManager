@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 using Framework.Model;
 using Framework.Context;
 using Framework.Logging;
 using Framework.Util;
+using Plugin.Application.Forms;
 
 namespace Plugin.Application.CapabilityModel.API
 {
@@ -12,8 +14,9 @@ namespace Plugin.Application.CapabilityModel.API
     /// </summary>
     internal sealed class RESTOperationResultDescriptor: IEquatable<RESTOperationResultDescriptor>
     {
-        // The status is used to track operational state of the descriptor.
-        internal enum DeclarationStatus { Invalid, Created, Stable, Edited, Deleted }
+        // The status is used to track operational state of the descriptor. The descriptor has 'valid' state when all properties
+        // are consistent in relationship with each other.
+        internal enum DeclarationStatus { Invalid, Valid }
 
         // This enumeration is used to associate a type of response payload with the result code.
         internal enum ResultPayloadType
@@ -31,7 +34,7 @@ namespace Plugin.Application.CapabilityModel.API
         // We explicitly assign numeric values to the enumeration so that they match the HTTP prefix codes.
         internal enum ResponseCategory
         {
-            Unknown = 0,        // 
+            Unknown = 0,        // Not yet initialized properly.
             Informational = 1,  // Request received, continuing process.
             Success = 2,        // The action was successfully received, understood, and accepted.
             Redirection = 3,    // Further action must be taken in order to complete the request.
@@ -42,6 +45,8 @@ namespace Plugin.Application.CapabilityModel.API
 
         internal static string _DefaultCode     = "default";
         internal static string _DefaultCodeText = "Default catch-all response code";
+        internal static string _RangePostfix    = "XX";     // Used, in combination with the category, to determine a range of codes.
+        internal static string _DefaultPostfix  = "00";     // Used to reset a category to a default value.  
 
         // Conversion tables for each HTTP Response category..
         private static readonly string[,] _InformationResponses =
@@ -49,6 +54,7 @@ namespace Plugin.Application.CapabilityModel.API
               {"101", "Switching Protocols"},
               {"102", "Processing"},
               {"103", "Early Hints"},
+              {"1XX", "Range of Information Response codes" },
               {_DefaultCode, _DefaultCodeText } };
 
         private static readonly string[,] _SuccessResponses =
@@ -62,6 +68,7 @@ namespace Plugin.Application.CapabilityModel.API
               {"207", "Multi-Status"},
               {"208", "Already Reported"},
               {"226", "IM Used"},
+              {"2XX", "Range of Success Response codes" },
               {_DefaultCode, _DefaultCodeText } };
 
         private static readonly string[,] _RedirectionResponses =
@@ -73,6 +80,7 @@ namespace Plugin.Application.CapabilityModel.API
               {"305", "Use Proxy"},
               {"307", "Temporary Redirect"},
               {"308", "Permanent Redirect"},
+              {"3XX", "Range of Redirection Response codes" },
               {_DefaultCode, _DefaultCodeText } };
 
         private static readonly string[,] _ClientErrorResponses =
@@ -103,6 +111,7 @@ namespace Plugin.Application.CapabilityModel.API
               {"429", "Too Many Requests"},
               {"431", "Request Header Fields Too Large"},
               {"451", "Unavailable For Legal Reasons"},
+              {"4XX", "Range of Client Error Response codes" },
               {_DefaultCode, _DefaultCodeText } };
 
         private static readonly string[,] _ServerErrorResponses =
@@ -117,6 +126,7 @@ namespace Plugin.Application.CapabilityModel.API
               {"508", "Loop Detected"},
               {"510", "Not Extended"},
               {"511", "Network Authentication Required"},
+              {"5XX", "Range of Server Error Response codes" },
               {_DefaultCode, _DefaultCodeText } };
 
         // Configuration properties used by this module...
@@ -130,22 +140,26 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _OperationResultClassName      = "OperationResultClassName";
 
         private ResponseCategory _category;         // Operation result category code.
-        private string _resultCode;                 // Either an HTTP result code or default OpenAPI response code.
-        private string _originalCode;               // In case of Edit: if we replace the code by a new one, this contains the original code.
+        private string _resultCode;                 // Either an HTTP result code, a range (nXX) or default OpenAPI response code.
         private string _description;                // Descriptive text to go with the response.
         private bool _isTemplate;                   // Partial response code definition to be used as a template to create other instances.
         private RESTResponseCodeCollection _collection; // The collection to which this descriptor belongs.
         private ResultPayloadType _payloadType;     // Identifies the type of payload associated with this response code.
         private string _externalReference;          // URL of an external payload to be imported (not supported for all interface descriptors).
-        private MEClass _responsePayloadClass;      // Contains the class that is assigned to this response as a payload.
+        private RESTResourceCapability _document;   // Document payload in case of document-type payload.
+        private MEClass _payloadClass;              // Contains either the default- or custom response class.
         private Cardinality _responseCardinality;   // Cardinality of response payload (only if _responsePayloadClass has been defined).
         private DeclarationStatus _status;          // Descriptor status with regard to user editing.
-        private DeclarationStatus _initialStatus;   // Original status with regard to user editing (used to detect changes).
+        private bool _payloadChange;                // Set to 'true' in case payload has been changed due to edit/add operation.
 
         /// <summary>
         /// Returns the operation result category code.
         /// </summary>
-        internal ResponseCategory Category { get { return this._category; } }
+        internal ResponseCategory Category
+        {
+            get { return this._category; }
+            set { SetCategory(value); }
+        }
 
         /// <summary>
         /// Returns or loads the associated description text.
@@ -154,6 +168,22 @@ namespace Plugin.Application.CapabilityModel.API
         {
             get { return this._description; }
             set { this._description = value; }
+        }
+
+        /// <summary>
+        /// Get or set the Document payload resource.
+        /// </summary>
+        internal RESTResourceCapability Document
+        {
+            get { return this._document; }
+            set
+            {
+                if (this._document != value)
+                {
+                    this._document = value;
+                    DetermineStatus();
+                }
+            }
         }
 
         /// <summary>
@@ -167,8 +197,12 @@ namespace Plugin.Application.CapabilityModel.API
                 if (this._externalReference != value)
                 {
                     this._externalReference = value;
-                    if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
-                    else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        this._payloadType = ResultPayloadType.Link;
+                        this._status = DeclarationStatus.Valid;
+                    }
+                    DetermineStatus();
                 }
             }
         }
@@ -180,12 +214,26 @@ namespace Plugin.Application.CapabilityModel.API
         internal bool IsTemplate { get { return this._isTemplate; } }
 
         /// <summary>
+        /// Returns 'true' if the declaration record has a valid, consistent, status.
+        /// </summary>
+        internal bool IsValid { get { return this._status == DeclarationStatus.Valid; } }
+
+        /// <summary>
+        /// Returns 'true' in case payload has been changed due to edit- or add operation.
+        /// </summary>
+        internal bool PayloadChanged { get { return this._payloadChange; } }
+
+        /// <summary>
         /// Get- or set the type of payload associated with this response code.
         /// </summary>
         internal ResultPayloadType PayloadType
         {
             get { return this._payloadType; }
-            set { SetPayloadType(value); }
+            set
+            {
+                SetPayloadType(value);
+                DetermineStatus();
+            }
         }
 
         /// <summary>
@@ -199,37 +247,31 @@ namespace Plugin.Application.CapabilityModel.API
                 if (this._responseCardinality != value)
                 {
                     this._responseCardinality = value;
-                    if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
-                    else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                    DetermineStatus();
                 }
             }
         }
 
         /// <summary>
-        /// Get the Code value as it was BEFORE an edit operation on the result. Can be used to determine whether the object has been renamed.
-        /// </summary>
-        internal string OriginalCode { get { return this._originalCode; } }
-
-        /// <summary>
-        /// Returns or loads the class that must be used as response payload.
+        /// Returns or loads the class that must be used as response payload in case of default / custom response class types.
         /// Returns NULL if no such resource is defined.
         /// </summary>
-        internal MEClass ResponsePayloadClass
+        internal MEClass PayloadClass
         {
-            get { return this._responsePayloadClass; }
+            get { return this._payloadClass; }
             set
             {
-                if (this._responsePayloadClass != value)
+                if (this._payloadClass != value)
                 {
-                    this._responsePayloadClass = value;
-                    if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
-                    else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                    this._payloadClass = value;
+                    DetermineStatus();
                 }
             }
         }
 
         /// <summary>
-        /// Returns or loads the HTTP result code as a string. As a side effect, the associated description is loaded as well.
+        /// Returns or loads the HTTP result code as a string. As a side effect, default description, category and payload-type are (re-)defined
+        /// as well.
         /// </summary>
         internal string ResultCode
         {
@@ -238,34 +280,17 @@ namespace Plugin.Application.CapabilityModel.API
             {
                 if (this._resultCode != value)
                 {
-            ALS RESULTCODE EEN ANDERE WAARDE KRIJGT MOET OOK HET ATTRIBUUT IN DE COLLECTIE WORDEN AANGEPAST EN OOK ALLE ASSOCIATIES!!!!!!
                     this._resultCode = value;
-                    this._description = GetResponseDescription();
-                    if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
-                    else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        this._description = GetResponseDescription();
+                        this._category = (value == _DefaultCode) ?
+                                          ResponseCategory.Default :
+                                          (ResponseCategory)int.Parse(value[0].ToString());
+                        DefineResponsePayloadType();
+                    }
+                    DetermineStatus();
                 }
-            }
-        }
-
-        /// <summary>
-        /// Get or set the status of this declaration record.
-        /// </summary>
-        internal DeclarationStatus Status
-        {
-            get { return this._status; }
-            set { this._status = value; }
-        }
-
-        /// <summary>
-        /// Returns 'true' if the declaration record has a valid status.
-        /// </summary>
-        internal bool IsValid
-        {
-            get
-            {
-                return this._status == DeclarationStatus.Created ||
-                       this._status == DeclarationStatus.Edited ||
-                       this._status == DeclarationStatus.Stable;
             }
         }
 
@@ -334,52 +359,41 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This constructor creates an Operation Result Descriptor from an UML Attribute. The constructor
+        /// This constructor creates an Operation Result Descriptor from its set of specified components. The constructor
         /// also receives the Response Code Collection that acts as 'parent' for this descriptor.
         /// </summary>
         /// <param name="parent">Collection that 'owns' this operation result descriptor.</param>
-        /// <param name="resultAttribute">UML attribute that describes this result descriptor.</param>
-        internal RESTOperationResultDescriptor(RESTResponseCodeCollection parent, MEAttribute resultAttribute)
+        /// <param name="code">HTTP response code (or 'default' or range specifier nXX)</param>
+        /// <param name="category">HTTP response category code.</param>
+        /// <param name="payloadType">Payload type code.</param>
+        /// <param name="description">Response descriptive text.</param>
+        /// <param name="referenceURL">Optional external link to be used as response payload.</param>
+        /// <param name="responsePayload">Optional UML class to be used as response payload.</param>
+        /// <param name="document">Optional Document resource to be used as response payload.</param>
+        /// <param name="responseCardinality">Optional cardinality of either 'responsePayload' or 'document'.</param>
+        internal RESTOperationResultDescriptor(RESTResponseCodeCollection parent, 
+                                               string code,
+                                               ResponseCategory category,
+                                               ResultPayloadType payloadType,
+                                               string description,
+                                               string referenceURL = null,
+                                               MEClass responsePayload = null,
+                                               RESTResourceCapability document = null,
+                                               Cardinality responseCardinality = null)
         {
-            // TO BE IMPLEMENTED!
-            // note: y/n template is defined by scope of parent.
-        }
-
-        /*********************
-        /// <summary>
-        /// This constructor creates a new operation result declaration descriptor using an existing Operation Result Capability.
-        /// It copies attributes from the capability and if we have a response body, locates the associated Document Resource in order
-        /// to set the 'cardinality indicator' to the appropriate value.
-        /// </summary>
-        /// <param name="resultCap">Operation Result Capability to use for initialisation.</param>
-        internal RESTOperationResultDescriptor(RESTOperationResultCapability resultCap)
-        {
-            ContextSlt context = ContextSlt.GetContextSlt();
-            this._category = resultCap.Category;
-            this._description = MEChangeLog.GetDocumentationAsText(resultCap.CapabilityClass);
-            this._status = DeclarationStatus.Stable;
-            this._initialStatus = DeclarationStatus.Stable;
-            this._responsePayloadClass = resultCap.ResponseBodyClass;
-            this._externalReference = null;
-            this._responseCardinality = new Cardinality();
-            this._resultCode = this._originalCode = resultCap.ResultCode;
-            this._payloadType = ResultPayloadType.Unknown;
-
-            // If we have a response type, we locate the association and inspect its target cardinality...
-            if (this._responsePayloadClass != null)
-            {
-                foreach (MEAssociation association in resultCap.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
-                {
-                    if (association.Destination.EndPoint.Name == this._responsePayloadClass.Name)
-                    {
-                        this._responseCardinality = association.GetCardinality(MEAssociation.AssociationEnd.Destination);
-                        break;
-                    }
-                }
-            }
-            else DefineResponsePayloadType();    // If we did not get an explicit class from the result capabilty, we assign our default!
-        }
-        *************************/
+            this._category = category;
+            this._resultCode = code;
+            this._description = description;
+            this._isTemplate = parent.Scope != RESTResponseCodeCollection.CollectionScope.Operation;
+            this._collection = parent;
+            this._payloadType = payloadType;
+            this._externalReference = referenceURL != null ? referenceURL : string.Empty;
+            this._payloadClass = responsePayload;
+            this._document = document;
+            this._responseCardinality = responseCardinality != null? responseCardinality: new Cardinality(Cardinality._Mandatory);
+            this._payloadChange = false;
+            DetermineStatus();
+    }
 
         /// <summary>
         /// Default constructor, which accepts only a response category code and no further information. This constructs a descriptor of which
@@ -391,16 +405,20 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="parent">The collection that 'owns' this result descriptor.</param>
         /// <param name="category">The HTTP Result Code category (first digit in response code).</param>
-        internal RESTOperationResultDescriptor(RESTResponseCodeCollection parent,  ResponseCategory category)
+        internal RESTOperationResultDescriptor(RESTResponseCodeCollection parent, ResponseCategory category)
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultDeclaration >> Default constructor using category '" + category.ToString() + "'...");
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultDescriptor >> Default constructor using category '" + category.ToString() + "'...");
 
             ContextSlt context = ContextSlt.GetContextSlt();
             this._category = category;
-            this._responseCardinality = new Cardinality();
-            this._status = this._initialStatus = DeclarationStatus.Stable;
+            this._responseCardinality = new Cardinality(Cardinality._Mandatory);
+            this._payloadClass = null;
+            this._payloadType = ResultPayloadType.Unknown;
+            this._document = null;
             this._externalReference = null;
             this._collection = parent;
+            this._isTemplate = parent.Scope != RESTResponseCodeCollection.CollectionScope.Operation;
+            this._payloadChange = false;
 
             switch (category)
             {
@@ -437,37 +455,10 @@ namespace Plugin.Application.CapabilityModel.API
                 default:
                     this._resultCode = _DefaultCode;
                     this._description = _DefaultCodeText;
-                    this._status = this._initialStatus = DeclarationStatus.Invalid;
                     break;
             }
-            this._originalCode = this._resultCode;
             DefineResponsePayloadType();
-        }
-
-        /// <summary>
-        /// Constructor that accepts code, description and an optional payload (either a link or a class). 
-        /// In case of normal successfull completion of a request that accepts response parameters, an OK Result Declaration 
-        /// must be created that contains a class that specifies these parameters.
-        /// Note that externalRef and payloadClass are mutually exclusive and when both are specified, payloadClass has precedence.
-        /// </summary>
-        /// <param name="parent">The collection that 'owns' this result descriptor.</param>
-        /// <param name="code">HTTP Result code to be associated with this result.</param>
-        /// <param name="description">Textual description.</param>
-        /// <param name="externalRef">Optional URL that identifies an 'external' payload reference.</param>
-        /// <param name="payloadClass">An optional response body payload class.</param>
-        internal RESTOperationResultDescriptor(RESTResponseCodeCollection parent, string code, string description, string externalRef = null, MEClass payloadClass = null)
-        {
-            this._resultCode = this._originalCode = code;
-            this._description = description;
-            this._responsePayloadClass = payloadClass;
-            this._externalReference = externalRef;
-            this._category = (code == _DefaultCode)? 
-                ResponseCategory.Default :
-               (ResponseCategory)int.Parse(code[0].ToString());
-            this._collection = parent;
-            this._status = this._initialStatus = DeclarationStatus.Stable;
-            this._responseCardinality = new Cardinality();
-            DefineResponsePayloadType();
+            DetermineStatus();
         }
 
         /// <summary>
@@ -477,104 +468,83 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="code">HTTP Result code to be associated with this result.</param>
         internal RESTOperationResultDescriptor(RESTResponseCodeCollection parent, string code)
         {
-            this._resultCode = this._originalCode = code;
+            this._resultCode = code;
             this._description = CodeDescriptor.CodeToDescription(code);
-            this._responsePayloadClass = null;
+            this._payloadClass = null;
+            this._payloadType = ResultPayloadType.Unknown;
+            this._document = null;
+            this._responseCardinality = new Cardinality(Cardinality._Mandatory);
             this._externalReference = null;
-            this._category = (code == _DefaultCode) ?
-                ResponseCategory.Default :
-               (ResponseCategory)int.Parse(code[0].ToString());
+            this._category = (code == _DefaultCode) ? ResponseCategory.Default : (ResponseCategory)int.Parse(code[0].ToString());
             this._collection = parent;
-            this._status = this._initialStatus = DeclarationStatus.Stable;
-            this._responseCardinality = new Cardinality();
+            this._isTemplate = parent.Scope != RESTResponseCodeCollection.CollectionScope.Operation;
+            this._payloadChange = false;
             DefineResponsePayloadType();
+            DetermineStatus();
         }
 
         /// <summary>
-        /// Convert the Operation Result Descriptor into an attribute of the Collection UML Class. When the attribute has a payload
-        /// class, an association between the collection and that payload class is also created, where the association role corresponds
-        /// with the operation result code.
-        /// When the collection already contains an attribute with the same code, this is removed first (as is the optional association
-        /// with the payload class).
+        /// Constructor that creates a new descriptor from a given descriptor instance. 
+        /// Be careful to use this copy constructor on the same parent so we don't get duplicate codes!
+        /// The receiving descriptor may- or may not be a template, this depends on the role of the parent.
         /// </summary>
-        /// <returns>Newly created attribute.</returns>
-        internal void CreateAttributeInCollection()
+        /// <param name="parent">The collection that 'owns' this current result descriptor.</param>
+        /// <param name="original">The descriptor that is used as a 'template' for construction.</param>
+        internal RESTOperationResultDescriptor(RESTResponseCodeCollection parent, RESTOperationResultDescriptor original)
         {
-
+            this._resultCode = original._resultCode;
+            this._description = original._description;
+            this._payloadType = original._payloadType;
+            this._document = original._document;
+            this._payloadClass = original._payloadClass != null ? new MEClass(original._payloadClass) : null;
+            this._responseCardinality = new Cardinality(original._responseCardinality);
+            this._externalReference = original._externalReference;
+            this._category = original._category;
+            this._collection = parent;
+            this._isTemplate = parent.Scope != RESTResponseCodeCollection.CollectionScope.Operation;
+            this._payloadChange = false;
+            DetermineStatus();
         }
 
         /// <summary>
-        /// This helper function transforms the current operation declaration to an Operation Result Class. The class is created as a child of the 
-        /// specified owning package.
-        /// </summary>
-        /// <param name="parent">Package in which we're going to create the result Class.</param>
-        /// <returns>Created result Class or NULL in case of errors.</returns>
-        internal MEClass ConvertToClass(MEPackage owningPackage)
-        {
-            ContextSlt context = ContextSlt.GetContextSlt();
-            ModelSlt model = ModelSlt.GetModelSlt();
-            MEClass resultClass = null;
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultDeclaration.AssignResultClass >> Creating class in parent '" + owningPackage.Name + "'...");
-            if (this._status != DeclarationStatus.Deleted && this._status != DeclarationStatus.Invalid)
-            {
-                string name = context.GetConfigProperty(_OperationResultPrefix) + this._resultCode;
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultDeclaration.AssignResultClass >> Creating class with name '" + name + "'...");
-                resultClass = owningPackage.CreateClass(name, context.GetConfigProperty(_RESTOperationResultStereotype));
-                MEDataType classifier = model.FindDataType(context.GetConfigProperty(_CoreDataTypesPathName), context.GetConfigProperty(_ResultCodeAttributeClassifier));
-                if (classifier != null)
-                {
-                    MEAttribute newAttrib = resultClass.CreateAttribute(context.GetConfigProperty(_ResultCodeAttributeName), classifier,
-                                                                        AttributeType.Attribute, this._resultCode, new Cardinality(Cardinality._Mandatory), true);
-                    resultClass.Annotation = this._description;
-                    if (this._responsePayloadClass != null)
-                    {
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationResultDeclaration.AssignResultClass >> Associating with response type '" + this._responsePayloadClass.Name + "'...");
-                        string roleName = Conversions.ToPascalCase(this._responsePayloadClass.Name);
-                        if (roleName.EndsWith("Type")) roleName = roleName.Substring(0, roleName.IndexOf("Type"));
-                        var parentEndpoint = new EndpointDescriptor(resultClass, "1", resultClass.Name, null, false);
-                        var typeEndpoint = new EndpointDescriptor(this._responsePayloadClass, "1", roleName, null, true);
-                        model.CreateAssociation(parentEndpoint, typeEndpoint, MEAssociation.AssociationType.MessageAssociation);
-                    }
-                }
-                else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationResultDeclaration.AssignResultClass >> Error retrieving result classifier '" +
-                                       context.GetConfigProperty(_ResultCodeAttributeClassifier) + "' from path '" + context.GetConfigProperty(_CoreDataTypesPathName) + "'!");
-            }
-            else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationResultDeclaration.AssignResultClass >> Declaration is in deleted status, can't convert to class!");
-            return resultClass;
-        }
-
-        /// <summary>
-        /// Returns a list of code descriptors for the current response category. 
+        /// Static helper function that returns a list of code descriptors for a given category. 
         /// </summary>
         /// <returns>List of code/description tuples for current category.</returns>
-        internal List<CodeDescriptor> GetResponseCodes()
+        static internal List<CodeDescriptor> GetResponseCodes(ResponseCategory category)
         {
             var resultList = new List<CodeDescriptor>();
-            switch(this._category)
+            bool isOpenAPI20 = ContextSlt.GetContextSlt().GetStringSetting(FrameworkSettings._OpenAPIVersion) == FrameworkSettings._OpenAPIVersion20;
+
+            switch (category)
             {
                 case ResponseCategory.Informational:
                     for (int i = 0; i < _InformationResponses.GetLength(0); i++)
-                        resultList.Add(new CodeDescriptor(_InformationResponses[i, 0], _InformationResponses[i, 1]));
+                        if (!isOpenAPI20 || !_InformationResponses[i,0].Contains(_RangePostfix))
+                            resultList.Add(new CodeDescriptor(_InformationResponses[i, 0], _InformationResponses[i, 1]));
                     break;
 
                 case ResponseCategory.Success:
                     for (int i = 0; i < _SuccessResponses.GetLength(0); i++)
-                        resultList.Add(new CodeDescriptor(_SuccessResponses[i, 0], _SuccessResponses[i, 1]));
+                        if (!isOpenAPI20 || !_SuccessResponses[i, 0].Contains(_RangePostfix))
+                            resultList.Add(new CodeDescriptor(_SuccessResponses[i, 0], _SuccessResponses[i, 1]));
                     break;
 
                 case ResponseCategory.Redirection:
                     for (int i = 0; i < _RedirectionResponses.GetLength(0); i++)
-                        resultList.Add(new CodeDescriptor(_RedirectionResponses[i, 0], _RedirectionResponses[i, 1]));
+                        if (!isOpenAPI20 || !_RedirectionResponses[i, 0].Contains(_RangePostfix))
+                            resultList.Add(new CodeDescriptor(_RedirectionResponses[i, 0], _RedirectionResponses[i, 1]));
                     break;
 
                 case ResponseCategory.ClientError:
                     for (int i = 0; i < _ClientErrorResponses.GetLength(0); i++)
-                        resultList.Add(new CodeDescriptor(_ClientErrorResponses[i, 0], _ClientErrorResponses[i, 1]));
+                        if (!isOpenAPI20 || !_ClientErrorResponses[i, 0].Contains(_RangePostfix))
+                            resultList.Add(new CodeDescriptor(_ClientErrorResponses[i, 0], _ClientErrorResponses[i, 1]));
                     break;
 
                 case ResponseCategory.ServerError:
                     for (int i = 0; i < _ServerErrorResponses.GetLength(0); i++)
-                        resultList.Add(new CodeDescriptor(_ServerErrorResponses[i, 0], _ServerErrorResponses[i, 1]));
+                        if (!isOpenAPI20 || !_ServerErrorResponses[i, 0].Contains(_RangePostfix))
+                            resultList.Add(new CodeDescriptor(_ServerErrorResponses[i, 0], _ServerErrorResponses[i, 1]));
                     break;
 
                 default:
@@ -585,32 +555,124 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This function is invoked on deletion of the response descriptor from the parent collection. The function deletes associations
-        /// between the paren collection and payload classes 'owned' by this result and it removes the UML attribute from the collection
-        /// class. On return, one should NOT use this descriptor anymore!
+        /// Depending on context, if we need a Document, we first retrieve the list of Document Resources associated with our parent resource.
+        /// If there are multiple, we ask the user to select the one to use as response document. If there is only one, we take this. 
+        /// If there are none, we display an error to the user.
+        /// If we need a custom response, the function simply invokes the 'class selector' for the user to select any class that should
+        /// be used as custom response document.
+        /// Finally, if we need a default response, the function selects and loads the default response class.
         /// </summary>
-        internal void Invalidate()
+        /// <returns>Name of selected resource or empty string in case of errors or cancel.</returns>
+        internal string SetDocument()
         {
-            // DO DELETE STUFF HERE
-            this._responsePayloadClass = null;
-            this._externalReference = null;
-            this._category = ResponseCategory.Unknown;
-            this._collection = null;
-            this._status = this._initialStatus = DeclarationStatus.Invalid;
-            this._responseCardinality = null;
+            ContextSlt context = ContextSlt.GetContextSlt();
+            ModelSlt model = ModelSlt.GetModelSlt();
+            string documentName = string.Empty;
+
+            if (this._payloadType == ResultPayloadType.Document)
+            {
+                this._payloadChange = this._payloadClass != null;
+                this._payloadClass = null;
+                int oldID = this._document != null ? this._document.CapabilityClass.ElementID : -1;
+
+                if (this._collection.ParentResource == null) return string.Empty;    // Context incomplete or wrong. Do nothing.
+                List<RESTResourceCapability> documentList = this._collection.ParentResource.ResourceList(RESTResourceCapability.ResourceArchetype.Document);
+                if (documentList.Count > 0)
+                {
+                    // If we only have a single associated Document Resource, this is selected automatically. When there are multiple,
+                    // we ask the user which one to use...
+                    if (documentList.Count == 1)
+                    {
+                        this._document = documentList[0];
+                        documentName = this._document.Name;
+                        if (!this._payloadChange) this._payloadChange = this._document.CapabilityClass.ElementID != oldID;
+                    }
+                    else
+                    {
+                        List<Capability> capList = documentList.ConvertAll(x => (Capability)x);
+                        using (CapabilityPicker dialog = new CapabilityPicker("Select Document resource", capList, false, false))
+                        {
+                            if (dialog.ShowDialog() == DialogResult.OK)
+                            {
+                                List<Capability> checkedCapabilities = dialog.GetCheckedCapabilities();
+                                if (checkedCapabilities.Count > 0)
+                                {
+                                    // If the user selected multiple, we take the first one.
+                                    this._document = checkedCapabilities[0] as RESTResourceCapability;
+                                    documentName = this._document.Name;
+                                    if (!this._payloadChange) this._payloadChange = this._document.CapabilityClass.ElementID != oldID;
+                                }
+                            }
+                            else documentName = string.Empty;
+                        }
+                    }
+                }
+                else MessageBox.Show("No suitable Document Resources to select, add one first!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else if (this._payloadType == ResultPayloadType.CustomResponse)
+            {
+                this._payloadChange = this._document != null;
+                this._document = null;
+                MEClass payload = context.SelectClass();
+                int oldID = this._payloadClass != null ? this._payloadClass.ElementID : -1;
+                if (payload != null)
+                {
+                    this._payloadClass = payload;
+                    documentName = payload.Name;
+                    this._payloadChange |= this._payloadClass == null || this._payloadClass.ElementID != oldID;
+                }
+            }
+            else if (this._payloadType == ResultPayloadType.DefaultResponse)
+            {
+                this._payloadChange = this._document != null || this._payloadClass == null;
+                this._document = null;
+                int oldID = this._payloadClass != null ? this._payloadClass.ElementID : -1;
+                this._payloadClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName), context.GetConfigProperty(_OperationResultClassName));
+                if (this._payloadClass != null)
+                {
+                    documentName = this._payloadClass.Name;
+                    this._payloadChange |= this._payloadClass.ElementID != oldID;
+                }
+                else Logger.WriteError("Plugin.Application.Forms.RESTOperationResultDescriptor.SetDocument >> Unable to find '" +
+                                       context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_OperationResultClassName));
+            }
+            DetermineStatus();
+            return documentName;
         }
 
         /// <summary>
-        /// Helper method that attempts to define the response type for this operation result and, in case of default response,
-        /// locates the default error response parameter class and assigns this to the response declaration object. 
+        /// Convert the response code to an integer representation.Typically, the result is the numerical representation of the code (e.g. 404 or 500).
+        /// In case of a 'range' (e.g. 4XX), the result is category * 100 + 99 (e.g. 4XX --> 499).
+        /// In case of the 'default' code, the return value is 9999.
+        /// In all other cases, the function returns 0.
+        /// </summary>
+        /// <returns>Integer representation of the response code.</returns>
+        internal int ToInt()
+        {
+            if (this._resultCode == _DefaultCode) return 9999;
+            else if (this._resultCode.Contains(_RangePostfix)) return ((int)this._category * 100) + 99;
+            else 
+            {
+                int value;
+                if (int.TryParse(this._resultCode, out value)) return value;
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Helper method which, in case of an undefined payload type, attempts to define the response type for this operation result and in 
+        /// case of default response, locates the default error response parameter class and assigns this to the response declaration object.
+        /// When the payload type is already set, the operation does not perform any actions!
         /// </summary>
         private void DefineResponsePayloadType()
         {
             ContextSlt context = ContextSlt.GetContextSlt();
+            if (this._payloadType != ResultPayloadType.Unknown) return;     // Payload type already set, ignore!
+
             if (this._resultCode == _DefaultCode) this._payloadType = ResultPayloadType.DefaultResponse;
-            else if (this._responsePayloadClass == null)
+            else if (this._payloadClass == null && this._document == null)
             {
-                if (string.IsNullOrEmpty(this._externalReference)) 
+                if (string.IsNullOrEmpty(this._externalReference))
                 {
                     if (this._category == ResponseCategory.ClientError ||
                         this._category == ResponseCategory.ServerError)
@@ -621,22 +683,85 @@ namespace Plugin.Application.CapabilityModel.API
                 }
                 else this._payloadType = ResultPayloadType.Link;
             }
+            else if (this._document != null)
+            {
+                this._payloadType = ResultPayloadType.Document;
+            }
             else
             {
-                string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
-                string defaultResponseName = context.GetConfigProperty(_OperationResultClassName);
-                if (this._responsePayloadClass.HasStereotype(resourceStereotype)) this._payloadType = ResultPayloadType.Document;
-                else if (this._responsePayloadClass.Name == defaultResponseName) this._payloadType = ResultPayloadType.DefaultResponse;
+                if (this._payloadClass.Name == context.GetConfigProperty(_OperationResultClassName)) this._payloadType = ResultPayloadType.DefaultResponse;
                 else this._payloadType = ResultPayloadType.CustomResponse;
             }
 
-            if (this._payloadType == ResultPayloadType.DefaultResponse && this._responsePayloadClass == null)
+            if (this._payloadType == ResultPayloadType.DefaultResponse) SetDocument();  // Assure that the default response class is present.
+            else if (this._payloadType == ResultPayloadType.None || this._payloadType == ResultPayloadType.Link)
             {
-                ModelSlt model = ModelSlt.GetModelSlt();
-                this._responsePayloadClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName), context.GetConfigProperty(_OperationResultClassName));
-                if (this._responsePayloadClass == null)
-                    Logger.WriteError("Plugin.Application.Forms.RESTOperationResultDeclaration.AssignParameterClass >> Unable to find '" +
-                                       context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_OperationResultClassName));
+                this._payloadChange = this._payloadClass != null || this._document != null;
+                this._payloadClass = null;
+                this._document = null;
+            }
+        }
+
+        /// <summary>
+        /// This function checks the values of our properties and determines the current status of the descriptor.
+        /// Status will only be valid in case property values match the payload type and we have a valid code and category.
+        /// </summary>
+        private void DetermineStatus()
+        {
+            if (string.IsNullOrEmpty(this._resultCode) || this._category == ResponseCategory.Unknown)
+            {
+                this._status = DeclarationStatus.Invalid;
+            }
+            else
+            {
+                switch (this._payloadType)
+                {
+                    case ResultPayloadType.DefaultResponse:
+                        if (this._category == ResponseCategory.ClientError || this._category == ResponseCategory.ServerError)
+                        {
+                            // In case of default response, the payload class must have been configured, even in case of template!
+                            if (this._payloadClass != null && this._responseCardinality != null) this._status = DeclarationStatus.Valid;
+                            else this._status = DeclarationStatus.Invalid;
+                        }
+                        else this._status = DeclarationStatus.Invalid;  // Default responses can only be present in client- and server errors.
+                        break;
+
+                    case ResultPayloadType.CustomResponse:
+                        // Can be present in templates as well as operation responses and if present, MUST have a associated class!
+                        if (this._payloadClass != null && this._responseCardinality != null) this._status = DeclarationStatus.Valid;
+                        else this._status = DeclarationStatus.Invalid;
+                        break;
+
+                    case ResultPayloadType.Document:
+                        // Templates ignore these response types (can be any value).
+                        if (this._isTemplate) this._status = DeclarationStatus.Valid;
+                        else
+                        {
+                            if (this._document != null && this._responseCardinality != null) this._status = DeclarationStatus.Valid;
+                            else this._status = DeclarationStatus.Invalid;
+                        }
+                        break;
+
+                    case ResultPayloadType.Link:
+                        // A template may or may not have a link configured, we typically ignore the current value.
+                        if (this._isTemplate) this._status = DeclarationStatus.Valid;
+                        else
+                        {
+                            if (!string.IsNullOrEmpty(this._externalReference)) this._status = DeclarationStatus.Valid;
+                            else this._status = DeclarationStatus.Invalid;
+                        }
+                        break;
+
+                    case ResultPayloadType.None:
+                        this._status = this._payloadClass == null &&
+                                       this._document == null &&
+                                       string.IsNullOrEmpty(this._externalReference) ? DeclarationStatus.Valid : DeclarationStatus.Invalid;
+                        break;
+
+                    default:
+                        this._status = DeclarationStatus.Invalid;
+                        break;
+                }
             }
         }
 
@@ -682,42 +807,97 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Helper function that is used to update the category of this descriptor. Changing the category might have effect on the
+        /// payload type as well since not all types are supported for all categories. More specifically, the 'default' response
+        /// type is supported ONLY for Default, Client- and Server error and not for the other categories.
+        /// </summary>
+        /// <param name="newCategory">New category for this descriptor.</param>
+        private void SetCategory (ResponseCategory newCategory)
+        {
+            if (this._category != newCategory)
+            {
+                this._category = newCategory;
+                switch (newCategory)
+                {
+                    case ResponseCategory.Informational:
+                        this._resultCode = "100";
+                        this._description = GetResponseDescription();
+                        if (this._payloadType == ResultPayloadType.DefaultResponse) SetPayloadType(ResultPayloadType.None);
+                        break;
+
+                    case ResponseCategory.Success:
+                        this._resultCode = "200";
+                        this._description = GetResponseDescription();
+                        if (this._payloadType == ResultPayloadType.DefaultResponse) SetPayloadType(ResultPayloadType.None);
+                        break;
+
+                    case ResponseCategory.Redirection:
+                        this._resultCode = "300";
+                        this._description = GetResponseDescription();
+                        if (this._payloadType == ResultPayloadType.DefaultResponse) SetPayloadType(ResultPayloadType.None);
+                        break;
+
+                    case ResponseCategory.ClientError:
+                        this._resultCode = "400";
+                        this._description = GetResponseDescription();
+                        break;
+
+                    case ResponseCategory.ServerError:
+                        this._resultCode = "500";
+                        this._description = GetResponseDescription();
+                        break;
+
+                    case ResponseCategory.Default:
+                        this._resultCode = _DefaultCode;
+                        this._description = _DefaultCodeText;
+                        break;
+
+                    default:
+                        this._resultCode = _DefaultCode;
+                        this._description = _DefaultCodeText;
+                        break;
+                }
+                DetermineStatus();
+            }
+        }
+
+        /// <summary>
         /// Helper function that is used to assign a (new) value to the Result Payload Type field. Depending on the type,
         /// we might expect additional information (such as external classes) to be assigned as well before we can consider
-        /// this to be a valid response code.
+        /// this to be a valid response code. Changing the payload type will reset ALL payload data collected so far and
+        /// effectively resets the payload data to default conditions.
+        /// Please be aware that template descriptors do NOT support the 'document' payload type since these are operation specific.
+        /// Also, Informational, Success and Redirection categories do NOT support 'default' payload.
         /// </summary>
         /// <param name="newType">The new type to be assigned. If new type is equal to existing type, no operations are performed.</param>
         private void SetPayloadType(ResultPayloadType newType)
         {
             if (this._payloadType != newType)
             {
-                this._payloadType = newType;
-                switch (newType)
+                if (this._isTemplate && newType == ResultPayloadType.Document)
                 {
-                    case ResultPayloadType.CustomResponse:
-                    case ResultPayloadType.Document:
-                    case ResultPayloadType.Link:
-                        this._externalReference = string.Empty;
-                        this._responsePayloadClass = null;
-                        this._status = DeclarationStatus.Invalid;   // We must assign a valid payload/link to get a valid response.
-                        break;
+                    Logger.WriteError("Plugin.Application.Forms.RESTOperationResultDescriptor.SetPayloadType >> Template descriptor does not support 'Document' payload type!");
+                    return;
+                }
+                else if (newType == ResultPayloadType.DefaultResponse &&
+                         this._category != ResponseCategory.ClientError && this._category != ResponseCategory.ServerError &&
+                         this._category != ResponseCategory.Default)
+                {
+                    Logger.WriteError("Plugin.Application.Forms.RESTOperationResultDescriptor.SetPayloadType >> Category '" + this._category +
+                                      "' does not support 'Default Response' payload type!");
+                    return;
+                }
 
-                    case ResultPayloadType.DefaultResponse:
-                        if (this._category == ResponseCategory.ClientError ||
-                            this._category == ResponseCategory.ServerError)
-                            DefineResponsePayloadType();
-                        else this._responsePayloadClass = null;
-                        this._externalReference = string.Empty;
-                        if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
-                        else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-                        break;
+                this._payloadType = newType;
+                this._externalReference = string.Empty;
 
-                    case ResultPayloadType.None:
-                        this._externalReference = string.Empty;
-                        this._responsePayloadClass = null;
-                        if (this._initialStatus == DeclarationStatus.Invalid && this._resultCode != string.Empty) this._status = DeclarationStatus.Created;
-                        else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-                        break;
+                if (newType == ResultPayloadType.DefaultResponse) SetDocument();
+                else if (newType == ResultPayloadType.Link || newType == ResultPayloadType.None)
+                {
+                    // New type will not have payload (anymore). Update payload status accordingly...
+                    if (this._document != null || this._payloadClass != null) this._payloadChange = true;
+                    this._document = null;
+                    this._payloadClass = null;
                 }
             }
         }
@@ -728,7 +908,7 @@ namespace Plugin.Application.CapabilityModel.API
     /// </summary>
     internal sealed class CodeDescriptor
     {
-        private string _code;           // Actual HTTP Code.
+        private string _code;           // Actual HTTP Code (or range or default code).
         private string _description;    // Descriptive text for the code.
 
         internal string Code { get { return this._code; } }
@@ -767,11 +947,8 @@ namespace Plugin.Application.CapabilityModel.API
             try
             {
                 // Since this is non-numeric, we must test this one explicitly...
-                if (code == _DefaultCode) return _DefaultCodeText;
-
-                var category = (RESTOperationResultCapability.ResponseCategory)int.Parse(code[0].ToString());
-                var result = new RESTOperationResultDescriptor(category);
-                List<CodeDescriptor> codes = result.GetResponseCodes();
+                if (code == RESTOperationResultDescriptor._DefaultCode) return RESTOperationResultDescriptor._DefaultCodeText;
+                List<CodeDescriptor> codes = RESTOperationResultDescriptor.GetResponseCodes((RESTOperationResultDescriptor.ResponseCategory)int.Parse(code[0].ToString()));
                 foreach (CodeDescriptor dsc in codes) if (dsc.Code == code) return dsc.Description;
                 return string.Empty;
             }

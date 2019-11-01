@@ -116,54 +116,29 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Entry point for Operation Result processing. The method parses the provided Operation Result capability and generates the associated Response Object.
-        /// It writes the result code and description and, if specified, generates the response schema.
-        /// Note: we do NOT change the 'CurrentCapability' in this._schema to the result capability. This implies that, as far as schema processing is concerned,
-        /// the processing context is still the current Operation. Big advantage is that all operation-specific data types (present in the Operation.Request/Response packages),
-        /// are now automatically prefixed with the Operation Name. This does NOT apply to the root-class, the one connected to the Document Resource.
+        /// Entry point for Operation Result processing. The method locates the Response Collection in the provided Operation capability and generates 
+        /// the associated Response Objects. It writes all result codes and descriptions and, if specified, generates the appropriate response schemas.
+        /// Note: since we 'stay' in the Operation Capability, the processing context remains the current Operation. Big advantage is that all 
+        /// operation-specific data types (present in the Operation.Request/Response packages), are now automatically prefixed with the Operation 
+        /// Name. This does NOT apply to the root-class, the one connected to the Document Resource.
         /// It is the responsibility of the API designer to assure that no name clashes exist (e.g. by assigning Alias names if required).
         /// </summary>
-        /// <param name="operationResult">The Operation Result capability to process.</param>
+        /// <param name="operation">The Operation capability to process.</param>
         /// <returns>True when successfully completed, false on errors.</returns>
-        private bool BuildOperationResult(RESTOperationResultCapability operationResult)
+        private bool BuildOperationResultList(RESTOperationCapability operation)
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Building result '" + operationResult.Name + "'...");
-            ContextSlt context = ContextSlt.GetContextSlt();
-            bool result = true;
-            this._JSONWriter.WritePropertyName(operationResult.ResultCode); this._JSONWriter.WriteStartObject();
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResultList >> Building result for'" + operation.Name + "'...");
+            foreach (RESTOperationResultDescriptor operationResult in operation.ResponseCodeCollection.Collection)
             {
-                // Since multi-line documentation does not really work with JSON, we replace line breaks by spaces...
-                string resultDocumentation = MEChangeLog.GetDocumentationAsText(operationResult.CapabilityClass, "  ");
-                if (!string.IsNullOrEmpty(resultDocumentation))
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResultList >> Building result '" + 
+                                 operationResult.ResultCode + "'...");
+                if (!BuildOperationResult(operationResult))
                 {
-                    this._JSONWriter.WritePropertyName("description");
-                    this._JSONWriter.WriteValue(resultDocumentation);
+                    Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResultList >> Failed to build result '" +
+                                       operationResult.ResultCode + "', operation processing aborted!");
+                    return false;
                 }
-
-                // Check whether we must support a default response body or body parameters. If this is the case, we must have an association
-                // with a Document Resource, which in turn contains an association with the Business Component that we must use as schema root.
-                string defaultResponseClass = context.GetConfigProperty(_OperationResultClassName);
-                string resourceClassStereotype = context.GetConfigProperty(_ResourceClassStereotype);
-
-                // Go over each association, looking for default response classes...
-                foreach (MEAssociation assoc in operationResult.CapabilityClass.AssociationList)
-                {
-                    if (assoc.Destination.EndPoint.Name == defaultResponseClass)
-                    {
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Found default response class, generate reference...");
-                        result = WriteDefaultResponse(assoc.Destination.EndPoint);
-                    }
-                }
-
-                if (operationResult.ResponseBodyClass != null)
-                {
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Found a body parameter...");
-                    result = WriteResponseBodyParameter(operationResult.ResponseBodyClass, operationResult.ResponseCardinality);
-                }
-
-                if (this._currentOperation.UseHeaderParameters || this._currentOperation.UseLinkHeaders)
-                    WriteResponseHeaderParameters(operationResult.Category);
-            } this._JSONWriter.WriteEndObject();
+            }
             return true;
         }
 
@@ -204,9 +179,7 @@ namespace Plugin.Application.CapabilityModel.API
                 // Check if we have any query parameters...
                 result = WriteQueryParameters(operation.CapabilityClass);
 
-                // Go over each association, looking for stuff to process. Note that this will also retrieve the Operation Result items,
-                // but we ignore these at this moment. Operation Result is a Capability in itself and will thus appear in due time through the main
-                // processing loop as child capabilities of the Operation.
+                // Go over each association, looking for stuff to process. At this point, these can be Pagination classes or [request] Document Resources.
                 foreach (MEAssociation assoc in operation.CapabilityClass.AssociationList)
                 {
                     if (assoc.Destination.EndPoint.Name == paginationClassName)
@@ -225,6 +198,43 @@ namespace Plugin.Application.CapabilityModel.API
                 if (operation.UseHeaderParameters) WriteRequestHeaderParameters();
             }
             return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private bool BuildOperationResult(RESTOperationResultDescriptor resultDesc)
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Building result '" + resultDesc.ResultCode + "'...");
+            ContextSlt context = ContextSlt.GetContextSlt();
+            bool result = true;
+            this._JSONWriter.WritePropertyName(resultDesc.ResultCode); this._JSONWriter.WriteStartObject();
+            {
+                if (!string.IsNullOrEmpty(resultDesc.Description))
+                {
+                    this._JSONWriter.WritePropertyName("description");
+                    this._JSONWriter.WriteValue(resultDesc.Description);
+                }
+
+                // Check whether we have a payload to be processed...
+                if (resultDesc.PayloadClass != null) result = WriteResponsePayload(resultDesc.PayloadClass);
+                
+
+                /*********
+                 * MUST BE ADJUSTED @@@@
+                                if (operationResult.ResponseBodyClass != null)
+                                {
+                                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Found a body parameter...");
+                                    result = WriteResponseBodyParameter(operationResult.ResponseBodyClass, operationResult.ResponseCardinality);
+                                }
+
+                                if (this._currentOperation.UseHeaderParameters || this._currentOperation.UseLinkHeaders)
+                                    WriteResponseHeaderParameters(operationResult.Category);
+                                    *******/
+            }
+            this._JSONWriter.WriteEndObject();
+            return true;
         }
 
         /// <summary>
@@ -265,7 +275,7 @@ namespace Plugin.Application.CapabilityModel.API
                 string myPaginationClassName = this._currentOperation.Name + responseSuffix;
                 MEPackage paramPackage = this._currentOperation.OwningPackage.FindPackage(context.GetConfigProperty(_ResponsePkgName));
                 responseClass = paramPackage.FindClass(myPaginationClassName, paginationClassStereotype);
-                if (responseClass != null && (templateClass == null || 
+                if (responseClass != null && (templateClass == null ||
                     responseClass.Version.Item1 < templateClass.Version.Item1 || responseClass.Version.Item2 < templateClass.Version.Item2))
                 {
                     paramPackage.DeleteClass(responseClass);
@@ -297,33 +307,26 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This method receives a reference to the default response class. Since we want to use a shared object definition, we must make sure that 
+        /// This method receives a reference to a response payload class. Since we want to use a shared object definition, we must make sure that 
         /// the class is parsed first time around so that it is entered in the schema as a type definition.
-        /// We use the class-attribute 'defaultResponseClassifier' to check whether the class has been processed. Initially, this is an empty string.
-        /// After successfull processing, the attribute contains the classifier name for the class as present in the definitions section.
+        /// We store all processed response payload classifiers in the class-attribute '_responseClassifierNames' so we can keep track of them.
+        /// After successfull processing, the list contains the classifier name for the class as present in the definitions section.
         /// </summary>
-        /// <param name="responseClass">The class associated with the default response.</param>
+        /// <param name="payloadClass">The class associated with the payload.</param>
         /// <returns>True on successfull completion, false on errors.</returns>
-        private bool WriteDefaultResponse(MEClass responseClass)
+        private bool WriteResponsePayload(MEClass payloadClass)
         {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteDefaultResponse >> Processing response class '" + responseClass.Name + "'...");
-            this._panel.WriteInfo(this._panelIndex + 3, "Processing Default Response Body '" + responseClass.Name + "'...");
-            string token = ContextSlt.GetContextSlt().GetConfigProperty(_SchemaTokenName) + ":" + responseClass.Name;
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponsePayload >> Processing response class '" + payloadClass.Name + "'...");
+            this._panel.WriteInfo(this._panelIndex + 3, "Processing Response Payload '" + payloadClass.Name + "'...");
+            string payloadQName = !string.IsNullOrEmpty(payloadClass.AliasName) ? payloadClass.AliasName : payloadClass.Name; // Qualified name is either original name or alias!
+            string token = ContextSlt.GetContextSlt().GetConfigProperty(_SchemaTokenName) + ":" + payloadQName;
 
             // We must only parse this class once in order to get a valid definition in the 'definitions' section.
-            if (this._defaultResponseClassifier == string.Empty)
+            if (!this._responseClassifierNames.Contains(token))
             {
-                this._defaultResponseClassifier = this._schema.ProcessClass(responseClass, token);
-                // Since we 'might' use alias names in classes, the returned name 'might' be different from the offered name. To make sure 
-                // we're referring to the correct name, we take the returned FQN and remove the token part. Remainder is the 'formal' type name.
-                if (this._defaultResponseClassifier != string.Empty)
+                if (this._schema.ProcessClass(payloadClass, token) == string.Empty)
                 {
-                    this._defaultResponseClassifier = this._defaultResponseClassifier.Substring(this._defaultResponseClassifier.IndexOf(':') + 1);
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteDefaultResponse >> Got classifier '" + this._defaultResponseClassifier + "'.");
-                }
-                else
-                {
-                    Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteDefaultResponse >> Unable to process default response '" + responseClass.Name + "'!");
+                    Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteDefaultResponse >> Unable to process payload '" + payloadClass.Name + "'!");
                     return false;
                 }
             }
@@ -331,7 +334,7 @@ namespace Plugin.Application.CapabilityModel.API
             // Now, create a schema reference in the output...
             this._JSONWriter.WritePropertyName("schema"); this._JSONWriter.WriteStartObject();
             {
-                this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + this._defaultResponseClassifier + "\"");
+                this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + payloadQName + "\"");
             } this._JSONWriter.WriteEndObject();
             return true;
         }

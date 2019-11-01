@@ -116,6 +116,7 @@ namespace Plugin.Application.Forms
             this.Ok.TabIndex = 13;
             this.Ok.Text = "Ok";
             this.Ok.UseVisualStyleBackColor = true;
+            this.Ok.Click += new System.EventHandler(this.Ok_Click);
             // 
             // OperationNamesLbl
             // 

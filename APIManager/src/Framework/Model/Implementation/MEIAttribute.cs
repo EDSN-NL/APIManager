@@ -44,6 +44,12 @@ namespace Framework.Model
         internal abstract void SetFixedValue(string value);
 
         /// <summary>
+        /// Returns the index of the attribute within the owning class.
+        /// </summary>
+        /// <returns>The index of the attribute within the owning class.</returns>
+        internal abstract int GetIndex();
+
+        /// <summary>
         /// Returns the class that is 'owner' of this attribute, i.e. in which the attribute is declared.
         /// </summary>
         /// <returns>Owning class or NULL on errors.</returns>
@@ -63,6 +69,12 @@ namespace Framework.Model
         /// </summary>
         /// <returns>True is this is an optional attribute, false otherwise.</returns>
         internal abstract bool IsOptional();
+
+        /// <summary>
+        /// Updates the index of the attribute within the owning class. Index must be >= 0, otherwise no action is performed.
+        /// </summary>
+        /// <param name="index">New index of attribute within owning class.</param>
+        internal abstract void SetIndex(int index);
 
         /// <summary>
         /// Default constructor, mainly used to pass the model instance to the base constructor and set the correct type.

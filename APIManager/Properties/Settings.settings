@@ -98,5 +98,8 @@
     <Setting Name="GENUseMajorVersionOnly" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="OpenAPIVersion" Type="System.String" Scope="User">
+      <Value Profile="(Default)">2.0</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

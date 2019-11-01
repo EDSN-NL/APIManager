@@ -111,6 +111,8 @@
             this.GENUseMajorVersionOnly = new System.Windows.Forms.CheckBox();
             this.label2 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.OpenAPIVersion = new System.Windows.Forms.ComboBox();
             this.CodeLists.SuspendLayout();
             this.LogFile.SuspendLayout();
             this.ServiceModel.SuspendLayout();
@@ -820,6 +822,7 @@
             this.ResponseCodeList.FullRowSelect = true;
             this.ResponseCodeList.GridLines = true;
             this.ResponseCodeList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.ResponseCodeList.HideSelection = false;
             this.ResponseCodeList.Location = new System.Drawing.Point(12, 19);
             this.ResponseCodeList.MultiSelect = false;
             this.ResponseCodeList.Name = "ResponseCodeList";
@@ -900,6 +903,8 @@
             // 
             // OpenAPIGeneration
             // 
+            this.OpenAPIGeneration.Controls.Add(this.OpenAPIVersion);
+            this.OpenAPIGeneration.Controls.Add(this.label9);
             this.OpenAPIGeneration.Controls.Add(this.GENUseMajorVersionOnly);
             this.OpenAPIGeneration.Location = new System.Drawing.Point(917, 12);
             this.OpenAPIGeneration.Name = "OpenAPIGeneration";
@@ -913,9 +918,9 @@
             this.GENUseMajorVersionOnly.AutoSize = true;
             this.GENUseMajorVersionOnly.Location = new System.Drawing.Point(6, 24);
             this.GENUseMajorVersionOnly.Name = "GENUseMajorVersionOnly";
-            this.GENUseMajorVersionOnly.Size = new System.Drawing.Size(132, 17);
-            this.GENUseMajorVersionOnly.TabIndex = 0;
-            this.GENUseMajorVersionOnly.Text = "Use major version only";
+            this.GENUseMajorVersionOnly.Size = new System.Drawing.Size(152, 17);
+            this.GENUseMajorVersionOnly.TabIndex = 1;
+            this.GENUseMajorVersionOnly.Text = "Use API major version only";
             this.GENUseMajorVersionOnly.UseVisualStyleBackColor = true;
             // 
             // label2
@@ -937,6 +942,23 @@
             this.label7.Size = new System.Drawing.Size(115, 13);
             this.label7.TabIndex = 19;
             this.label7.Text = "on a per-Service basis!";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(6, 54);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(91, 13);
+            this.label9.TabIndex = 0;
+            this.label9.Text = "OpenAPI Version:";
+            // 
+            // OpenAPIVersion
+            // 
+            this.OpenAPIVersion.FormattingEnabled = true;
+            this.OpenAPIVersion.Location = new System.Drawing.Point(103, 51);
+            this.OpenAPIVersion.Name = "OpenAPIVersion";
+            this.OpenAPIVersion.Size = new System.Drawing.Size(97, 21);
+            this.OpenAPIVersion.TabIndex = 2;
             // 
             // SettingsForm
             // 
@@ -1083,5 +1105,7 @@
         private System.Windows.Forms.ColumnHeader IsRMEnabled;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.ComboBox OpenAPIVersion;
+        private System.Windows.Forms.Label label9;
     }
 }

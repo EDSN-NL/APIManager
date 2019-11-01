@@ -51,10 +51,13 @@ namespace Plugin.Application.Forms
         private void DeleteCollection_Click(object sender, EventArgs e)
         {
             string selectedName = CollectionListFld.SelectedItem as string;
-            string scope = selectedName.Substring(0, selectedName.IndexOf(_ScopeSeparator));
-            string collection = selectedName.Substring(selectedName.IndexOf(_ScopeSeparator) + _ScopeSeparator.Length);
-            this._manager.DeleteCollection(collection, EnumConversions<RESTResponseCodeCollection.CollectionScope>.StringToEnum(scope));
-            CollectionListFld.Items.Remove(selectedName);
+            if (!string.IsNullOrEmpty(selectedName))
+            {
+                string scope = selectedName.Substring(0, selectedName.IndexOf(_ScopeSeparator));
+                string collection = selectedName.Substring(selectedName.IndexOf(_ScopeSeparator) + _ScopeSeparator.Length);
+                this._manager.DeleteCollection(collection, EnumConversions<RESTResponseCodeCollection.CollectionScope>.StringToEnum(scope));
+                CollectionListFld.Items.Remove(selectedName);
+            }
         }
 
         /// <summary>
@@ -65,13 +68,16 @@ namespace Plugin.Application.Forms
         private void EditCollection_Click(object sender, EventArgs e)
         {
             string selectedName = CollectionListFld.SelectedItem as string;
-            string scope = selectedName.Substring(0, selectedName.IndexOf(_ScopeSeparator));
-            string collection = selectedName.Substring(selectedName.IndexOf(_ScopeSeparator) + _ScopeSeparator.Length);
-            string updatedName = this._manager.EditCollection(collection, EnumConversions<RESTResponseCodeCollection.CollectionScope>.StringToEnum(scope));
-            if (updatedName != string.Empty && updatedName != selectedName)
+            if (!string.IsNullOrEmpty(selectedName))
             {
-                CollectionListFld.Items.Remove(selectedName);
-                CollectionListFld.Items.Add(scope + _ScopeSeparator + updatedName);
+                string scope = selectedName.Substring(0, selectedName.IndexOf(_ScopeSeparator));
+                string collection = selectedName.Substring(selectedName.IndexOf(_ScopeSeparator) + _ScopeSeparator.Length);
+                string updatedName = this._manager.EditCollection(collection, EnumConversions<RESTResponseCodeCollection.CollectionScope>.StringToEnum(scope));
+                if (updatedName != string.Empty && updatedName != selectedName)
+                {
+                    CollectionListFld.Items.Remove(selectedName);
+                    CollectionListFld.Items.Add(scope + _ScopeSeparator + updatedName);
+                }
             }
         }
     }

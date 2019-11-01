@@ -31,7 +31,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// Returns the HTTP Response code category (100, 200, etc.) as an enumerated type.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal RESTOperationResultCapability.ResponseCategory Category
+        internal RESTOperationResultDescriptor.ResponseCategory Category
         {
             get
             {

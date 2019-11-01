@@ -137,7 +137,7 @@ namespace SparxEA.Context
             if (classID != 0)
             {
                 MEClass selectedClass = new MEClass(classID);
-                return (selectedClass.HasStereotype(stereotypes)) ? selectedClass : null;
+                return stereotypes == null || selectedClass.HasStereotype(stereotypes) ? selectedClass: null;
             }
             return null;
         }

@@ -71,6 +71,14 @@ namespace Plugin.Application.Forms
 
             RESTAuthentication.Enabled = false; // For the time being, REST Authentication setup is disabled!
 
+            // Load our list of supported OpenAPI versions...
+            OpenAPIVersion.Items.AddRange(new object[]
+            {
+                FrameworkSettings._OpenAPIVersion20,
+                FrameworkSettings._OpenAPIVersion300
+            });
+            OpenAPIVersion.SelectedItem = context.GetStringSetting(FrameworkSettings._OpenAPIVersion);
+
             // Find out which radio button to select for diagram...
             foreach (Control control in DiagramTypes.Controls)
             {
@@ -153,6 +161,7 @@ namespace Plugin.Application.Forms
             context.SetStringSetting(FrameworkSettings._RESTHostName, RESTHostName.Text);
             context.SetStringSetting(FrameworkSettings._RESTSchemes, RESTSchemes.Text);
             context.SetStringSetting(FrameworkSettings._SupplementaryPrefixCode, SupplementaryPrefixCode.Text);
+            context.SetStringSetting(FrameworkSettings._OpenAPIVersion, (string)OpenAPIVersion.SelectedItem);
 
             // Check is we still have to use the logfile. If not, we switch to an empty filename, which effectively disables logging...
             // Note that empty files will not be persisted!

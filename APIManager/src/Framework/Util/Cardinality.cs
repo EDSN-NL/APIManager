@@ -23,9 +23,19 @@ namespace Framework.Util
         internal int LowerBoundary { get { return this._lowerBoundary; } }
 
         /// <summary>
+        /// Returns a string representation of the lower boundary.
+        /// </summary>
+        internal string LowerBoundaryAsString { get { return this._lowerBoundary.ToString(); } }
+
+        /// <summary>
         /// Returns the upper range of the cardinality. Returns '0' for 'unlimited'.
         /// </summary>
         internal int UpperBoundary { get { return this._upperBoundary; } }
+
+        /// <summary>
+        /// Returns a string representation of the upper boundary.
+        /// </summary>
+        internal string UpperBoundaryAsString { get { return this._upperBoundary == 0 ? "*" : this._upperBoundary.ToString(); } }
 
         /// <summary>
         /// Returns the cardinality as a tuple of two integers, first value is lower range, second is upper range.

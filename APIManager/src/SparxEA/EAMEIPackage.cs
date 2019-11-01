@@ -1217,6 +1217,8 @@ namespace SparxEA.Model
                     Logger.WriteError("SparxEA.Model.EAMEIPackage.SetTag >> Package '" + this._package.Name + "' not yet fully initialized!");
                     return;
                 }
+                if (tagValue == null) tagValue = string.Empty;
+                if (tagName == null) tagName = string.Empty;
                 foreach (TaggedValue t in this._package.Element.TaggedValues)
                 {
                     if (String.Compare(t.Name, tagName, StringComparison.OrdinalIgnoreCase) == 0)
@@ -1231,7 +1233,7 @@ namespace SparxEA.Model
                 }
 
                 // Element tag not found, create new one if instructed to do so...
-                if (createIfNotExist)
+                if (createIfNotExist && tagName != string.Empty)
                 {
                     var newTag = this._package.Element.TaggedValues.AddNew(tagName, "TaggedValue") as TaggedValue;
                     newTag.Value = tagValue;

@@ -43,8 +43,7 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
-        /// Creates a new dialog that facilitates creation of a series of resources. Each resource is represented in the dialog
-        /// as a tuple of resource name and archetype.
+        /// Creates a new dialog that facilitates either creation or editing of an operation, including all of its components.
         /// </summary>
         /// <param name="myService">The service that owns the operation.</param>
         /// <param name="operation">Either an empty descriptor (in case of new operation), or operation properties in case
@@ -56,7 +55,7 @@ namespace Plugin.Application.Forms
             this._initializing = true;
             NewMinorVersion.Checked = false;
             this._operation = operation;
-            this._createMode = (operation.Name == string.Empty);
+            this._createMode = operation.Name == string.Empty;
             this.Text = this._createMode ? "Create new Operation": "Edit existing Operation";
             this.OperationNameFld.Text = operation.Name;
             this._dirty = false;
@@ -67,26 +66,11 @@ namespace Plugin.Application.Forms
             SummaryText.Text = operation.Summary;
             Description.Text = operation.Description;
 
-            // Show the associated default request- and response documents (if present)...
-            if (operation.RequestDocument == null) 
-            {
-                this._operation.RequestCardinality = new Cardinality(Cardinality._Mandatory);
-                this._operation.UseRequestEncryption = false;
-                this._operation.UseRequestSigning = false;
-            }
+            // Show the associated default request document (if present)...
+            if (operation.RequestDocument == null) this._operation.RequestCardinality = new Cardinality(Cardinality._Mandatory);
             else RequestTypeName.Text = operation.RequestDocument.Name;
-            ReqCardLo.Text = this._operation.RequestCardinality.LowerBoundary.ToString();
-            ReqCardHi.Text = this._operation.RequestCardinality.IsUnboundedList ? "*" : operation.RequestCardinality.UpperBoundary.ToString();
-
-            if (operation.ResponseDocument == null)
-            {
-                this._operation.ResponseCardinality = new Cardinality(Cardinality._Mandatory);
-                this._operation.UseResponseEncryption = false;
-                this._operation.UseResponseSigning = false;
-            }
-            else ResponseTypeName.Text = operation.ResponseDocument.Name;
-            RspCardLo.Text = this._operation.ResponseCardinality.LowerBoundary.ToString();
-            RspCardHi.Text = this._operation.ResponseCardinality.IsUnboundedList ? "*" : operation.ResponseCardinality.UpperBoundary.ToString();
+            ReqCardLo.Text = this._operation.RequestCardinality.LowerBoundaryAsString;
+            ReqCardHi.Text = this._operation.RequestCardinality.UpperBoundaryAsString;
 
             // Set remaining indicators according to current settings...
             HasPagination.Checked       = operation.PaginationIndicator;
@@ -143,15 +127,15 @@ namespace Plugin.Application.Forms
                 }
             }
 
-            // Load the result codes from the received operation declaration...
-            foreach (RESTOperationResultDescriptor resultDecl in operation.OperationResults)
+            // Load the result codes from our collection in the received operation declaration...
+            foreach (RESTOperationResultDescriptor resultDesc in operation.ResponseCollection.Collection)
             {
-                var listDecl = resultDecl;
-                if (listDecl.Status != RESTOperationResultDescriptor.DeclarationStatus.Invalid)
+                var listDesc = resultDesc;
+                if (listDesc.IsValid)
                 {
-                    ListViewItem newItem = new ListViewItem(listDecl.ResultCode);
-                    newItem.Name = listDecl.ResultCode;
-                    newItem.SubItems.Add(listDecl.Description);
+                    ListViewItem newItem = new ListViewItem(listDesc.ResultCode);
+                    newItem.Name = listDesc.ResultCode;
+                    newItem.SubItems.Add(listDesc.Description);
                     ResponseCodeList.Items.Add(newItem);
                 }
             }
@@ -205,7 +189,6 @@ namespace Plugin.Application.Forms
                 case HTTPOperation.Type.Head:
                     FilterGroup.Enabled = true;
                     RequestParamBox.Enabled = true;
-                    ResponseParamBox.Enabled = false;
                     HasPagination.Enabled = false;
                     HasPagination.Checked = false;
                     break;
@@ -213,7 +196,6 @@ namespace Plugin.Application.Forms
                 case HTTPOperation.Type.Get:
                     FilterGroup.Enabled = true;
                     RequestParamBox.Enabled = false;
-                    ResponseParamBox.Enabled = true;
                     HasPagination.Enabled = true;
                     break;
 
@@ -222,7 +204,6 @@ namespace Plugin.Application.Forms
                 case HTTPOperation.Type.Put:
                     FilterGroup.Enabled = true;
                     RequestParamBox.Enabled = true;
-                    ResponseParamBox.Enabled = true;
                     HasPagination.Enabled = true;
                     HasPagination.Checked = false;
                     break;
@@ -230,7 +211,6 @@ namespace Plugin.Application.Forms
                 default:
                     FilterGroup.Enabled = false;
                     RequestParamBox.Enabled = false;
-                    ResponseParamBox.Enabled = false;
                     HasPagination.Enabled = false;
                     HasPagination.Checked = false;
                     break;
@@ -284,16 +264,15 @@ namespace Plugin.Application.Forms
 
         /// <summary>
         /// This event is raised when the user clicks the 'Add Response Code' button.
-        /// The method facilitates creation of an additional response code (link between a HTTP response code and an
-        /// associated data type). The dialog creates the default OK response (HTTP code 200) by default.
-        /// Any additional response codes can be defined using this dialog.
+        /// The method facilitates creation of an additional response code (an HTTP response code with associated metadata such as
+        /// payload, description, cardinality, etc.).
         /// </summary>
         /// <param name="sender">Ignored.</param>
         /// <param name="e">Ignored.</param>
         private void AddResponseCode_Click(object sender, EventArgs e)
         {
             RESTOperationResultDescriptor result = this._operation.AddOperationResult();
-            if (result != null && result.Status != RESTOperationResultDescriptor.DeclarationStatus.Invalid)
+            if (result != null && result.IsValid)
             {
                 ListViewItem newItem = new ListViewItem(result.ResultCode);
                 newItem.Name = result.ResultCode;
@@ -468,21 +447,8 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void RemoveRequest_Click(object sender, EventArgs e)
         {
-            this._operation.ClearDocument(RESTOperationDeclaration._RequestIndicator);
+            this._operation.ClearDocument();
             RequestTypeName.Clear();
-            this._dirty = true;
-        }
-
-        /// <summary>
-        /// This event is raised when the user clicks the 'Unlink Response' button.
-        /// Used to clear the current response Document Resource (if present).
-        /// </summary>
-        /// <param name="sender">Ignored.</param>
-        /// <param name="e">Ignored.</param>
-        private void RemoveResponse_Click(object sender, EventArgs e)
-        {
-            this._operation.ClearDocument(RESTOperationDeclaration._ResponseIndicator);
-            ResponseTypeName.Clear();
             this._dirty = true;
         }
 
@@ -495,21 +461,8 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void SelectRequest_Click(object sender, EventArgs e)
         {
-            RequestTypeName.Text = this._operation.SetDocument(RESTOperationDeclaration._RequestIndicator);
+            RequestTypeName.Text = this._operation.SetDocument();
             if (RequestTypeName.Text != string.Empty) this._dirty = true;
-        }
-
-        /// <summary>
-        /// This event is raised when the user clicks the 'Link Response' button.
-        /// Actual operation is delegated to the OperationDeclaration.SetDocument method.
-        /// Result is shown in the associated type-name field.
-        /// </summary>
-        /// <param name="sender">Ignored.</param>
-        /// <param name="e">Ignored.</param>
-        private void SelectResponse_Click(object sender, EventArgs e)
-        {
-            ResponseTypeName.Text = this._operation.SetDocument(RESTOperationDeclaration._ResponseIndicator);
-            if (ResponseTypeName.Text != string.Empty) this._dirty = true;
         }
 
         /// <summary>
@@ -567,24 +520,39 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
-        /// This event is raised when the user leaves either the response cardinality upper- or lower boundary field.
-        /// We check the contents of the fields and create a new cardinality only if both fields have a value. In case
-        /// of illegal values, we raise a pop-up error.
+        /// On exit, we check the consistency of the response code list:
+        /// - At least one 'Success' result;
+        /// - At least one 'Client Error' result;
+        /// - All response codes in 'valid' state.
         /// </summary>
         /// <param name="sender">Ignored.</param>
         /// <param name="e">Ignored.</param>
-        private void RspCardinality_Leave(object sender, EventArgs e)
+        private void Ok_Click(object sender, EventArgs e)
         {
-            try
+            string errorCodes = string.Empty;
+            string message = "Response code collection not yet correct because:" + Environment.NewLine;
+            int defaultLen = message.Length;
+            bool foundOk = false;
+            bool foundError = false;
+            bool firstOne = true;
+            foreach (RESTOperationResultDescriptor response in this._operation.ResponseCollection.Collection)
             {
-                if (!string.IsNullOrEmpty(RspCardLo.Text) && !string.IsNullOrEmpty(RspCardHi.Text))
+                if (response.Category == RESTOperationResultDescriptor.ResponseCategory.Success) foundOk = true;
+                else if (response.Category == RESTOperationResultDescriptor.ResponseCategory.ClientError) foundError = true;
+                if (!response.IsValid)
                 {
-                    this._operation.ResponseCardinality = new Cardinality(RspCardLo.Text + ".." + RspCardHi.Text);
+                    errorCodes += firstOne ? response.ResultCode : ", " + response.ResultCode;
+                    firstOne = false;
                 }
             }
-            catch (IllegalCardinalityException)
+            if (!foundOk) message += "No success code has been defined;" + Environment.NewLine;
+            if (!foundError) message += "No client error code has been defined;" + Environment.NewLine;
+            if (errorCodes != string.Empty) message += "The following response codes don't (yet) have a valid context: " + errorCodes;
+            
+            if (message.Length > defaultLen)
             {
-                MessageBox.Show("Provided cardinality value is not correct!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.DialogResult = DialogResult.None;
             }
         }
     }

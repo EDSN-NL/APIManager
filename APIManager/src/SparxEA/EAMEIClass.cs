@@ -348,7 +348,7 @@ namespace SparxEA.Model
                 Logger.WriteError(message);
                 throw new ArgumentException(message);
             }
-            if (classifier.Type == ModelElementType.Unknown)
+            if (classifier != null && classifier.Type == ModelElementType.Unknown)
             {
                 string message = "SparxEA.Model.EAMEIClass.createAttribute >> Attempt to create attribute '" + attribName + "' with illegal classifier in class '" + this.Name + "'!";
                 Logger.WriteError(message);
@@ -820,9 +820,12 @@ namespace SparxEA.Model
         /// <returns>True if at least one match is found, false otherwise.</returns>
         internal override bool HasStereotype(List<string> stereotypes)
         {
-            foreach (string stereotype in stereotypes)
+            if (stereotypes != null)
             {
-                if (this._element.HasStereotype(stereotype)) return true;
+                foreach (string stereotype in stereotypes)
+                {
+                    if (this._element.HasStereotype(stereotype)) return true;
+                }
             }
             return false;
         }
@@ -834,8 +837,12 @@ namespace SparxEA.Model
         /// <returns>True if a match is found, false otherwise.</returns>
         internal override bool HasStereotype(string stereotype)
         {
-            bool hasStereotype = this._element.HasStereotype(stereotype);
-            return hasStereotype;
+            if (!string.IsNullOrEmpty(stereotype))
+            {
+                bool hasStereotype = this._element.HasStereotype(stereotype);
+                return hasStereotype;
+            }
+            return false;
         }
 
         /// <summary>
@@ -958,6 +965,8 @@ namespace SparxEA.Model
         {
             try
             {
+                if (tagValue == null) tagValue = string.Empty;
+                if (tagName == null) tagName = string.Empty;
                 foreach (TaggedValue t in this._element.TaggedValues)
                 {
                     if (String.Compare(t.Name, tagName, StringComparison.OrdinalIgnoreCase) == 0)
@@ -974,7 +983,7 @@ namespace SparxEA.Model
                 }
 
                 // Element tag not found, create new one if instructed to do so...
-                if (createIfNotExist)
+                if (createIfNotExist && tagName != string.Empty)
                 {
                     var newTag = this._element.TaggedValues.AddNew(tagName, "TaggedValue") as TaggedValue;
                     newTag.Value = tagValue;

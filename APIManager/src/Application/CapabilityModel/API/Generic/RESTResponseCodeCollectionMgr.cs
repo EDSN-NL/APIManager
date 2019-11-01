@@ -18,7 +18,7 @@ namespace Plugin.Application.CapabilityModel.API
     internal sealed class RESTResponseCodeCollectionMgr
     {
         // Configuration properties used by this module:
-        private const string _RESTResponseCodeCollectionStereotype      = "RESTResponseCodeCollectionStereotype";
+        private const string _RCCStereotype                             = "RCCStereotype";
         private const string _RESTResponseCodeCollectionsPathName       = "RESTResponseCodeCollectionsPathName";
         private const string _RESTResponseCodeCollectionsPkgName        = "RESTResponseCodeCollectionsPkgName";
 
@@ -60,10 +60,10 @@ namespace Plugin.Application.CapabilityModel.API
                 // Create a collection manager for another service, we have to switch contexts...
                 _myService = thisService;
                 _collectionList = new SortedList<string, RESTResponseCodeCollection>();
-                string collectionStereotype = context.GetConfigProperty(_RESTResponseCodeCollectionStereotype);
+                string collectionStereotype = context.GetConfigProperty(_RCCStereotype);
                 foreach (MEClass collection in thisService.ModelPkg.FindClasses(null, collectionStereotype))
                 {
-                    _collectionList.Add(APIString + _ScopeSeparator + collection.Name, new RESTResponseCodeCollection(collection));
+                    _collectionList.Add(APIString + _ScopeSeparator + collection.Name, new RESTResponseCodeCollection(null, collection));
                 }
 
                 // Check whether we have 'global' collections and if so, add them to our list...
@@ -72,7 +72,7 @@ namespace Plugin.Application.CapabilityModel.API
                 {
                     foreach (MEClass collection in globalCollections.FindClasses(null, collectionStereotype))
                     {
-                        _collectionList.Add(GlobalString + _ScopeSeparator + collection.Name, new RESTResponseCodeCollection(collection));
+                        _collectionList.Add(GlobalString + _ScopeSeparator + collection.Name, new RESTResponseCodeCollection(null, collection));
                     }
                 }
                 else Logger.WriteWarning("Could not find package '" + globalCollectionPath + ":" + globalCollectionPkgName + "', skipping global response code collections!");
@@ -119,8 +119,8 @@ namespace Plugin.Application.CapabilityModel.API
                 {
                     // In case of an 'add new', the user has selected the appropriate scope of the new collection....
                     if (editDialog.Scope == RESTResponseCodeCollection.CollectionScope.Global && globalCollections != null)
-                         editDialog.Collection.SetScope(globalCollections, RESTResponseCodeCollection.CollectionScope.Global);
-                    else editDialog.Collection.SetScope(_myService.ModelPkg, RESTResponseCodeCollection.CollectionScope.API);
+                         editDialog.Collection.Serialize(editDialog.CollectionName, globalCollections, RESTResponseCodeCollection.CollectionScope.Global);
+                    else editDialog.Collection.Serialize(editDialog.CollectionName, _myService.ModelPkg, RESTResponseCodeCollection.CollectionScope.API);
                     _collectionList.Add(prefix + _ScopeSeparator + editDialog.CollectionName, editDialog.Collection);
                 }
             }
@@ -139,7 +139,7 @@ namespace Plugin.Application.CapabilityModel.API
             if (_collectionList.ContainsKey(key))
             {
                 RESTResponseCodeCollection collection = _collectionList[key];
-                collection.DeleteResources();
+                collection.DeleteCollection();
                 _collectionList.Remove(prefix + _ScopeSeparator + thisCollection);
             }
         }
@@ -163,7 +163,6 @@ namespace Plugin.Application.CapabilityModel.API
                 return string.Empty;
             }
 
-            thisCollection.LockCollection();
             RESTResponseCodeCollectionEdit editDialog = new RESTResponseCodeCollectionEdit(thisCollection);
             if (editDialog.ShowDialog() == DialogResult.OK)
             {
@@ -182,7 +181,6 @@ namespace Plugin.Application.CapabilityModel.API
                 collectionName = editDialog.CollectionName;
                 editDialog.Collection.Name = collectionName;
             }
-            thisCollection.UnlockCollection();
             return collectionName;
         }
 

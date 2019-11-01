@@ -80,6 +80,24 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Reads or writes the index of the attribute within the owning class.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal int Index
+        {
+            get
+            {
+                if (this._imp != null) return ((MEIAttribute)this._imp).GetIndex();
+                else throw new MissingImplementationException("MEIAttribute");
+            }
+            set
+            {
+                if (this._imp != null) ((MEIAttribute)this._imp).SetIndex(value);
+                else throw new MissingImplementationException("MEIAttribute");
+            }
+        }
+
+        /// <summary>
         /// Returns an indication whether the attribute is optional within the owning class. This implies that the
         /// 'lower bound' of the attribute cardinality must be '0'.
         /// </summary>

@@ -831,7 +831,6 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         RESTOperationCapability newOperation = new RESTOperationCapability(resourceCapItf, operation);
                         if (operation.RequestDocument != null) documentList.Add(new RESTResourceDeclaration(operation.RequestDocument));
-                        if (operation.ResponseDocument != null) documentList.Add(new RESTResourceDeclaration(operation.ResponseDocument));
                     }
                 }
                 if (documentList.Count > 0) AddResources(documentList, false); // This will create association with existing Documents.
@@ -1067,46 +1066,5 @@ namespace Plugin.Application.CapabilityModel.API
                 this._capabilityClass = null;   // Assures that instance is declared invalid.
             }
         }
-
-        /************
-        /// <summary>
-        /// Helper function that is invoked by the capability hierarchy traversal for each node in the hierarchy, starting at the current resource
-        /// and subsequently invoked for each subordinate capability (child resources and operations).
-        /// The function collects items that must be displayed on the updated Resource diagram. It only selects capabilities that are defined
-        /// within the resource package or other resources (irrespective of their package).
-        /// </summary>
-        /// <param name="svc">My parent service.</param>
-        /// <param name="cap">The current Capability.</param>
-        /// <returns>Always 'false', which indicates that traversal must continue until all nodes are processed.</returns>
-        private bool DiagramItemsCollector(Service svc, Capability cap)
-        {
-            if (cap != null) // Safety catch, must not be NULL since we start at capability level.   
-            {
-                ContextSlt context = ContextSlt.GetContextSlt();
-                Logger.WriteInfo("Plugin.Application.Events.API.AddResourcesEvent.DiagramItemsCollector >> Traversing capability '" + cap.Name + "'...");
-                if (cap is RESTResourceCapability || cap is RESTOperationCapability || cap.OwningPackage == this._resourcePackage)
-                {
-                    this._diagramClassList.Add(cap.CapabilityClass);
-                    string msgAssemblyStereotype = context.GetConfigProperty(_MessageAssemblyClassStereotype);
-                    string operationResultStereotype = context.GetConfigProperty(_RESTOperationResultStereotype);
-                    bool mustShowMsgAssembly = context.GetBoolSetting(FrameworkSettings._SMAddMessageAssemblyToDiagram);
-                    foreach (MEAssociation assoc in cap.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
-                    {
-                        this._diagramAssocList.Add(assoc);
-                        // If the endpoint of the association is a Message Assembly or an operation result, we MIGHT have to add it to the diagram manually...
-                        if (assoc.Destination.EndPoint.HasStereotype(msgAssemblyStereotype) && mustShowMsgAssembly)
-                        {
-                            this._diagramClassList.Add(assoc.Destination.EndPoint);
-                        }
-                        else if (assoc.Destination.EndPoint.HasStereotype(operationResultStereotype))
-                        {
-                            this._diagramClassList.Add(assoc.Destination.EndPoint);
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-        *****************/
     }
 }

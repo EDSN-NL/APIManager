@@ -2,21 +2,17 @@
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Framework.Util;
-using Framework.Logging;
 using Framework.Context;
-using Framework.Model;
+using Framework.Exceptions;
 using Plugin.Application.CapabilityModel.API;
 
 namespace Plugin.Application.Forms
 {
     internal partial class RESTResponseCodeDialog : Form
     {
-        // Configuration codes used by this module:
-        private const string _APISupportModelPathName = "APISupportModelPathName";
-
-        private RESTOperationResultDescriptor _result;                          // The Descriptor that we're building.
-        private List<RESTOperationResultDescriptor.CodeDescriptor> _codeList;   // Currently active set of response code definitions.
-        private RESTResponseCodeCollection _collection;                         // The collection that will hold the descriptor.
+        private RESTOperationResultDescriptor _result;              // The Descriptor that we're building.
+        private List<CodeDescriptor> _codeList;                     // Currently active set of response code definitions.
+        private RESTResponseCodeCollection _collection;             // The collection that owns this descriptor.
 
         internal RESTOperationResultDescriptor OperationResult { get { return this._result; } }
 
@@ -33,9 +29,26 @@ namespace Plugin.Application.Forms
             this._result = descriptor;
             this._collection = collection;
 
+            // 'Document' payload type is available only when we're on the 'operation' level!
+            IsDocument.Enabled = collection.Scope == RESTResponseCodeCollection.CollectionScope.Operation;
+
+            // Enable/disable OpenAPI version dependent features...
+            if (context.GetStringSetting(FrameworkSettings._OpenAPIVersion) == FrameworkSettings._OpenAPIVersion20)
+            {
+                IsExternalLink.Enabled = false;
+                IsRange.Checked = false;
+                IsRange.Visible = false;
+                ExternalLinkBox.Enabled = false;
+            }
+
             if (descriptor == null)
             {
-                DO SOMETHING
+                // When we have not received an existing descriptor, we assume that we must create a new one and we start with 'default'.
+                this._result = new RESTOperationResultDescriptor(collection, RESTOperationResultDescriptor._DefaultCode);
+                this._result.PayloadType = RESTOperationResultDescriptor.ResultPayloadType.DefaultResponse;
+                ResponseDescription.Text = this._result.Description;
+                IsDefault.Checked = true;
+                SetPayloadType(RESTOperationResultDescriptor.ResultPayloadType.DefaultResponse, true);
             }
             else
             {
@@ -43,14 +56,17 @@ namespace Plugin.Application.Forms
                 {
                     case RESTOperationResultDescriptor.ResponseCategory.Informational:
                         IsInformational.Checked = true;
+                        IsDefaultResponseType.Enabled = false;
                         break;
 
                     case RESTOperationResultDescriptor.ResponseCategory.Success:
                         IsSuccess.Checked = true;
+                        IsDefaultResponseType.Enabled = false;
                         break;
 
                     case RESTOperationResultDescriptor.ResponseCategory.Redirection:
                         IsRedirection.Checked = true;
+                        IsDefaultResponseType.Enabled = false;
                         break;
 
                     case RESTOperationResultDescriptor.ResponseCategory.ClientError:
@@ -63,50 +79,49 @@ namespace Plugin.Application.Forms
 
                     // The 'unknown' category is used for first-time creation of new descriptors. Use some sensible defaults here.
                     default:
-                        this._result = new RESTOperationResultDescriptor(RESTOperationResultDescriptor.ResponseCategory.Informational);
+                        this._result = new RESTOperationResultDescriptor(collection, RESTOperationResultDescriptor._DefaultCode);
                         ResponseDescription.Text = this._result.Description;
-                        IsInformational.Checked = true;
+                        IsDefault.Checked = true;
                         break;
                 }
 
                 // Select the current payload type for this response code and load the payload 'name' field accordingly...
-                switch (descriptor.PayloadType)
-                {
-                    case RESTOperationResultDescriptor.ResultPayloadType.CustomResponse:
-                        PayloadBox.Text = descriptor.ResponsePayloadClass != null ? descriptor.ResponsePayloadClass.Name : string.Empty;
-                        IsCustomType.Checked = true;
-                        break;
+                SetPayloadType(this._result.PayloadType, true);
 
-                    case RESTOperationResultDescriptor.ResultPayloadType.DefaultResponse:
-                        PayloadBox.Text = descriptor.ResponsePayloadClass != null ? descriptor.ResponsePayloadClass.Name : string.Empty;
-                        IsDefaultResponseType.Checked = true;
-                        break;
-
-                    case RESTOperationResultDescriptor.ResultPayloadType.Document:
-                        PayloadBox.Text = descriptor.ResponsePayloadClass != null ? descriptor.ResponsePayloadClass.Name : string.Empty;
-                        IsDocument.Checked = true;
-                        break;
-
-                    case RESTOperationResultDescriptor.ResultPayloadType.Link:
-                        PayloadBox.Text = !string.IsNullOrEmpty(descriptor.ExternalReference) ? descriptor.ExternalReference : string.Empty;
-                        IsExternalLink.Checked = true;
-                        break;
-
-                    default:
-                        PayloadBox.Text = string.Empty;
-                        IsNone.Checked = true;
-                        break;
-                }
+                // Show the associated default response document (if present)...
+                if (this._result.PayloadType == RESTOperationResultDescriptor.ResultPayloadType.Document && this._result.Document != null) ResponseTypeName.Text = this._result.Document.Name;
+                else if ((this._result.PayloadType == RESTOperationResultDescriptor.ResultPayloadType.DefaultResponse ||
+                          this._result.PayloadType == RESTOperationResultDescriptor.ResultPayloadType.CustomResponse) && this._result.PayloadClass != null) ResponseTypeName.Text = this._result.PayloadClass.Name;
+                else ResponseTypeName.Text = string.Empty;
+                RspCardLo.Text = this._result.ResponseCardinality.LowerBoundaryAsString;
+                RspCardHi.Text = this._result.ResponseCardinality.UpperBoundaryAsString;
             }
 
             // Initialize the drop-down box with all possible codes for given category...
-            this._codeList = this._result.GetResponseCodes();
-            foreach (RESTOperationResultDescriptor.CodeDescriptor dsc in this._codeList)
-            {
-                ResponseCode.Items.Add(dsc.Label);
-            }
-            ResponseCode.SelectedItem = RESTOperationResultDescriptor.CodeDescriptor.CodeToLabel(this._result.ResultCode);
+            this._codeList = RESTOperationResultDescriptor.GetResponseCodes(this._result.Category);
+            foreach (CodeDescriptor dsc in this._codeList) ResponseCode.Items.Add(dsc.Label);
+            ResponseCode.SelectedItem = CodeDescriptor.CodeToLabel(this._result.ResultCode);
             ResponseDescription.Text = (descriptor != null && !string.IsNullOrEmpty(descriptor.Description)) ? descriptor.Description : string.Empty;
+        }
+
+        /// <summary>
+        /// This event is raised when the user clicks the 'Unlink Response' button.
+        /// Used to clear the current response Document Resource (if present).
+        /// The response payload class is set to NULL and the cardinality is reset to default.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void RemoveResponse_Click(object sender, EventArgs e)
+        {
+            if (this._result.PayloadType == RESTOperationResultDescriptor.ResultPayloadType.CustomResponse ||
+                this._result.PayloadType == RESTOperationResultDescriptor.ResultPayloadType.DefaultResponse) this._result.PayloadClass = null; 
+            else if (this._result.PayloadType == RESTOperationResultDescriptor.ResultPayloadType.Document)   this._result.Document = null;
+            else return; // 'spurious' click (in wrong context). Do nothing!
+
+            this._result.ResponseCardinality = new Cardinality(Cardinality._Mandatory);
+            RspCardLo.Text = this._result.ResponseCardinality.LowerBoundaryAsString;
+            RspCardHi.Text = this._result.ResponseCardinality.UpperBoundaryAsString;
+            ResponseTypeName.Clear();
         }
 
         /// <summary>
@@ -118,8 +133,22 @@ namespace Plugin.Application.Forms
         private void ResponseCode_SelectedIndexChanged(object sender, EventArgs e)
         {
             int index = ResponseCode.SelectedIndex;
-            this._result.ResultCode = RESTOperationResultDescriptor.CodeDescriptor.LabelToCode(ResponseCode.Items[index].ToString());
+            this._result.ResultCode = CodeDescriptor.LabelToCode(ResponseCode.Items[index].ToString());
+            if (IsRange.Checked) this._result.ResultCode = this._result.ResultCode[0] + RESTOperationResultDescriptor._RangePostfix;
             ResponseDescription.Text = this._result.Description;
+        }
+
+        /// <summary>
+        /// This event is raised when the user clicks the 'Link Response' button.
+        /// Actual operation is delegated to the OperationResultDescriptor.SetDocument method, which collects the appropriate document / class
+        /// and returns its name (or empty string in case of cancel or error).
+        /// Result is shown in the associated type-name field.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void SelectResponse_Click(object sender, EventArgs e)
+        {
+            ResponseTypeName.Text = this._result.SetDocument();
         }
 
         /// <summary>
@@ -138,77 +167,63 @@ namespace Plugin.Application.Forms
         /// <summary>
         /// This event is raised when one of the category indicators has changed state.
         /// The method determines the new category and updates the other controls accordingly.
-        /// Note that changing the category will re-initialize the associated operation result declaration.
+        /// Note that changing the category will re-initialize HTTP code and description but does not change the response payload.
         /// </summary>
         /// <param name="sender">Ignored.</param>
         /// <param name="e">Ignored.</param>
         private void Category_CheckedChanged(object sender, EventArgs e)
         {
-            RESTOperationResultCapability.ResponseCategory oldCategory = this._result.Category;
-            RESTOperationResultCapability.ResponseCategory newCategory = this._result.Category;
+            RESTOperationResultDescriptor.ResponseCategory oldCategory = this._result.Category;
+            RESTOperationResultDescriptor.ResponseCategory newCategory = this._result.Category;
             foreach (Control control in CategoryBox.Controls)
             {
                 if (control is RadioButton && ((RadioButton)control).Checked)
                 {
-                    newCategory = EnumConversions<RESTOperationResultCapability.ResponseCategory>.StringToEnum(control.Tag.ToString());
+                    newCategory = EnumConversions<RESTOperationResultDescriptor.ResponseCategory>.StringToEnum(control.Tag.ToString());
                     break;
                 }
             }
 
             if (newCategory != oldCategory)
             {
-                // Changing the category means that we're going to replace the current result object by a new one according to 
-                // the newly selected category. This also resets the payload type, descripion and code...
-                this._result = new RESTOperationResultDescriptor(newCategory);
-                this._codeList = this._result.GetResponseCodes();
+                this._result.Category = newCategory;
+                this._codeList = RESTOperationResultDescriptor.GetResponseCodes(newCategory);
                 ResponseCode.Items.Clear();
-                foreach (RESTOperationResultDescriptor.CodeDescriptor dsc in this._codeList) ResponseCode.Items.Add(dsc.Label);
-                ResponseCode.SelectedItem = RESTOperationResultDescriptor.CodeDescriptor.CodeToLabel(this._result.ResultCode);
+                foreach (CodeDescriptor dsc in this._codeList) ResponseCode.Items.Add(dsc.Label);
+
+                // If we have the 'enforce range' checkbox enabled, we must enforce the 'range representation' of the category and
+                // we must disable the drop-down as well...
+                if (newCategory != RESTOperationResultDescriptor.ResponseCategory.Default && IsRange.Checked)
+                    this._result.ResultCode = this._result.ResultCode[0] + RESTOperationResultDescriptor._RangePostfix;
+                else IsRange.Checked = false;   // Default category does not support 'enforce range'.
+                ResponseCode.Enabled = !IsRange.Checked;
+                ResponseCode.SelectedItem = CodeDescriptor.CodeToLabel(this._result.ResultCode);
                 ResponseDescription.Text = this._result.Description;
-                PayloadBox.Text = string.Empty;
 
-                // Select the current payload type for this response code...
-                switch (this._result.PayloadType)
+                // If we change the category to a 'non-error' category, we do not accept the default response...
+                if (newCategory == RESTOperationResultDescriptor.ResponseCategory.Informational ||
+                    newCategory == RESTOperationResultDescriptor.ResponseCategory.Success ||
+                    newCategory == RESTOperationResultDescriptor.ResponseCategory.Redirection)
                 {
-                    case RESTOperationResultDescriptor.ResultPayloadType.CustomResponse:
-                        IsCustomType.Checked = true;
-                        break;
-
-                    case RESTOperationResultDescriptor.ResultPayloadType.DefaultResponse:
-                        IsDefaultResponseType.Checked = true;
-                        break;
-
-                    case RESTOperationResultDescriptor.ResultPayloadType.Document:
-                        IsDocument.Checked = true;
-                        break;
-
-                    case RESTOperationResultDescriptor.ResultPayloadType.Link:
-                        IsExternalLink.Checked = true;
-                        break;
-
-                    default:
-                        IsNone.Checked = true;
-                        break;
+                    IsDefaultResponseType.Enabled = false;
+                    IsNone.Checked = true;
+                    this._result.PayloadType = RESTOperationResultDescriptor.ResultPayloadType.None;
+                    ResponseTypeName.Text = string.Empty;
                 }
+                else IsDefaultResponseType.Enabled = true;
             }
         }
 
         /// <summary>
-        /// This event is raised when the user clicks the 'select payload' button. Actions depend on the currently
-        /// selected payload type.
+        /// This event is raised when the user selects a payload type. 
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void SelectPayload_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void PayloadType_CheckedChanged(object sender, EventArgs e)
         {
             RESTOperationResultDescriptor.ResultPayloadType oldType = this._result.PayloadType;
             RESTOperationResultDescriptor.ResultPayloadType newType = this._result.PayloadType;
-            foreach (Control control in ResponseRefTypeBox.Controls)
+            foreach (Control control in PayloadTypeBox.Controls)
             {
                 if (control is RadioButton && ((RadioButton)control).Checked)
                 {
@@ -220,14 +235,130 @@ namespace Plugin.Application.Forms
             if (newType != oldType)
             {
                 this._result.PayloadType = newType;
-                if (newType != RESTOperationResultDescriptor.ResultPayloadType.None)
+                SetPayloadType(newType, false);
+            }
+        }
+
+        /// <summary>
+        /// This event is raised when the user leaves either the response cardinality upper- or lower boundary field.
+        /// We check the contents of the fields and create a new cardinality only if both fields have a value. In case
+        /// of illegal values, we raise a pop-up error.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void RspCardinality_Leave(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(RspCardLo.Text) && !string.IsNullOrEmpty(RspCardHi.Text))
                 {
-                    if (newType == RESTOperationResultDescriptor.ResultPayloadType.Link)
-                        PayloadBox.Text = !string.IsNullOrEmpty(this._result.ExternalReference) ? this._result.ExternalReference : string.Empty;
-                    else
-                        PayloadBox.Text = this._result.ResponsePayloadClass != null ? this._result.ResponsePayloadClass.Name : string.Empty;
+                    this._result.ResponseCardinality = new Cardinality(RspCardLo.Text + ".." + RspCardHi.Text);
                 }
-                else PayloadBox.Text = string.Empty;
+            }
+            catch (IllegalCardinalityException)
+            {
+                MessageBox.Show("Provided cardinality value is not correct!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// Helper function that (re-)initializes, enables and/or disables parts of the dialog based on a provided payload type.
+        /// When 'initButton' is set to 'true', the function also initializes the appropriate radio button.
+        /// </summary>
+        /// <param name="payloadType">Payload type to be processed.</param>
+        /// <param name="initButton">When 'true', also set the appropriate radio button.</param>
+        private void SetPayloadType(RESTOperationResultDescriptor.ResultPayloadType payloadType, bool initButton)
+        {
+            switch (payloadType)
+            {
+                case RESTOperationResultDescriptor.ResultPayloadType.CustomResponse:
+                    ExternalLinkBox.Enabled = false;
+                    ExternalLink.Text = string.Empty;
+                    ResponsePayloadBox.Enabled = true;
+                    ResponseTypeName.Text = this._result.PayloadClass != null ? this._result.PayloadClass.Name : string.Empty;
+                    RspCardLo.Text = this._result.ResponseCardinality.LowerBoundaryAsString;
+                    RspCardHi.Text = this._result.ResponseCardinality.UpperBoundaryAsString;
+                    if (initButton) IsCustomType.Checked = true;
+                    break;
+
+                case RESTOperationResultDescriptor.ResultPayloadType.DefaultResponse:
+                    ExternalLinkBox.Enabled = false;
+                    ExternalLink.Text = string.Empty;
+                    ResponsePayloadBox.Enabled = false;
+                    ResponseTypeName.Text = this._result.PayloadClass != null ? this._result.PayloadClass.Name : string.Empty;
+                    RspCardLo.Text = this._result.ResponseCardinality.LowerBoundaryAsString;
+                    RspCardHi.Text = this._result.ResponseCardinality.UpperBoundaryAsString;
+                    if (initButton) IsDefaultResponseType.Checked = true;
+                    break;
+
+                case RESTOperationResultDescriptor.ResultPayloadType.Document:
+                    ExternalLinkBox.Enabled = false;
+                    ExternalLink.Text = string.Empty;
+                    ResponsePayloadBox.Enabled = true;
+                    ResponseTypeName.Text = this._result.Document != null ? this._result.Document.Name : string.Empty;
+                    RspCardLo.Text = this._result.ResponseCardinality.LowerBoundaryAsString;
+                    RspCardHi.Text = this._result.ResponseCardinality.UpperBoundaryAsString;
+                    if (initButton) IsDocument.Checked = true;
+                    break;
+
+                case RESTOperationResultDescriptor.ResultPayloadType.Link:
+                    ExternalLinkBox.Enabled = true;
+                    ExternalLink.Text = !string.IsNullOrEmpty(this._result.ExternalReference) ? this._result.ExternalReference : string.Empty;
+                    ResponsePayloadBox.Enabled = false;
+                    ResponseTypeName.Text = string.Empty;
+                    if (initButton) IsExternalLink.Checked = true;
+                    break;
+
+                default:
+                    ExternalLinkBox.Enabled = false;
+                    ExternalLink.Text = string.Empty;
+                    ResponsePayloadBox.Enabled = false;
+                    ResponseTypeName.Text = string.Empty;
+                    if (initButton) IsNone.Checked = true;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Invoked when the user selects- / un-selects the 'Enforce Range' checkbox.
+        /// When checked, the associated response code is changed into its 'nXX' format.
+        /// When un-checked, the associated response code is reset to it's generic ('n00') format.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void IsRange_CheckedChanged(object sender, EventArgs e)
+        {
+            // Enforce range does not work for the 'default' category, is ignored in that case.
+            if (_result.Category != RESTOperationResultDescriptor.ResponseCategory.Default)
+            {
+                string range = this._result.ResultCode[0] + (IsRange.Checked ? RESTOperationResultDescriptor._RangePostfix :
+                                                                              RESTOperationResultDescriptor._DefaultPostfix);
+                this._result.ResultCode = range;
+                ResponseCode.SelectedItem = CodeDescriptor.CodeToLabel(range);
+                ResponseDescription.Text = this._result.Description;
+                ResponseCode.Enabled = !IsRange.Checked;
+            }
+            else IsRange.Checked = false;
+        }
+
+        /// <summary>
+        /// Invoked when the user has entered an URL in the external-link field. We perform a quick check on link format and
+        /// load the result in the response descriptor.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void ExternalLink_Leave(object sender, EventArgs e)
+        {
+            try
+            {
+                var newUri = new Uri(ExternalLink.Text, UriKind.Absolute);
+                this._result.ExternalReference = newUri.ToString();
+                ExternalLink.Text = this._result.ExternalReference;
+            }
+            catch // ...and ignore the actual error.
+            {
+                MessageBox.Show("Link '" + ExternalLink.Text + "' has illegal (absolute) URL format, please try again!", 
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
