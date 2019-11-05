@@ -113,7 +113,6 @@ namespace Plugin.Application.CapabilityModel.API
 
             ContextSlt context = ContextSlt.GetContextSlt();
 
-            // first of all, we're trying to determine the scope of this collection...
             this._owningPackage = package;
             this._name = collectionName;
             this._isLocked = false;

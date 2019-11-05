@@ -16,20 +16,20 @@ namespace Plugin.Application.CapabilityModel.API
     internal partial class OpenAPI20Processor : CapabilityProcessor
     {
         // Configuration properties used by this module...
-        private const string _ConsumesMIMEListTag           = "ConsumesMIMEListTag";
-        private const string _ProducesMIMEListTag           = "ProducesMIMEListTag";
-        private const string _RequestPaginationClassName    = "RequestPaginationClassName";
-        private const string _ResponsePaginationClassName   = "ResponsePaginationClassName";
-        private const string _PaginationClassStereotype     = "PaginationClassStereotype";
-        private const string _OperationResultClassName      = "OperationResultClassName";
-        private const string _RequestHdrParamClassName      = "RequestHdrParamClassName";
-        private const string _ResponseHdrParamClassName     = "ResponseHdrParamClassName";
-        private const string _ResourceClassStereotype       = "ResourceClassStereotype";
-        private const string _BusinessComponentStereotype   = "BusinessComponentStereotype";
-        private const string _APISupportModelPathName       = "APISupportModelPathName";
-        private const string _CollectionFormatTag           = "CollectionFormatTag";
-        private const string _ResponsePkgName               = "ResponsePkgName";
-        private const string _ResponseMessageSuffix         = "ResponseMessageSuffix";
+        private const string _ConsumesMIMEListTag = "ConsumesMIMEListTag";
+        private const string _ProducesMIMEListTag = "ProducesMIMEListTag";
+        private const string _RequestPaginationClassName = "RequestPaginationClassName";
+        private const string _ResponsePaginationClassName = "ResponsePaginationClassName";
+        private const string _PaginationClassStereotype = "PaginationClassStereotype";
+        private const string _OperationResultClassName = "OperationResultClassName";
+        private const string _RequestHdrParamClassName = "RequestHdrParamClassName";
+        private const string _ResponseHdrParamClassName = "ResponseHdrParamClassName";
+        private const string _ResourceClassStereotype = "ResourceClassStereotype";
+        private const string _BusinessComponentStereotype = "BusinessComponentStereotype";
+        private const string _APISupportModelPathName = "APISupportModelPathName";
+        private const string _CollectionFormatTag = "CollectionFormatTag";
+        private const string _ResponsePkgName = "ResponsePkgName";
+        private const string _ResponseMessageSuffix = "ResponseMessageSuffix";
         private const string _GenericMessageClassStereotype = "GenericMessageClassStereotype";
 
         // Separator between summary text and description text
@@ -45,73 +45,82 @@ namespace Plugin.Application.CapabilityModel.API
         private bool BuildOperation(RESTOperationCapability operation)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperation >> Building operation '" + operation.Name + "'...");
-            bool result = true;
+            bool result = false;
             this._schema.CurrentCapability = operation;
             this._JSONWriter.WritePropertyName(operation.HTTPOperationType.TypeName.ToLower());
-            this._JSONWriter.WriteStartObject();                            // We start the operation object here, but we can't finish it since the responses have to go in!
-            if (this._currentResource.TagNames.Count > 0)
+            this._JSONWriter.WriteStartObject();
             {
-                this._JSONWriter.WritePropertyName("tags");
-                this._JSONWriter.WriteStartArray();
-                foreach (string tagName in this._currentResource.TagNames) this._JSONWriter.WriteValue(tagName);
+                if (this._currentResource.TagNames.Count > 0)
+                {
+                    this._JSONWriter.WritePropertyName("tags");
+                    this._JSONWriter.WriteStartArray();
+                    foreach (string tagName in this._currentResource.TagNames) this._JSONWriter.WriteValue(tagName);
+                    this._JSONWriter.WriteEndArray();
+                }
+
+                // Extract documentation from the class. This can be a multi-line object in which the first line might be the 'summary' description...
+                List<string> documentation = MEChangeLog.GetDocumentationAsTextLines(operation.CapabilityClass);
+                if (documentation.Count > 0)
+                {
+                    if (documentation[0].StartsWith(_Summary, StringComparison.OrdinalIgnoreCase))
+                    {
+                        string summary = documentation[0].Substring(_Summary.Length);
+                        this._JSONWriter.WritePropertyName("summary"); this._JSONWriter.WriteValue(summary);
+                    }
+                    if (documentation.Count > 1)
+                    {
+                        string description = string.Empty;
+                        // We already copied the first line, so now append all additional lines...
+                        // Since newlines don't really work in JSON descriptions, we replace them by some spaces.
+                        bool firstLine = true;
+                        for (int i = 1; i < documentation.Count; i++)
+                        {
+                            description += firstLine ? documentation[i] : "  " + documentation[i];
+                            firstLine = false;
+                        }
+                        this._JSONWriter.WritePropertyName("description"); this._JSONWriter.WriteValue(description);
+                    }
+                }
+                this._JSONWriter.WritePropertyName("operationId"); this._JSONWriter.WriteValue(Conversions.ToCamelCase(operation.Name));
+
+                // Build the MIME list for this operation, if alternative MIME types have been defined...
+                if (operation.ProducedMIMEList.Count > 0)
+                {
+                    this._JSONWriter.WritePropertyName("produces"); this._JSONWriter.WriteStartArray();
+                    {
+                        bool isFirst = true;
+                        foreach (string MIMEstring in operation.ProducedMIMEList)
+                        {
+                            this._JSONWriter.WriteValue(isFirst ? MIMEstring : "," + MIMEstring);
+                            isFirst = false;
+                        }
+                    }
+                    this._JSONWriter.WriteEndArray();
+                }
+                if (operation.ConsumedMIMEList.Count > 0)
+                {
+                    this._JSONWriter.WritePropertyName("consumes"); this._JSONWriter.WriteStartArray();
+                    {
+                        bool isFirst = true;
+                        foreach (string MIMEstring in operation.ConsumedMIMEList)
+                        {
+                            this._JSONWriter.WriteValue(isFirst ? MIMEstring : "," + MIMEstring);
+                            isFirst = false;
+                        }
+                    }
+                    this._JSONWriter.WriteEndArray();
+                }
+
+                this._JSONWriter.WritePropertyName("parameters"); this._JSONWriter.WriteStartArray();
+                {
+                    result = BuildParameters(operation);
+                }
                 this._JSONWriter.WriteEndArray();
-            }
 
-            // Extract documentation from the class. This can be a multi-line object in which the first line might be the 'summary' description...
-            List<string> documentation = MEChangeLog.GetDocumentationAsTextLines(operation.CapabilityClass);
-            if (documentation.Count > 0)
-            {
-                if (documentation[0].StartsWith(_Summary, StringComparison.OrdinalIgnoreCase))
-                {
-                    string summary = documentation[0].Substring(_Summary.Length);
-                    this._JSONWriter.WritePropertyName("summary"); this._JSONWriter.WriteValue(summary);
-                }
-                if (documentation.Count > 1)
-                {
-                    string description = string.Empty;
-                    // We already copied the first line, so now append all additional lines...
-                    // Since newlines don't really work in JSON descriptions, we replace them by some spaces.
-                    bool firstLine = true;
-                    for (int i = 1; i < documentation.Count; i++)
-                    {
-                        description += firstLine ? documentation[i] : "  " + documentation[i];
-                        firstLine = false;
-                    }
-                    this._JSONWriter.WritePropertyName("description"); this._JSONWriter.WriteValue(description);
-                }
+                // After constructing the body of the operation, generate a list of all result codes plus associated data...
+                if (result) result = BuildOperationResultList(operation);
             }
-            this._JSONWriter.WritePropertyName("operationId"); this._JSONWriter.WriteValue(Conversions.ToCamelCase(operation.Name));
-
-            // Build the MIME list for this operation, if alternative MIME types have been defined...
-            if (operation.ProducedMIMEList.Count > 0)
-            {
-                this._JSONWriter.WritePropertyName("produces"); this._JSONWriter.WriteStartArray();
-                {
-                    bool isFirst = true;
-                    foreach (string MIMEstring in operation.ProducedMIMEList)
-                    {
-                        this._JSONWriter.WriteValue(isFirst ? MIMEstring : "," + MIMEstring);
-                        isFirst = false;
-                    }
-                } this._JSONWriter.WriteEndArray();
-            }
-            if (operation.ConsumedMIMEList.Count > 0)
-            {
-                this._JSONWriter.WritePropertyName("consumes"); this._JSONWriter.WriteStartArray();
-                {
-                    bool isFirst = true;
-                    foreach (string MIMEstring in operation.ConsumedMIMEList)
-                    {
-                        this._JSONWriter.WriteValue(isFirst ? MIMEstring : "," + MIMEstring);
-                        isFirst = false;
-                    }
-                } this._JSONWriter.WriteEndArray();
-            }
-
-            this._JSONWriter.WritePropertyName("parameters"); this._JSONWriter.WriteStartArray();
-            {
-                result = BuildParameters(operation);
-            } this._JSONWriter.WriteEndArray();
+            this._JSONWriter.WriteEndObject();          // Close the operation block.
             return result;
         }
 
@@ -128,17 +137,49 @@ namespace Plugin.Application.CapabilityModel.API
         private bool BuildOperationResultList(RESTOperationCapability operation)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResultList >> Building result for'" + operation.Name + "'...");
-            foreach (RESTOperationResultDescriptor operationResult in operation.ResponseCodeCollection.Collection)
+            ContextSlt context = ContextSlt.GetContextSlt();
+            this._JSONWriter.WritePropertyName("responses"); this._JSONWriter.WriteStartObject();
             {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResultList >> Building result '" + 
-                                 operationResult.ResultCode + "'...");
-                if (!BuildOperationResult(operationResult))
+                foreach (RESTOperationResultDescriptor operationResult in operation.ResponseCodeCollection.Collection)
                 {
-                    Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResultList >> Failed to build result '" +
-                                       operationResult.ResultCode + "', operation processing aborted!");
-                    return false;
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResultList >> Building result '" +
+                                     operationResult.ResultCode + "'...");
+                    bool result = false;
+                    this._JSONWriter.WritePropertyName(operationResult.ResultCode); this._JSONWriter.WriteStartObject();
+                    {
+                        if (!string.IsNullOrEmpty(operationResult.Description))
+                        {
+                            this._JSONWriter.WritePropertyName("description");
+                            this._JSONWriter.WriteValue(operationResult.Description);
+                        }
+
+                        if (operationResult.PayloadClass != null)    // Check whether we have a payload to be processed...
+                        {
+                            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResultList >> Found a payload class...");
+                            result = WriteResponsePayload(operationResult.PayloadClass, operationResult.ResponseCardinality);
+                        }
+                        else if (operationResult.Document != null)   // Check whether we have a response Document to be processed...
+                        {
+                            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResultList >> Found a body parameter...");
+                            result = WriteResponseBodyParameter(operationResult.Document.CapabilityClass, operationResult.ResponseCardinality);
+                        }
+                        else result = true;                         // No payload at all!
+
+                        if (!result)
+                        {
+                            this._JSONWriter.WriteEndObject();      // Close result on errors.
+                            this._JSONWriter.WriteEndObject();      // Close 'responses' section on errors.
+                            return false;                           // Abort on errors!
+                        }
+
+                        // Finally, check whether we have to process header parameters and/or links...
+                        if (this._currentOperation.UseHeaderParameters || this._currentOperation.UseLinkHeaders)
+                            WriteResponseHeaderParameters(operationResult.Category);
+                    }
+                    this._JSONWriter.WriteEndObject();              // Close this result.
                 }
             }
+            this._JSONWriter.WriteEndObject();                      // Close the 'responses' section.
             return true;
         }
 
@@ -177,7 +218,7 @@ namespace Plugin.Application.CapabilityModel.API
                 string resourceClassStereotype = context.GetConfigProperty(_ResourceClassStereotype);
 
                 // Check if we have any query parameters...
-                result = WriteQueryParameters(operation.CapabilityClass);
+                WriteQueryParameters(operation.CapabilityClass);
 
                 // Go over each association, looking for stuff to process. At this point, these can be Pagination classes or [request] Document Resources.
                 foreach (MEAssociation assoc in operation.CapabilityClass.AssociationList)
@@ -198,43 +239,6 @@ namespace Plugin.Application.CapabilityModel.API
                 if (operation.UseHeaderParameters) WriteRequestHeaderParameters();
             }
             return result;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        private bool BuildOperationResult(RESTOperationResultDescriptor resultDesc)
-        {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Building result '" + resultDesc.ResultCode + "'...");
-            ContextSlt context = ContextSlt.GetContextSlt();
-            bool result = true;
-            this._JSONWriter.WritePropertyName(resultDesc.ResultCode); this._JSONWriter.WriteStartObject();
-            {
-                if (!string.IsNullOrEmpty(resultDesc.Description))
-                {
-                    this._JSONWriter.WritePropertyName("description");
-                    this._JSONWriter.WriteValue(resultDesc.Description);
-                }
-
-                // Check whether we have a payload to be processed...
-                if (resultDesc.PayloadClass != null) result = WriteResponsePayload(resultDesc.PayloadClass);
-                
-
-                /*********
-                 * MUST BE ADJUSTED @@@@
-                                if (operationResult.ResponseBodyClass != null)
-                                {
-                                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildOperationResult >> Found a body parameter...");
-                                    result = WriteResponseBodyParameter(operationResult.ResponseBodyClass, operationResult.ResponseCardinality);
-                                }
-
-                                if (this._currentOperation.UseHeaderParameters || this._currentOperation.UseLinkHeaders)
-                                    WriteResponseHeaderParameters(operationResult.Category);
-                                    *******/
-            }
-            this._JSONWriter.WriteEndObject();
-            return true;
         }
 
         /// <summary>
@@ -307,36 +311,31 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This method receives a reference to a response payload class. Since we want to use a shared object definition, we must make sure that 
-        /// the class is parsed first time around so that it is entered in the schema as a type definition.
-        /// We store all processed response payload classifiers in the class-attribute '_responseClassifierNames' so we can keep track of them.
-        /// After successfull processing, the list contains the classifier name for the class as present in the definitions section.
+        /// This method receives a reference to a response payload class, parses this class into a JSON structure and inserts the proper reference in
+        /// the output schema.
         /// </summary>
         /// <param name="payloadClass">The class associated with the payload.</param>
+        /// <param name="cardinality">Cardinality of the payload.</param>
         /// <returns>True on successfull completion, false on errors.</returns>
-        private bool WriteResponsePayload(MEClass payloadClass)
+        private bool WriteResponsePayload(MEClass payloadClass, Cardinality cardinality)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponsePayload >> Processing response class '" + payloadClass.Name + "'...");
             this._panel.WriteInfo(this._panelIndex + 3, "Processing Response Payload '" + payloadClass.Name + "'...");
-            string payloadQName = !string.IsNullOrEmpty(payloadClass.AliasName) ? payloadClass.AliasName : payloadClass.Name; // Qualified name is either original name or alias!
-            string token = ContextSlt.GetContextSlt().GetConfigProperty(_SchemaTokenName) + ":" + payloadQName;
+            bool result = false;
 
-            // We must only parse this class once in order to get a valid definition in the 'definitions' section.
-            if (!this._responseClassifierNames.Contains(token))
+            string payloadQName = this._schema.ProcessClass(payloadClass, ContextSlt.GetContextSlt().GetConfigProperty(_SchemaTokenName) + ":" + payloadClass.Name);
+            if (payloadQName != string.Empty)
             {
-                if (this._schema.ProcessClass(payloadClass, token) == string.Empty)
+                // Since we 'might' use alias names in classes, the returned name 'might' be different from the offered name. To make sure we're referring
+                // to the correct name, we take the returned FQN and remove the token part. Remainder is the 'formal' type name.
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponsePayload >> Gotten FQN '" + payloadQName + "'.");
+                this._JSONWriter.WritePropertyName("schema"); this._JSONWriter.WriteStartObject();
                 {
-                    Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteDefaultResponse >> Unable to process payload '" + payloadClass.Name + "'!");
-                    return false;
-                }
+                    WriteResponseBodyReference(payloadQName.Substring(payloadQName.IndexOf(':') + 1), cardinality);
+                } this._JSONWriter.WriteEndObject();
+                result = true;
             }
-
-            // Now, create a schema reference in the output...
-            this._JSONWriter.WritePropertyName("schema"); this._JSONWriter.WriteStartObject();
-            {
-                this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + payloadQName + "\"");
-            } this._JSONWriter.WriteEndObject();
-            return true;
+            return result;
         }
 
         /// <summary>
@@ -403,7 +402,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// This method iterates over all attributes of the (temporary) Header Parameters class. For each attribute, a Response Header 
         /// Parameter Object is created in the OpenAPI definition. If the class is not defined (or has no attributes), no actions are performed.
         /// </summary>
-        private void WriteResponseHeaderParameters(RESTOperationResultCapability.ResponseCategory category)
+        private void WriteResponseHeaderParameters(RESTOperationResultDescriptor.ResponseCategory category)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Looking for header parameters...");
             ContextSlt context = ContextSlt.GetContextSlt();
@@ -452,7 +451,7 @@ namespace Plugin.Application.CapabilityModel.API
 
                     // When instructed to do so, we create a definition for the 'Link' header parameter as a comma-separated array of strings...
                     // But we ONLY do this for 'success' responses!
-                    if (this._currentOperation.UseLinkHeaders && category == RESTOperationResultCapability.ResponseCategory.Success)
+                    if (this._currentOperation.UseLinkHeaders && category == RESTOperationResultDescriptor.ResponseCategory.Success)
                     {
                         this._JSONWriter.WritePropertyName("Link"); this._JSONWriter.WriteStartObject();
                         {
@@ -480,11 +479,9 @@ namespace Plugin.Application.CapabilityModel.API
         /// attributes and still process them in the correct order.
         /// </summary>
         /// <param name="operationClass">Operation class that potentially containes query attributes.</param>
-        /// <returns>True when successfully processed attributes, false on errors.</returns>
-        private bool WriteQueryParameters(MEClass operationClass)
+        private void WriteQueryParameters(MEClass operationClass)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteQueryParameters >> Looking for query parameters in '" + operationClass.Name + "'...");
-            bool result = false;
 
             // We create two lists, one Parameter Declaration list that contains attribute metadata and one that containes JSON Scheme definitions.
             // The metadata list is used to determine which JSON attribute definition to insert in the OpenAPI definition...
@@ -526,10 +523,8 @@ namespace Plugin.Application.CapabilityModel.API
                         }
                     }
                     this._JSONWriter.WriteEndObject();
-                    result = true;
                 }
             }
-            return result;
         }
 
         /// <summary>
@@ -616,9 +611,9 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Writes a response body parameter using the specified message Profile root. Each operation may have at most ONE body parameter and each
+        /// Writes a response body parameter using the specified message Profile root. Each operation may have zero to many body parameters and each
         /// must refer to an, operation specific, unique message model. The root of this model is specified by a Document Resource class that in turn
-        /// contains an association with the Business Component that acts as the actual message root.The method always creates a reference to this
+        /// contains an association with the Business Component that acts as the actual message root. The method always creates a reference to this
         /// Business Component class. If the association role has a cardinality > 1, we create an array of references.
         /// </summary>
         /// <param name="documentResourceClass">The DocumentResource class that contains the association with our schema root.</param>

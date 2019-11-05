@@ -272,13 +272,36 @@ namespace Plugin.Application.Forms
             switch (payloadType)
             {
                 case RESTOperationResultDescriptor.ResultPayloadType.CustomResponse:
+                    if (!initButton)
+                    {
+                        if (MessageBox.Show("Warning: use of Custom Response objects might lead to unexpected results during artefact generation and " +
+                                            "must be used with caution!" + Environment.NewLine +
+                                            "A Custom Response may only be used when an ordinary Document Resource does not suffice." + Environment.NewLine +
+                                            "Do you want to continue?", "Warning", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
+                        {
+                            ResponsePayloadBox.Enabled = true;
+                            ResponseTypeName.Text = this._result.PayloadClass != null ? this._result.PayloadClass.Name : string.Empty;
+                            RspCardLo.Text = this._result.ResponseCardinality.LowerBoundaryAsString;
+                            RspCardHi.Text = this._result.ResponseCardinality.UpperBoundaryAsString;
+                        }
+                        else
+                        {
+                            payloadType = RESTOperationResultDescriptor.ResultPayloadType.None;
+                            ResponsePayloadBox.Enabled = false;
+                            ResponseTypeName.Text = string.Empty;
+                            IsNone.Checked = true;
+                        }
+                    }
+                    else
+                    {
+                        ResponsePayloadBox.Enabled = true;
+                        ResponseTypeName.Text = this._result.PayloadClass != null ? this._result.PayloadClass.Name : string.Empty;
+                        RspCardLo.Text = this._result.ResponseCardinality.LowerBoundaryAsString;
+                        RspCardHi.Text = this._result.ResponseCardinality.UpperBoundaryAsString;
+                        IsCustomType.Checked = true;
+                    }
                     ExternalLinkBox.Enabled = false;
                     ExternalLink.Text = string.Empty;
-                    ResponsePayloadBox.Enabled = true;
-                    ResponseTypeName.Text = this._result.PayloadClass != null ? this._result.PayloadClass.Name : string.Empty;
-                    RspCardLo.Text = this._result.ResponseCardinality.LowerBoundaryAsString;
-                    RspCardHi.Text = this._result.ResponseCardinality.UpperBoundaryAsString;
-                    if (initButton) IsCustomType.Checked = true;
                     break;
 
                 case RESTOperationResultDescriptor.ResultPayloadType.DefaultResponse:
