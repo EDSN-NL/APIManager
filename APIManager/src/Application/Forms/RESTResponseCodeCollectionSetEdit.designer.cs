@@ -49,7 +49,7 @@ namespace Plugin.Application.Forms
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(183, 139);
+            this.Cancel.Location = new System.Drawing.Point(251, 139);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(50, 25);
             this.Cancel.TabIndex = 4;
@@ -59,7 +59,7 @@ namespace Plugin.Application.Forms
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(127, 139);
+            this.Ok.Location = new System.Drawing.Point(195, 139);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(50, 25);
             this.Ok.TabIndex = 5;
@@ -110,7 +110,7 @@ namespace Plugin.Application.Forms
             this.CollectionListFld.FormattingEnabled = true;
             this.CollectionListFld.Location = new System.Drawing.Point(12, 12);
             this.CollectionListFld.Name = "CollectionListFld";
-            this.CollectionListFld.Size = new System.Drawing.Size(221, 121);
+            this.CollectionListFld.Size = new System.Drawing.Size(289, 121);
             this.CollectionListFld.Sorted = true;
             this.CollectionListFld.TabIndex = 4;
             // 
@@ -121,7 +121,7 @@ namespace Plugin.Application.Forms
             this.deleteCollectionToolStripMenuItem,
             this.editCollectionToolStripMenuItem});
             this.CollectionListMenuStrip.Name = "CollectionListMenuStrip";
-            this.CollectionListMenuStrip.Size = new System.Drawing.Size(165, 92);
+            this.CollectionListMenuStrip.Size = new System.Drawing.Size(165, 70);
             // 
             // addCollectionToolStripMenuItem
             // 
@@ -150,7 +150,7 @@ namespace Plugin.Application.Forms
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(245, 177);
+            this.ClientSize = new System.Drawing.Size(313, 177);
             this.Controls.Add(this.CollectionListFld);
             this.Controls.Add(this.AddResponseCode);
             this.Controls.Add(this.DeleteResponseCode);

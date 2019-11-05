@@ -176,21 +176,11 @@ namespace Plugin.Application.Forms
                 int index = OperationTypeFld.SelectedIndex;
                 HTTPOperation oldType = this._operation.OperationType;
                 HTTPOperation unknownType = new HTTPOperation();
-                HTTPOperation newType = OperationTypeFld.Items[index] as HTTPOperation;
-
-                // If we attempt to 'Put' a Collection, we issue a warning since this should affect the entire collection,
-                // not just a single element....
-                if (this._parent.Archetype == RESTResourceCapability.ResourceArchetype.Collection && newType.TypeEnum == HTTPOperation.Type.Put)
-                {
-                    if (MessageBox.Show("A 'PUT' operation typically replaces the ENTIRE collection, are you sure this is intended?",
-                                        "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
-                    {
-                        this._operation.OperationType = newType;
-                        this._hasType = this._operation.OperationType != unknownType;
-                        if (this._hasType) this._dirty = true;
-                        CheckOk();
-                    ResponseCodeList.Items.Add(newItem);
-                }
+                this._operation.OperationType = OperationTypeFld.Items[index] as HTTPOperation;
+                this._hasType = this._operation.OperationType != unknownType;
+                if (this._hasType) this._dirty = true;
+                CheckOk();
+            }
 
             // Depending on the selected operation type, some parameters / settings should be enabled and/or disabled...
             switch (this._operation.OperationType.TypeEnum)
@@ -320,11 +310,11 @@ namespace Plugin.Application.Forms
             if (ResponseCodeList.SelectedItems.Count > 0)
             {
                 ListViewItem key = ResponseCodeList.SelectedItems[0];
-                    this._operation.DeleteOperationResult(key.Text);
-                    ResponseCodeList.Items.Remove(key);
-                    this._dirty = true;
-                }
+                this._operation.DeleteOperationResult(key.Text);
+                ResponseCodeList.Items.Remove(key);
+                this._dirty = true;
             }
+        }
 
         /// <summary>
         /// This event is raised when the user selects a predefined URL query parameter for edit. It facilitates changes of 
@@ -362,14 +352,14 @@ namespace Plugin.Application.Forms
                 ContextSlt context = ContextSlt.GetContextSlt();
                 string originalKey = key.Text;
                 RESTOperationResultDescriptor result = this._operation.EditOperationResult(key.Text);
-                    if (result != null)
-                    {
-                        key.SubItems[0].Text = result.ResultCode;
-                        key.SubItems[1].Text = result.Description;
-                        this._dirty = true;
-                    }
+                if (result != null)
+                {
+                    key.SubItems[0].Text = result.ResultCode;
+                    key.SubItems[1].Text = result.Description;
+                    this._dirty = true;
                 }
             }
+        }
 
         /// <summary>
         /// This event is raised when one of the operation indicators has changed state.
@@ -547,7 +537,11 @@ namespace Plugin.Application.Forms
             bool firstOne = true;
             foreach (RESTOperationResultDescriptor response in this._operation.ResponseCollection.Collection)
             {
-                if (response.Category == RESTOperationResultDescriptor.ResponseCategory.Success) foundOk = true;
+                if (response.Category == RESTOperationResultDescriptor.ResponseCategory.Success)
+                {
+                    foundOk = true;
+                    if (response.ResultCode == "200" && response.Document == null && response.PayloadClass == null) message += "Success code 200 implies a payload;";
+                }
                 else if (response.Category == RESTOperationResultDescriptor.ResponseCategory.ClientError) foundError = true;
                 if (!response.IsValid)
                 {
