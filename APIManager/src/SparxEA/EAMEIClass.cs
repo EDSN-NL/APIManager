@@ -331,7 +331,7 @@ namespace SparxEA.Model
         /// <summary>
         /// Creates a new attribute in the current class.
         /// <param name="name">Name of the attribute.</param>
-        /// <param name="classifier">Attribute classifier (type of the attribute).</param>
+        /// <param name="classifier">Attribute classifier (type of the attribute). If NULL, classifier will be 'none'.</param>
         /// <param name="type">The type of attribute to create (regular, supplementary or facet)</param>
         /// <param name="defaultValue">An optional default value to be assignd to the attribute.</param>
         /// <param name="cardinality">Specifies lower and upper boundary of cardinality.</param>
@@ -348,7 +348,7 @@ namespace SparxEA.Model
                 Logger.WriteError(message);
                 throw new ArgumentException(message);
             }
-            if (classifier == null || classifier.Type == ModelElementType.Unknown)
+            if (classifier != null && classifier.Type == ModelElementType.Unknown)
             {
                 string message = "SparxEA.Model.EAMEIClass.createAttribute >> Attempt to create attribute '" + attribName + "' with illegal classifier in class '" + this.Name + "'!";
                 Logger.WriteError(message);
@@ -360,7 +360,7 @@ namespace SparxEA.Model
             newAttribute.Update();    // Update immediately to properly finish the creation!
             this._element.Attributes.Refresh();
 
-            // We use 'type' to determine the appropriate stereotype...
+            // We use 'type' to determine the appropriate stereotype. In case of 'unknown', stereotype will be left empty!
             switch (type)
             {
                 case AttributeType.Facet:
@@ -371,14 +371,20 @@ namespace SparxEA.Model
                     newAttribute.StereotypeEx = context.GetConfigProperty(_SupplementaryAttStereotype);
                     break;
 
-                default:
+                case AttributeType.Attribute:
                     newAttribute.StereotypeEx = context.GetConfigProperty(_ContentAttStereotype);
+                    break;
+
+                default:
                     break;
             }
 
             if (!string.IsNullOrEmpty(defaultValue)) newAttribute.Default = defaultValue;
-            newAttribute.ClassifierID = classifier.ElementID;
-            newAttribute.Type = classifier.Name;
+            if (classifier != null)
+            {
+                newAttribute.ClassifierID = classifier.ElementID;
+                newAttribute.Type = classifier.Name;
+            }
             newAttribute.LowerBound = cardinality.LowerBoundary.ToString();
             newAttribute.UpperBound = cardinality.IsUnboundedList? "*": cardinality.UpperBoundary.ToString();
             newAttribute.Visibility = "Public";
@@ -814,9 +820,12 @@ namespace SparxEA.Model
         /// <returns>True if at least one match is found, false otherwise.</returns>
         internal override bool HasStereotype(List<string> stereotypes)
         {
-            foreach (string stereotype in stereotypes)
+            if (stereotypes != null)
             {
-                if (this._element.HasStereotype(stereotype)) return true;
+                foreach (string stereotype in stereotypes)
+                {
+                    if (this._element.HasStereotype(stereotype)) return true;
+                }
             }
             return false;
         }
@@ -828,8 +837,12 @@ namespace SparxEA.Model
         /// <returns>True if a match is found, false otherwise.</returns>
         internal override bool HasStereotype(string stereotype)
         {
-            bool hasStereotype = this._element.HasStereotype(stereotype);
-            return hasStereotype;
+            if (!string.IsNullOrEmpty(stereotype))
+            {
+                bool hasStereotype = this._element.HasStereotype(stereotype);
+                return hasStereotype;
+            }
+            return false;
         }
 
         /// <summary>
@@ -952,6 +965,8 @@ namespace SparxEA.Model
         {
             try
             {
+                if (tagValue == null) tagValue = string.Empty;
+                if (tagName == null) tagName = string.Empty;
                 foreach (TaggedValue t in this._element.TaggedValues)
                 {
                     if (String.Compare(t.Name, tagName, StringComparison.OrdinalIgnoreCase) == 0)
@@ -968,7 +983,7 @@ namespace SparxEA.Model
                 }
 
                 // Element tag not found, create new one if instructed to do so...
-                if (createIfNotExist)
+                if (createIfNotExist && tagName != string.Empty)
                 {
                     var newTag = this._element.TaggedValues.AddNew(tagName, "TaggedValue") as TaggedValue;
                     newTag.Value = tagValue;

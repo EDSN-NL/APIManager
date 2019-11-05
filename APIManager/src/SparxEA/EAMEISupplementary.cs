@@ -113,6 +113,15 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Returns the index of the attribute within the owning class.
+        /// </summary>
+        /// <returns>The index of the attribute within the owning class.</returns>
+        internal override int GetIndex()
+        {
+            return this._attributePart.GetIndex();
+        }
+
+        /// <summary>
         /// Returns the class that is 'owner' of the supplementary, i.e. in which the supplementary is declared.
         /// </summary>
         /// <returns>Owning class or NULL on errors.</returns>
@@ -190,6 +199,15 @@ namespace SparxEA.Model
         {
             this._attributePart.SetAliasName(newAliasName);
             this._aliasName = newAliasName;
+        }
+
+        /// <summary>
+        /// Updates the index of the attribute within the owning class. Index must be >= 0, otherwise no action is performed.
+        /// </summary>
+        /// <param name="index">New index of attribute within owning class.</param>
+        internal override void SetIndex(int index)
+        {
+            this._attributePart.SetIndex(index);
         }
 
         /// <summary>

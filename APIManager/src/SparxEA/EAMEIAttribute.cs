@@ -168,6 +168,15 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Returns the index of the attribute within the owning class.
+        /// </summary>
+        /// <returns>The index of the attribute within the owning class.</returns>
+        internal override int GetIndex()
+        {
+            return this._attribute.Pos;
+        }
+
+        /// <summary>
         /// Returns the class that is 'owner' of the attribute, i.e. in which the attribute is declared.
         /// </summary>
         /// <returns>Owning class or NULL on errors.</returns>
@@ -279,6 +288,17 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Updates the index of the attribute within the owning class. Index must be >= 0, otherwise no action is performed.
+        /// </summary>
+        /// <param name="index">New index of attribute within owning class.</param>
+        internal override void SetIndex(int index)
+        {
+            if (index >= 0) this._attribute.Pos = index;
+            this._attribute.Update();
+            ((EAModelImplementation)this._model).Repository.GetElementByID(this._attribute.ParentID).Refresh();
+        }
+
+        /// <summary>
         /// Writes the default value of the attribute (if defined).
         /// A default attribute value is defined as valid if the 'IsConst' indicator is set to FALSE.
         /// If the attribute is not defined as a default attribute, the update is ignored!
@@ -320,18 +340,21 @@ namespace SparxEA.Model
         {
             try
             {
+                if (tagValue == null) tagValue = string.Empty;
+                if (tagName == null) tagName = string.Empty;
                 foreach (AttributeTag t in this._attribute.TaggedValues)
                 {
                     if (String.Compare(t.Name, tagName, StringComparison.OrdinalIgnoreCase) == 0)
                     {
                         t.Value = tagValue;
                         t.Update();
+                        this._attribute.TaggedValues.Refresh();
                         return;
                     }
                 }
 
                 // Tag not found, create new one if instructed to do so...
-                if (createIfNotExist)
+                if (createIfNotExist && tagName != string.Empty)
                 {
                     var newTag = this._attribute.TaggedValues.AddNew(tagName, "TaggedValue") as AttributeTag;
                     newTag.Value = tagValue;

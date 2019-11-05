@@ -18,6 +18,10 @@ namespace Framework.Context
         internal const string _RESTAuthSchemeNone             = "None";
         internal const string _RESTAuthSchemeOAuth2           = "OAuth2";
 
+        // REST OpenAPI supported version strings...
+        internal const string _OpenAPIVersion20               = "2.0";
+        internal const string _OpenAPIVersion300              = "3.0.0";
+
         // REST Default Interface settings...
         internal const string _RESTHostName                   = "RESTHostName";
         internal const string _RESTSchemes                    = "RESTSchemes";
@@ -51,6 +55,7 @@ namespace Framework.Context
         internal const string _SupplementaryPrefixCode        = "SupplementaryPrefixCode";      // JSON: string to use in schema to indicate element is a supplementary attribute.
         internal const string _JSONAllOfSupport               = "JSONAllOfSupport";             // JSON: support the use of 'AllOf' schema construct.
         internal const string _GENUseMajorVersionOnly         = "GENUseMajorVersionOnly";       // OpenAPI generation: use only major version in 'version' property.
+        internal const string _OpenAPIVersion                 = "OpenAPIVersion";               // OpenAPI version to be used for output generation.
 
         // These are the names of all currently defined resources:
         internal const string _CodeListHeader                 = "CodeListHeader";
@@ -126,6 +131,7 @@ namespace Framework.Context
             this._stringSettings.Add(_RESTHostName, Settings.Default.RESTHostName);
             this._stringSettings.Add(_RESTSchemes, Settings.Default.RESTSchemes);
             this._stringSettings.Add(_SupplementaryPrefixCode, Settings.Default.SupplementaryPrefix);
+            this._stringSettings.Add(_OpenAPIVersion, Settings.Default.OpenAPIVersion);
         }
 
         /// <summary>
@@ -304,6 +310,10 @@ namespace Framework.Context
 
                     case _SupplementaryPrefixCode:
                         Settings.Default.SupplementaryPrefix = value;
+                        break;
+
+                    case _OpenAPIVersion:
+                        Settings.Default.OpenAPIVersion = value;
                         break;
 
                     default:

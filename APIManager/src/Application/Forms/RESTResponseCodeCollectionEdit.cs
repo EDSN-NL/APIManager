@@ -2,7 +2,6 @@
 using System.Windows.Forms;
 using Framework.Context;
 using Framework.Util;
-using Plugin.Application.CapabilityModel;
 using Plugin.Application.CapabilityModel.API;
 
 namespace Plugin.Application.Forms
@@ -47,12 +46,12 @@ namespace Plugin.Application.Forms
                 this._scope = thisCollection.Scope;
 
                 // Load the result codes from the existing collection...
-                foreach (RESTOperationResultDeclaration resultDecl in thisCollection.Collection)
+                foreach (RESTOperationResultDescriptor resultDesc in thisCollection.Collection)
                 {
-                    if (resultDecl.Status != RESTOperationResultDeclaration.DeclarationStatus.Invalid)
+                    if (resultDesc.IsValid)
                     {
-                        ListViewItem newItem = new ListViewItem(resultDecl.ResultCode);
-                        newItem.SubItems.Add(resultDecl.Description);
+                        ListViewItem newItem = new ListViewItem(resultDesc.ResultCode);
+                        newItem.SubItems.Add(resultDesc.Description);
                         ResponseCodeList.Items.Add(newItem);
                     }
                 }
@@ -61,8 +60,8 @@ namespace Plugin.Application.Forms
             {
                 this.Text = "Create new Collection";
                 this.Ok.Enabled = false;
-                this._collection = new RESTResponseCodeCollection();
                 this._scope = RESTResponseCodeCollection.CollectionScope.API;
+                this._collection = new RESTResponseCodeCollection(null, this._scope);
             }
 
             // Assign context menus to the appropriate controls...
@@ -88,8 +87,8 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void AddResponseCode_Click(object sender, EventArgs e)
         {
-            RESTOperationResultDeclaration result = this._collection.AddOperationResult();
-            if (result != null && result.Status != RESTOperationResultDeclaration.DeclarationStatus.Invalid)
+            RESTOperationResultDescriptor result = this._collection.AddOperationResult();
+            if (result != null && result.IsValid)
             {
                 ListViewItem newItem = new ListViewItem(result.ResultCode);
                 newItem.SubItems.Add(result.Description);
@@ -107,7 +106,6 @@ namespace Plugin.Application.Forms
             if (ResponseCodeList.SelectedItems.Count > 0)
             {
                 ListViewItem key = ResponseCodeList.SelectedItems[0];
-                ContextSlt context = ContextSlt.GetContextSlt();
                 this._collection.DeleteOperationResult(key.Text);
                 ResponseCodeList.Items.Remove(key);
             }
@@ -123,13 +121,13 @@ namespace Plugin.Application.Forms
             if (ResponseCodeList.SelectedItems.Count > 0)
             {
                 ListViewItem key = ResponseCodeList.SelectedItems[0];
-                ContextSlt context = ContextSlt.GetContextSlt();
                 string originalKey = key.Text;
-                RESTOperationResultDeclaration result = this._collection.EditOperationResult(key.Text);
+                RESTOperationResultDescriptor result = this._collection.EditOperationResult(key.Text);
                 if (result != null)
                 {
                     key.SubItems[0].Text = result.ResultCode;
                     key.SubItems[1].Text = result.Description;
+                    ResponseCodeList.Sort();
                 }
             }
         }

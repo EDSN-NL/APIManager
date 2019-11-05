@@ -31,7 +31,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// Returns the HTTP Response code category (100, 200, etc.) as an enumerated type.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal RESTOperationResultCapability.ResponseCategory Category
+        internal RESTOperationResultDescriptor.ResponseCategory Category
         {
             get
             {
@@ -94,7 +94,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="parent">Resource that acts as parent for the operation.</param>
         /// <param name="operation">Operation declaration object, created by user and containing all necessary information.</param>
-        internal RESTOperationResultCapability(RESTOperationCapability parent, RESTOperationResultDeclaration result): base()
+        internal RESTOperationResultCapability(RESTOperationCapability parent, RESTOperationResultDescriptor result): base()
         {
             RegisterCapabilityImp(new RESTOperationResultCapabilityImp(parent, result));
         }
@@ -125,7 +125,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="result">Updated Operation Result properties.</param>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal void Edit(RESTOperationResultDeclaration result)
+        internal void Edit(RESTOperationResultDescriptor result)
         {
             if (this._imp != null) ((RESTOperationResultCapabilityImp)this._imp).Edit(result);
             else throw new MissingImplementationException("RESTOperationResultCapabilityImp");

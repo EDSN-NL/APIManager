@@ -117,6 +117,7 @@ namespace Plugin.Application.Events.API
                         myResource.Traverse(collector.Collect);
 
                         // This updates the selected diagram, which could be in a resource package...
+                        collector.DiagramClassList.Add(newOperationDecl.ResponseCollection.CollectionClass);    // We want to show the collection on the diagram!
                         svcContext.MyDiagram.AddClassList(collector.DiagramClassList);
                         svcContext.MyDiagram.AddAssociationList(collector.DiagramAssociationList);
                         svcContext.MyDiagram.Redraw();

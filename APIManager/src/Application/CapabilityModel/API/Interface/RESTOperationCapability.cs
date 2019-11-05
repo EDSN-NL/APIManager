@@ -43,19 +43,6 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Returns cardinality of response body document (only valid in case such a body has been defined).
-        /// </summary>
-        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal Cardinality ResponseCardinality
-        {
-            get
-            {
-                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).ResponseCardinality;
-                else throw new MissingImplementationException("RESTOperationCapabilityImp");
-            }
-        }
-
-        /// <summary>
         /// Returns true when the operation has pagination support enabled.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
@@ -64,58 +51,6 @@ namespace Plugin.Application.CapabilityModel.API
             get
             {
                 if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).UsePagination;
-                else throw new MissingImplementationException("RESTOperationCapabilityImp");
-            }
-        }
-
-        /// <summary>
-        /// Returns true when the operation has request encryption enabled (will encrypt the request body payload if present).
-        /// </summary>
-        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal bool UseRequestEncryption
-        {
-            get
-            {
-                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).UseRequestEncryption;
-                else throw new MissingImplementationException("RESTOperationCapabilityImp");
-            }
-        }
-
-        /// <summary>
-        /// Returns true when the operation has response encryption enabled (will encrypt the ok-response body payload if present).
-        /// </summary>
-        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal bool UseResponseEncryption
-        {
-            get
-            {
-                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).UseResponseEncryption;
-                else throw new MissingImplementationException("RESTOperationCapabilityImp");
-            }
-        }
-
-        /// <summary>
-        /// Returns true when the operation has request signing enabled (will sign the request body payload if present).
-        /// </summary>
-        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal bool UseRequestSigning
-        {
-            get
-            {
-                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).UseRequestSigning;
-                else throw new MissingImplementationException("RESTOperationCapabilityImp");
-            }
-        }
-
-        /// <summary>
-        /// Returns true when the operation has response signing enabled (will sign the ok-response body payload if present).
-        /// </summary>
-        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal bool UseResponseSigning
-        {
-            get
-            {
-                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).UseResponseSigning;
                 else throw new MissingImplementationException("RESTOperationCapabilityImp");
             }
         }
@@ -134,14 +69,14 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Returns the list of Operation Result capabilities for this Operation.
+        /// Returns the collection of Operation Result Descriptors for this Operation.
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal List<RESTOperationResultCapability> OperationResultList
+        internal RESTResponseCodeCollection ResponseCodeCollection
         {
             get
             {
-                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).OperationResultList;
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).ResponseCodeCollection;
                 else throw new MissingImplementationException("RESTOperationCapabilityImp");
             }
         }
@@ -182,25 +117,6 @@ namespace Plugin.Application.CapabilityModel.API
             get
             {
                 if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).RequestBodyDocument;
-                else throw new MissingImplementationException("RESTOperationCapabilityImp");
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the Document resource that is used as default 'Ok' response body. The returned property is NULL when no 
-        /// response body is defined.
-        /// </summary>
-        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal RESTResourceCapability ResponseBodyDocument
-        {
-            get
-            {
-                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).ResponseBodyDocument;
-                else throw new MissingImplementationException("RESTOperationCapabilityImp");
-            }
-            set
-            {
-                if (this._imp != null) ((RESTOperationCapabilityImp)this._imp).ResponseBodyDocument = value;
                 else throw new MissingImplementationException("RESTOperationCapabilityImp");
             }
         }

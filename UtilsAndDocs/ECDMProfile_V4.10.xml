@@ -271,14 +271,14 @@
 			<Stereotype name="ResponseCode" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="-1" bordercolor="-1" borderwidth="1" hideicon="0" generalizes="ECDMAttrib" baseStereotypes="ECDMAttrib">
 				<TaggedValues>
 					<Tag name="category" type="enumeration" description="" unit="" values="Unknown,Informational,Success,Redirection,ClientError,ServerError,Default" default=""/>
-					<Tag name="payloadKind" type="enumeration" description="" unit="" values="Unknown,None,Document,Link,CustomResponseType,DefaultResponseType" default=""/>
+					<Tag name="payloadKind" type="enumeration" description="" unit="" values="Unknown,None,Document,Link,CustomResponse,DefaultResponse" default=""/>
 					<Tag name="referenceURL" type="string" description="" unit="" values="" default=""/>
 				</TaggedValues>
 			</Stereotype>
 			<Stereotype name="ResponseCodeCollection" notes="Classes of this type are helper classes, which are user defined and contain a set of response codes to be used for a specific REST API. By storing the response codes as a list of attributes in a Response Code Collection, the user only has to define response code once and can quickly apply a complete set of codes to a given operation." cx="0" cy="0" bgcolor="11009769" fontcolor="-1" bordercolor="-1" borderwidth="1" hideicon="0" generalizes="ECDMComponent" baseStereotypes="ECDMComponent">
 				<TaggedValues>
 					<Tag name="ID" type="string" description="" unit="" values="" default=""/>
-					<Tag name="Scope" type="enumeration" description="" unit="" values="Global,API,Operation" default=""/>
+					<Tag name="collectionScope" type="enumeration" description="" unit="" values="Global,API,Operation" default=""/>
 				</TaggedValues>
 			</Stereotype>
 			<Stereotype name="RESTFlow" notes="RESTFlow can have child flows and each flow contains a single Resource Collection class plus the associated Path Expressions and Resource Represenations that belong to that Collection class.&#xA;All RESTFlows MUST be unique within a single API and Child RESTFlows must NOT be shared among parent flows!" cx="0" cy="0" bgcolor="11009769" fontcolor="-1" bordercolor="-1" borderwidth="1" hideicon="0" generalizes="ECDMPkg" baseStereotypes="ECDMPkg"/>

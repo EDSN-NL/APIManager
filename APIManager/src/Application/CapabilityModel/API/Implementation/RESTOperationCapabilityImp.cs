@@ -4,6 +4,7 @@ using Framework.Model;
 using Framework.Logging;
 using Framework.Context;
 using Framework.Util;
+using Framework.View;
 
 namespace Plugin.Application.CapabilityModel.API
 {
@@ -12,7 +13,6 @@ namespace Plugin.Application.CapabilityModel.API
         // Configuration properties used by this module:
         private const string _RESTOperationClassStereotype      = "RESTOperationClassStereotype";
         private const string _RESTOperationPkgStereotype        = "RESTOperationPkgStereotype";
-        private const string _RESTOperationResultStereotype     = "RESTOperationResultStereotype";
         private const string _ResourceClassStereotype           = "ResourceClassStereotype";
         private const string _RequestPkgName                    = "RequestPkgName";
         private const string _ResponsePkgName                   = "ResponsePkgName";
@@ -21,39 +21,30 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _ArchetypeTag                      = "ArchetypeTag";
         private const string _RequestPaginationClassName        = "RequestPaginationClassName";
         private const string _ResponsePaginationClassName       = "ResponsePaginationClassName";
+        private const string _OperationResultClassName          = "OperationResultClassName";
         private const string _PaginationRoleName                = "PaginationRoleName";
         private const string _APISupportModelPathName           = "APISupportModelPathName";
-        private const string _DefaultSuccessCode                = "DefaultSuccessCode";
-        private const string _AltSuccessCode                    = "AltSuccessCode";
-        private const string _DefaultResponseCode               = "DefaultResponseCode";
         private const string _ConsumesMIMEListTag               = "ConsumesMIMEListTag";
         private const string _ProducesMIMEListTag               = "ProducesMIMEListTag";
         private const string _RESTUseHeaderParametersTag        = "RESTUseHeaderParametersTag";
         private const string _RESTUseLinkHeaderTag              = "RESTUseLinkHeaderTag";
+        private const string _RCCStereotype                     = "RCCStereotype";
 
-        // Configuration properties for signing and encryption:
-        private const string _SigningClassName                  = "SigningClassName";
-        private const string _EncryptionClassName               = "EncryptionClassName";
-        private const string _RequestSigningRoleName            = "RequestSigningRoleName";
-        private const string _ResponseSigningRoleName           = "ResponseSigningRoleName";
-        private const string _RequestEncryptionRoleName         = "RequestEncryptionRoleName";
-        private const string _ResponseEncryptionRoleName        = "ResponseEncryptionRoleName";
+        // This is NOT a configuration item since the use of the old Operation Result Capabilities has been deprecated!
+        private const string _DEPRECATEDOperationResultStereotype = "RESTOperationResult";
 
         private RESTResourceCapability _parent;                 // Parent resource capability that owns this operation.
         private HTTPOperation _operationType;                   // The HTTP operation type associated with the operation.
         private List<string> _producedMIMETypes;                // List of non-standard MIME types produced by the operation.
         private List<string> _consumedMIMETypes;                // List of non-standard MIME types consumed by the operation.
         private RESTResourceCapability _requestBodyDocument;    // If the operation has a request body, this is the associated Document Resource.
-        private RESTResourceCapability _responseBodyDocument;   // If the operation has a response body, this is the associated Document Resource.
         private Cardinality _requestCardinality;                // Cardinality of request body document. Only valid if requestBodyDocument is specified.
-        private Cardinality _responseCardinality;               // Cardinality of response body document. Only valid if responseBodyDocument is specified.
+        private RESTResponseCodeCollection _responseCollection; // Contains the list of response codes (plus associated metadata).
         private bool _useHeaderParameters;                      // Set to 'true' when operation muse use configured Header Parameters.
         private bool _useLinkHeaders;                           // Set to 'true' when the response must contain a definition for Link Headers.
         private bool _usePagination;                            // Set to 'true' when the operation uses pagination.
-        private bool _useReqEncryption;                         // Set to 'true' when the operations uses request encryption. 
-        private bool _useRspEncryption;                         // Set to 'true' when the operations uses response encryption. 
-        private bool _useReqSigning;                            // Set to 'true' when the operations uses request signing. 
-        private bool _useRspSigning;                            // Set to 'true' when the operations uses response encryption. 
+
+        private const string _CollectionNamePostfix             = "Responses";  // Will be added to the operation name to create a collection name.
 
         /// <summary>
         /// Getters for class properties:
@@ -64,14 +55,8 @@ namespace Plugin.Application.CapabilityModel.API
         /// ProducedMIMEList = Returns list of non-standard MIME types produced by the operation.
         /// ParentResource = The resource that 'owns' this operation.
         /// RequestBodyDocument = If the operation has a request body, this returns the associated Document Resource.
-        /// ResponseBodyDocument = If the operation has a default Ok response body, this gets/sets the associated Document Resource.
         /// RequestCardinality = Cardinality of request document (valid only if RequestBodyDocument is not NULL).
-        /// ResponseCardinality = Cardinality of response document (valid only if ResponseBodyDocument is not NULL).
         /// UsePagination = True if the operation has pagination support.
-        /// UseRequestSigning = True if the operation uses signing for request bodies.
-        /// UseResponseSigning = True if the operation uses signing for Ok-response bodies.
-        /// UseRequestEncryption = True if the operation uses encryption for request bodies.
-        /// UseResponseEncryption = True of the operation uses encryption for Ok-response bodies.
         /// </summary>
         internal HTTPOperation HTTPOperationType                { get { return this._operationType; } }
         internal bool UseHeaderParameters                       { get { return this._useHeaderParameters; } }
@@ -80,33 +65,15 @@ namespace Plugin.Application.CapabilityModel.API
         internal List<string> ProducedMIMEList                  { get { return this._producedMIMETypes; } }
         internal RESTResourceCapability ParentResource          { get { return this._parent; } }
         internal RESTResourceCapability RequestBodyDocument     { get { return this._requestBodyDocument; } }
-        internal RESTResourceCapability ResponseBodyDocument
-        {
-            get { return this._responseBodyDocument; }
-            set { this._responseBodyDocument = value; }
-        }
         internal Cardinality RequestCardinality                 { get { return this._requestCardinality; } }
-        internal Cardinality ResponseCardinality                { get { return this._responseCardinality; } }
         internal bool UsePagination                             { get { return this._usePagination; } }
-        internal bool UseRequestSigning                         { get { return this._useReqSigning; } }
-        internal bool UseResponseSigning                        { get { return this._useRspSigning; } }
-        internal bool UseRequestEncryption                      { get { return this._useReqEncryption; } }
-        internal bool UseResponseEncryption                     { get { return this._useRspEncryption; } }
 
         /// <summary>
-        /// Returns the list of Operation Result capabilities for this Operation.
+        /// Returns the list of operation response codes with their metadata...
         /// </summary>
-        internal List<RESTOperationResultCapability> OperationResultList
+        internal RESTResponseCodeCollection ResponseCodeCollection
         {
-            get
-            {
-                var resultList = new List<RESTOperationResultCapability>();
-                foreach (Capability child in GetChildren())
-                {
-                    if (child is RESTOperationResultCapability) resultList.Add(child as RESTOperationResultCapability);
-                }
-                return resultList;
-            }
+            get { return this._responseCollection; }
         }
 
         /// <summary>
@@ -131,13 +98,8 @@ namespace Plugin.Application.CapabilityModel.API
                 this._consumedMIMETypes = operation.ConsumedMIMETypes;
                 this._producedMIMETypes = operation.ProducedMIMETypes;
                 this._requestBodyDocument = operation.RequestDocument;
-                this._responseBodyDocument = operation.ResponseDocument;
                 this._useHeaderParameters = operation.UseHeaderParametersIndicator;
                 this._usePagination = operation.PaginationIndicator;
-                this._useReqEncryption = operation.UseRequestEncryption;
-                this._useRspEncryption = operation.UseResponseEncryption;
-                this._useReqSigning = operation.UseRequestSigning;
-                this._useRspSigning = operation.UseResponseSigning;
 
                 this._capabilityClass = OperationPackage.CreateClass(operation.Name, context.GetConfigProperty(_RESTOperationClassStereotype));
                 if (this._capabilityClass != null)
@@ -213,30 +175,16 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         string roleName = RESTUtil.GetAssignedRoleName(this._requestBodyDocument.CapabilityClass.Name);
                         if (roleName.EndsWith("Type")) roleName = roleName.Substring(0, roleName.IndexOf("Type"));
-                        string cardinality = operation.RequestCardinality.ToString();
-                        var componentEndpoint = new EndpointDescriptor(this._requestBodyDocument.CapabilityClass, cardinality, roleName, null, true);
+                        var componentEndpoint = new EndpointDescriptor(this._requestBodyDocument.CapabilityClass, operation.RequestCardinality.ToString(), roleName, null, true);
                         model.CreateAssociation(operationEndpoint, componentEndpoint, MEAssociation.AssociationType.MessageAssociation);
                     }
 
-                    // Create Response Object classes for each operation result declaration...
-                    string defaultSuccess = context.GetConfigProperty(_DefaultSuccessCode);
-                    string altSuccess = context.GetConfigProperty(_AltSuccessCode);
-                    foreach (RESTOperationResultDeclaration result in operation.OperationResults)
-                    {
-                        if (result.IsValid)  // Make sure to process only valid records!
-                        {
-                            if (this._responseBodyDocument != null && (result.ResultCode == defaultSuccess || result.ResultCode == altSuccess))
-                            {
-                                // If we need a response body, this must be linked to the default success result capability.
-                                // We assign the associated document class with the result parameter so it will be linked to the result class.
-                                // We must differentiate between default success and alternative success codes.
-                                result.ResponseCardinality = operation.ResponseCardinality;
-                                result.ResponseDocumentClass = this._responseBodyDocument.CapabilityClass;
-                            }
-                            RESTOperationResultCapability newResult = new RESTOperationResultCapability(myInterface, result);
-                            newResult.InitialiseParent(myInterface);
-                        }
-                    }
+                    // Load Response Code collection and create an association with that collection...
+                    this._responseCollection = operation.ResponseCollection;
+                    string collectionName = operation.ResponseCollection.Name;
+                    this._responseCollection.Serialize(operation.Name + _CollectionNamePostfix, OperationPackage, RESTResponseCodeCollection.CollectionScope.Operation);
+                    var collectionEndpoint = new EndpointDescriptor(this._responseCollection.CollectionClass, new Cardinality(Cardinality._Mandatory).ToString(), this._responseCollection.Name, null, true);
+                    model.CreateAssociation(operationEndpoint, collectionEndpoint, MEAssociation.AssociationType.MessageAssociation);
 
                     // Check whether we have to use Pagination. If so, we first attempt to create an association with the Request Pagination parameters,
                     // followed by the Response Pagination parameters...
@@ -260,50 +208,6 @@ namespace Plugin.Application.CapabilityModel.API
                         }
                         else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (declaration) >> Unable to retrieve Request Pagination class '" +
                                                supportLocation + "/" + context.GetConfigProperty(_RequestPaginationClassName) + "'!");
-                    }
-
-                    // Check whether we need encryption...
-                    if (UseRequestEncryption || UseResponseEncryption)
-                    {
-                        MEClass encryptionClass = model.FindClass(supportLocation, context.GetConfigProperty(_EncryptionClassName));
-                        if (encryptionClass != null)
-                        {
-                            EndpointDescriptor encryptEndpoint;
-                            if (operation.UseRequestEncryption)
-                            {
-                                encryptEndpoint = new EndpointDescriptor(encryptionClass, "1", context.GetConfigProperty(_RequestEncryptionRoleName), null, true);
-                                model.CreateAssociation(operationEndpoint, encryptEndpoint, MEAssociation.AssociationType.MessageAssociation);
-                            }
-                            if (operation.UseResponseEncryption)
-                            {
-                                encryptEndpoint = new EndpointDescriptor(encryptionClass, "1", context.GetConfigProperty(_ResponseEncryptionRoleName), null, true);
-                                model.CreateAssociation(operationEndpoint, encryptEndpoint, MEAssociation.AssociationType.MessageAssociation);
-                            }
-                        }
-                        else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (declaration) >> Unable to retrieve Encryption class '" +
-                                                supportLocation + "/" + context.GetConfigProperty(_EncryptionClassName) + "'!");
-                    }
-
-                    // Check whether we need signing...
-                    if (UseRequestSigning || UseResponseSigning)
-                    {
-                        MEClass signingClass = model.FindClass(supportLocation, context.GetConfigProperty(_SigningClassName));
-                        if (signingClass != null)
-                        {
-                            EndpointDescriptor signingEndpoint;
-                            if (operation.UseRequestEncryption)
-                            {
-                                signingEndpoint = new EndpointDescriptor(signingClass, "1", context.GetConfigProperty(_RequestEncryptionRoleName), null, true);
-                                model.CreateAssociation(operationEndpoint, signingEndpoint, MEAssociation.AssociationType.MessageAssociation);
-                            }
-                            if (operation.UseResponseEncryption)
-                            {
-                                signingEndpoint = new EndpointDescriptor(signingClass, "1", context.GetConfigProperty(_ResponseEncryptionRoleName), null, true);
-                                model.CreateAssociation(operationEndpoint, signingEndpoint, MEAssociation.AssociationType.MessageAssociation);
-                            }
-                        }
-                        else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (declaration) >> Unable to retrieve Signing class '" +
-                                                supportLocation + "/" + context.GetConfigProperty(_EncryptionClassName) + "'!");
                     }
                     CreateLogEntry("Initial release.");
                 }
@@ -333,13 +237,16 @@ namespace Plugin.Application.CapabilityModel.API
                 this._parent = parentResource;
                 this._capabilityClass = hierarchy.Data;
                 this._requestCardinality = new Cardinality();
-                this._responseCardinality = new Cardinality();
+                this._responseCollection = null;
                 this._assignedRole = parentResource.FindChildClassRole(this._capabilityClass.Name, context.GetConfigProperty(_RESTOperationClassStereotype));
                 string operationArchetype = this._capabilityClass.GetTag(context.GetConfigProperty(_ArchetypeTag));
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (existing) >> Operation is of archetype: '" + operationArchetype + "'...");
                 this._operationType = new HTTPOperation(EnumConversions<HTTPOperation.Type>.StringToEnum(operationArchetype));
                 this._useHeaderParameters = string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_RESTUseHeaderParametersTag)), "true", true) == 0;
                 this._useLinkHeaders = string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_RESTUseLinkHeaderTag)), "true", true) == 0;
+
+                // We might encounter 'old' API's that still use the deprecated structure. For now, assume the best...
+                List<MEClass> deprecatedResponseClasses = null;
 
                 // Retrieve the MIME types...
                 this._consumedMIMETypes = new List<string>();
@@ -357,30 +264,22 @@ namespace Plugin.Application.CapabilityModel.API
                     foreach (string MIMEEntry in MIMEList) this._producedMIMETypes.Add(MIMEEntry.Trim());
                 }
 
-                // Construct all associated operation results...
-                string operationResultStereotype = context.GetConfigProperty(_RESTOperationResultStereotype);
+                // Try to locate associated document resources...
                 string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
                 var myInterface = new RESTOperationCapability(this);
                 foreach (TreeNode<MEClass> node in hierarchy.Children)
                 {
-                    if (node.Data.HasStereotype(operationResultStereotype))
-                    {
-                        var resultCap = new RESTOperationResultCapability(myInterface, node);
-                        resultCap.InitialiseParent(myInterface);
-                        if (!resultCap.Valid)
-                        {
-                            Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp >> Error creating Operation Result '" + node.Data.Name + "'!");
-                            this._capabilityClass = null;
-                            return;
-                        }
-                        if (resultCap.Category == RESTOperationResultCapability.ResponseCategory.Success) this._responseCardinality = resultCap.ResponseCardinality;
-                    }
-                    else if (node.Data.HasStereotype(resourceStereotype))
+                    if (node.Data.HasStereotype(resourceStereotype))
                     {
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp >> Found request body '" +
                                          node.Data.Name + "'...");
                         // Here we can initialize by MEClass only since the capability must have been created earlier (in my parent Resource).
                         this._requestBodyDocument = new RESTResourceCapability(node.Data);
+                    }
+                    else if (node.Data.HasStereotype(_DEPRECATEDOperationResultStereotype))
+                    {
+                        if (deprecatedResponseClasses == null) deprecatedResponseClasses = new List<MEClass>();
+                        deprecatedResponseClasses.Add(node.Data);
                     }
                     else
                     {
@@ -391,15 +290,9 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
 
-                // Check whether we're using Pagination, Signing and/or Encryption...
-                this._usePagination = this._useReqEncryption = this._useRspEncryption = this._useReqSigning = this._useRspSigning = false;
+                // Check whether we're using Pagination, attempt to locate response collections and document cardinality ...
                 string paginationClassName = context.GetConfigProperty(_RequestPaginationClassName);
-                string encryptionClassName = context.GetConfigProperty(_EncryptionClassName);
-                string signingClassName = context.GetConfigProperty(_SigningClassName);
-                string requestEncryptionRoleName = context.GetConfigProperty(_RequestEncryptionRoleName);
-                string responseEncryptionRoleName = context.GetConfigProperty(_ResponseEncryptionRoleName);
-                string requestSigningRoleName = context.GetConfigProperty(_RequestSigningRoleName);
-                string responseSigningRoleName = context.GetConfigProperty(_ResponseSigningRoleName);
+                string collectionStereotype = context.GetConfigProperty(_RCCStereotype);
                 foreach (MEAssociation association in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
                 {
                     if (association.Destination.EndPoint.HasStereotype(resourceStereotype))
@@ -413,21 +306,21 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         // With regard to pagination, we only look for the request class (it should have both a request- and a response)...
                         this._usePagination = true;
-                        break;
                     }
-                    else if (association.Destination.EndPoint.Name == encryptionClassName)
+                    else if (association.Destination.EndPoint.HasStereotype(collectionStereotype))
                     {
-                        // This can be either request- and/or response encryption, so we have to check the role name...
-                        if (association.Destination.Role == requestEncryptionRoleName) this._useReqEncryption = true;
-                        else if (association.Destination.Role == responseEncryptionRoleName) this._useRspEncryption = true;
-                    }
-                    else if (association.Destination.EndPoint.Name == signingClassName)
-                    {
-                        // This can be either request- and/or response signing, so we have to check the role name...
-                        if (association.Destination.Role == requestSigningRoleName) this._useReqSigning = true;
-                        else if (association.Destination.Role == responseSigningRoleName) this._useRspSigning = true;
+                        this._responseCollection = new RESTResponseCodeCollection(this._parent, association.Destination.EndPoint);
                     }
                 }
+                if (this._responseCollection == null && deprecatedResponseClasses == null)
+                {
+                    Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp >> Unable to find my Response Code Collection!");
+                    this._capabilityClass = null;
+                    return;
+                }
+
+                // When we discovered a list of 'deprecated' response capabilities, we will transform these into the new structure...
+                if (deprecatedResponseClasses != null) TransformResponseStructure(deprecatedResponseClasses);
             }
             catch (Exception exc)
             {
@@ -502,8 +395,6 @@ namespace Plugin.Application.CapabilityModel.API
                     if (this._capabilityClass.OwningPackage.Parent.FindPackage(operation.Name, context.GetConfigProperty(_RESTOperationPkgStereotype)) == null)
                     {
                         this._capabilityClass.OwningPackage.Name = operation.Name;
-
-
                     }
                     else
                     {
@@ -539,9 +430,6 @@ namespace Plugin.Application.CapabilityModel.API
                 // Make sure to update pagination: add if required and not there yet or remove if not required anymore...
                 UpdatePagination(operation.PaginationIndicator);
 
-                // Make sure to update signing and encryption: add if required and not there yet or remove if not required anymore...
-                UpdateSecurity(operation);
-
                 // (Re-)Load MIME Types...
                 if (this._consumedMIMETypes != operation.ConsumedMIMETypes || this._producedMIMETypes != operation.ProducedMIMETypes)
                 {
@@ -572,7 +460,7 @@ namespace Plugin.Application.CapabilityModel.API
                     this._capabilityClass.SetTag(context.GetConfigProperty(_ConsumesMIMEListTag), MIMETypes);
                 }
 
-                // Replace the request- and response body elements...
+                // Replace the request body element...
                 // Check whether we must replace an existing association with a Document Resource...
                 var operationEndpoint = new EndpointDescriptor(this._capabilityClass, "1", this._assignedRole, null, true);
                 if (this._requestBodyDocument != operation.RequestDocument)
@@ -623,33 +511,8 @@ namespace Plugin.Application.CapabilityModel.API
                 // (re-)Define all query parameter attributes (ConvertToAttribute properly handles existing attributes)...
                 foreach (RESTParameterDeclaration param in operation.Parameters) RESTParameterDeclaration.ConvertToAttribute(this._capabilityClass, param);
 
-                // Create Response Object classes for each operation result declaration...
-                string defaultSuccess = context.GetConfigProperty(_DefaultSuccessCode);
-                string altSuccess = context.GetConfigProperty(_AltSuccessCode);
-                this._responseBodyDocument = operation.ResponseDocument;
-                foreach (RESTOperationResultDeclaration result in operation.OperationResults)
-                {
-                    // We need to perform a little trick in case of response body definitions: the associated Document Resource has been assigned
-                    // to the Operation and not to the Operation Result. However, it must be passed to the appropriate result in order to properly
-                    // establish the association. So, we must check whether we have 'caught' the default- or alternative OK response and if so, patch the Result
-                    // Declaration object so it holds the class reference...
-                    if (result.ResultCode == defaultSuccess || result.ResultCode == altSuccess)
-                    {
-                        MEClass newResponseClass = operation.ResponseDocument != null ? operation.ResponseDocument.CapabilityClass : null;
-                        if (result.ResponseDocumentClass != newResponseClass)
-                        {
-                            result.ResponseDocumentClass = newResponseClass;
-                            result.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
-                        }
-                        if (result.ResponseCardinality != operation.ResponseCardinality)
-                        {
-                            result.ResponseCardinality = operation.ResponseCardinality;
-                            result.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
-                        }
-                    }
-                    UpdateOperationResult(result);
-                    this._responseBodyDocument = operation.ResponseDocument;
-                }
+                // Replace the response collection by a (possibly new) version...
+                this._responseCollection = operation.ResponseCollection;
 
                 // This will update the service version, followed by all child capabilities!
                 // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
@@ -698,6 +561,76 @@ namespace Plugin.Application.CapabilityModel.API
             {
                 this._parent = parent as RESTResourceCapability;
                 parent.AddChild(new RESTOperationCapability(this));
+            }
+        }
+
+        /// <summary>
+        /// A helper function that receives a list of 'old' Response Capability classes from this operation and transforms this into
+        /// our new Response Collection structure.
+        /// </summary>
+        /// <param name="deprecatedResponseClasses">List of all Operation Result Capability classes to be transformed.</param>
+        private void TransformResponseStructure(List<MEClass> deprecatedResponseClasses)
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            Logger.WriteWarning("Detected one or more deprecated Operation Result Capabilities for operation '" + Name + 
+                                "', updating model structure in progress!");
+
+            // First of all, create a new Response Code Collection and create an association with it... 
+            if (this._responseCollection == null)
+            {
+                this._responseCollection = new RESTResponseCodeCollection(this._parent, Name + _CollectionNamePostfix, this.OperationPackage);
+                var operationEndpoint = new EndpointDescriptor(this._capabilityClass, "1", this._assignedRole, null, true);
+                var collectionEndpoint = new EndpointDescriptor(this._responseCollection.CollectionClass, new Cardinality(Cardinality._Mandatory).ToString(), this._responseCollection.Name, null, true);
+                var newAssoc = this._capabilityClass.CreateAssociation(operationEndpoint, collectionEndpoint, MEAssociation.AssociationType.MessageAssociation);
+
+                // Assures that the collection is shown on the diagram with the proper association type...
+                Diagram resourceDiagram = this._parent.OwningPackage.FindDiagram(this._parent.Name);
+                if (resourceDiagram != null)
+                {
+                    resourceDiagram.AddClassList(new List<MEClass>() { this._responseCollection.CollectionClass });
+                    resourceDiagram.AddAssociationList(new List<MEAssociation>() { newAssoc });
+                    resourceDiagram.Redraw();
+                }
+            }
+
+            // Next, iterate through all of the old Capability Classes and collect response metadata for a new Response Descriptor...
+            foreach (MEClass oldResponse in deprecatedResponseClasses)
+            {
+                string resultCode = oldResponse.FindAttribute("Code").FixedValue;
+                string description = MEChangeLog.GetDocumentationAsText(oldResponse);
+                var category = (resultCode == RESTOperationResultDescriptor._DefaultCode) ? RESTOperationResultDescriptor.ResponseCategory.Default :
+                                                                                           (RESTOperationResultDescriptor.ResponseCategory)int.Parse(resultCode[0].ToString());
+                var payloadType = RESTOperationResultDescriptor.ResultPayloadType.None;
+                MEClass responsePayload = null;
+                RESTResourceCapability document = null;
+                Cardinality cardinality = null;
+
+                // Check associations in order to detect payload...
+                string defaultResponseClassName = context.GetConfigProperty(_OperationResultClassName);
+                string resourceClassStereotype = context.GetConfigProperty(_ResourceClassStereotype);
+                foreach (MEAssociation association in oldResponse.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                {
+                    if (association.Destination.EndPoint.Name == defaultResponseClassName)
+                    {
+                        payloadType = RESTOperationResultDescriptor.ResultPayloadType.DefaultResponse;
+                        responsePayload = association.Destination.EndPoint;
+                        cardinality = new Cardinality(association.Destination.Cardinality);
+                        break;
+                    }
+                    else if (association.Destination.EndPoint.HasStereotype(resourceClassStereotype))
+                    {
+                        payloadType = RESTOperationResultDescriptor.ResultPayloadType.Document;
+                        document = new RESTResourceCapability(association.Destination.EndPoint);
+                        cardinality = new Cardinality(association.Destination.Cardinality);
+                        break;
+                    }
+                }
+
+                // Now we have collected enough information to create a new response descriptor and remove the old stuff...
+                this._responseCollection.AddOperationResult(new RESTOperationResultDescriptor(this._responseCollection, resultCode,
+                                                                                              category, payloadType, description, null,
+                                                                                              responsePayload, document, cardinality));
+                oldResponse.OwningPackage.DeleteClass(oldResponse);
             }
         }
 
@@ -764,191 +697,6 @@ namespace Plugin.Application.CapabilityModel.API
                 }
                 else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp >> Unable to retrieve Request Pagination class '" +
                                        context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_RequestPaginationClassName) + "'!");
-            }
-        }
-
-        /// <summary>
-        /// Helper class that either creates- or removes request or response encryption, depending on provided current- and end states.
-        /// </summary>
-        /// <param name="isResponse">True when the call is for Response Encryption, false for Request Encryption.</param>
-        /// <param name="hasEncryption">Whether we currently have request/response encryption enabled (current-state).</param>
-        /// <param name="mustHaveEncryption">Whether we must have request/response encryption enabled (end-state).</param>
-        /// <param name="currentAssoc">Reference to request/response association if current state is 'enabled'.</param>
-        /// <param name="encryptionClass">Reference to the encryption class if we already have an association with that class.</param>
-        private void UpdateEncryption(bool isResponse, bool hasEncryption, bool mustHaveEncryption, MEAssociation currentAssoc, MEClass encryptionClass)
-        {
-            if (hasEncryption == mustHaveEncryption) return;    // Current state is already correct, do nothing!
-
-            if (hasEncryption && !mustHaveEncryption)           // We have encryption but don't need it anymore, get rid of association...
-            {
-                this._capabilityClass.DeleteAssociation(currentAssoc);
-            }
-            else                                                // We don't have encryption but must get it now. Create the appropriate association...
-            {
-                ContextSlt context = ContextSlt.GetContextSlt();
-                ModelSlt model = ModelSlt.GetModelSlt();
-                var operationEndpoint = new EndpointDescriptor(this._capabilityClass, "1", this._assignedRole, null, true);
-                if (encryptionClass == null) encryptionClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
-                                                                               context.GetConfigProperty(_EncryptionClassName));
-                if (encryptionClass != null)
-                {
-                    var encryptionEndpoint = new EndpointDescriptor(encryptionClass, "1", context.GetConfigProperty(isResponse ? _ResponseEncryptionRoleName : _RequestEncryptionRoleName), null, true);
-                    model.CreateAssociation(operationEndpoint, encryptionEndpoint, MEAssociation.AssociationType.MessageAssociation);
-
-                }
-                else Logger.WriteError("Plugin.Application.CapabilityModel.API.UpdateSigning >> Unable to retrieve Encryption class '" +
-                                       context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_EncryptionClassName) + "'!");
-            }
-        }
-
-        /// <summary>
-        /// This helper method is used to update the Operation Result object specified by the 'result' parameter.
-        /// Depending on the result status, a new entry is created, an existing entry removed or an existing entry is updated.
-        /// </summary>
-        /// <param name="result">Operation Result declaration metadata.</param>
-        private void UpdateOperationResult(RESTOperationResultDeclaration result)
-        {
-            string defaultResponse = ContextSlt.GetContextSlt().GetConfigProperty(_DefaultResponseCode);
-            var myInterface = new RESTOperationCapability(this);
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdateOperationResult >> Updating result code '" + result.ResultCode + "'...");
-
-            // Invalid status should be ignored...
-            if (result.Status == RESTOperationResultDeclaration.DeclarationStatus.Invalid) return;
-            else
-            {
-                if (result.Status == RESTOperationResultDeclaration.DeclarationStatus.Created)
-                {
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdateOperationResult >> Creating new result object...");
-                    RESTOperationResultCapability newResult = new RESTOperationResultCapability(myInterface, result);
-                    newResult.InitialiseParent(myInterface);
-                }
-                else if (result.Status == RESTOperationResultDeclaration.DeclarationStatus.Deleted)
-                {
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdateOperationResult >> Removing result object...");
-                    foreach (Capability cap in GetChildren())
-                    {
-                        if (cap is RESTOperationResultCapability && ((RESTOperationResultCapability)cap).ResultCode == result.ResultCode)
-                        {
-                            DeleteChild(cap.Implementation, true);
-                            return;
-                        }
-                    }
-                }
-                else if (result.Status == RESTOperationResultDeclaration.DeclarationStatus.Edited)
-                {
-                    foreach (Capability cap in GetChildren())
-                    {
-                        if (cap is RESTOperationResultCapability && ((RESTOperationResultCapability)cap).ResultCode == result.OriginalCode)
-                        {
-                            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.UpdateOperationResult >> Edit result object...");
-                            ((RESTOperationResultCapability)cap).Edit(result);
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Helper method that updates the current security settings (signing and/or encryption): add them if required, remove if not required anymore.
-        /// </summary>
-        /// <param name="updatedOperation">Contains the (possibly changed) security settings.</param>
-        private void UpdateSecurity(RESTOperationDeclaration updatedOperation)
-        {
-            // We use this to indicate what association to change...
-            const bool _Request = false;
-            const bool _Response = true;
-
-            ContextSlt context = ContextSlt.GetContextSlt();
-            string encryptionClassName = context.GetConfigProperty(_EncryptionClassName);
-            string signingClassName = context.GetConfigProperty(_SigningClassName);
-            string requestEncryptionRoleName = context.GetConfigProperty(_RequestEncryptionRoleName);
-            string responseEncryptionRoleName = context.GetConfigProperty(_ResponseEncryptionRoleName);
-            string requestSigningRoleName = context.GetConfigProperty(_RequestSigningRoleName);
-            string responseSigningRoleName = context.GetConfigProperty(_ResponseSigningRoleName);
-            MEAssociation requestSigningAssoc = null;
-            MEAssociation responseSigningAssoc = null;
-            MEAssociation requestEncryptionAssoc = null;
-            MEAssociation responseEncryptionAssoc = null;
-            MEClass signingClass = null;
-            MEClass encryptionClass = null;
-            bool hasRequestSigning = false;
-            bool hasResponseSigning = false;
-            bool hasRequestEncryption = false;
-            bool hasResponseEncryption = false;
-
-            // First of all, collect existing associations and work from there...
-            foreach (MEAssociation assoc in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
-            {
-                if (assoc.Destination.EndPoint.Name == signingClassName)
-                {
-                    signingClass = assoc.Destination.EndPoint;
-                    // This can be either request- and/or response signing, so we have to check the role name...
-                    if (assoc.Destination.Role == requestSigningRoleName)
-                    {
-                        requestSigningAssoc = assoc;
-                        hasRequestSigning = true;
-                    }
-                    else if (assoc.Destination.Role == responseSigningRoleName)
-                    {
-                        responseSigningAssoc = assoc;
-                        hasResponseSigning = true;
-                    }
-                }
-                else if (assoc.Destination.EndPoint.Name == encryptionClassName)
-                {
-                    encryptionClass = assoc.Destination.EndPoint;
-                    // This can be either request- and/or response encryption, so we have to check the role name...
-                    if (assoc.Destination.Role == requestEncryptionRoleName)
-                    {
-                        requestEncryptionAssoc = assoc;
-                        hasRequestEncryption = true;
-                    }
-                    else if (assoc.Destination.Role == responseEncryptionRoleName)
-                    {
-                        responseEncryptionAssoc = assoc;
-                        hasResponseEncryption = true;
-                    }
-                }
-            }
-
-            UpdateSigning(_Request, hasRequestSigning, updatedOperation.UseRequestSigning, requestSigningAssoc, signingClass);
-            UpdateSigning(_Response, hasResponseSigning, updatedOperation.UseResponseSigning, responseSigningAssoc, signingClass);
-            UpdateEncryption(_Request, hasRequestEncryption, updatedOperation.UseRequestEncryption, requestEncryptionAssoc, encryptionClass);
-            UpdateEncryption(_Response, hasResponseEncryption, updatedOperation.UseResponseEncryption, responseEncryptionAssoc, encryptionClass);
-        }
-
-        /// <summary>
-        /// Helper class that either creates- or removes request or response signing, depending on provided current- and end states.
-        /// </summary>
-        /// <param name="isResponse">True when the call is for Response Signing, false for Request Signing.</param>
-        /// <param name="hasSigning">Whether we currently have request/response signing enabled (current-state).</param>
-        /// <param name="mustHaveSigning">Whether we must have request/response signing enabled (end-state).</param>
-        /// <param name="currentAssoc">Reference to request/response association if current state is 'enabled'.</param>
-        /// <param name="signingClass">Reference to the signing class if we already have an association with that class.</param>
-        private void UpdateSigning(bool isResponse, bool hasSigning, bool mustHaveSigning, MEAssociation currentAssoc, MEClass signingClass)
-        {
-            if (hasSigning == mustHaveSigning) return;  // Current state is already correct, do nothing!
-
-            if (hasSigning && !mustHaveSigning)         // We have signing but don't need it anymore, get rid of association...
-            {
-                this._capabilityClass.DeleteAssociation(currentAssoc);
-            }
-            else                                        // We don't have signing but must get it now. Create the appropriate association...
-            {
-                ContextSlt context = ContextSlt.GetContextSlt();
-                ModelSlt model = ModelSlt.GetModelSlt();
-                var operationEndpoint = new EndpointDescriptor(this._capabilityClass, "1", this._assignedRole, null, true);
-                if (signingClass == null) signingClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
-                                                                         context.GetConfigProperty(_SigningClassName));
-                if (signingClass != null)
-                {
-                    var signingEndpoint = new EndpointDescriptor(signingClass, "1", context.GetConfigProperty(isResponse? _ResponseSigningRoleName: _RequestSigningRoleName), null, true);
-                    model.CreateAssociation(operationEndpoint, signingEndpoint, MEAssociation.AssociationType.MessageAssociation);
-
-                }
-                else Logger.WriteError("Plugin.Application.CapabilityModel.API.UpdateSigning >> Unable to retrieve Signing class '" +
-                                       context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_SigningClassName) + "'!");
             }
         }
     }

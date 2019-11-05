@@ -14,10 +14,6 @@ namespace Plugin.Application.CapabilityModel.API
     /// </summary>
     internal sealed class RESTOperationDeclaration: IEquatable<RESTOperationDeclaration>
     {
-        // We use a boolean indicator to choose between request and response...
-        internal const bool _RequestIndicator               = false;
-        internal const bool _ResponseIndicator              = true;
-
         // Configuration properties used by this module:
         private const string _ArchetypeTag                  = "ArchetypeTag";
         private const string _APISupportModelPathName       = "APISupportModelPathName";
@@ -33,7 +29,8 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _RootPkgName                   = "RootPkgName";
         private const string _RESTOperationResultStereotype = "RESTOperationResultStereotype";
 
-        private const string _Summary = "summary: ";        // Separator between summary text and description text.
+        private const string _Summary                       = "summary: ";      // Separator between summary text and description text.
+        private const string _CollectionPostfix             = "Responses";      // Added to operation name to create the response collection name.
 
         // The status is used to track operations on the declaration.
         internal enum DeclarationStatus { Invalid, Created, Stable, Edited, Deleted }
@@ -45,18 +42,12 @@ namespace Plugin.Application.CapabilityModel.API
         private DeclarationStatus _status;                          // Status of this declaration record.
         private DeclarationStatus _initialStatus;                   // Original status of this declaration record.
         private RESTResourceCapability _requestDocument;            // Resource document to be used for request.
-        private RESTResourceCapability _responseDocument;           // Resource document to be used for the default 'Ok' response.
         private Cardinality _requestCardinality;                    // Request cardinality.
-        private Cardinality _responseCardinality;                   // Response cardinality.
         private bool _hasPagination;                                // Operation must implement default pagination mechanism.
         private bool _publicAccess;                                 // Security must be overruled for this operation.
         private bool _useHeaderParameters;                          // Operation uses configured Header Parameters.
         private bool _useLinkHeaders;                               // Operations uses response Link Headers.
-        private bool _useReqSigning;                                // Any request body must be signed.
-        private bool _useRspSigning;                                // Ok-response body must be signed.
-        private bool _useReqEncryption;                             // Any request body must be encrypted.
-        private bool _useRspEncryption;                             // Ok-response body must be encrypted.
-        private SortedList<string, RESTOperationResultDeclaration> _resultList;     // Set of result declarations (one for each unique HTTP result code).
+        private RESTResponseCodeCollection _responseCollection;     // Contains the set of response codes for this operation.
         private List<string> _producedMIMEList;                     // Non-standard MIME types produced by the operation.
         private List<string> _consumedMIMEList;                     // Non-standard MIME types consumed by the operation.
         private string _summaryText;                                // Short description of operation.
@@ -117,12 +108,17 @@ namespace Plugin.Application.CapabilityModel.API
         internal MEClass OperationClass { get { return this._existingOperation; } }
 
         /// <summary>
-        /// Returns the list of operation result declarations...
+        /// Returns the list of operation response codes with their metadata...
         /// </summary>
-        internal List<RESTOperationResultDeclaration> OperationResults
+        internal RESTResponseCodeCollection ResponseCollection
         {
-            get { return new List<RESTOperationResultDeclaration>(this._resultList.Values); }
+            get { return this._responseCollection; }
         }
+
+        /// <summary>
+        /// Returns the resource capability that 'owns' this operation.
+        /// </summary>
+        internal RESTResourceCapability Parent { get { return this._parent; } }
 
         /// <summary>
         /// Get or set the 'has pagination' indicator
@@ -199,38 +195,6 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Get or set the response Cardinality.
-        /// </summary>
-        internal Cardinality ResponseCardinality
-        {
-            get { return this._responseCardinality; }
-            set
-            {
-                if (this._responseCardinality != value)
-                {
-                    this._responseCardinality = value;
-                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Get or set the Document Resource to be used as default response body.
-        /// </summary>
-        internal RESTResourceCapability ResponseDocument
-        {
-            get { return this._responseDocument; }
-            set
-            {
-                if (this._responseDocument != value)
-                {
-                    this._responseDocument = value;
-                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-                }
-            }
-        }
-
-        /// <summary>
         /// Get or set the short operation description.
         /// </summary>
         internal string Summary
@@ -278,70 +242,6 @@ namespace Plugin.Application.CapabilityModel.API
                     this._useHeaderParameters = value;
                     if (this._initialStatus == DeclarationStatus.Invalid && this._name != string.Empty) this._status = DeclarationStatus.Created;
                     else if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Get or set the request Encryption flag.
-        /// </summary>
-        internal bool UseRequestEncryption
-        {
-            get { return this._useReqEncryption; }
-            set
-            {
-                if (this._useReqEncryption != value)
-                {
-                    this._useReqEncryption = value;
-                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Get or set the response Encryption flag.
-        /// </summary>
-        internal bool UseResponseEncryption
-        {
-            get { return this._useRspEncryption; }
-            set
-            {
-                if (this._useRspEncryption != value)
-                {
-                    this._useRspEncryption = value;
-                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Get or set the request Signing flag.
-        /// </summary>
-        internal bool UseRequestSigning
-        {
-            get { return this._useReqSigning; }
-            set
-            {
-                if (this._useReqSigning != value)
-                {
-                    this._useReqSigning = value;
-                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Get or set the response Signing flag.
-        /// </summary>
-        internal bool UseResponseSigning
-        {
-            get { return this._useRspSigning; }
-            set
-            {
-                if (this._useRspSigning != value)
-                {
-                    this._useRspSigning = value;
-                    if (this._initialStatus != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 }
             }
         }
@@ -425,9 +325,8 @@ namespace Plugin.Application.CapabilityModel.API
             this._status = DeclarationStatus.Invalid;
             this._initialStatus = this.Status;
             this._requestDocument = null;
-            this._responseDocument = null;
             this._requestCardinality = new Cardinality(Cardinality._Mandatory);
-            this._responseCardinality = new Cardinality(Cardinality._Mandatory);
+            this._responseCollection = new RESTResponseCodeCollection(parent, RESTResponseCodeCollection.CollectionScope.Operation);
             this._hasPagination = false;
             this._publicAccess = false;
             this._producedMIMEList = new List<string>();
@@ -437,12 +336,6 @@ namespace Plugin.Application.CapabilityModel.API
             this._summaryText = string.Empty;
             this._useHeaderParameters = true;
             this._useLinkHeaders = false;
-            this._useReqEncryption = false;
-            this._useRspEncryption = false;
-            this._useReqSigning = false;
-            this._useRspSigning = false;
-
-            CreateDefaultResults();
         }
 
         /// <summary>
@@ -463,15 +356,11 @@ namespace Plugin.Application.CapabilityModel.API
             this._producedMIMEList = operation.ProducedMIMEList;
             this._consumedMIMEList = operation.ConsumedMIMEList;
             this._queryParams = new SortedList<string, RESTParameterDeclaration>();
-            this._resultList = new SortedList<string, RESTOperationResultDeclaration>();
+            this._responseCollection = new RESTResponseCodeCollection(this._parent, this._name + _CollectionPostfix, operation.CapabilityClass.OwningPackage);
             this._useHeaderParameters = operation.UseHeaderParameters;
             this._useLinkHeaders = operation.UseLinkHeaders;
             this._summaryText = string.Empty;
             this._description = string.Empty;
-            this._useReqEncryption = operation.UseRequestEncryption;
-            this._useRspEncryption = operation.UseResponseEncryption;
-            this._useReqSigning = operation.UseRequestSigning;
-            this._useRspSigning = operation.UseResponseSigning;
 
             // Extract documentation from the class. This can be a multi-line object in which the first line might be the 'summary' description...
             List<string> documentation = MEChangeLog.GetDocumentationAsTextLines(operation.CapabilityClass);
@@ -510,15 +399,9 @@ namespace Plugin.Application.CapabilityModel.API
                 }
             }
 
-            // Build the list of result declarations...
-            foreach (RESTOperationResultCapability result in operation.OperationResultList)
-                this._resultList.Add(result.ResultCode, new RESTOperationResultDeclaration(result));
-
-            // Load information regarding request- and response bodies...
+            // Load information regarding the request payload (response payload is part of the response collection).
             this._requestDocument = operation.RequestBodyDocument;
-            this._responseDocument = operation.ResponseBodyDocument;
             this._requestCardinality = operation.RequestCardinality;
-            this._responseCardinality = operation.ResponseCardinality;
             ContextSlt context = ContextSlt.GetContextSlt();
             string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
             string paginationClassName = context.GetConfigProperty(_RequestPaginationClassName);
@@ -543,71 +426,28 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This function is invoked to add a new Operation Result Declaration to this operation. It displays the Response Code Dialog, which
-        /// facilitates the user in creating a new result object. The created object is added to the result list for this operation as long as
-        /// it has either a unique code, or there exists a record with the same code and status 'deleted'. In the latter case, this record
-        /// is overwritten and set to 'edited'.
+        /// This function is invoked to add a new Operation Result Descriptor to the operation. The actual dialog with the
+        /// user is delegated to the collection.
         /// </summary>
         /// <returns>Newly created result record or NULL in case of errors or duplicates or user cancel.</returns>
-        internal RESTOperationResultDeclaration AddOperationResult()
+        internal RESTOperationResultDescriptor AddOperationResult()
         {
-            var newResult = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Unknown);
-            using (var dialog = new RESTResponseCodeDialog(newResult))
-            {
-                if (dialog.ShowDialog() == DialogResult.OK)
-                {
-                    if (!this._resultList.ContainsKey(dialog.OperationResult.ResultCode))
-                    {
-                        dialog.OperationResult.Status = RESTOperationResultDeclaration.DeclarationStatus.Created;
-                        this._resultList.Add(dialog.OperationResult.ResultCode, dialog.OperationResult);
-                        if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-                        newResult = dialog.OperationResult;
-                    }
-                    else if (this._resultList[dialog.OperationResult.ResultCode].Status == RESTOperationResultDeclaration.DeclarationStatus.Deleted)
-                    {
-                        dialog.OperationResult.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
-                        this._resultList[dialog.OperationResult.ResultCode] = dialog.OperationResult;
-                        if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-                        newResult = dialog.OperationResult;
-                    }
-                    else
-                    {
-                        MessageBox.Show("Duplicate operation result code, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        newResult = null;
-                    }
-                }
-                else newResult = null;
-            }
-            return newResult;
+            RESTOperationResultDescriptor newDesc = this._responseCollection.AddOperationResult();
+            if (newDesc != null && this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+            return newDesc;
         }
 
         /// <summary>
-        /// This function receives a predefined OperationResultDeclaration and inserts the object in my result list.
-        /// If the code already exists with a status 'deleted', it is replaced. Otherwise, the result is ignored and
-        /// the function returns false. 
+        /// This function receives a predefined OperationResultDeclaration and inserts the object in my result list (if no such code
+        /// yet exists).
         /// </summary>
         /// <param name="result">The Operation Result to insert.</param>
         /// <returns>True if successfully inserted, false on duplicate code.</returns>
-        internal bool AddOperationResult(RESTOperationResultDeclaration result)
+        internal bool AddOperationResult(RESTOperationResultDescriptor result)
         {
-            bool operResult = true;
-            if (!this._resultList.ContainsKey(result.ResultCode))
-            {
-                result.Status = RESTOperationResultDeclaration.DeclarationStatus.Created;
-                this._resultList.Add(result.ResultCode, result);
-                if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-            }
-            else if (this._resultList[result.ResultCode].Status == RESTOperationResultDeclaration.DeclarationStatus.Deleted)
-            {
-                result.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
-                this._resultList[result.ResultCode] = result;
-                if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-            }
-            else
-            {
-                operResult = false;
-            }
-            return operResult;
+            RESTOperationResultDescriptor newDesc = this._responseCollection.AddOperationResult(result);
+            if (newDesc != null && this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+            return newDesc != null;
         }
 
         /// <summary>
@@ -731,13 +571,11 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Remove the selected request- or response document.
+        /// Remove the request document.
         /// </summary>
-        /// <param name="isResponse">When 'true', we clear the response document, otherwise, we clear the request document.</param>
-        internal void ClearDocument(bool isResponse)
+        internal void ClearDocument()
         {
-            if (isResponse && this._responseDocument != null) this._responseDocument = null;
-            else if (!isResponse && this._requestDocument != null) this._requestDocument = null;
+            this._requestDocument = null;
         }
 
         /// <summary>
@@ -754,53 +592,19 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="code">Operation Result Code to be deleted.</param>
         internal void DeleteOperationResult(string code)
         {
-            if (this._resultList.ContainsKey(code))
-            {
-                this._resultList[code].Status = RESTOperationResultDeclaration.DeclarationStatus.Deleted;
-                if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-            }
+            if (this._responseCollection.DeleteOperationResult(code) && this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
         }
 
         /// <summary>
         /// This function is invoked to edit an existing Operation Result Declaration for this operation. It displays the Response Code Dialog, which
         /// facilitates the user in changing the result object. The updated object is added to the result list for this operation as long as
-        /// it has either a unique code, or there exists a record with the same code and status 'deleted'. In the latter case, this record
-        /// is overwritten and set to 'edited'.
+        /// it has a unique code. The actual edit processing is 'delegated' to our response code collection.
         /// </summary>
         /// <returns>Updated result record or NULL in case of errors or duplicates or user cancel.</returns>
-        internal RESTOperationResultDeclaration EditOperationResult(string code)
+        internal RESTOperationResultDescriptor EditOperationResult(string code)
         {
-            string originalKey = code;
-            RESTOperationResultDeclaration result = null;
-            if (this._resultList.ContainsKey(code))
-            {
-                result = this._resultList[code];
-                using (var dialog = new RESTResponseCodeDialog(result))
-                {
-                    if (dialog.ShowDialog() == DialogResult.OK)
-                    {
-                        if (dialog.OperationResult.ResultCode == originalKey || !this._resultList.ContainsKey(dialog.OperationResult.ResultCode))
-                        {
-                            result = dialog.OperationResult;
-                            result.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
-
-                            if (result.ResultCode != originalKey)
-                            {
-                                this._resultList.Remove(originalKey);
-                                this._resultList.Add(result.ResultCode, result);
-                            }
-                            if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-                        }
-                        else
-                        {
-                            MessageBox.Show("Changing result code resulted in duplicate code, please try again!",
-                                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            result = null;
-                        }
-                    }
-                    else result = null;
-                }
-            }
+            RESTOperationResultDescriptor result = this._responseCollection.EditOperationResult(code);
+            if (result != null && this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
             return result;
         }
 
@@ -817,14 +621,14 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Retrieve the list of Document Resources associated with our parent resource. If there are multiple, we ask the user to select
-        /// the one to use as request or response document. If there is only one, we take this. If there are none, we display an error to the user.
+        /// Assign the request payload document. We first retrieve the list of Document Resources associated with our parent resource. 
+        /// If there are multiple, we ask the user to select the one to use as request document. If there is only one, we take this. 
+        /// If there are none, we display an error to the user.
         /// In short: We can ONLY link a document resource to an operation AFTER the user has associated the operation resource with at 
-        /// least one Document resource! Depending on the 'isResponse' flag, we either assign a document to Request or Response.
+        /// least one Document resource!
         /// </summary>
-        /// <param name="isResponse">If 'true', we assign a document to default Ok response, otherwise, we assign to request.</param>
         /// <returns>Name of selected resource or empty string in case of errors or cancel.</returns>
-        internal string SetDocument(bool isResponse)
+        internal string SetDocument()
         {
             string documentName = string.Empty;
             if (this._parent == null) return string.Empty;  // Nothing (yet) to do.
@@ -836,8 +640,7 @@ namespace Plugin.Application.CapabilityModel.API
                 if (documentList.Count == 1)
                 {
                     RESTResourceCapability document = documentList[0];
-                    if (isResponse) this._responseDocument = document;
-                    else this._requestDocument = document;
+                    this._requestDocument = document;
                     if (document != null) documentName = document.Name;
                 }
                 else
@@ -852,8 +655,7 @@ namespace Plugin.Application.CapabilityModel.API
                             {
                                 // If the user selected multiple, we take the first one.
                                 RESTResourceCapability document = checkedCapabilities[0] as RESTResourceCapability;
-                                if (isResponse) this._responseDocument = document;
-                                else this._requestDocument = document;
+                                this._requestDocument = document;
                                 if (document != null) documentName = document.Name;
                             }
                         }
@@ -863,60 +665,6 @@ namespace Plugin.Application.CapabilityModel.API
             }
             else MessageBox.Show("No suitable Document Resources to select, add one first!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return documentName;
-        }
-
-        /// <summary>
-        /// Search the list of Operation Result Declarations for an entry with 'existingCode'. If found, it is replaced by a new declaration
-        /// with code 'newCode'. If existingCode is not found, the function will not perform any operations.
-        /// </summary>
-        /// <param name="existingCode">Code to replace.</param>
-        /// <param name="newCode">Code that has to replace existingCode (must be different code)</param>
-        /// <returns></returns>
-        internal RESTOperationResultDeclaration SwapOperationResult(string existingCode, string newCode)
-        {
-            RESTOperationResultDeclaration activeResult = null;
-            if (!string.IsNullOrEmpty(existingCode) && !string.IsNullOrEmpty(newCode) && existingCode != newCode && this._resultList.ContainsKey(existingCode))
-            {
-                this._resultList[existingCode].Status = RESTOperationResultDeclaration.DeclarationStatus.Deleted;
-                if (!this._resultList.ContainsKey(newCode))
-                {
-                    activeResult = new RESTOperationResultDeclaration(newCode);
-                    this._resultList.Add(newCode, activeResult);
-                }
-                else
-                {
-                    // We set the status of the 'activated' result code to 'Edited' to make sure it's processed lateron.
-                    activeResult = this._resultList[newCode];
-                    activeResult.Status = RESTOperationResultDeclaration.DeclarationStatus.Edited;
-                }
-                if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-            }
-            return activeResult;
-        }
-
-        /// <summary>
-        /// Helper method that initialises the Operation Result list with four default responses: Default OK, Default Client Error, 
-        /// Default Server Error and Generic (default) Error.
-        /// WME 20180918: We removed the default response!
-        /// </summary>
-        private void CreateDefaultResults()
-        {
-            this._resultList = new SortedList<string, RESTOperationResultDeclaration>();
-            var defaultOk = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Success);
-            var defaultResponse = new RESTOperationResultDeclaration(RESTOperationResultCapability.ResponseCategory.Default);
-            this._resultList.Add(defaultOk.ResultCode, defaultOk);
-
-            /************* No more default responses (for now)
-            this._resultList.Add(defaultResponse.ResultCode, defaultResponse);
-
-            // Associate the default error responses with a parameter type...
-            ContextSlt context = ContextSlt.GetContextSlt();
-            ModelSlt model = ModelSlt.GetModelSlt();
-            MEClass resultParam = model.FindClass(context.GetConfigProperty(_APISupportModelPathName), context.GetConfigProperty(_OperationResultClassName));
-            if (resultParam != null) defaultResponse.ResponseDocumentClass = resultParam;
-            else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTOperationDeclaration.CreateDefaultResults >> Unable to find '" + 
-                                   context.GetConfigProperty(_APISupportModelPathName) + "/" + context.GetConfigProperty(_OperationResultClassName));
-            *************/
         }
     }
 }

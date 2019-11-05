@@ -39,13 +39,8 @@ namespace Plugin.Application.CapabilityModel.API
         private RESTResourceCapability _currentResource;            // The resource that is currently being processed.
         private RESTOperationCapability _currentOperation;          // The operation that is currently being processed.
         private int _capabilityCounter;                 // The total number of capabilities (itf, resource, operation, result) to process.
-        private string _defaultResponseClassifier;      // Contains the classifier name of the default response once processed.
         private List<RESTResourceCapability> _identifierList;       // Contains all identifiers detected in the current path. 
-
-        // Since we have to terminate JSON objects properly, we must know whether we are in the last operation result of a resource.
-        // If we start a new resource, we might have to close the previous one. Also, we have to close the last resource but this we can handle at
-        // the beginning of post processing.    
-        private bool _inOperationResult;                // Global context: we are processing an operation result.
+        private bool _inOperation;                      // Set to 'true' when we're inside an operation processing block.
 
         /// <summary>
         /// Returns a filename that is constructed as 'Capability_vxpy.json', in which: 'Capability' is the verbatim name of the current 
@@ -83,10 +78,10 @@ namespace Plugin.Application.CapabilityModel.API
             this._isPathInitialized = false;
             this._APIAccessLevel = string.Empty;
             this._accessLevels = null;
-            this._defaultResponseClassifier = string.Empty;
             this._identifierList = null;
             this._currentResource = null;
             this._currentOperation = null;
+            this._inOperation = false;
         }
 
         /// <summary>
@@ -135,6 +130,7 @@ namespace Plugin.Application.CapabilityModel.API
                             var itf = capability as RESTInterfaceCapability;
                             this._accessLevels = new List<Tuple<string, string>>();
                             this._currentOperation = null;
+                            this._inOperation = false;
                             this._identifierList = new List<RESTResourceCapability>();
                             this._outputWriter = new StringWriter();
                             this._JSONWriter = new JsonTextWriter(this._outputWriter);
@@ -147,6 +143,7 @@ namespace Plugin.Application.CapabilityModel.API
                             JSONSchema theSchema = GetSchema(capability.Name, tokenName, 
                                                              this._currentService.GetFQN("RESTOperation", Conversions.ToPascalCase(capability.AssignedRole), -1),
                                                              capability.VersionString) as JSONSchema;
+                            
                             // Create global schema processor in 'ad-hoc external schema' mode.
                             if (theSchema != null) this._schema = new SchemaProcessor(theSchema, this._panelIndex + 3);
                             else
@@ -154,10 +151,6 @@ namespace Plugin.Application.CapabilityModel.API
                                 Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.ProcessCapability >> Unable to create JSON Schema instance!");
                                 return false;
                             }
-
-                            // Initialise the documentation context and other resources...
-                            this._inOperationResult = false;
-                            this._defaultResponseClassifier = string.Empty;
 
                             if (!this._isPathInitialized)
                             {
@@ -186,38 +179,17 @@ namespace Plugin.Application.CapabilityModel.API
                             if (((RESTResourceCapability)capability).Archetype != RESTResourceCapability.ResourceArchetype.Document)
                             {
                                 this._panel.WriteInfo(this._panelIndex + 1, "Processing Resource '" + capability.Name + "'...");
-                                if (this._inOperationResult)
-                                {
-                                    this._JSONWriter.WriteEndObject();      // Close previous response parameter.
-                                    this._JSONWriter.WriteEndObject();      // And close the 'responses' section.
-                                    this._currentOperation = null;          // Remove the previous Operation capability.
-                                }
-                                this._inOperationResult = false;
+                                if (this._inOperation) this._currentOperation = null;   // Remove the previous Operation capability.
+                                this._inOperation = false;
                                 DefinePath(capability as RESTResourceCapability);
                             }
                         }
                         else if (capability is RESTOperationCapability)
                         {
-                            if (this._inOperationResult)
-                            {
-                                this._JSONWriter.WriteEndObject();      // Close previous response parameter.
-                                this._JSONWriter.WriteEndObject();      // And close the 'responses' section.
-                            }
-                            this._inOperationResult = false;
+                            this._inOperation = true;
                             this._currentOperation = capability as RESTOperationCapability;
                             this._panel.WriteInfo(this._panelIndex + 2, "Processing Operation '" + capability.Name + "'...");
-                            BuildOperation(capability as RESTOperationCapability);
-                        }
-                        else if (capability is RESTOperationResultCapability)
-                        {
-                            this._panel.WriteInfo(this._panelIndex + 3, "Processing Operation Result'" + capability.Name + "'...");
-                            if (!this._inOperationResult)
-                            {
-                                this._JSONWriter.WritePropertyName("responses");
-                                this._JSONWriter.WriteStartObject();
-                                this._inOperationResult = true;
-                            }
-                            BuildOperationResult(capability as RESTOperationResultCapability);
+                            BuildOperation(capability as RESTOperationCapability); 
                         }
                         this._panel.IncreaseBar(1);
                         break;
@@ -232,13 +204,8 @@ namespace Plugin.Application.CapabilityModel.API
                         {
                             var itf = capability as RESTInterfaceCapability;
                             this._panel.WriteInfo(this._panelIndex, "Finalizing Interface '" + capability.Name + "'...");
-                            if (this._inOperationResult)
-                            {
-                                this._JSONWriter.WriteEndObject();      // Close previous response parameter.
-                                this._JSONWriter.WriteEndObject();      // And close the 'responses' section.
-                                this._JSONWriter.WriteEndObject();      // And close the last 'path' section.
-                            }
-                            this._JSONWriter.WriteEndObject();          // End 'paths' section object.
+                            if (this._inOperation) this._JSONWriter.WriteEndObject();   // Closes the last 'path' section with an operation.
+                            this._JSONWriter.WriteEndObject();                          // End 'paths' section object.
 
                             // Retrieve all definitions and write the definitions section...
                             string definitionsObject = ((JSONSchema)(this._schema.MessageSchema)).GetDefinitionsObject();

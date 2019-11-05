@@ -59,7 +59,7 @@ namespace Plugin.Application.Forms
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(219, 274);
+            this.Cancel.Location = new System.Drawing.Point(243, 335);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
             this.Cancel.TabIndex = 3;
@@ -69,7 +69,7 @@ namespace Plugin.Application.Forms
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(138, 274);
+            this.Ok.Location = new System.Drawing.Point(162, 335);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
             this.Ok.TabIndex = 4;
@@ -93,7 +93,7 @@ namespace Plugin.Application.Forms
             this.ResponseCodeGroup.Controls.Add(this.ResponseCodeList);
             this.ResponseCodeGroup.Location = new System.Drawing.Point(12, 88);
             this.ResponseCodeGroup.Name = "ResponseCodeGroup";
-            this.ResponseCodeGroup.Size = new System.Drawing.Size(282, 180);
+            this.ResponseCodeGroup.Size = new System.Drawing.Size(306, 241);
             this.ResponseCodeGroup.TabIndex = 2;
             this.ResponseCodeGroup.TabStop = false;
             this.ResponseCodeGroup.Text = "Response codes";
@@ -101,7 +101,7 @@ namespace Plugin.Application.Forms
             // EditResponseCode
             // 
             this.EditResponseCode.Image = ((System.Drawing.Image)(resources.GetObject("EditResponseCode.Image")));
-            this.EditResponseCode.Location = new System.Drawing.Point(74, 146);
+            this.EditResponseCode.Location = new System.Drawing.Point(74, 210);
             this.EditResponseCode.Name = "EditResponseCode";
             this.EditResponseCode.Size = new System.Drawing.Size(25, 25);
             this.EditResponseCode.TabIndex = 4;
@@ -111,7 +111,7 @@ namespace Plugin.Application.Forms
             // DeleteResponseCode
             // 
             this.DeleteResponseCode.Image = ((System.Drawing.Image)(resources.GetObject("DeleteResponseCode.Image")));
-            this.DeleteResponseCode.Location = new System.Drawing.Point(43, 146);
+            this.DeleteResponseCode.Location = new System.Drawing.Point(42, 210);
             this.DeleteResponseCode.Name = "DeleteResponseCode";
             this.DeleteResponseCode.Size = new System.Drawing.Size(25, 25);
             this.DeleteResponseCode.TabIndex = 3;
@@ -121,7 +121,7 @@ namespace Plugin.Application.Forms
             // AddResponseCode
             // 
             this.AddResponseCode.Image = ((System.Drawing.Image)(resources.GetObject("AddResponseCode.Image")));
-            this.AddResponseCode.Location = new System.Drawing.Point(12, 146);
+            this.AddResponseCode.Location = new System.Drawing.Point(11, 210);
             this.AddResponseCode.Name = "AddResponseCode";
             this.AddResponseCode.Size = new System.Drawing.Size(25, 25);
             this.AddResponseCode.TabIndex = 2;
@@ -136,10 +136,12 @@ namespace Plugin.Application.Forms
             this.ResponseCodeList.FullRowSelect = true;
             this.ResponseCodeList.GridLines = true;
             this.ResponseCodeList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.ResponseCodeList.HideSelection = false;
             this.ResponseCodeList.Location = new System.Drawing.Point(12, 19);
             this.ResponseCodeList.MultiSelect = false;
             this.ResponseCodeList.Name = "ResponseCodeList";
-            this.ResponseCodeList.Size = new System.Drawing.Size(256, 121);
+            this.ResponseCodeList.Size = new System.Drawing.Size(279, 185);
+            this.ResponseCodeList.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.ResponseCodeList.TabIndex = 1;
             this.ResponseCodeList.UseCompatibleStateImageBehavior = false;
             this.ResponseCodeList.View = System.Windows.Forms.View.Details;
@@ -152,7 +154,7 @@ namespace Plugin.Application.Forms
             // ResponseDesc
             // 
             this.ResponseDesc.Text = "Description";
-            this.ResponseDesc.Width = 197;
+            this.ResponseDesc.Width = 213;
             // 
             // label2
             // 
@@ -167,7 +169,7 @@ namespace Plugin.Application.Forms
             // 
             this.CollectionNmFld.Location = new System.Drawing.Point(59, 12);
             this.CollectionNmFld.Name = "CollectionNmFld";
-            this.CollectionNmFld.Size = new System.Drawing.Size(235, 20);
+            this.CollectionNmFld.Size = new System.Drawing.Size(259, 20);
             this.CollectionNmFld.TabIndex = 1;
             this.CollectionNmFld.Leave += new System.EventHandler(this.CollectionNmFld_Leave);
             // 
@@ -207,7 +209,7 @@ namespace Plugin.Application.Forms
             this.ScopeGroup.Controls.Add(this.GlobalScope);
             this.ScopeGroup.Location = new System.Drawing.Point(12, 38);
             this.ScopeGroup.Name = "ScopeGroup";
-            this.ScopeGroup.Size = new System.Drawing.Size(282, 44);
+            this.ScopeGroup.Size = new System.Drawing.Size(306, 44);
             this.ScopeGroup.TabIndex = 11;
             this.ScopeGroup.TabStop = false;
             this.ScopeGroup.Text = "Scope";
@@ -242,7 +244,7 @@ namespace Plugin.Application.Forms
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(308, 318);
+            this.ClientSize = new System.Drawing.Size(330, 378);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.CollectionNmFld);
             this.Controls.Add(this.ScopeGroup);

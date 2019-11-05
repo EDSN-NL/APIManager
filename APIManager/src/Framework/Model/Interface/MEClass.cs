@@ -225,11 +225,13 @@ namespace Framework.Model
         }
 
         /// <summary>
-        /// Creates a new attribute in the current class.
+        /// Creates a new attribute in the current class. Classifier can be NULL, in which case we create an attribute that has no classifier
+        /// (could be useful in some situations). When 'type' is set to 'unknown', the attribute will not receive a stereotype and the user
+        /// can assign a specific stereotype afterwards (attribute.AddStereotype).
         /// </summary>
         /// <param name="name">Name of the attribute.</param>
-        /// <param name="classifier">Attribute classifier (type of the attribute).</param>
-        /// <param name="type">The type of attribute to create (regular, supplementary or facet)</param>
+        /// <param name="classifier">Attribute classifier (type of the attribute). If NULL, classifier will be empty!</param>
+        /// <param name="type">The type of attribute to create (regular, supplementary, facet or unknown)</param>
         /// <param name="defaultValue">An optional default value to be assignd to the attribute.</param>
         /// <param name="cardinality">Specifies lower and upper boundaries of attribute cardinality.</param>
         /// <param name="isConstant">Indicates that the attribute has a constant value. Default value must be specified in this case!</param>
