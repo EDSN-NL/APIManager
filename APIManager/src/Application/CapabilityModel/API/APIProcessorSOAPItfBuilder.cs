@@ -278,11 +278,10 @@ namespace Plugin.Application.CapabilityModel.API
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             string fileName = this._currentService.ServiceCIPath + "/" + context.GetConfigProperty(_SOAP11EnvelopeSchemaFilename);
-            FileStream saveStream = null;
             bool result = false;
             try
             {
-                using (saveStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None))
+                using (var saveStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     using (StreamWriter writer = new StreamWriter(saveStream, Encoding.UTF8))
                         writer.Write(context.GetResourceString(FrameworkSettings._SOAPEnvelopeSchema));
@@ -294,7 +293,6 @@ namespace Plugin.Application.CapabilityModel.API
                 Logger.WriteError("Plugin.Application.CapabilityModel.API.APIProcessor.CreateEnvelopeSchemaFile >> Error writing to '" +
                                    fileName + "' because:" + Environment.NewLine + exc.ToString());
             }
-            finally { if (saveStream != null) saveStream.Dispose(); }
             return result;
         }
 

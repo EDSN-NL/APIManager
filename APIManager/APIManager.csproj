@@ -179,8 +179,6 @@
     <Compile Include="src\Application\CapabilityModel\API\Generic\RESTOperationDeclaration.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Generic\RESTParameterDeclaration.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Generic\RESTResourceContainerInterface.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Implementation\RESTOperationResultCapabilityImp.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Interface\RESTOperationResultCapability.cs" />
     <Compile Include="src\Application\CapabilityModel\API\RESTService.cs" />
     <Compile Include="src\Application\CapabilityModel\API\ApplicationService.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Implementation\RESTOperationCapabilityImp.cs" />
@@ -363,6 +361,7 @@
     <Compile Include="src\Framework\SchemaManagement\SchemaAttribute.cs" />
     <Compile Include="src\Framework\SchemaManagement\Facet.cs" />
     <Compile Include="src\Framework\SchemaManagement\PrimitiveType.cs" />
+    <Compile Include="src\Framework\Util\UserSlt.cs" />
     <Compile Include="src\Framework\Util\Sleeper.cs" />
     <Compile Include="src\Framework\Util\Cardinality.cs" />
     <Compile Include="src\Framework\Util\CryptString.cs" />

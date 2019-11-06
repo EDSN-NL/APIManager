@@ -117,10 +117,9 @@ namespace Plugin.Application.CapabilityModel
             string pathName = this._currentService.ServiceCIPath;
             bool result = false;
 
-            FileStream saveStream = null;
             try
             {
-                using (saveStream = new FileStream(pathName + "/" + fileName, FileMode.Create, FileAccess.Write, FileShare.None))
+                using (var saveStream = new FileStream(pathName + "/" + fileName, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     SaveContents(saveStream);   // Actual 'write-to-stream' operation is processor specific and implemented in specialized processors...
                 }
@@ -133,10 +132,6 @@ namespace Plugin.Application.CapabilityModel
             {
                 Logger.WriteError("Plugin.Application.CapabilityModel.CapabilityProcessor.saveProcessedCapability >> Error writing to '" +
                                   pathName + "\\" + fileName + "' because:\n" + exc.ToString());
-            }
-            finally
-            {
-                if (saveStream != null) saveStream.Dispose();
             }
             return result;
         }

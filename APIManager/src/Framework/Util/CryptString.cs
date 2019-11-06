@@ -12,11 +12,21 @@ namespace Framework.Util
     /// This class facilitates encryption and decryption of strings using an internal, fixed, key and optional caller-provided salt.
     /// The code is based on a handy example I found on the Internet: http://code-smart.org.uk/tricks/basic-two-way-encryption-in-net/
     /// </summary>
-    internal sealed class CryptString
+    internal sealed class CryptString: IDisposable
     {
         private readonly SecureString _internalKey;
         private SecureString _encryptedString;
         private string _salt;
+        private bool _disposed;
+
+        /// <summary>
+        /// This is the normal entry for all users of the object that want to indicate that the resource declaration is not required anymore.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         /// <summary>
         /// Get- or set the encrypted string value.
@@ -136,8 +146,8 @@ namespace Framework.Util
                 {
                     throw new CryptographicException("Unable to decrypt string");
                 }
-                cryptoStream.Close();
-                memoryStream.Close();
+                //cryptoStream.Close();
+                //memoryStream.Close();
             }
             return ToSecureString(Encoding.Unicode.GetString(unencryptedData, 0, decryptedDataLength));
         }
@@ -219,8 +229,8 @@ namespace Framework.Util
                     cryptoStream.Write(textData, 0, textLen);
                     cryptoStream.FlushFinalBlock();
                     encryptedData = memoryStream.ToArray();
-                    memoryStream.Close();
-                    cryptoStream.Close();
+                    //memoryStream.Close();
+                    //cryptoStream.Close();
                 }
                 finally
                 {
@@ -329,6 +339,26 @@ namespace Framework.Util
             var result = new SecureString();
             if (!string.IsNullOrEmpty(plainString)) foreach (char ch in plainString.ToCharArray()) result.AppendChar(ch);
             return result;
+        }
+
+        /// <summary>
+        /// This is the actual disposing interface, which takes case of structural removal of the implementation type when no longer
+        /// needed.
+        /// </summary>
+        /// <param name="disposing">Set to 'true' when called directly. Set to 'false' when called from the finalizer.</param>
+        private void Dispose(bool disposing)
+        {
+            if (!this._disposed)
+            {
+                try
+                {
+                    if (this._internalKey != null) this._internalKey.Dispose();
+                    if (this._encryptedString != null) this._encryptedString.Dispose();
+                    this._encryptedString = null;
+                    this._disposed = true;
+                }
+                catch { };   // Ignore any exceptions, no use in processing them here.
+            }
         }
 
         /// <summary>

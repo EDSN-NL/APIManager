@@ -9,6 +9,7 @@ using System.Security;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Security.Principal;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Xml.Schema;
@@ -60,23 +61,16 @@ namespace Plugin.Application.Events.Util
                 MEPackage currentPackage = context.CurrentPackage;
                 Diagram currentDiagram = context.CurrentDiagram;
 
-                List<Tuple<string, string>> rtState = new List<Tuple<string, string>>();
-                var att1 = new Tuple<string, string>("Reference", "http://www.enexis.nl/apis/data/file.yaml");
-                var att2 = new Tuple<string, string>("IsRelativeIndicator", "false");
-                //var vaut = new Tuple<string, string>("BestaatNiet", "100");
-                rtState.Add(att1);
-                rtState.Add(att2);
-                //rtState.Add(vaut);
-                MEObject myObject = currentPackage.CreateObject(currentClass.Name + "Object", currentClass, rtState);
+                string UserName = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+                String UserName2 = System.DirectoryServices.AccountManagement.UserPrincipal.Current.DisplayName; 
+                String UserName3 = Environment.UserName; 
+                string UserName5 = System.Windows.Forms.SystemInformation.UserName;
 
-                rtState = myObject.RuntimeState;
-                string stateString = string.Empty;
-                foreach (Tuple<string,string> stateAtt in rtState)
-                {
-                    stateString += "Attribuut: '" + stateAtt.Item1 + "' --> '" + stateAtt.Item2 + "'; " + Environment.NewLine;
-                }
+                IntPtr accountToken = WindowsIdentity.GetCurrent().Token;
+                WindowsIdentity windowsIdentity = new WindowsIdentity(accountToken);
+                string UserName6 = windowsIdentity.Name;
 
-                MessageBox.Show("Received state:" + Environment.NewLine + stateString);
+                MessageBox.Show("Usernames: " + UserName + ", " + UserName2 + ", " + UserName3 + ", " + UserName5 + ", " + UserName6);
 
                 //var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
                 //CapabilityModel.Service myService = svcContext.GetServiceInstance(););

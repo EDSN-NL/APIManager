@@ -133,7 +133,7 @@ namespace Plugin.Application.CapabilityModel.ASCIIDoc
                     var sortedOperations = new List<OperationDocContext>(this._operations.Values);
                     sortedOperations.Sort();
                     foreach (OperationDocContext operation in sortedOperations) operation.Save(writer);
-                    writer.Close();
+                    //writer.Close();
                 }
 
                 if (this._commonContext != null)
@@ -142,7 +142,7 @@ namespace Plugin.Application.CapabilityModel.ASCIIDoc
                     using (writer = new StreamWriter(absolutePath + "\\" + "Common_" + baseFileName + extension, false, Encoding.UTF8))
                     {
                         this._commonContext.Save(writer);
-                        writer.Close();
+                        //writer.Close();
                     }
                 }
             }
@@ -150,10 +150,6 @@ namespace Plugin.Application.CapabilityModel.ASCIIDoc
             {
                 Logger.WriteError("Plugin.Application.CapabilityModel.ASCIIDoc.DocManagerSlt.Save >> Error writing to '" +
                                   absolutePath + "\\" + baseFileName + extension + "' because:\n" + exc.ToString());
-            }
-            finally
-            {
-                if (writer != null) writer.Dispose();
             }
         }
 

@@ -19,6 +19,7 @@ namespace Plugin.Application.Forms
             {
                 components.Dispose();
             }
+            this._result = null;    // We don't 'OWN' this class, so don't call dispose on it!
             base.Dispose(disposing);
         }
 

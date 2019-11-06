@@ -18,7 +18,7 @@ namespace Plugin.Application.CapabilityModel.API
     /// The OpenAPI 2.0 Processor is a Capability Processor that takes an Interface Capability node and creates an OpenAPI 2.0 definition file, 
     /// otherwise known as 'Swagger file'. It only supports processing from the Interface downwards.
     /// </summary>
-    internal partial class OpenAPI20Processor : CapabilityProcessor
+    internal partial class OpenAPI20Processor : CapabilityProcessor, IDisposable
     {
         // Configuration properties used by this module...
         private const string _NSTokenTag                        = "NSTokenTag";
@@ -41,6 +41,16 @@ namespace Plugin.Application.CapabilityModel.API
         private int _capabilityCounter;                 // The total number of capabilities (itf, resource, operation, result) to process.
         private List<RESTResourceCapability> _identifierList;       // Contains all identifiers detected in the current path. 
         private bool _inOperation;                      // Set to 'true' when we're inside an operation processing block.
+        private bool _disposed;                         // Mark myself as invalid after call to dispose!
+
+        /// <summary>
+        /// This is the normal entry for all users of the object that want to indicate that the object is not required anymore.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         /// <summary>
         /// Returns a filename that is constructed as 'Capability_vxpy.json', in which: 'Capability' is the verbatim name of the current 
@@ -365,6 +375,33 @@ namespace Plugin.Application.CapabilityModel.API
             this._currentResource = resource;
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.DefinePath >> New path: '" + this._currentPath + "'...");
             return true;
+        }
+
+        /// <summary>
+        /// This is the actual disposing interface, which takes case of structural removal of the implementation type when no longer
+        /// needed.
+        /// </summary>
+        /// <param name="disposing">Set to 'true' when called directly. Set to 'false' when called from the finalizer.</param>
+        private void Dispose(bool disposing)
+        {
+            if (!this._disposed)
+            {
+                try
+                {
+                    if (this._outputWriter != null) this._outputWriter.Dispose();
+                    this._panel = null;
+                    this._schema = null;
+                    this._accessLevels = null;
+                    this._outputWriter = null;
+                    this._JSONWriter = null;
+                    this._currentResource = null;
+                    this._currentOperation = null;
+                    this._currentService = null;
+                    this._identifierList = null;
+                    this._disposed = true;
+                }
+                catch { };   // Ignore any exceptions, no use in processing them here.
+            }
         }
 
         /// <summary>

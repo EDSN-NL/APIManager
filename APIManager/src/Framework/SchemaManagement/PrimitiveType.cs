@@ -32,9 +32,9 @@ namespace Framework.Util.SchemaManagement
         internal PrimitiveType(Schema schema, string type)
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.PrimitiveType >> Going to translate " + type + " to schema type.");
-            this._primName = TranslatePrimitive(type);
             this._classifierName = null;
             this._schema = schema;
+            this._primName = TranslatePrimitive(type);
         }
 
         /// <summary>
@@ -56,9 +56,9 @@ namespace Framework.Util.SchemaManagement
             // If the classifier name ends with 'Type', we remove this since it does not add much value and takes space...
             if (classifierName.EndsWith("Type")) classifierName = classifierName.Substring(0, classifierName.Length - 4);
 
-            this._primName = TranslatePrimitive(type);
             this._classifierName = classifierName;
             this._schema = schema;
+            this._primName = TranslatePrimitive(type);
         }
 
         /// <summary>

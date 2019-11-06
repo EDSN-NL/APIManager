@@ -153,7 +153,7 @@ namespace Plugin.Application.Events.API
             MEChangeLog newLog = (!string.IsNullOrEmpty(annotation)) ? new MEChangeLog(context.TransformRTF(annotation, RTFDirection.ToRTF)) : new MEChangeLog();
             Tuple<int, int> myVersion = cl.Version;
             string logText = "[" + myVersion.Item1 + "." + myVersion.Item2 + "]: " + text;
-            newLog.AddEntry(cl.Author, logText);
+            newLog.AddEntry(UserSlt.GetUserSlt().FormattedName, logText);
             string log = newLog.GetLog();
             cl.Annotation = context.TransformRTF(log, RTFDirection.FromRTF);
         }

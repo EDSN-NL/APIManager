@@ -87,13 +87,11 @@ namespace Plugin.Application.Events.API
                         }
                     }
                 }
-                // REST Operations and Operation Results are shown only on the diagram of their parent Resource capability...
-                else if (cap is RESTOperationCapability || cap is RESTOperationResultCapability)
+                // REST Operations are shown only on the diagram of their parent Resource capability...
+                else if (cap is RESTOperationCapability)
                 {
-                    // For Operations, we must check the direct parent (the Resource). For Operation Result, 
-                    // we must check the Parent of the Parent (the Resource of the Operation)...
-                    if ((cap is RESTOperationCapability && cap.Parent.OwningPackage == this._currentDiagram.OwningPackage) || 
-                        (cap is RESTOperationResultCapability && cap.Parent.Parent.OwningPackage == this._currentDiagram.OwningPackage))
+                    // For Operations, we must check the direct parent (the Resource).
+                    if (cap is RESTOperationCapability && cap.Parent.OwningPackage == this._currentDiagram.OwningPackage)
                     {
                         this._diagramClassList.Add(cap.CapabilityClass);
                         foreach (MEAssociation assoc in cap.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))

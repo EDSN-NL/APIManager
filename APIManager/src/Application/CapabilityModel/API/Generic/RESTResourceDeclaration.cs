@@ -12,7 +12,7 @@ namespace Plugin.Application.CapabilityModel.API
     /// <summary>
     /// A simple helper class that bundles the components that make up a REST parameter (attributes of a Path Expression or operation).
     /// </summary>
-    internal sealed class RESTResourceDeclaration : IEquatable<RESTResourceDeclaration>
+    internal sealed class RESTResourceDeclaration : IEquatable<RESTResourceDeclaration>, IDisposable
     {
         // The status is used to track operations on the declaration.
         internal enum DeclarationStatus { Created, Deleted, Edited, Invalid, Stable }
@@ -39,6 +39,16 @@ namespace Plugin.Application.CapabilityModel.API
         private string _externalDocDescription;                         // External documentation description entered by user.
         private string _externalDocURL;                                 // URL to be used for external documentation.
         private List<string> _tagNames;                                 // List of tags assigned to this resource.
+        private bool _disposed;                                         // Mark myself as invalid after call to dispose!
+
+        /// <summary>
+        /// This is the normal entry for all users of the object that want to indicate that the resource declaration is not required anymore.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         /// <summary>
         /// Get or set the archetype of this resource.
@@ -238,6 +248,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._externalDocURL = string.Empty;
             this._documentClass = null;
             this._tagNames = new List<string>();
+            this._disposed = false;
         }
 
         /// <summary>
@@ -262,6 +273,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._externalDocURL = string.Empty;
             this._documentClass = null;
             this._tagNames = new List<string>();
+            this._disposed = false;
         }
 
         /// <summary>
@@ -288,6 +300,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._externalDocURL = string.Empty;
             this._documentClass = null;
             this._tagNames = new List<string>();
+            this._disposed = false;
         }
 
         /// <summary>
@@ -301,6 +314,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._archetype = resource.Archetype;
             this._existingResource = resource.CapabilityClass;
             this._status = this._initialStatus = DeclarationStatus.Stable;
+            this._disposed = false;
 
             // Unfortunately, my parent can be either an Interface or another Resource.
             this._parent = null;
@@ -829,6 +843,33 @@ namespace Plugin.Application.CapabilityModel.API
         internal bool HasOperation(string operationName)
         {
             return (this._operationList.ContainsKey(operationName));
+        }
+
+        /// <summary>
+        /// This is the actual disposing interface, which takes case of structural removal of the implementation type when no longer
+        /// needed.
+        /// </summary>
+        /// <param name="disposing">Set to 'true' when called directly. Set to 'false' when called from the finalizer.</param>
+        private void Dispose(bool disposing)
+        {
+            if (!this._disposed)
+            {
+                try
+                {
+                    if (this._existingResource != null) this._existingResource.Dispose();
+                    if (this._documentClass != null) this._documentClass.Dispose();
+                    this._parent = null;
+                    this._existingResource = null;
+                    this._availableOperationsList = null;
+                    this._operationList = null;
+                    this._children = null;
+                    this._parameter = null;
+                    this._documentClass = null;
+                    this._tagNames = null;
+                    this._disposed = true;
+                }
+                catch { };   // Ignore any exceptions, no use in processing them here.
+            }
         }
 
         /// <summary>

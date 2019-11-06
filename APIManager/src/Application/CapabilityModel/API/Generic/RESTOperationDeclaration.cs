@@ -12,7 +12,7 @@ namespace Plugin.Application.CapabilityModel.API
     /// <summary>
     /// A simple helper class that bundles the components that make up a REST parameter (attributes of a Path Expression or operation).
     /// </summary>
-    internal sealed class RESTOperationDeclaration: IEquatable<RESTOperationDeclaration>
+    internal sealed class RESTOperationDeclaration: IEquatable<RESTOperationDeclaration>, IDisposable
     {
         // Configuration properties used by this module:
         private const string _ArchetypeTag                  = "ArchetypeTag";
@@ -53,6 +53,16 @@ namespace Plugin.Application.CapabilityModel.API
         private string _summaryText;                                // Short description of operation.
         private string _description;                                // Long description of operation.
         private SortedList<string, RESTParameterDeclaration> _queryParams;          // List of user-defined query parameters for this operation.
+        private bool _disposed;                                     // Mark myself as invalid after call to dispose!
+
+        /// <summary>
+        /// This is the normal entry for all users of the object that want to indicate that the resource declaration is not required anymore.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         /// <summary>
         /// Get or set the associated HTTP operation for this operation declaration.
@@ -336,6 +346,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._summaryText = string.Empty;
             this._useHeaderParameters = true;
             this._useLinkHeaders = false;
+            this._disposed = false;
         }
 
         /// <summary>
@@ -361,6 +372,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._useLinkHeaders = operation.UseLinkHeaders;
             this._summaryText = string.Empty;
             this._description = string.Empty;
+            this._disposed = false;
 
             // Extract documentation from the class. This can be a multi-line object in which the first line might be the 'summary' description...
             List<string> documentation = MEChangeLog.GetDocumentationAsTextLines(operation.CapabilityClass);
@@ -665,6 +677,31 @@ namespace Plugin.Application.CapabilityModel.API
             }
             else MessageBox.Show("No suitable Document Resources to select, add one first!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return documentName;
+        }
+
+        /// <summary>
+        /// This is the actual disposing interface, which takes case of structural removal of the implementation type when no longer
+        /// needed.
+        /// </summary>
+        /// <param name="disposing">Set to 'true' when called directly. Set to 'false' when called from the finalizer.</param>
+        private void Dispose(bool disposing)
+        {
+            if (!this._disposed)
+            {
+                try
+                {
+                    if (this._existingOperation != null) this._existingOperation.Dispose();
+                    this._parent = null;
+                    this._existingOperation = null;
+                    this._requestDocument = null;
+                    this._responseCollection = null;
+                    this._producedMIMEList = null;
+                    this._consumedMIMEList = null;
+                    this._queryParams = null;
+                    this._disposed = true;
+                }
+                catch { };   // Ignore any exceptions, no use in processing them here.
+            }
         }
     }
 }

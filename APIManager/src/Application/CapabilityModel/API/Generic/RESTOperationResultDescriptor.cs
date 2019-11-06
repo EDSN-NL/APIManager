@@ -12,7 +12,7 @@ namespace Plugin.Application.CapabilityModel.API
     /// <summary>
     /// Defines the structure of a single response code, including a definition of the associated payload (if any).
     /// </summary>
-    internal sealed class RESTOperationResultDescriptor: IEquatable<RESTOperationResultDescriptor>
+    internal sealed class RESTOperationResultDescriptor: IEquatable<RESTOperationResultDescriptor>, IDisposable
     {
         // The status is used to track operational state of the descriptor. The descriptor has 'valid' state when all properties
         // are consistent in relationship with each other.
@@ -151,6 +151,16 @@ namespace Plugin.Application.CapabilityModel.API
         private Cardinality _responseCardinality;   // Cardinality of response payload (only if _responsePayloadClass has been defined).
         private DeclarationStatus _status;          // Descriptor status with regard to user editing.
         private bool _payloadChange;                // Set to 'true' in case payload has been changed due to edit/add operation.
+        private bool _disposed;                     // Mark myself as invalid after call to dispose!
+
+        /// <summary>
+        /// This is the normal entry for all users of the object that want to indicate that the resource description is not required anymore.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         /// <summary>
         /// Returns the operation result category code.
@@ -392,6 +402,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._document = document;
             this._responseCardinality = responseCardinality != null? responseCardinality: new Cardinality(Cardinality._Mandatory);
             this._payloadChange = false;
+            this._disposed = false;
             DetermineStatus();
     }
 
@@ -419,6 +430,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._collection = parent;
             this._isTemplate = parent.Scope != RESTResponseCodeCollection.CollectionScope.Operation;
             this._payloadChange = false;
+            this._disposed = false;
 
             switch (category)
             {
@@ -479,6 +491,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._collection = parent;
             this._isTemplate = parent.Scope != RESTResponseCodeCollection.CollectionScope.Operation;
             this._payloadChange = false;
+            this._disposed = false;
             DefineResponsePayloadType();
             DetermineStatus();
         }
@@ -503,6 +516,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._collection = parent;
             this._isTemplate = parent.Scope != RESTResponseCodeCollection.CollectionScope.Operation;
             this._payloadChange = false;
+            this._disposed = false;
             DetermineStatus();
         }
 
@@ -762,6 +776,27 @@ namespace Plugin.Application.CapabilityModel.API
                         this._status = DeclarationStatus.Invalid;
                         break;
                 }
+            }
+        }
+
+        /// <summary>
+        /// This is the actual disposing interface, which takes case of structural removal of the object when no longer needed.
+        /// </summary>
+        /// <param name="disposing">Set to 'true' when called directly. Set to 'false' when called from the finalizer.</param>
+        private void Dispose(bool disposing)
+        {
+            if (!this._disposed)
+            {
+                try
+                {
+                    if (this._document != null) this._document.Dispose();
+                    if (this._payloadClass != null) this._payloadClass.Dispose();
+                    this._collection = null;
+                    this._document = null;
+                    this._payloadClass = null;
+                    this._disposed = true;
+                }
+                catch { };   // Ignore any exceptions, no use in processing them here.
             }
         }
 

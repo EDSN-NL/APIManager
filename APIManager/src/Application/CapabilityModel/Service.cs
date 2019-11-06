@@ -643,7 +643,7 @@ namespace Plugin.Application.CapabilityModel
             MEChangeLog newLog = (!string.IsNullOrEmpty(annotation)) ? new MEChangeLog(context.TransformRTF(annotation, RTFDirection.ToRTF)) : new MEChangeLog();
             Tuple<int, int> myVersion = this._serviceClass.Version;
             string logText = "[" + myVersion.Item1 + "." + myVersion.Item2 + "]: " + text;
-            newLog.AddEntry(this._serviceClass.Author, logText);
+            newLog.AddEntry(UserSlt.GetUserSlt().FormattedName, logText);
             string log = newLog.GetLog();
             this._serviceClass.Annotation = context.TransformRTF(log, RTFDirection.FromRTF);
         }

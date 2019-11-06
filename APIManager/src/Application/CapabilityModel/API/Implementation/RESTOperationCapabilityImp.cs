@@ -8,7 +8,7 @@ using Framework.View;
 
 namespace Plugin.Application.CapabilityModel.API
 {
-    internal class RESTOperationCapabilityImp: OperationCapabilityImp
+    internal class RESTOperationCapabilityImp: OperationCapabilityImp, IDisposable
     {
         // Configuration properties used by this module:
         private const string _RESTOperationClassStereotype      = "RESTOperationClassStereotype";
@@ -43,8 +43,18 @@ namespace Plugin.Application.CapabilityModel.API
         private bool _useHeaderParameters;                      // Set to 'true' when operation muse use configured Header Parameters.
         private bool _useLinkHeaders;                           // Set to 'true' when the response must contain a definition for Link Headers.
         private bool _usePagination;                            // Set to 'true' when the operation uses pagination.
+        private bool _disposed;                                 // Mark myself as invalid after call to dispose!
 
         private const string _CollectionNamePostfix             = "Responses";  // Will be added to the operation name to create a collection name.
+
+        /// <summary>
+        /// This is the normal entry for all users of the object that want to indicate that the resource declaration is not required anymore.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         /// <summary>
         /// Getters for class properties:
@@ -561,6 +571,27 @@ namespace Plugin.Application.CapabilityModel.API
             {
                 this._parent = parent as RESTResourceCapability;
                 parent.AddChild(new RESTOperationCapability(this));
+            }
+        }
+
+        /// <summary>
+        /// This is the actual disposing interface, which takes case of structural removal of the implementation type when no longer
+        /// needed.
+        /// </summary>
+        /// <param name="disposing">Set to 'true' when called directly. Set to 'false' when called from the finalizer.</param>
+        private void Dispose(bool disposing)
+        {
+            if (!this._disposed)
+            {
+                try
+                {
+                    this._parent = null;
+                    this._producedMIMETypes = null;
+                    this._consumedMIMETypes = null;
+                    this._responseCollection = null;
+                    this._disposed = true;
+                }
+                catch { };   // Ignore any exceptions, no use in processing them here.
             }
         }
 
