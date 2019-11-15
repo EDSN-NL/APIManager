@@ -141,8 +141,9 @@ namespace Framework.Model
         /// <summary>
         /// Searches the package for any class containing the specified name part and/or stereotype.
         /// One or both parameters must be specified. If we have only the name part, the function returns all classes
-        /// that contain that name part. If only the stereotype is specified, we return all classes that match the
+        /// that contain that name part. If only the stereotype is specified, we return all classes that contain the
         /// stereotype. If both are specified, we return all classes of the specified stereotype that match the name filter.
+        /// The list is ordered ascending by class name.
         /// </summary>
         /// <param name="nameFilter">Optional (part of) name to search for.</param>
         /// <param name="stereotype">Optional stereotype of class.</param>

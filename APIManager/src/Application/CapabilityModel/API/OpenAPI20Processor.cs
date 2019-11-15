@@ -153,7 +153,8 @@ namespace Plugin.Application.CapabilityModel.API
                             JSONSchema theSchema = GetSchema(capability.Name, tokenName, 
                                                              this._currentService.GetFQN("RESTOperation", Conversions.ToPascalCase(capability.AssignedRole), -1),
                                                              capability.VersionString) as JSONSchema;
-                            
+                            theSchema.UseLists = this._currentService.UseListElements;
+
                             // Create global schema processor in 'ad-hoc external schema' mode.
                             if (theSchema != null) this._schema = new SchemaProcessor(theSchema, this._panelIndex + 3);
                             else

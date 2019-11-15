@@ -27,6 +27,7 @@ namespace Framework.Util.SchemaManagement.JSON
         private JSONClassifier _classifier;         // The associated classifier object in case of complex types.
         private List<Tuple<string, string>> _exampleList;   // Optionally, the example could exists of key/value pairs in which the key spcifies a property of a structured classifier.
         private string _annotation;                 // Annotation text for the attribute (we use this for primitive in-line type definitions).
+        private bool _useListPostfix;               // Set to 'true' when the Schema forces use of "List" postfix in case cardinality > 1.
 
         /// <summary>
         /// Implementation of the JSON Property interface:
@@ -85,7 +86,9 @@ namespace Framework.Util.SchemaManagement.JSON
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Creating attribute '" + attributeName + "' with classifier '" + classifierName +
                              "' and cardinality '" + cardinality.ToString() + "'.");
-            
+
+            this._useListPostfix = schema.UseLists;
+
             if (!string.IsNullOrEmpty(fixedValue))
             {
                 CreateFixedValueAttribute(attributeName, classifierName, fixedValue, annotation);
@@ -150,9 +153,14 @@ namespace Framework.Util.SchemaManagement.JSON
                 // If upper boundary of cardinality > 1 (or 0, which means unbounded), we have to create an array of type, instead of only the type.
                 if (cardinality.IsList)
                 {
-                    // If the classifier name ends with 'Type', we remove this before adding a new post-fix 'ListType'...
-                    string listType = (classifierName.EndsWith("Type")) ? classifierName.Substring(0, classifierName.IndexOf("Type")) : classifierName;
-                    listType += "ListType";
+                    // If the classifier name ends with 'Type', we remove this before adding a new post-fix 'ListType' but only in case
+                    // the schema settings allow this!
+                    string listType = classifierName;
+                    if (schema.UseLists)
+                    {
+                        listType = classifierName.EndsWith("Type") ? classifierName.Substring(0, classifierName.IndexOf("Type")) : classifierName;
+                        listType += "ListType";
+                    }
                     this._attributeClassifier = new JSchema
                     {
                         Title = listType,
@@ -487,18 +495,14 @@ namespace Framework.Util.SchemaManagement.JSON
         }
 
         /// <summary>
-        /// Helper function that returns the schema name of the attribute. If the name ends with 'Type', this is removed.
-        /// If the name represents a list, we append 'List' to the name.
+        /// Helper function that returns the schema name of the attribute.
+        /// If the name represents a list, we append 'List' to the name (but only in case this is allowed by current Schema settings).
         /// </summary>
         /// <returns>Attribute name to be used in schemas.</returns>
         private string GetSchemaName()
         {
             string name = base.Name;
-            if (IsListRequired && !base.Name.EndsWith("List"))
-            {
-                if (name.EndsWith("Type")) name = name.Substring(0, name.LastIndexOf("Type"));
-                name += "List";
-            }
+            if (this._useListPostfix && IsListRequired && !base.Name.EndsWith("List")) name += "List";
             return name;
         }
     }
@@ -514,6 +518,7 @@ namespace Framework.Util.SchemaManagement.JSON
         private JSchema _classifier;    // The associated schema for the attribute classifier.
         private string _annotation;     // Contains the annotation text of the attribute.
         private string _example;        // Optionally, the annotation could contain examples of use. We extract these separately.
+        private bool _useListPostfix;   // Set to 'true' when the Schema forces use of "List" postfix in case cardinality > 1.
 
         /// <summary>
         /// Implementation of the JSON Property interface:
@@ -569,6 +574,7 @@ namespace Framework.Util.SchemaManagement.JSON
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSupplementaryAttribute >> Creating attribute '" + name + "' of type '" + classifier + "'.");
             this.IsValid = true;
+            this._useListPostfix = schema.UseLists;
 
             if (!string.IsNullOrEmpty(fixedValue))
             {
@@ -597,9 +603,24 @@ namespace Framework.Util.SchemaManagement.JSON
                     JSONClassifier attribClassifier = schema.FindClassifier(classifier);
                     if (attribClassifier != null && attribClassifier.IsReferenceType)
                     {
-                        // This is probably an enum. Create a reference to it...
-                        this._classifier = new JSchema { Title = classifier };
-                        this._classifier.AllOf.Add(attribClassifier.ReferenceClassifier);
+                        // This is probably an enum. Create a reference to it (but ONLY in case 'AllOf' is enabled...
+                        this._classifier = new JSchema
+                        {
+                            Title = classifier,
+                            Type = JSchemaType.String
+                        };
+                        if (ContextSlt.GetContextSlt().GetBoolSetting(FrameworkSettings._JSONAllOfSupport))
+                        {
+                            this._classifier.AllOf.Add(attribClassifier.ReferenceClassifier);
+                        }
+                        else
+                        {
+                            // No AllOf, we must create an in-line definition...
+                            foreach (var enumItem in attribClassifier.ReferenceClassifier.Enum)
+                            {
+                                this._classifier.Enum.Add(enumItem);
+                            }
+                        }
                         this.IsValid = true;
                     }
                     else
@@ -644,18 +665,14 @@ namespace Framework.Util.SchemaManagement.JSON
         }
 
         /// <summary>
-        /// Helper function that returns the schema name of the attribute. If the name ends with 'Type', this is removed.
-        /// If the name represents a list, we append 'List' to the name.
+        /// Helper function that returns the schema name of the attribute.
+        /// If the name represents a list, we append 'List' to the name, but only when Schema settings permit this.
         /// </summary>
         /// <returns>Attribute name to be used in schemas.</returns>
         private string GetSchemaName()
         {
             string name = base.Name;
-            if (IsListRequired && !base.Name.EndsWith("List"))
-            {
-                if (name.EndsWith("Type")) name = name.Substring(0, name.LastIndexOf("Type"));
-                name += "List";
-            }
+            if (this._useListPostfix && IsListRequired && !base.Name.EndsWith("List")) name += "List";
             return name;
         }
     }

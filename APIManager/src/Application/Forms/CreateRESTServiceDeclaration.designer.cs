@@ -64,6 +64,8 @@ namespace Plugin.Application.Forms
             this.LicenseNameFld = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
             this.TicketBox = new System.Windows.Forms.GroupBox();
+            this.label11 = new System.Windows.Forms.Label();
+            this.OperationalState = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
             this.ProjectIDFld = new System.Windows.Forms.TextBox();
             this.TicketIDFld = new System.Windows.Forms.TextBox();
@@ -71,8 +73,7 @@ namespace Plugin.Application.Forms
             this.APINamingBox = new System.Windows.Forms.GroupBox();
             this.label10 = new System.Windows.Forms.Label();
             this.ErrorLine = new System.Windows.Forms.TextBox();
-            this.OperationalState = new System.Windows.Forms.ComboBox();
-            this.label11 = new System.Windows.Forms.Label();
+            this.UseListElementsIndicator = new System.Windows.Forms.CheckBox();
             this.ResourcesBox.SuspendLayout();
             this.ResourceMenuStrip.SuspendLayout();
             this.ContactDetailsBox.SuspendLayout();
@@ -141,6 +142,7 @@ namespace Plugin.Application.Forms
             this.ResourceList.FullRowSelect = true;
             this.ResourceList.GridLines = true;
             this.ResourceList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.ResourceList.HideSelection = false;
             this.ResourceList.Location = new System.Drawing.Point(9, 20);
             this.ResourceList.Name = "ResourceList";
             this.ResourceList.Size = new System.Drawing.Size(263, 233);
@@ -376,6 +378,23 @@ namespace Plugin.Application.Forms
             this.TicketBox.TabStop = false;
             this.TicketBox.Text = "Administration";
             // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(31, 77);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(119, 13);
+            this.label11.TabIndex = 0;
+            this.label11.Text = "Initial Operational State:";
+            // 
+            // OperationalState
+            // 
+            this.OperationalState.FormattingEnabled = true;
+            this.OperationalState.Location = new System.Drawing.Point(156, 74);
+            this.OperationalState.Name = "OperationalState";
+            this.OperationalState.Size = new System.Drawing.Size(165, 21);
+            this.OperationalState.TabIndex = 3;
+            // 
             // label8
             // 
             this.label8.AutoSize = true;
@@ -446,22 +465,15 @@ namespace Plugin.Application.Forms
             this.ErrorLine.Size = new System.Drawing.Size(466, 13);
             this.ErrorLine.TabIndex = 0;
             // 
-            // OperationalState
+            // UseListElementsIndicator
             // 
-            this.OperationalState.FormattingEnabled = true;
-            this.OperationalState.Location = new System.Drawing.Point(156, 74);
-            this.OperationalState.Name = "OperationalState";
-            this.OperationalState.Size = new System.Drawing.Size(165, 21);
-            this.OperationalState.TabIndex = 3;
-            // 
-            // label11
-            // 
-            this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(31, 77);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(119, 13);
-            this.label11.TabIndex = 0;
-            this.label11.Text = "Initial Operational State:";
+            this.UseListElementsIndicator.AutoSize = true;
+            this.UseListElementsIndicator.Location = new System.Drawing.Point(12, 440);
+            this.UseListElementsIndicator.Name = "UseListElementsIndicator";
+            this.UseListElementsIndicator.Size = new System.Drawing.Size(150, 17);
+            this.UseListElementsIndicator.TabIndex = 8;
+            this.UseListElementsIndicator.Text = "Array names end with \'List\'";
+            this.UseListElementsIndicator.UseVisualStyleBackColor = true;
             // 
             // CreateRESTServiceDeclaration
             // 
@@ -470,6 +482,7 @@ namespace Plugin.Application.Forms
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
             this.ClientSize = new System.Drawing.Size(652, 473);
+            this.Controls.Add(this.UseListElementsIndicator);
             this.Controls.Add(this.ErrorLine);
             this.Controls.Add(this.APINamingBox);
             this.Controls.Add(this.TicketBox);
@@ -542,5 +555,6 @@ namespace Plugin.Application.Forms
         private TextBox ErrorLine;
         private ComboBox OperationalState;
         private Label label11;
+        private CheckBox UseListElementsIndicator;
     }
 }

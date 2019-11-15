@@ -69,6 +69,12 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
+        /// Returns a flag indicating wether the user wants to insert extra List Elements for all sub-elements that have 
+        /// a cardinality >1.
+        /// </summary>
+        internal bool UseListElements { get { return UseListElementsIndicator.Checked; } }
+
+        /// <summary>
         /// Initializes the dialog, disable the Ok button until we have at least a valid name and prepare for the resource list by
         /// creating an empty list to store the resource declarations.
         /// </summary>
@@ -79,6 +85,7 @@ namespace Plugin.Application.Forms
             this._parent = parent;
             this._resourceList = new SortedList<string, RESTResourceDeclaration>();
             this._remoteTicket = null;
+            this.UseListElementsIndicator.Checked = true;
 
             // Assign context menus to the appropriate controls...
             ResourceList.ContextMenuStrip = ResourceMenuStrip;

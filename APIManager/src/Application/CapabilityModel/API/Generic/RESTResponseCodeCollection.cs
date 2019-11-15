@@ -182,8 +182,8 @@ namespace Plugin.Application.CapabilityModel.API
 
             if (!collectionClass.HasStereotype(context.GetConfigProperty(_RCCStereotype)))
             {
-                string msg = "Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Attempt to create collection from wrong classifier '" + collectionClass.Name + "'!";
-                Logger.WriteError(msg);
+                string msg = "Attempt to create collection from class with wrong stereotype '" + collectionClass.Name + "', ignored!";
+                Logger.WriteWarning(msg);
                 throw new InvalidOperationException(msg);
             }
 

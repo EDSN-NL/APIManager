@@ -784,7 +784,6 @@ namespace Framework.Util.SchemaManagement.XML
         /// <param name="name">A meaningfull name, with which we can identify the schema.</param>
         /// <param name="namespaceToken">Namespace token, not used for JSON schemas.</param>
         /// <param name="schemaNamespace">Schema namespace, must adhere to JSON Schema 'Id' specifications.</param>
-        /// <param name="useLists">When true, sub-elements with cardinality greater then 1 must be in a separate List element.</param>
         /// <param name="version">Major, minor and build number of the schema. When omitted, the version defaults to '1.0.0'</param>
         internal override void Initialize(SchemaType type, string name, string namespaceToken, string schemaNamespace, string version = "1.0.0")
         {

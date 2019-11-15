@@ -233,14 +233,17 @@ namespace Framework.Model
         /// <summary>
         /// Searches the package for any class containing the specified name part and/or stereotype.
         /// One or both parameters must be specified. If we have only the name part, the function returns all classes
-        /// that contain that name part. If only the stereotype is specified, we return all classes that match the
+        /// that contain that name part. If only the stereotype is specified, we return all classes that contain the
         /// stereotype. If both are specified, we return all classes of the specified stereotype that match the name filter.
+        /// The list is ordered ascending by class name.
+        /// Note that both name- and stereotype are used as filters, not exact matches! If you need an exact match, specify
+        /// the 'doExactMatch = true' parameter!
         /// </summary>
         /// <param name="nameFilter">Optional (part of) name to search for.</param>
         /// <param name="stereotype">Optional stereotype of class.</param>
         /// <returns>List of classes found (can be empty).</returns>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal List<MEClass> FindClasses(string nameFilter, string stereotype)
+        internal List<MEClass> FindClasses(string nameFilter, string stereotype)   
         {
             if (this._imp != null) return ((MEIPackage)this._imp).FindClasses(nameFilter, stereotype);
             else throw new MissingImplementationException("MEIPackage");

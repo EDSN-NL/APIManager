@@ -206,6 +206,7 @@ namespace Framework.Util.SchemaManagement
             this._namespace = ns;
             this._version = version;
             this._lastError = string.Empty;
+            this._useLists = true;
             this._isInitialized = true;
         }
 

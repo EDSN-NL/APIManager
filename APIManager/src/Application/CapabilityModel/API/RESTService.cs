@@ -65,15 +65,17 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="resources">List of root-level Resource collection declarations.</param>
         /// <param name="declarationStereotype">The stereotype to apply to the created API.</param>
         /// <param name="initialState">Initial operational state to be assigned to the service.</param>
+        /// <param name="useListElements">Indicates whether or not generated schemas must use a "List" postfix in case cardinality > 1.</param>
         /// <param name="remoteTicket">The ticket used for creation, ignored when CM is not enabled.</param>
         /// <param name="projectOrderID">Identifier of the project order used for creation, ignored when CM is not enabled.</param>
         internal RESTService(MEPackage containerPackage, 
                              RESTInterfaceCapability.MetaData metaData, 
                              List<RESTResourceDeclaration> resources, 
                              string declarationStereotype,
-                             OperationalState initialState,
+                             OperationalState initialState, 
+                             bool useListElements,
                              Ticket remoteTicket, string projectOrderID): 
-            base(containerPackage, metaData.qualifiedName, declarationStereotype, initialState, true, remoteTicket, projectOrderID)
+            base(containerPackage, metaData.qualifiedName, declarationStereotype, initialState, useListElements, remoteTicket, projectOrderID)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             ModelSlt model = ModelSlt.GetModelSlt();

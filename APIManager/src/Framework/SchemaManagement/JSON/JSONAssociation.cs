@@ -23,6 +23,7 @@ namespace Framework.Util.SchemaManagement.JSON
     {
         private JSchema _associationClassifier;     // Represents the association as a (referenced) schema. 
         private bool _isList;                       // Set to 'true' if the association has a cardinality > 1.
+        private bool _useListPostfix;               // Set to 'true' when the Schema forces use of "List" postfix in case cardinality > 1.
 
         /// <summary>
         /// Implementation of the JSON Property interface:
@@ -61,6 +62,7 @@ namespace Framework.Util.SchemaManagement.JSON
                              " and cardinality: " + cardinality.ToString() + "...");
             this.IsValid = false;
             this._isList = false;
+            this._useListPostfix = schema.UseLists;
 
             JSONSchema searchSchema = classifierSchema ?? schema;
             JSchema classSchema = searchSchema.FindClass(classifierName);
@@ -77,11 +79,16 @@ namespace Framework.Util.SchemaManagement.JSON
             }
 
             // If cardinality suggests a list, we have to create an array of type, instead of only the type.
+            // We will add a new postfix for this type, EXCEPT when the schema settings indicate this should not happen.
             if (cardinality.IsList)
             {
                 // If the classifier name ends with 'Type', we remove this before adding a new post-fix 'ListType'...
-                string listType = classifierName.EndsWith("Type") ? classifierName.Substring(0, classifierName.IndexOf("Type")) : classifierName;
-                listType += "ListType";
+                string listType = classifierName;
+                if (schema.UseLists)
+                {
+                    listType = classifierName.EndsWith("Type") ? classifierName.Substring(0, classifierName.IndexOf("Type")) : classifierName;
+                    listType += "ListType";
+                }
                 this._associationClassifier = new JSchema()
                 {
                     Title = listType,
@@ -98,18 +105,13 @@ namespace Framework.Util.SchemaManagement.JSON
 
         /// <summary>
         /// Helper function that returns the schema name of the association.
-        /// If the name represents a list, we append 'List' to the name.
+        /// If the name represents a list, we append 'List' to the name (but ONLY when the Schema settings allow this).
         /// </summary>
         /// <returns>Association role name to be used in schemas.</returns>
         private string GetSchemaName()
         {
             string name = base.RoleName;
-            if (this._isList && !name.EndsWith("List"))
-            {
-                // If a role name ends with 'type', this is probably as intended and we must leave it alone!
-                //if (name.EndsWith("Type")) name = name.Substring(0, name.LastIndexOf("Type"));
-                name += "List";
-            }
+            if (this._useListPostfix && this._isList && !name.EndsWith("List")) name += "List";
             return name;
         }
     }

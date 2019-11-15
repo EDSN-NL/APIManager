@@ -57,7 +57,7 @@ namespace Plugin.Application.Events.API
                         // Invoke this 'create' constructor in order to create the entire service structure...
                         var svc = new RESTService(containerPackage, dialog.MetaData, dialog.Resources,
                                                   context.GetConfigProperty(_ServiceDeclPkgStereotype), 
-                                                  dialog.SelectedState, dialog.RemoteTicket, dialog.ProjectID);
+                                                  dialog.SelectedState, dialog.UseListElements, dialog.RemoteTicket, dialog.ProjectID);
                         if (svc.Valid)
                         {
                             svc.Paint(svc.ModelPkg.FindDiagram(svc.ModelPkg.Name));

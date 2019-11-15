@@ -366,7 +366,7 @@ namespace SparxEA.Model
             if (!string.IsNullOrEmpty(stereotype))
             {
                 newPackage.Element.StereotypeEx = stereotype;
-                newPackage.Element.Update();
+                needUpdate = true;
             }
 
             if (sortID != -1)
@@ -375,9 +375,11 @@ namespace SparxEA.Model
                 needUpdate = true;
             }
 
-            if (needUpdate) newPackage.Update();
-            newPackage.Update();
-            newPackage.Element.Update();
+            if (needUpdate)
+            {
+                newPackage.Update();
+                newPackage.Element.Update();
+            }
             ControllerSlt.GetControllerSlt().EnableScopeSwitch = true;
             return new MEPackage(newPackage.PackageID);
         }
@@ -524,7 +526,7 @@ namespace SparxEA.Model
         /// <summary>
         /// Searches the package for any class containing the specified name part and/or stereotype.
         /// One or both parameters must be specified. If we have only the name part, the function returns all classes
-        /// that contain that name part. If only the stereotype is specified, we return all classes that match the
+        /// that contain that name part. If only the stereotype is specified, we return all classes that contain the
         /// stereotype. If both are specified, we return all classes of the specified stereotype that match the name filter.
         /// The list is ordered ascending by class name.
         /// </summary>
@@ -544,10 +546,11 @@ namespace SparxEA.Model
 
             if (!string.IsNullOrEmpty(stereotype))
             {
-                string checkType = (stereotype.Contains("::")) ? stereotype.Substring(stereotype.IndexOf("::") + 2) : stereotype;
+                string checkType = stereotype.Contains("::") ? stereotype.Substring(stereotype.IndexOf("::") + 2) : stereotype;
                 if (string.IsNullOrEmpty(nameFilter))
                 {
                     // In case of empty name filter, we return the classes that are of the specified stereotype.
+                    // Stereotypes must always be selected using 'like' since they may- or may not contain the profile name :-(
                     query = "SELECT o.Object_ID AS ElementID FROM t_object o WHERE o.Package_ID = " + this._package.PackageID + 
                             " AND o.Stereotype LIKE '" + likeToken + checkType + likeToken + "' ORDER BY o.Name";
                 }
@@ -571,7 +574,16 @@ namespace SparxEA.Model
             XmlNodeList elements = queryResult.GetElementsByTagName("Row"); // Retrieve found identifiers.
             var parentList = new List<MEClass>();
 
-            foreach (XmlNode node in elements) classList.Add(new MEClass(Convert.ToInt32(node["ElementID"].InnerText.Trim())));
+            foreach (XmlNode node in elements)
+            {
+                var myClass = new MEClass(Convert.ToInt32(node["ElementID"].InnerText.Trim()));
+                if (!string.IsNullOrEmpty(stereotype))
+                {
+                    // Since we could retrieve 'approximate' stereotypes only, we now have to perform an 'exact' check...
+                    if (myClass.HasStereotype(stereotype)) classList.Add(myClass);
+                }
+                else classList.Add(myClass);
+            }
             return classList;
         }
 
