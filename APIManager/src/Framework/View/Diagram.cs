@@ -9,7 +9,7 @@ namespace Framework.View
     internal sealed class Diagram: IDisposable
     {
         // This enumeration can be used to specify a color for a class on the diagram...
-        internal enum ClassColor { Default, Black, White, Red, Orange, Yellow, Green, Blue, Purple }
+        internal enum ClassColor { Default, Black, White, Red, Orange, Yellow, Green, LimeGreen, LightBlue, Blue, Purple }
 
         private DiagramImplementation _imp = null;  // The associated implementation object; does all the 'real' work.
         private bool _disposed;                     // Mark myself as invalid after call to dispose!

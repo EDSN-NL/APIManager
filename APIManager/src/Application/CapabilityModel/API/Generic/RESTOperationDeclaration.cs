@@ -41,7 +41,7 @@ namespace Plugin.Application.CapabilityModel.API
         private MEClass _existingOperation;                         // Contains class in case operation has been constructed from existing class.
         private DeclarationStatus _status;                          // Status of this declaration record.
         private DeclarationStatus _initialStatus;                   // Original status of this declaration record.
-        private RESTResourceCapability _requestDocument;            // Resource document to be used for request.
+        private RESTResourceCapability _requestDocument;            // Resource document to be used for request. This can be either a Document or a ProfileSet!.
         private Cardinality _requestCardinality;                    // Request cardinality.
         private bool _hasPagination;                                // Operation must implement default pagination mechanism.
         private bool _publicAccess;                                 // Security must be overruled for this operation.
@@ -173,7 +173,7 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Get or set the Document Resource to be used as request body.
+        /// Get or set the Document Resource to be used as request body. Note that this can be either a Document or a Profile Set resource.
         /// </summary>
         internal RESTResourceCapability RequestDocument
         {
@@ -633,32 +633,36 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Assign the request payload document. We first retrieve the list of Document Resources associated with our parent resource. 
-        /// If there are multiple, we ask the user to select the one to use as request document. If there is only one, we take this. 
-        /// If there are none, we display an error to the user.
-        /// In short: We can ONLY link a document resource to an operation AFTER the user has associated the operation resource with at 
-        /// least one Document resource!
+        /// Assign the request payload document. We first retrieve the list of Document- and/or Profile Set Resources associated with 
+        /// our parent resource. If there are multiple, we ask the user to select the one to use as request document. If there is only 
+        /// one, we take this. If there are none, we display an error to the user.
+        /// In short: We can ONLY link a Document / Profile Set resource to an operation AFTER the user has associated the operation 
+        /// resource with at least one such resource!
         /// </summary>
         /// <returns>Name of selected resource or empty string in case of errors or cancel.</returns>
         internal string SetDocument()
         {
             string documentName = string.Empty;
             if (this._parent == null) return string.Empty;  // Nothing (yet) to do.
-            List<RESTResourceCapability> documentList = this._parent.ResourceList(RESTResourceCapability.ResourceArchetype.Document);
-            if (documentList.Count > 0)
+
+            // We retrieve the list(s) of Document- and Profile Set resources from our parent and merge them into a single list...
+            List<RESTResourceCapability> targetResourceList = this._parent.ResourceList(RESTResourceCapability.ResourceArchetype.Document);
+            List<RESTResourceCapability> profileList = this._parent.ResourceList(RESTResourceCapability.ResourceArchetype.ProfileSet);
+            foreach (var resource in profileList) targetResourceList.Add(resource);
+            if (targetResourceList.Count > 0)
             {
-                // If we only have a single associated Document Resource, this is selected automatically. When there are multiple,
+                // If we only have a single associated resource, this is selected automatically. When there are multiple,
                 // we ask the user which one to use...
-                if (documentList.Count == 1)
+                if (targetResourceList.Count == 1)
                 {
-                    RESTResourceCapability document = documentList[0];
+                    RESTResourceCapability document = targetResourceList[0];
                     this._requestDocument = document;
                     if (document != null) documentName = document.Name;
                 }
                 else
                 {
-                    List<Capability> capList = documentList.ConvertAll(x => (Capability)x);
-                    using (CapabilityPicker dialog = new CapabilityPicker("Select Document resource", capList, false, false))
+                    List<Capability> capList = targetResourceList.ConvertAll(x => (Capability)x);
+                    using (CapabilityPicker dialog = new CapabilityPicker("Select Document- / Profile Set resource", capList, false, false))
                     {
                         if (dialog.ShowDialog() == DialogResult.OK)
                         {
@@ -666,16 +670,16 @@ namespace Plugin.Application.CapabilityModel.API
                             if (checkedCapabilities.Count > 0)
                             {
                                 // If the user selected multiple, we take the first one.
-                                RESTResourceCapability document = checkedCapabilities[0] as RESTResourceCapability;
-                                this._requestDocument = document;
-                                if (document != null) documentName = document.Name;
+                                RESTResourceCapability resource = checkedCapabilities[0] as RESTResourceCapability;
+                                this._requestDocument = resource;
+                                if (resource != null) documentName = resource.Name;
                             }
                         }
                         else documentName = string.Empty;
                     }
                 }
             }
-            else MessageBox.Show("No suitable Document Resources to select, add one first!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            else MessageBox.Show("No suitable Document- or Profile Set Resources to select, add one first!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return documentName;
         }
 

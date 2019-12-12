@@ -61,16 +61,12 @@ namespace Plugin.Application.Events.Util
                 MEPackage currentPackage = context.CurrentPackage;
                 Diagram currentDiagram = context.CurrentDiagram;
 
-                string UserName = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-                String UserName2 = System.DirectoryServices.AccountManagement.UserPrincipal.Current.DisplayName; 
-                String UserName3 = Environment.UserName; 
-                string UserName5 = System.Windows.Forms.SystemInformation.UserName;
-
-                IntPtr accountToken = WindowsIdentity.GetCurrent().Token;
-                WindowsIdentity windowsIdentity = new WindowsIdentity(accountToken);
-                string UserName6 = windowsIdentity.Name;
-
-                MessageBox.Show("Usernames: " + UserName + ", " + UserName2 + ", " + UserName3 + ", " + UserName5 + ", " + UserName6);
+                string classList = string.Empty;
+                foreach (MEClass current in currentPackage.GetClasses())
+                {
+                    classList += current.ElementID + "." + current.Name + ",";
+                }
+                MessageBox.Show("Found: " + classList);
 
                 //var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
                 //CapabilityModel.Service myService = svcContext.GetServiceInstance(););

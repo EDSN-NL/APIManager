@@ -5,6 +5,7 @@ using Framework.Logging;
 using Framework.Model;
 using Framework.View;
 using Framework.Context;
+using Framework.Util;
 using SparxEA.Model;
 
 namespace SparxEA.View
@@ -150,8 +151,10 @@ namespace SparxEA.View
 
                         if (!isPresent)
                         {
+                            string colorTag = cl.GetTag("color");
                             string location = "l=" + this._left + ";r=" + (this._left + _ClassWidth) + ";t=" + this._top + ";b=" + (this._top + _ClassHeight);
                             var diagramObject = this._diagram.DiagramObjects.AddNew(location, "") as DiagramObject;
+                            if (!string.IsNullOrEmpty(colorTag)) diagramObject.BackgroundColor = ConvertColorCode(EnumConversions<Framework.View.Diagram.ClassColor>.StringToEnum(colorTag));
                             diagramObject.ElementID = cl.ElementID;
                             diagramObject.Update();
                             if (cl.AssociatedDiagram != null) diagramObject.ShowComposedDiagram = true;
@@ -291,44 +294,6 @@ namespace SparxEA.View
         {
             if (thisClass == null) return;      // No valid class, do nothing.
 
-            int colorID = -1;
-            // Color coding is 3-byte HEX in order Blue-Green-Red
-            switch (color)
-            {
-                case Framework.View.Diagram.ClassColor.Black:
-                    colorID = 0x0;
-                    break;
-
-                case Framework.View.Diagram.ClassColor.Blue:
-                    colorID = 0xFFC057;
-                    break;
-
-                case Framework.View.Diagram.ClassColor.Orange:
-                    colorID = 0x00C0FF;
-                    break;
-
-                case Framework.View.Diagram.ClassColor.Purple:
-                    colorID = 0xFFA0FF;
-                    break;
-
-                case Framework.View.Diagram.ClassColor.Red:
-                    colorID = 0x0066FF;
-                    break;
-
-                case Framework.View.Diagram.ClassColor.White:
-                    colorID = 0xFFFFFF;
-                    break;
-
-                case Framework.View.Diagram.ClassColor.Yellow:
-                    colorID = 0x57FFFF;
-                    break;
-
-                // Default = 'Default', 'Green' or unknown values:
-                default:
-                    colorID = 0xA7FEE9;
-                    break;
-            }
-
             for (short i = 0; i < this._diagram.DiagramObjects.Count; i++)
             {
                 try
@@ -338,7 +303,7 @@ namespace SparxEA.View
                     {
                         Logger.WriteInfo("SparxEA.View.EADiagramImplementation.SetClassColor >> Found class '" +
                                          thisClass.Name + "', changing color to '" + color + "'...");
-                        diagramObject.BackgroundColor = colorID;
+                        diagramObject.BackgroundColor = ConvertColorCode(color);
                         diagramObject.Update();
                         break;
                     }
@@ -401,6 +366,61 @@ namespace SparxEA.View
             project.LayoutDiagramEx(this._globalID, ConstLayoutStyles.lsLayoutDirectionDown +
                                                     ConstLayoutStyles.lsLayeringOptimalLinkLength +
                                                     ConstLayoutStyles.lsInitializeDFSOut, 4, 30, 30, true);
+        }
+
+        /// <summary>
+        /// Simple helper function that converts a color enumeration to the corresponding EA Hex. color code.
+        /// </summary>
+        /// <param name="color">Enumeration to translate.</param>
+        /// <returns>Hex BGR color code.</returns>
+        private int ConvertColorCode (Framework.View.Diagram.ClassColor color)
+        {
+            int colorID = -1;
+            // Color coding is 3-byte HEX in order Blue-Green-Red
+            switch (color)
+            {
+                case Framework.View.Diagram.ClassColor.Black:
+                    colorID = 0x0;
+                    break;
+
+                case Framework.View.Diagram.ClassColor.Blue:
+                    colorID = 0xFFC057;
+                    break;
+
+                case Framework.View.Diagram.ClassColor.LightBlue:
+                    colorID = 0xFACE87;
+                    break;
+
+                case Framework.View.Diagram.ClassColor.Orange:
+                    colorID = 0x00C0FF;
+                    break;
+
+                case Framework.View.Diagram.ClassColor.Purple:
+                    colorID = 0xFFA0FF;
+                    break;
+
+                case Framework.View.Diagram.ClassColor.Red:
+                    colorID = 0x0066FF;
+                    break;
+
+                case Framework.View.Diagram.ClassColor.White:
+                    colorID = 0xFFFFFF;
+                    break;
+
+                case Framework.View.Diagram.ClassColor.Yellow:
+                    colorID = 0x57FFFF;
+                    break;
+
+                case Framework.View.Diagram.ClassColor.LimeGreen:
+                    colorID = 0xA9FFA2;
+                    break;
+
+                // Default = 'Default', 'Green' or unknown values:
+                default:
+                    colorID = 0xA7FEE9;
+                    break;
+            }
+            return colorID;
         }
     }
 }

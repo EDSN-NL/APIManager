@@ -36,11 +36,12 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _RESTOperationPkgStereotype            = "RESTOperationPkgStereotype";
         private const string _DocumentationTypeClassName            = "DocumentationTypeClassName";
         private const string _CoreDataTypesPathName                 = "CoreDataTypesPathName";
-        private const string _MessageAssemblyClassStereotype        = "MessageAssemblyClassStereotype";
+        private const string _GenericMessageClassStereotype         = "GenericMessageClassStereotype";
         private const string _IdentifierResourceRoleName            = "IdentifierResourceRoleName";
         private const string _ArchetypeTag                          = "ArchetypeTag";
         private const string _IsRootLevelTag                        = "IsRootLevelTag";
         private const string _TagNamesTag                           = "TagNamesTag";
+        private const string _ColorTag                              = "ColorTag";
 
         private MEPackage _resourcePackage;                         // The package in which the resource lives.
         private Capability _myParent;                               // Either RESTInterface or other Resource.
@@ -49,26 +50,57 @@ namespace Plugin.Application.CapabilityModel.API
         private bool _isRootLevel;                                  // Indicates whether the resource is a root-level resourcr ("sub-API").
         private List<string> _tagNames;                             // List of tag names associated with this resource.
         private RESTParameterDeclaration _parameter;                // In case of Identifier resources, this contains the parameter.
-        private MEClass _componentClass;                            // In case of Document resources, this is the associated Business Component.
+        private SortedList<string, MEClass> _profileSet;            // In case of ProfileSet resources, this is the list of 'Profile' classes. Document
+                                                                    // resources only use the 'Basic' Profile, which is typically the first entry in the list.
 
         /// <summary>
-        /// Getters and setters of properties for this class:
-        /// ResourcePackage = Retrieves the package that stores this resource.
-        /// ArcheType = Returns the archetype of the resource.
-        /// IsCollection = Returns true if this is a collection-type resource.
-        /// IsRootLevel = Returns true if the resource represents a sub-API.
-        /// TagNames = Returns list of tag names associated with this resource.
-        /// Parameter = Returns the parameter in case of an Identifier resource.
-        /// DocumentResources = Returns the list of Document Resources associated with this resource.
-        /// BusinessComponent = Returns the associated Business Component in case of Document resource.
+        /// Returns the archetype of the resource.
         /// </summary>
-        internal MEPackage ResourcePackage                          { get { return this._resourcePackage; } }
         internal RESTResourceCapability.ResourceArchetype Archetype { get { return this._archetype; } }
+
+        /// <summary>
+        /// Returns a list of all document-payload classes that are associated with this resource. In case of a Document resource, this list will only have
+        /// a single entry. In case of a ProfileSet resource, this list contains all alternative models (Profiles) that are part of the ProfileSet.
+        /// </summary>
+        internal SortedList<string, MEClass> ProfileSet             { get { return this._profileSet; } }
+
+        /// <summary>
+        /// Returns true if this is a collection-type resource.
+        /// </summary>
         internal bool IsCollection                                  { get { return this._isCollection; } }
+
+        /// <summary>
+        /// Returns true if the resource represents a sub-API.
+        /// </summary>
         internal bool IsRootLevel                                   { get { return this._isRootLevel; } }
-        internal List<string> TagNames                              { get { return this._tagNames; } }
+
+        /// <summary>
+        /// Returns the parameter in case of an Identifier resource.
+        /// </summary>
         internal RESTParameterDeclaration Parameter                 { get { return this._parameter; } }
-        internal MEClass BusinessComponent                          { get { return this._componentClass; } }
+
+        /// <summary>
+        /// Returs the associated primary business component (message) class (when present). In case of Document resources, the primary document
+        /// is the message root class and there is only one. In case of Profile Set resources, the primary document is the message root class that is
+        /// associated with the 'Basic' profile. When no such class (or profile) can be found, the property is NULL.
+        /// </summary>
+        internal MEClass BusinessComponent
+        {
+            get
+            {
+                return this._profileSet.ContainsKey(RESTResourceCapability._BasicProfile) ? this._profileSet[RESTResourceCapability._BasicProfile] : null;
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the package that stores this resource.
+        /// </summary>
+        internal MEPackage ResourcePackage { get { return this._resourcePackage; } }
+
+        /// <summary>
+        /// Returns list of tag names associated with this resource.
+        /// </summary>
+        internal List<string> TagNames { get { return this._tagNames; } }
 
         /// <summary>
         /// Creates a new resource based on a resource declaration object. This object contains all the information necessary to create 
@@ -87,7 +119,8 @@ namespace Plugin.Application.CapabilityModel.API
                 this._isCollection = (this._archetype == RESTResourceCapability.ResourceArchetype.Collection ||
                                       this._archetype == RESTResourceCapability.ResourceArchetype.Store);
                 this._isRootLevel = true;
-                this._componentClass = null;
+                this._profileSet = new SortedList<string, MEClass>();
+                this._parameter = null;
 
                 ConstructCapability(parentInterface, resource); // Performs most of the work.
             }
@@ -115,7 +148,8 @@ namespace Plugin.Application.CapabilityModel.API
                 this._isCollection = (this._archetype == RESTResourceCapability.ResourceArchetype.Collection ||
                                       this._archetype == RESTResourceCapability.ResourceArchetype.Store);
                 this._isRootLevel = false;
-                this._componentClass = null;
+                this._profileSet = new SortedList<string, MEClass>();
+                this._parameter = null;
 
                 ConstructCapability(parentResource, resource); // Performs most of the work.
             }
@@ -238,31 +272,38 @@ namespace Plugin.Application.CapabilityModel.API
                 bool isFirst = true;
                 foreach (RESTResourceDeclaration resource in resources)
                 {
-                    RESTResourceCapability resourceCapability;
-                    bool existingDocument = false;
+                    RESTResourceCapability resourceCapability = null;
                     if (resource.Archetype == RESTResourceCapability.ResourceArchetype.Document)
                     {
                         resourceCapability = ((RESTService)RootService).FindDocumentResource(resource.Name);
-                        if (resourceCapability != null)
+                    }
+                    else if (resource.Archetype == RESTResourceCapability.ResourceArchetype.ProfileSet)
+                    {
+                        resourceCapability = ((RESTService)RootService).FindProfileSet(resource.Name);
+                    }
+
+                    if (resourceCapability != null)
+                    {
+                        // Existing capability. In this case, we have to explicitly create an association with that resource 
+                        // Normally, this is taken care of by the child resource constructor but since we're not going to invoke this,
+                        // we have to create one manually.
+                        // First of all, we check whether we already have an association with this resource...
+                        bool gotThis = false;
+                        foreach (Capability child in GetChildren()) if (child == resourceCapability) { gotThis = true; break; }
+                        if (!gotThis)
                         {
-                            // Existing capability. In this case, we have to explicitly create an association with that resource 
-                            // Normally, this is taken care of by the child resource constructor but since we're not going to invoke this,
-                            // we have to create one manually.
-                            // First of all, we check whether we already have an association with this resource...
-                            foreach (Capability child in GetChildren()) if (child == resourceCapability) return true;
-                            string roleName = RESTUtil.GetAssignedRoleName(resource.DocumentClass.Name);
+                            string roleName = RESTUtil.GetAssignedRoleName(resourceCapability.Name);
                             var myEndpoint = new EndpointDescriptor(this._capabilityClass, "1", this._capabilityClass.Name, null, false);
                             var documentEndpoint = new EndpointDescriptor(resourceCapability.CapabilityClass, "1", roleName, null, true);
                             ModelSlt.GetModelSlt().CreateAssociation(myEndpoint, documentEndpoint, MEAssociation.AssociationType.MessageAssociation);
                             resourceCapability.InitialiseParent(parentResource);
                             newNames += (!isFirst) ? ", " + roleName : roleName;
                             isFirst = false;
-                            existingDocument = true;
                         }
                     }
-
-                    if (!existingDocument)    // This holds for non-document resources or for new document resources.
+                    else
                     {
+                        // This holds for non-Document/Profile-Set resources or for new Document/Profile-Set resources.
                         resourceCapability = new RESTResourceCapability(parentResource, resource);
                         if (resourceCapability.Valid)
                         {
@@ -309,7 +350,13 @@ namespace Plugin.Application.CapabilityModel.API
 
             if (this._archetype == RESTResourceCapability.ResourceArchetype.Document)
             {
-                Logger.WriteWarning("Deleted Document Resource '" + this.Name + "', please verify integrity!");
+                ((RESTService)this._rootService).UnregisterDocumentResource(this.Name);
+                Logger.WriteWarning("Deleted Document resource '" + this.Name + "', please verify integrity!");
+            }
+            else if (this._archetype == RESTResourceCapability.ResourceArchetype.ProfileSet)
+            {
+                ((RESTService)this._rootService).UnregisterProfileSet(this.Name);
+                Logger.WriteWarning("Deleted ProfileSet resource '" + this.Name + "', please verify integrity!");
             }
 
             this._myParent.RemoveChild(new RESTResourceCapability(this));     // Unlink this resource from my parent.
@@ -386,8 +433,8 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This method is invoked when the user has made one or more changes to a Resource Capability. The method receives an
-        /// REsource Declaration object that contains the (updated) information for the Resource. The method updates metadata and
+        /// This method is invoked when the user has made one or more changes to a Resource Capability. The method receives a
+        /// Resource Declaration object that contains the (updated) information for the Resource. The method updates metadata and
         /// associations where appropriate.
         /// </summary>
         /// <param name="resource">Updated Resource properties.</param>
@@ -435,7 +482,11 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                     else if (this._archetype == RESTResourceCapability.ResourceArchetype.Document)
                     {
-                        ((RESTService)this._rootService).DeleteDocumentResource(this.Name);
+                        ((RESTService)this._rootService).UnregisterDocumentResource(this.Name);
+                    }
+                    else if (this._archetype == RESTResourceCapability.ResourceArchetype.ProfileSet)
+                    {
+                        ((RESTService)this._rootService).UnregisterProfileSet(this.Name);
                     }
 
                     // Update class- and role names (but change role only if we're not an Identifier)...
@@ -454,6 +505,8 @@ namespace Plugin.Application.CapabilityModel.API
                     this._capabilityClass.Name = resource.Name;
                     if (this._archetype == RESTResourceCapability.ResourceArchetype.Document)
                         ((RESTService)this._rootService).RegisterDocument(new RESTResourceCapability(this));
+                    else if (this._archetype == RESTResourceCapability.ResourceArchetype.ProfileSet)
+                        ((RESTService)this._rootService).RegisterProfileSet(new RESTResourceCapability(this));
                 }
 
                 // (Re-)Load documentation...
@@ -485,8 +538,10 @@ namespace Plugin.Application.CapabilityModel.API
                 AssignTagNames(resource);
 
                 // If I'm a Document check whether we must update the Document Class association...
+                // And if I'm a Profile, check whether the list of profile names/classes has changed...
                 // And if I'm an Identifier, check whether we must update the Identifier properties...
                 if (this._archetype == RESTResourceCapability.ResourceArchetype.Document) AssignBusinessDocument(resource);
+                else if (this._archetype == RESTResourceCapability.ResourceArchetype.ProfileSet) AssignProfileSet(resource);
                 else if (this._archetype == RESTResourceCapability.ResourceArchetype.Identifier) AssignIdentifier(resource);
 
                 // Next, we're going to check whether operations have changed. We can either add new operations, remove existing
@@ -677,42 +732,55 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        // If we're a Document Resource, create the association with the Business Document and register this class as a document.
-        // We use the resource name as basis for the role name. This assures that we get the proper role in case the Business Document
-        // uses an Alias name (that would already have been incorporated in the resource name at moment of assignment in the user dialog).
-        // If an association already exists, this is removed and replaced by a new association.
+        /// If we're a Document Resource, create the association with the Business Document and register the associated class as
+        /// the Basic Profile of this resource.
+        /// If an association already exists, this is removed and replaced by a new association.
+        /// A Document resource always uses entry [0] in the _profiles list with an explicit profile names 'Basic'.
         /// </summary>
         /// <param name="properties">Resource properties.</param>
         private void AssignBusinessDocument(RESTResourceDeclaration properties)
         {
-            ModelSlt model = ModelSlt.GetModelSlt();
-
-            if (this._componentClass != null && properties.DocumentClass != null)
+            if (this._profileSet.ContainsKey(RESTResourceCapability._BasicProfile) && 
+                properties.ProfileSet.ContainsKey(RESTResourceCapability._BasicProfile) &&
+                this._profileSet[RESTResourceCapability._BasicProfile] != null)
             {
-                if (this._componentClass == properties.DocumentClass) return; // Business Component classes match, no action required.
+                MEClass myDocumentClass = this._profileSet[RESTResourceCapability._BasicProfile];
+                MEClass newDocumentClass = properties.ProfileSet[RESTResourceCapability._BasicProfile];
+
+                // If we have an existing- and a new class and both are the same, we don't bother making changes...
+                if (newDocumentClass != null && myDocumentClass == newDocumentClass) return;
                 
                 // No match, locate the Business Component association and remove it...
                 foreach (MEAssociation assoc in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
                 {
-                    if (assoc.Destination.EndPoint == this._componentClass)
+                    if (assoc.Destination.EndPoint == myDocumentClass)
                     {
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AssignBusinessDocument >> New association, deleting existing one...");
                         this._capabilityClass.DeleteAssociation(assoc);
-                        this._componentClass = null;
+                        this._profileSet[RESTResourceCapability._BasicProfile] = null;
                         break;
                     }
                 }
             }
 
-            if (properties.DocumentClass != null)
+            // If we removed the associated document, the Basic Profile could be absent, or the associated object is absent...
+            if (properties.ProfileSet.ContainsKey(RESTResourceCapability._BasicProfile))
             {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AssignBusinessDocument >> Associate with Business Component '" + 
-                                 properties.DocumentClass.Name + "'...");
-                string role = properties.Name.EndsWith("Type") ? properties.Name.Substring(0, properties.Name.IndexOf("Type")) : properties.Name;
-                var componentEndpoint = new EndpointDescriptor(properties.DocumentClass, "1", role, null, true);
-                var resourceEndpoint = new EndpointDescriptor(this._capabilityClass, "1", this._assignedRole, null, true);
-                model.CreateAssociation(resourceEndpoint, componentEndpoint, MEAssociation.AssociationType.MessageAssociation);
-                this._componentClass = properties.DocumentClass;
+                MEClass newDocumentClass = properties.ProfileSet[RESTResourceCapability._BasicProfile];
+                if (newDocumentClass != null)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AssignBusinessDocument >> Associate with Business Component '" +
+                                     newDocumentClass.Name + "'...");
+                    /// We use the resource name as basis for the role name. This assures that we get the proper role in case the Business Document
+                    /// uses an Alias name (that would already have been incorporated in the resource name at moment of assignment in the user dialog).
+                    string role = properties.Name.EndsWith("Type") ? properties.Name.Substring(0, properties.Name.IndexOf("Type")) : properties.Name;
+                    var componentEndpoint = new EndpointDescriptor(newDocumentClass, "1", role, null, true);
+                    var resourceEndpoint = new EndpointDescriptor(this._capabilityClass, "1", this._assignedRole, null, true);
+                    this._capabilityClass.CreateAssociation(resourceEndpoint, componentEndpoint, MEAssociation.AssociationType.MessageAssociation);
+
+                    if (this._profileSet.ContainsKey(RESTResourceCapability._BasicProfile)) this._profileSet[RESTResourceCapability._BasicProfile] = newDocumentClass;
+                    else this._profileSet.Add(RESTResourceCapability._BasicProfile, newDocumentClass);
+                }
             }
         }
 
@@ -723,14 +791,16 @@ namespace Plugin.Application.CapabilityModel.API
         private void AssignIdentifier(RESTResourceDeclaration properties)
         {
             RESTParameterDeclaration param = properties.Parameter;
-            bool validParam = (param != null && param.Status != RESTParameterDeclaration.DeclarationStatus.Deleted &&
-                                                param.Status != RESTParameterDeclaration.DeclarationStatus.Invalid);
-            bool changedParam = (param != null && (this._parameter.Name != param.Name || this._parameter.Classifier != param.Classifier));
-            if (!validParam)
+            if (param == null || param.Status == RESTParameterDeclaration.DeclarationStatus.Deleted || param.Status == RESTParameterDeclaration.DeclarationStatus.Invalid)
             {
                 Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AssignIdentifier >> Identifier Resource '" + Name + "' has no valid Identifier!");
+                return;
             }
-            if (this._parameter != null && (!validParam || changedParam))
+
+            bool changedParam = this._parameter != null && (this._parameter.Name != param.Name || this._parameter.Classifier != param.Classifier);
+            bool newParam = this._parameter == null;
+
+            if (changedParam)
             {
                 // Parameter has changed or disappeared, remove existing attribute!
                 // Note that the capability becomes invalid if there is no valid parameter association!
@@ -738,10 +808,67 @@ namespace Plugin.Application.CapabilityModel.API
                 if (oldAttrib != null) this._capabilityClass.DeleteAttribute(oldAttrib);
                 this._parameter = null;
             }
-            if (validParam && changedParam)
+
+            if (changedParam || newParam)
             {
                 RESTParameterDeclaration.ConvertToAttribute(this._capabilityClass, param);
                 this._parameter = param;
+            }
+        }
+
+        /// <summary>
+        /// Helper function, which is called on return from an 'edit' operation on the resource in case we're a ProfileSet resource type.
+        /// We have to figure out whether targets have changed. For each target that is still in our current list, we don't have to do
+        /// anything. But there can be classes in our list that are not in the new list (we have to remove there) and there can be classes
+        /// in the new list that we don't know about yet (we have to create associations for these).
+        /// </summary>
+        /// <param name="properties">Edited resource properties.</param>
+        private void AssignProfileSet(RESTResourceDeclaration properties)
+        {
+            ModelSlt model = ModelSlt.GetModelSlt();
+
+            // First, we check for stuff that we have to delete...
+            List<string> keysToDelete = new List<string>();
+            for (int i=0; i<this._profileSet.Count; i++)
+            {
+                // We COULD have replaced the target class for this key...
+                string key = this._profileSet.Keys[i];
+                if (properties.ProfileSet.ContainsKey(key) && properties.ProfileSet[key] != this._profileSet.Values[i])
+                {
+                    // Gone, locate the Business Component association and remove it...
+                    foreach (MEAssociation assoc in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                    {
+                        if (assoc.Destination.EndPoint == this._profileSet.Values[i])
+                        {
+                            this._capabilityClass.DeleteAssociation(assoc);
+                            keysToDelete.Add(this._profileSet.Keys[i]);     // We can't delete a list while still iterating through it!
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Now we can actually delete the removed profiles from our list...
+            foreach (string key in keysToDelete) this._profileSet.Remove(key);
+
+            // Next, check for stuff we have to add...
+            for (int i=0; i<properties.ProfileSet.Count; i++)
+            {
+                // Here, we only have to check the key since, if we had a changed class for an existing key, that entry would have been
+                // removed during our first pass...
+                MEClass newClass = properties.ProfileSet.Values[i];
+                if (!this._profileSet.ContainsKey(properties.ProfileSet.Keys[i]))
+                {
+                    // We create an association with this profile. The name of this association will be the name of the profile.
+                    string role = !string.IsNullOrEmpty(newClass.AliasName) ? newClass.AliasName : newClass.Name;
+                    role = role.EndsWith("Type") ? role.Substring(0, role.IndexOf("Type")) : role;
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AssignProfileSet >> Associate with Business Component '" +
+                                     newClass.Name + "', using role '" + role + "'...");
+                    var componentEndpoint = new EndpointDescriptor(newClass, "1", role, null, true);
+                    var resourceEndpoint = new EndpointDescriptor(this._capabilityClass, "0..1", this._assignedRole, null, true);
+                    model.CreateAssociation(resourceEndpoint, componentEndpoint, MEAssociation.AssociationType.MessageAssociation, properties.ProfileSet.Keys[i]);
+                    this._profileSet.Add(properties.ProfileSet.Keys[i], newClass);
+                }
             }
         }
 
@@ -818,12 +945,12 @@ namespace Plugin.Application.CapabilityModel.API
                 CreateExternalDocumentation(parent, resource);
 
                 // Create the operations that are associated with this Resource.
-                // If we create a Resource Collection as a child of another Resource that has Documents assigned, these Documents could have been
-                // selected by the Operations of the new Resource. In that case, we have to associate with these Documents in order to keep
+                // If we create a Resource Collection as a child of another Resource that has Documents (or ProfileSets) assigned, these could have been
+                // selected by the Operations of the new Resource. In that case, we have to associate with these Documents (or ProfileSets) in order to keep
                 // things consistent...
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.ConstructCapability >> Creating operations...");
                 var resourceCapItf = new RESTResourceCapability(this);
-                var documentList = new List<RESTResourceDeclaration>();
+                var documentList = new List<RESTResourceDeclaration>();     // These can be either Documents or ProfileSet resources.
                 foreach (RESTOperationDeclaration operation in resource.Operations)
                 {
                     if (operation.Status != RESTOperationDeclaration.DeclarationStatus.Deleted &&
@@ -833,10 +960,25 @@ namespace Plugin.Application.CapabilityModel.API
                         if (operation.RequestDocument != null) documentList.Add(new RESTResourceDeclaration(operation.RequestDocument));
                     }
                 }
-                if (documentList.Count > 0) AddResources(documentList, false); // This will create association with existing Documents.
+                if (documentList.Count > 0) AddResources(documentList, false); // This will create associations with existing Documents.
 
-                // Check whether we must associate with a Business Document class...
-                AssignBusinessDocument(resource);
+                // Next, check whether we have to create associations with business documents and/or create Identifier attribute....
+                if (this._archetype == RESTResourceCapability.ResourceArchetype.Document)
+                {
+                    AssignBusinessDocument(resource);
+                    ((RESTService)this._rootService).RegisterDocument(resourceCapItf);
+                    Color = Diagram.ClassColor.LimeGreen;
+                }
+                else if (this._archetype == RESTResourceCapability.ResourceArchetype.ProfileSet)
+                {
+                    AssignProfileSet(resource);
+                    ((RESTService)this._rootService).RegisterProfileSet(resourceCapItf);
+                    Color = Diagram.ClassColor.LimeGreen;
+                }
+                else if (this._archetype == RESTResourceCapability.ResourceArchetype.Identifier) AssignIdentifier(resource);
+
+                // Load the Capability color...
+                this._capabilityClass.SetTag(context.GetConfigProperty(_ColorTag), EnumConversions<Diagram.ClassColor>.EnumToString(Color), true);
 
                 // And create the child resources that are associated with this Resource...
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.ConstructCapability >> Creating child resources...");
@@ -867,17 +1009,7 @@ namespace Plugin.Application.CapabilityModel.API
                     myDiagram.AddAssociationList(collector.DiagramAssociationList);
                     myDiagram.Show();
                 }
-                else if (this._archetype == RESTResourceCapability.ResourceArchetype.Identifier)
-                {
-                    // Convert the parameter to an attribute of the Resource class...
-                    RESTParameterDeclaration param = resource.Parameter;
-                    if (param.Classifier is MEDataType &&
-                        param.Status != RESTParameterDeclaration.DeclarationStatus.Deleted &&
-                        param.Status != RESTParameterDeclaration.DeclarationStatus.Invalid)
-                    {
-                        RESTParameterDeclaration.ConvertToAttribute(this._capabilityClass, param);
-                    }
-                }
+
                 CreateLogEntry("Initial release.");
             }
             else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.ConstructCapability >> Unable to create Capability Class '" + 
@@ -939,15 +1071,17 @@ namespace Plugin.Application.CapabilityModel.API
                 string resourceClassStereotype = context.GetConfigProperty(_ResourceClassStereotype);
                 string operationClassStereotype = context.GetConfigProperty(_RESTOperationClassStereotype);
                 string businessComponentStereotype = context.GetConfigProperty(_BusinessComponentStereotype);
+                string messageBusinessComponentStereotype = context.GetConfigProperty(_GenericMessageClassStereotype);
+
                 var resourceCapItf = new RESTResourceCapability(this);
                 this._archetype = (RESTResourceCapability.ResourceArchetype) Enum.Parse(typeof(RESTResourceCapability.ResourceArchetype), 
                                                                                         this._capabilityClass.GetTag(archetypeTagName), true);
-                this._isCollection = (this._archetype == RESTResourceCapability.ResourceArchetype.Collection || 
-                                      this._archetype == RESTResourceCapability.ResourceArchetype.Store);
+                this._isCollection = this._archetype == RESTResourceCapability.ResourceArchetype.Collection || 
+                                     this._archetype == RESTResourceCapability.ResourceArchetype.Store;
                 this._resourcePackage = this._isCollection? this.RootService.ModelPkg.FindPackage(this._capabilityClass.Name, context.GetConfigProperty(_ResourceCollectionPkgStereotype)):
                                                             parent.CapabilityClass.OwningPackage;
                 this._assignedRole = parent.FindChildClassRole(this._capabilityClass.Name, context.GetConfigProperty(_ResourceClassStereotype));
-                this._isRootLevel = (string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_IsRootLevelTag)), "true", true) == 0);
+                this._isRootLevel = string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_IsRootLevelTag)), "true", true) == 0;
 
                 // Retrieve the list of tag names (if any)...
                 string tagList = this._capabilityClass.GetTag(context.GetConfigProperty(_TagNamesTag));
@@ -958,6 +1092,10 @@ namespace Plugin.Application.CapabilityModel.API
                     foreach (string tagName in tagArray) this._tagNames.Add(tagName.Trim());
                     ((RESTService)RootService).RegisterTag(resourceCapItf);
                 }
+
+                // Load our class color (when specified)...
+                string color = this.CapabilityClass.GetTag(context.GetConfigProperty(_ColorTag));
+                Color = !string.IsNullOrEmpty(color) ? EnumConversions<Diagram.ClassColor>.StringToEnum(color) : Diagram.ClassColor.Default;
 
                 // Check whether we have a parameter (in case of Identifier Resource)...
                 // If the class has multiple RESTParameter attributes, we simply take the first one we encounter (and issue a warning 'cause this is illegal)...
@@ -979,9 +1117,9 @@ namespace Plugin.Application.CapabilityModel.API
                 // of child resources at hand in which we store all encountered children. Since 'InitialiseParent' adds the resource to the
                 // END of the children list, we can now safely initialise all operations first and postpone registration of child resources
                 // until we processed all our children...
-                // EXCEPTION: If the resource contains child DOCUMENT resources, these must be FIRST, since operations might depend on them.
-                // That is why we must use two passes, first one to get all Document Resources, second pass to get all the others...
-                // So, the order is: (1) Document resources, (2) Operations and (3) everything else.
+                // EXCEPTION: If the resource contains child Document- or ProfileSet resources, these must be FIRST, since operations might depend on them.
+                // That is why we must use two passes, first one to get all Document-/ProfileSet Resources, second pass to get all the others...
+                // So, the order is: (1) Document-/ProfileSet resources, (2) Operations and (3) everything else.
                 var childResources = new List<RESTResourceCapability>();
                 foreach (TreeNode<MEClass> node in hierarchy.Children)
                 {
@@ -989,13 +1127,14 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         string typeTag = node.Data.GetTag(archetypeTagName);
                         if (!string.IsNullOrEmpty(typeTag) && 
-                            EnumConversions<RESTResourceCapability.ResourceArchetype>.StringToEnum(typeTag) == RESTResourceCapability.ResourceArchetype.Document)
+                            (EnumConversions<RESTResourceCapability.ResourceArchetype>.StringToEnum(typeTag) == RESTResourceCapability.ResourceArchetype.Document ||
+                             EnumConversions<RESTResourceCapability.ResourceArchetype>.StringToEnum(typeTag) == RESTResourceCapability.ResourceArchetype.ProfileSet))
                         {
-                            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Found Document Resource '" + node.Data.Name + "'...");
+                            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Found Document/ProfileSet Resource '" + node.Data.Name + "'...");
                             var resource = new RESTResourceCapability(resourceCapItf, node);
                             if (!resource.Valid)
                             {
-                                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Error creating Document '" + node.Data.Name + "'!");
+                                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.InitializeCapability >> Error creating Document-/ProfileSet '" + node.Data.Name + "'!");
                                 this._capabilityClass = null;
                                 return;
                             }
@@ -1004,7 +1143,7 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
 
-                // Now that we have initialized our child Document Resources, look for all the others...
+                // Now that we have initialized our child Document-/ProfileSet Resources, look for all the others...
                 foreach (TreeNode<MEClass> node in hierarchy.Children)
                 {
                     if (node.Data.HasStereotype(operationClassStereotype))
@@ -1022,7 +1161,8 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         string typeTag = node.Data.GetTag(archetypeTagName);
                         if (!string.IsNullOrEmpty(typeTag) &&
-                            EnumConversions<RESTResourceCapability.ResourceArchetype>.StringToEnum(typeTag) != RESTResourceCapability.ResourceArchetype.Document)
+                            EnumConversions<RESTResourceCapability.ResourceArchetype>.StringToEnum(typeTag) != RESTResourceCapability.ResourceArchetype.Document &&
+                            EnumConversions<RESTResourceCapability.ResourceArchetype>.StringToEnum(typeTag) != RESTResourceCapability.ResourceArchetype.ProfileSet)
                         {
                             var resource = new RESTResourceCapability(resourceCapItf, node);
                             if (!resource.Valid)
@@ -1045,19 +1185,38 @@ namespace Plugin.Application.CapabilityModel.API
                 // Now that all children are known and all operations have been registered, register our child resources...
                 foreach (RESTResourceCapability child in childResources) child.InitialiseParent(resourceCapItf);
 
-                // If we're a document resource, locate the associated Business Component (if any)...
-                this._componentClass = null;
+                // If we're a document resource, locate the associated Business Components or Message Business Components (if any)...
+                this._profileSet = new SortedList<string, MEClass>();
                 if (this._archetype == RESTResourceCapability.ResourceArchetype.Document)
                 {
                     foreach (MEAssociation assoc in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
                     {
-                        if (assoc.Destination.EndPoint.HasStereotype(businessComponentStereotype))
+                        if (assoc.Destination.EndPoint.HasStereotype(businessComponentStereotype) || 
+                            assoc.Destination.EndPoint.HasStereotype(messageBusinessComponentStereotype))
                         {
-                            this._componentClass = assoc.Destination.EndPoint;
+                            this._profileSet.Add(RESTResourceCapability._BasicProfile, assoc.Destination.EndPoint);
                             break;
                         }
                     }
                     ((RESTService)this._rootService).RegisterDocument(resourceCapItf);
+                }
+                else if (this._archetype == RESTResourceCapability.ResourceArchetype.ProfileSet)
+                {
+                    // Profile Sets contain a list of associations with documents where the association name defines the profile name.
+                    // When the association name is missing, we assume the Basic Profile.
+                    foreach (MEAssociation assoc in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                    {
+                        if (assoc.Destination.EndPoint.HasStereotype(businessComponentStereotype) ||
+                            assoc.Destination.EndPoint.HasStereotype(messageBusinessComponentStereotype))
+                        {
+                            // To avoid duplicate key errors in case of 'mixed-up' associations, we explicitly check the key and if already
+                            // present simply replace its value. In case of duplicate profile names, the 'last one' thus wins...
+                            string keyName = string.IsNullOrEmpty(assoc.Name) ? RESTResourceCapability._BasicProfile : assoc.Name;
+                            if (this._profileSet.ContainsKey(keyName)) this.ProfileSet[keyName] = assoc.Destination.EndPoint;
+                            else this._profileSet.Add(keyName, assoc.Destination.EndPoint);
+                        }
+                    }
+                    ((RESTService)this._rootService).RegisterProfileSet(resourceCapItf);
                 }
             }
             catch (Exception exc)

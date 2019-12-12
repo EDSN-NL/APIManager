@@ -19,6 +19,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _SOAPDefaultNSToken                = "SOAPDefaultNSToken";
         private const string _OperationIDTag                    = "OperationIDTag";
         private const string _OperationPos                      = "OperationPos";
+        private const string _NSTokenPrefix                     = "nsTokenPrefix";
 
         private List<InterfaceCapability> _myInterfaces;        // The set of interfaces that share this operation.
         private MEPackage _operationPackage;                    // The package in which the operation messages live.
@@ -70,10 +71,11 @@ namespace Plugin.Application.CapabilityModel.API
                 MEPackage commonPackage = OperationPackage.CreatePackage(context.GetConfigProperty(_CommonPkgName), context.GetConfigProperty(_CommonPkgStereotype));
 
                 // Request an OperationID...
+                string nsTokenPrefix = context.GetConfigProperty(_NSTokenPrefix);
                 this._operationID = this._rootService.GetNewOperationID();
                 this._capabilityClass.SetTag(context.GetConfigProperty(_OperationIDTag), this._operationID.ToString(), true);
-                this._capabilityClass.SetTag(context.GetConfigProperty(_NSTokenTag), "ns" + this._operationID);
-                this._NSToken = "ns" + this._operationID;
+                this._capabilityClass.SetTag(context.GetConfigProperty(_NSTokenTag), nsTokenPrefix + this._operationID);
+                this._NSToken = nsTokenPrefix + this._operationID;
 
                 // Establish link with the interface...
                 this._assignedRole = Conversions.ToCamelCase(operationName);
@@ -124,14 +126,15 @@ namespace Plugin.Application.CapabilityModel.API
                 // Try to obtain a valid OperationID...
                 this._operationID = -1;
                 string operationID = this._capabilityClass.GetTag(context.GetConfigProperty(_OperationIDTag));
+                string nsTokenPrefix = context.GetConfigProperty(_NSTokenPrefix);
                 if (string.IsNullOrEmpty(operationID))
                 {
                     // We don't have a valid OperationID; probably old-style operation, try to convert namespace token...
                     string nsToken = this._capabilityClass.GetTag(context.GetConfigProperty(_NSTokenTag));
-                    if (!string.IsNullOrEmpty(nsToken) && nsToken.StartsWith("ns"))
+                    if (!string.IsNullOrEmpty(nsToken) && nsToken.StartsWith(nsTokenPrefix))
                     {
                         // We're in luck...
-                        operationID = nsToken.Substring(2);
+                        operationID = nsToken.Substring(nsTokenPrefix.Length);
                         if (int.TryParse(operationID, out this._operationID))
                         {
                             // If Ok, we KEEP this ID. Tell the root service that this ID is in use.
@@ -146,9 +149,9 @@ namespace Plugin.Application.CapabilityModel.API
                 {
                     this._operationID = this._rootService.GetNewOperationID();    // No luck with existing ID, get a brand new one instead.
                     this._capabilityClass.SetTag(context.GetConfigProperty(_OperationIDTag), this._operationID.ToString());
-                    this._capabilityClass.SetTag(context.GetConfigProperty(_NSTokenTag), "ns" + this._operationID);
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_NSTokenTag), nsTokenPrefix + this._operationID);
                 }
-                this._NSToken = "ns" + this._operationID;
+                this._NSToken = nsTokenPrefix + this._operationID;
 
                 foreach (TreeNode<MEClass> node in hierarchy.Children)
                 {
@@ -346,14 +349,15 @@ namespace Plugin.Application.CapabilityModel.API
                 // Try to obtain a valid OperationID...
                 this._operationID = -1;
                 string operationID = this._capabilityClass.GetTag(context.GetConfigProperty(_OperationIDTag));
+                string nsTokenPrefix = context.GetConfigProperty(_NSTokenPrefix);
                 if (string.IsNullOrEmpty(operationID))
                 {
                     // We don't have a valid OperationID; probably old-style operation, try to convert namespace token...
                     string nsToken = this._capabilityClass.GetTag(context.GetConfigProperty(_NSTokenTag));
-                    if (!string.IsNullOrEmpty(nsToken) && nsToken.StartsWith("ns"))
+                    if (!string.IsNullOrEmpty(nsToken) && nsToken.StartsWith(nsTokenPrefix))
                     {
                         // We're in luck...
-                        operationID = nsToken.Substring(2);
+                        operationID = nsToken.Substring(nsTokenPrefix.Length);
                         if (int.TryParse(operationID, out this._operationID))
                         {
                             // If Ok, we KEEP this ID. Tell the root service that this ID is in use.
@@ -365,7 +369,7 @@ namespace Plugin.Application.CapabilityModel.API
                 }
                 else if (!int.TryParse(operationID, out this._operationID)) this._operationID = -1;
                 if (this._operationID < 0) AssignNewOperationID();
-                this._NSToken = "ns" + this._operationID;
+                this._NSToken = nsTokenPrefix + this._operationID;
             }
             catch (Exception exc)
             {
@@ -381,10 +385,11 @@ namespace Plugin.Application.CapabilityModel.API
         protected void AssignNewOperationID()
         {
             ContextSlt context = ContextSlt.GetContextSlt();
+            string nsTokenPrefix = context.GetConfigProperty(_NSTokenPrefix);
             this._operationID = this._rootService.GetNewOperationID();
             this._capabilityClass.SetTag(context.GetConfigProperty(_OperationIDTag), this._operationID.ToString(), true);
-            this._capabilityClass.SetTag(context.GetConfigProperty(_NSTokenTag), "ns" + this._operationID);
-            this._NSToken = "ns" + this._operationID;
+            this._capabilityClass.SetTag(context.GetConfigProperty(_NSTokenTag), nsTokenPrefix + this._operationID);
+            this._NSToken = nsTokenPrefix + this._operationID;
         }
     }
 }

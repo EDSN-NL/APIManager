@@ -23,6 +23,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _BusinessComponentStereotype               = "BusinessComponentStereotype";
         private const string _GenericMessageClassStereotype             = "GenericMessageClassStereotype";
         private const string _DocumentationTypeClassName                = "DocumentationTypeClassName";
+        private const string _ProfileStereotype                         = "ProfileStereotype";
 
         private Capability _parent;                                     // The capability that acts as parent for the resource. Either an Interface or a Resource.
         private MEClass _existingResource;                              // Contains associated class in case of existing resource.
@@ -32,7 +33,8 @@ namespace Plugin.Application.CapabilityModel.API
         private SortedList<string, RESTOperationDeclaration> _operationList;    // Operations associated with this resource.
         private SortedList<string, RESTResourceDeclaration> _children;  // List of child resource descriptors.
         private RESTParameterDeclaration _parameter;                    // Parameter specification in case of 'Identifier' resource.
-        private MEClass _documentClass;                                 // Either a Business Component or an existing Document Resource class.
+        private SortedList<string, MEClass> _businessDocumentClassList; // The list of actual message-model documents, in case of Document resource, the list contains one entry!
+        private MEClass _documentResourceClass;                         // When we link against an existing Document Class or ProfileSet class, this contains the associated UML class.
         private DeclarationStatus _status;                              // Status of this declaration record.
         private DeclarationStatus _initialStatus;                       // Used to keep track of status change from empty to created.
         private string _description;                                    // Description text entered by user.
@@ -77,11 +79,18 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Returns the associated Business Component in case of Document resources. If the user has associated the declaration
-        /// with an existing Document Resource, the property returns the Document Resource class instead!
+        /// Returns the linked Document- or ProfileSet Resource class in case of linked resources. Returns NULL when we have an
+        /// 'actual' resource, in which case the associated message business documents are in BusinessDocumentClassList.
         /// Returns NULL when neither component is defined.
         /// </summary>
-        internal MEClass DocumentClass { get { return this._documentClass; } }
+        internal MEClass DocumentResourceClass { get { return this._documentResourceClass; } }
+
+        /// <summary>
+        /// Only when we're constructing/editing a Document- or ProfileSet resource, this returns the list of profiles and associated root classes.
+        /// When we're a simple Document resource, this list will only contain the 'Basic' profile at entry 0.
+        /// On non-Document= / ProfileSet resources, this property should be ignored.
+        /// </summary>
+        internal SortedList<string, MEClass> ProfileSet { get { return this._businessDocumentClassList; } }
 
         /// <summary>
         /// Get or set the description for external documentation.
@@ -246,7 +255,8 @@ namespace Plugin.Application.CapabilityModel.API
             this._description = string.Empty;
             this._externalDocDescription = string.Empty;
             this._externalDocURL = string.Empty;
-            this._documentClass = null;
+            this._documentResourceClass = null;
+            this._businessDocumentClassList = new SortedList<string, MEClass>();
             this._tagNames = new List<string>();
             this._disposed = false;
         }
@@ -271,7 +281,8 @@ namespace Plugin.Application.CapabilityModel.API
             this._description = string.Empty;
             this._externalDocDescription = string.Empty;
             this._externalDocURL = string.Empty;
-            this._documentClass = null;
+            this._documentResourceClass = null;
+            this._businessDocumentClassList = new SortedList<string, MEClass>();
             this._tagNames = new List<string>();
             this._disposed = false;
         }
@@ -298,7 +309,8 @@ namespace Plugin.Application.CapabilityModel.API
             this._description = string.Empty;
             this._externalDocDescription = string.Empty;
             this._externalDocURL = string.Empty;
-            this._documentClass = null;
+            this._documentResourceClass = null;
+            this._businessDocumentClassList = new SortedList<string, MEClass>();
             this._tagNames = new List<string>();
             this._disposed = false;
         }
@@ -326,7 +338,12 @@ namespace Plugin.Application.CapabilityModel.API
             this._availableOperationsList = HTTPOperation.GetOperationList(EnumConversions<RESTResourceCapability.ResourceArchetype>.EnumToString(resource.Archetype));
             this._children = new SortedList<string, RESTResourceDeclaration>();
             this._description = MEChangeLog.GetDocumentationAsText(resource.CapabilityClass);
-            this._documentClass = resource.BusinessComponent;
+            this._documentResourceClass = null;
+
+            // Make very sure to perform an actual COPY here!
+            this._businessDocumentClassList = new SortedList<string, MEClass>();
+            foreach (KeyValuePair<string, MEClass> entry in resource.ProfileSet) this._businessDocumentClassList.Add(entry.Key, entry.Value);
+
             this._tagNames = resource.TagNames;
 
             // Check whether we have external documentation...
@@ -411,6 +428,60 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Adds a new profile to the current profile set resource. The function shows the class-picker, which facilitates selection of the
+        /// profile 'root' class by the user. The selected class is verified against the context: it must not exist in a profile that is already
+        /// registered for this profile set and we allow only a single entry in the 'Basic' profile. Also, the selected profile must be part of
+        /// our API scope.
+        /// </summary>
+        /// <returns>A tuple consisting of the selected profile name (1) and class-name (2). Or NULL on error/cancel.</returns>
+        internal Tuple<string, string> AddProfile()
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            MEClass selectedClass = context.SelectClass(new List<string> {context.GetConfigProperty(_BusinessComponentStereotype),
+                                                                          context.GetConfigProperty(_GenericMessageClassStereotype)});
+            string qualifiedClassName = string.Empty;
+            string profileStereotype = context.GetConfigProperty(_ProfileStereotype);
+            Tuple<string, string> result = null;
+
+            if (selectedClass != null)
+            {
+                if (this._parent != null)
+                {
+                    // If we have a parent, we can validate that the selected class is indeed part of my API...
+                    // We also have to check whether the selected class has an Alias name defined. If so, we use that name instead of the class name.
+                    MEPackage declPackage = this._parent.RootService.DeclarationPkg;
+                    if (selectedClass.OwningPackage.Parent == declPackage || selectedClass.OwningPackage.Parent.Parent == declPackage)
+                    {
+                        qualifiedClassName = string.IsNullOrEmpty(selectedClass.AliasName) ? selectedClass.Name: selectedClass.AliasName;
+                    }
+                    else MessageBox.Show("Selected component is not part of current API, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else qualifiedClassName = string.IsNullOrEmpty(selectedClass.AliasName) ? selectedClass.Name: selectedClass.AliasName;
+
+                // Now that we have a class name (and instance), we check the 'owning' package of the class in order to determine the profile name. 
+                // Any owning package that does not have the 'Profile' stereotype is considered to be part of the 'Basic' profile, of which we support 
+                // only one single member per profile set!
+                if (qualifiedClassName != string.Empty)
+                {
+                    string profileName = selectedClass.OwningPackage.HasStereotype(profileStereotype) ? selectedClass.OwningPackage.Name : RESTResourceCapability._BasicProfile;
+
+                    if (this._businessDocumentClassList.ContainsKey(profileName))
+                    {
+                        MessageBox.Show("Selected profile '" + profileName + "' already exists in this set, please try again!",
+                                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    else
+                    {
+                        this._businessDocumentClassList.Add(profileName, selectedClass);
+                        result = new Tuple<string, string>(profileName, selectedClass.Name);
+                        if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                    }
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Add a new child resource to the current resource. The method displays the 'add resource' dialog to the user in order to create 
         /// and initialize the resource. On exit, if the resource does not exist, it is added to the list. If the resource exists, but
         /// has a status of 'Deleted', it is replaced and the status is set to 'Edited'.
@@ -451,15 +522,22 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Can be used to reset the Document Class property. This also clears the Resource Declaration name!
-        /// If no Document Class property has been set, the method performs no actions.
+        /// A helper function that is used by the user resource dialog to clear (linked) contents. When called, we remove all associated 
+        /// document classes and/or linked resources (if any are defined) and also clear the class name.
         /// </summary>
-        internal void ClearDocumentClass()
+        internal void ClearDocuments()
         {
-            if (this._documentClass != null)
+            if (this._businessDocumentClassList != null && this._businessDocumentClassList.Count > 0)
             {
-                this._documentClass = null;
+                this._businessDocumentClassList.Clear();
                 this._name = string.Empty;
+                if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+            }
+            if (this._documentResourceClass != null)
+            {
+                this._documentResourceClass = null;
+                this._name = string.Empty;
+                if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
             }
         }
 
@@ -485,6 +563,19 @@ namespace Plugin.Application.CapabilityModel.API
                 this._operationList[operationName].Status = RESTOperationDeclaration.DeclarationStatus.Deleted;
                 if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 HTTPOperation.AddToOperationList(ref this._availableOperationsList, operation);
+            }
+        }
+
+        /// <summary>
+        /// Removes the named profile from the profile list. When the profile could not be found, the function fails silently and no processing takes place.
+        /// </summary>
+        /// <param name="profileName">Name of the profile that must be deleted.</param>
+        internal void DeleteProfile(string profileName)
+        {
+            if (this._businessDocumentClassList.ContainsKey(profileName))
+            {
+                this._businessDocumentClassList.Remove(profileName);
+                if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
             }
         }
 
@@ -616,44 +707,82 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This method assigns an existing Document Resource class to the Document Class property. It checks the list of registered Document
-        /// Resources that is maintained at Service level. If there is only one registered Document, it is selected automatically. If there are
-        /// multiple, the method presents the Capability Picker in order to let the user select the desired Document.
+        /// This method assigns an existing Document- or ProfileSet Resource class to the DocumentResourceClass property. It checks the list 
+        /// of registered resources of the appropriate type that are maintained at Service level. If there is only one registered resource, it 
+        /// is selected automatically. If there are multiple, the method presents the Capability Picker in order to let the user select the 
+        /// desired resource.
         /// </summary>
         /// <returns>Name of selected component or empty string in case of errors/cancel.</returns>
         internal string LinkDocumentClass()
         {
             var documentList = new List<Capability>();
             string documentName = string.Empty;
-            if (((RESTService)this._parent.RootService).DocumentList.Count > 0)
+            if (this._archetype == RESTResourceCapability.ResourceArchetype.Document)
             {
-                // If we only have a single defined Document Resource, this is selected automatically. When there are multiple,
-                // we ask the user which one to use...
-                if (((RESTService)this._parent.RootService).DocumentList.Count == 1)
+                if (((RESTService)this._parent.RootService).DocumentList.Count > 0)
                 {
-                    this._documentClass = ((RESTService)this._parent.RootService).DocumentList[0].CapabilityClass;
-                    documentName = this._documentClass.Name;
-                }
-                else
-                {
-                    foreach (Capability cap in ((RESTService)this._parent.RootService).DocumentList) documentList.Add(cap);
-                    using (CapabilityPicker dialog = new CapabilityPicker("Select Document resource", documentList, false, false))
+                    // If we only have a single defined Document Resource, this is selected automatically. When there are multiple,
+                    // we ask the user which one to use...
+                    if (((RESTService)this._parent.RootService).DocumentList.Count == 1)
                     {
-                        if (dialog.ShowDialog() == DialogResult.OK)
+                        this._documentResourceClass = ((RESTService)this._parent.RootService).DocumentList[0].CapabilityClass;
+                        documentName = this._documentResourceClass.Name;
+                    }
+                    else
+                    {
+                        foreach (Capability cap in ((RESTService)this._parent.RootService).DocumentList) documentList.Add(cap);
+                        using (CapabilityPicker dialog = new CapabilityPicker("Select Document resource", documentList, false, false))
                         {
-                            List<Capability> checkedCapabilities = dialog.GetCheckedCapabilities();
-                            if (checkedCapabilities.Count > 0)
+                            if (dialog.ShowDialog() == DialogResult.OK)
                             {
-                                // If the user selected multiple, we take the first one.
-                                this._documentClass = checkedCapabilities[0].CapabilityClass;
-                                documentName = this._documentClass.Name;
+                                List<Capability> checkedCapabilities = dialog.GetCheckedCapabilities();
+                                if (checkedCapabilities.Count > 0)
+                                {
+                                    // If the user selected multiple, we take the first one.
+                                    this._documentResourceClass = checkedCapabilities[0].CapabilityClass;
+                                    documentName = this._documentResourceClass.Name;
+                                    if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                                }
                             }
+                            else documentName = string.Empty;
                         }
-                        else documentName = string.Empty;
                     }
                 }
+                else MessageBox.Show("No suitable Document Resources to select, create one first!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            else MessageBox.Show("No suitable Document Resources to select, add one first!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            else if (this._archetype == RESTResourceCapability.ResourceArchetype.ProfileSet)
+            {
+                if (((RESTService)this._parent.RootService).ProfileSetList.Count > 0)
+                {
+                    // If we only have a single defined ProfileSet Resource, this is selected automatically. When there are multiple,
+                    // we ask the user which one to use...
+                    if (((RESTService)this._parent.RootService).ProfileSetList.Count == 1)
+                    {
+                        this._documentResourceClass = ((RESTService)this._parent.RootService).ProfileSetList[0].CapabilityClass;
+                        documentName = this._documentResourceClass.Name;
+                    }
+                    else
+                    {
+                        foreach (Capability cap in ((RESTService)this._parent.RootService).ProfileSetList) documentList.Add(cap);
+                        using (CapabilityPicker dialog = new CapabilityPicker("Select Profile Set resource", documentList, false, false))
+                        {
+                            if (dialog.ShowDialog() == DialogResult.OK)
+                            {
+                                List<Capability> checkedCapabilities = dialog.GetCheckedCapabilities();
+                                if (checkedCapabilities.Count > 0)
+                                {
+                                    // If the user selected multiple, we take the first one.
+                                    this._documentResourceClass = checkedCapabilities[0].CapabilityClass;
+                                    documentName = this._documentResourceClass.Name;
+                                }
+                            }
+                            else documentName = string.Empty;
+                        }
+                    }
+                }
+                else MessageBox.Show("No suitable Profile Set Resources to select, create one first!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            if (documentName != string.Empty && this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
             return documentName;
         }
 
@@ -740,13 +869,11 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         newResourceDecl.Status = RESTResourceDeclaration.DeclarationStatus.Created;
                         this._children.Add(newResourceDecl.Name, newResourceDecl);
-                        if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                     }
                     else if (this._children[newResourceDecl.Name].Status == RESTResourceDeclaration.DeclarationStatus.Deleted)
                     {
                         newResourceDecl.Status = RESTResourceDeclaration.DeclarationStatus.Edited;
                         this._children[newResourceDecl.Name] = newResourceDecl;
-                        if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                     }
                     else
                     {
@@ -759,56 +886,107 @@ namespace Plugin.Application.CapabilityModel.API
                     MessageBox.Show("Invalid resource selected, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     newResourceDecl = null;
                 }
+                if (newResourceDecl != null && this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
                 return newResourceDecl;
             }
             return null;
         }
 
         /// <summary>
-        /// This method assigns a (new) class to the Document Class property. It presents a class selector to the user, which facilitates
-        /// browsing of the component tree and selecting the appropriate Business Document (or generic Message Class Document). When we 
-        /// have a valid parent Capability, the method verifies whether the component selected by the user is indeed part of our API.
-        /// If the associated model class has a name that ends with 'Type', we remove this for the name of the resource class.
+        /// This method is invoked from the Resource Dialog when the user wants to assign a business component to a Document resource, or
+        /// a series of business components to a ProfileSet. The method facilitates selecting of business components and/or creation of new
+        /// Profile Sets and applies the necessary checks to assure that input is valid given the current context. In case of Profile Set,
+        /// when the set already contains profiles, the function acts as an 'edit' instead of a 'create'.
         /// </summary>
-        /// <returns>Name of selected component or empty string in case of errors/cancel.</returns>
+        /// <returns>Name of selected component or empty string in case of errors/cancel. In case of ProfileSet, the returned name is the
+        /// name of the created set and not the name of the business component!</returns>
         internal string SetDocumentClass()
         {
-            const string _Type = "Type";
             ContextSlt context = ContextSlt.GetContextSlt();
             string selectedName = string.Empty;
-            string emptyResourceName = context.GetConfigProperty(_EmptyResourceName);
-            MEClass selectedClass = context.SelectClass(new List<string> { context.GetConfigProperty(_BusinessComponentStereotype),
-                                                                           context.GetConfigProperty(_GenericMessageClassStereotype)});
-            if (selectedClass != null)
+            if (this._businessDocumentClassList == null) this._businessDocumentClassList = new SortedList<string, MEClass>();
+            if (this._archetype == RESTResourceCapability.ResourceArchetype.Document)
             {
-                if (this._parent != null)
+                const string _Type = "Type";
+                string emptyResourceName = context.GetConfigProperty(_EmptyResourceName);
+                string profileStereotype = context.GetConfigProperty(_ProfileStereotype);
+                MEClass selectedClass = context.SelectClass(new List<string> {context.GetConfigProperty(_BusinessComponentStereotype),
+                                                                              context.GetConfigProperty(_GenericMessageClassStereotype)});
+                if (selectedClass != null)
                 {
-                    // If we have a parent, we can validate that the selected class is indeed part of my API...
-                    // We also have to check whether the selected class has an Alias name defined. If so, we use that name instead of the class name.
-                    MEPackage declPackage = this._parent.RootService.DeclarationPkg;
-                    if (selectedClass.OwningPackage.Parent == declPackage || selectedClass.OwningPackage.Parent.Parent == declPackage)
+                    if (this._parent != null)
                     {
-                        selectedName = !string.IsNullOrEmpty(selectedClass.AliasName) ? selectedClass.AliasName : selectedClass.Name;
-                        this._documentClass = selectedClass;
+                        // If we have a parent, we can validate that the selected class is indeed part of my API...
+                        // We also have to check whether the selected class has an Alias name defined. If so, we use that name instead of the class name.
+                        // Last but not least...Document resources MUST be from an explicit- or implicit Basic Profile!
+                        MEPackage declPackage = this._parent.RootService.DeclarationPkg;
+                        if (selectedClass.OwningPackage.Parent == declPackage || selectedClass.OwningPackage.Parent.Parent == declPackage)
+                        {
+                            if (!selectedClass.OwningPackage.HasStereotype(profileStereotype) || 
+                                selectedClass.OwningPackage.Name == RESTResourceCapability._BasicProfile)
+                            {
+                                selectedName = !string.IsNullOrEmpty(selectedClass.AliasName) ? selectedClass.AliasName : selectedClass.Name;
+                                if (this._businessDocumentClassList.ContainsKey(RESTResourceCapability._BasicProfile))
+                                    this._businessDocumentClassList[RESTResourceCapability._BasicProfile] = selectedClass;
+                                else this._businessDocumentClassList.Add(RESTResourceCapability._BasicProfile, selectedClass);
+                            }
+                            else MessageBox.Show("Document resources MUST be part of the Basic Profile, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                        else MessageBox.Show("Selected component is not part of current API, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
-                    else MessageBox.Show("Selected component is not part of current API, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    else
+                    {
+                        // If we don't have a (valid) parent, we simply assume that this is a valid selection.
+                        // We also have to check whether the selected class has an Alias name defined. If so, we use that name instead of the class name.
+                        selectedName = !string.IsNullOrEmpty(selectedClass.AliasName) ? selectedClass.AliasName : selectedClass.Name;
+                        if (this._businessDocumentClassList.ContainsKey(RESTResourceCapability._BasicProfile))
+                            this._businessDocumentClassList[RESTResourceCapability._BasicProfile] = selectedClass;
+                        else this._businessDocumentClassList.Add(RESTResourceCapability._BasicProfile, selectedClass);
+                    }
+
+                    if (selectedName != string.Empty)
+                    {
+                        // Finally, we check whether the name ends with 'Type', if so, we remove this for the name of the resource class...
+                        if (selectedName.EndsWith(_Type)) selectedName = selectedName.Substring(0, selectedName.Length - _Type.Length);
+                        if (this._name != string.Empty && this._name != selectedName && this._name != emptyResourceName)
+                            MessageBox.Show("Document resource '" + this._name + "' receives new name '" +
+                                            selectedName + "', please update operation roles accordingly!",
+                                            "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        this._name = selectedName;
+                        if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                    }
                 }
-                else
+            }
+            else if (this._archetype == RESTResourceCapability.ResourceArchetype.ProfileSet)
+            {
+                // Collect some state in case of user 'cancel'...
+                string originalName = this._name;
+                var originalStatus = this._status;
+                SortedList<string, MEClass> originalList = new SortedList<string, MEClass>();
+                foreach (var entry in this._businessDocumentClassList) originalList.Add(entry.Key, entry.Value);
+
+                using (var dialog = new RESTProfileSetDialog(this))
                 {
-                    // If we don't have a (valid) parent, we simply assume that this is a valid selection.
-                    // We also have to check whether the selected class has an Alias name defined. If so, we use that name instead of the class name.
-                    selectedName = !string.IsNullOrEmpty(selectedClass.AliasName) ? selectedClass.AliasName : selectedClass.Name;
-                    this._documentClass = selectedClass;
-                }
-                if (selectedName != string.Empty)
-                {
-                    // Finally, we check whether the name ends with 'Type', if so, we remove this for the name of the resource class...
-                    if (selectedName.EndsWith(_Type)) selectedName = selectedName.Substring(0, selectedName.Length - _Type.Length);
-                    if (this._name != string.Empty && this._name != selectedName && this._name != emptyResourceName)
-                        MessageBox.Show("Document resource '" + this._name + "' receives new name '" + 
-                                        selectedName + "', please update operation roles accordingly!", 
-                                        "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    this._name = selectedName;
+                    if (dialog.ShowDialog() == DialogResult.OK)
+                    {
+                        // At this place, we only have to check changes to the name. All profile set changes are handled by direct 
+                        // method invocations (AddProfile, DeleteProfile) from within the dialog.
+                        if (dialog.SetName != originalName)
+                        {
+                            this._name = dialog.SetName;
+                            if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                        }
+                        selectedName = this._name;
+                    }
+                    else
+                    {
+                        // Since the dialog might have added / deleted one or more Profile entries, we must roll-back changes here!
+                        this._businessDocumentClassList = new SortedList<string, MEClass>();
+                        foreach (var entry in originalList) this._businessDocumentClassList.Add(entry.Key, entry.Value);
+                        this._status = originalStatus;
+                        this._name = originalName;
+                        selectedName = this._name;
+                    }
                 }
             }
             return selectedName;
@@ -847,7 +1025,8 @@ namespace Plugin.Application.CapabilityModel.API
 
         /// <summary>
         /// This is the actual disposing interface, which takes case of structural removal of the implementation type when no longer
-        /// needed.
+        /// needed. Please note that one should invoke explicit 'dispose' calls only on resources that are actually 'owned' by this
+        /// object and not just 'referenced'!
         /// </summary>
         /// <param name="disposing">Set to 'true' when called directly. Set to 'false' when called from the finalizer.</param>
         private void Dispose(bool disposing)
@@ -856,15 +1035,14 @@ namespace Plugin.Application.CapabilityModel.API
             {
                 try
                 {
-                    if (this._existingResource != null) this._existingResource.Dispose();
-                    if (this._documentClass != null) this._documentClass.Dispose();
                     this._parent = null;
                     this._existingResource = null;
                     this._availableOperationsList = null;
                     this._operationList = null;
                     this._children = null;
                     this._parameter = null;
-                    this._documentClass = null;
+                    this._documentResourceClass = null;
+                    this._businessDocumentClassList = null;
                     this._tagNames = null;
                     this._disposed = true;
                 }

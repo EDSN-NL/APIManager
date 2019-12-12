@@ -295,7 +295,8 @@ namespace SparxEA.Model
         {
             if (index >= 0) this._attribute.Pos = index;
             this._attribute.Update();
-            ((EAModelImplementation)this._model).Repository.GetElementByID(this._attribute.ParentID).Refresh();
+            EA.Element element = ((EAModelImplementation)this._model).Repository.GetElementByID(this._attribute.ParentID);
+            if (element != null) element.Refresh();
         }
 
         /// <summary>

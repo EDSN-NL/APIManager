@@ -100,7 +100,8 @@ namespace Plugin.Application.Forms
             int typeIndex = 0;
             if (this._isEdit)
             {
-                if (resource.Archetype == RESTResourceCapability.ResourceArchetype.Document || 
+                if (resource.Archetype == RESTResourceCapability.ResourceArchetype.Document ||
+                    resource.Archetype == RESTResourceCapability.ResourceArchetype.ProfileSet ||
                     resource.Archetype == RESTResourceCapability.ResourceArchetype.Identifier ||
                     resource.Archetype == RESTResourceCapability.ResourceArchetype.Controller)
                 {
@@ -322,11 +323,9 @@ namespace Plugin.Application.Forms
 
         /// <summary>
         /// This event is raised when the user clicks the 'Create Document' button in order to create a new resource
-        /// of type 'Document'. The user must select an existing Business Document class from the model to be used as
-        /// the basis for the Document resource. The actual task of showing the dialog and validation the result is 
-        /// delegated to the ResourceDeclaration object.
-        /// We don't perform name validation here since the resource name is identical to the selected Business Component.
-        /// Since there are valid by definition, there is no need to check.
+        /// of type 'Document' or 'ProfileSet' (depending on the archetype of the current resource). 
+        /// The actual task of showing the dialog and validation the result is delegated to the ResourceDeclaration object.
+        /// We don't perform name validation here since that has been taken care of by the ResourceDeclaration object.
         /// </summary>
         /// <param name="sender">Ignored.</param>
         /// <param name="e">Ignored.</param>
@@ -402,7 +401,7 @@ namespace Plugin.Application.Forms
 
         /// <summary>
         /// This event is raised when the user clicks the 'Link Document' button in order to associate the parent resource
-        /// with an existing Document resource. Clicking the button will present a list of existing Document resource for
+        /// with an existing Document- or ProfileSet resource. Clicking the button will present a list of existing resources for
         /// the user to choose from. The actual task of showing the dialog and validation the result is delegated to the
         /// ResourceDeclaration object.
         /// We don't perform name validation here since we link to an existing capability that already has been validated
@@ -443,11 +442,12 @@ namespace Plugin.Application.Forms
                     {
                         ResourceNameFld.Clear();
                         this._resource.ClearParameter();
-                        this._resource.ClearDocumentClass();
+                        this._resource.ClearDocuments();
                     }
                     break;
 
                 case RESTResourceCapability.ResourceArchetype.Document:
+                case RESTResourceCapability.ResourceArchetype.ProfileSet:
                     CreateDocument.Enabled = true;
                     LinkDocument.Enabled = true;
                     PropertiesBox.Enabled = false;
@@ -474,7 +474,7 @@ namespace Plugin.Application.Forms
                     {
                         ResourceNameFld.Clear();
                         this._resource.ClearParameter();
-                        this._resource.ClearDocumentClass();
+                        this._resource.ClearDocuments();
                         this._resource.TagNames = new List<string>();
                         TagNames.Text = string.Empty;
                     }
@@ -490,7 +490,7 @@ namespace Plugin.Application.Forms
                     if (!this._isEdit)
                     {
                         ResourceNameFld.Clear();
-                        this._resource.ClearDocumentClass();
+                        this._resource.ClearDocuments();
                     }
                     ResourceNameFld.Text = this._resource.Name;
                     break;

@@ -41,7 +41,7 @@ namespace Framework.Util
         {
             this.DisplayName = UserPrincipal.Current.DisplayName;
             this.MailAddress = UserPrincipal.Current.EmailAddress;
-            this.PrincipalName = Environment.UserName;
+            this.PrincipalName = Environment.UserName.PadRight(8);      // Ensure principal name is always at least 8 characters.
             if (this.DisplayName == null) this.DisplayName = "UNKNOWN-NAME";
             if (this.MailAddress == null) this.MailAddress = "UNKNOWN-MAIL";
             if (this.PrincipalName == null) this.PrincipalName = "UNKNOWN-USER";

@@ -272,7 +272,7 @@ namespace Plugin.Application.Forms
             // IsDefaultResponseType
             // 
             this.IsDefaultResponseType.AutoSize = true;
-            this.IsDefaultResponseType.Location = new System.Drawing.Point(122, 42);
+            this.IsDefaultResponseType.Location = new System.Drawing.Point(143, 42);
             this.IsDefaultResponseType.Name = "IsDefaultResponseType";
             this.IsDefaultResponseType.Size = new System.Drawing.Size(128, 17);
             this.IsDefaultResponseType.TabIndex = 4;
@@ -285,7 +285,7 @@ namespace Plugin.Application.Forms
             // IsCustomType
             // 
             this.IsCustomType.AutoSize = true;
-            this.IsCustomType.Location = new System.Drawing.Point(122, 19);
+            this.IsCustomType.Location = new System.Drawing.Point(142, 19);
             this.IsCustomType.Name = "IsCustomType";
             this.IsCustomType.Size = new System.Drawing.Size(129, 17);
             this.IsCustomType.TabIndex = 2;
@@ -300,11 +300,11 @@ namespace Plugin.Application.Forms
             this.IsDocument.AutoSize = true;
             this.IsDocument.Location = new System.Drawing.Point(8, 19);
             this.IsDocument.Name = "IsDocument";
-            this.IsDocument.Size = new System.Drawing.Size(74, 17);
+            this.IsDocument.Size = new System.Drawing.Size(130, 17);
             this.IsDocument.TabIndex = 1;
             this.IsDocument.TabStop = true;
             this.IsDocument.Tag = "Document";
-            this.IsDocument.Text = "Document";
+            this.IsDocument.Text = "Document / ProfileSet";
             this.IsDocument.UseVisualStyleBackColor = true;
             this.IsDocument.CheckedChanged += new System.EventHandler(this.PayloadType_CheckedChanged);
             // 

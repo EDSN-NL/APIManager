@@ -30,6 +30,9 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         private const string _IsValidFromTag                        = "IsValidFromTag";
         private const string _IsValidUntilTag                       = "IsValidUntilTag";
         private const string _UseValidTimestampTag                  = "UseValidTimestampTag";
+        private const string _PrimDataTypesPathName                 = "PrimDataTypesPathName";
+        private const string _SuppressSupplementaryEnumClassifier   = "SuppressSupplementaryEnumClassifier";
+
 
         // Static properties that are used across a series of schema generation operations...
         private ClassCacheSlt _cache;                               // Cache singleton, used to administer processed entities across builds.
@@ -97,17 +100,24 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             {
                                 Logger.WriteWarning("Association to element '" + target.Name + "' has no name, using target name instead!");
                                 if (this._panel != null) this._panel.WriteWarning(this._panelIndex + 2, "Association to element '" + target.Name + "' has no name, using target name instead!");
-                                associationName = (target.Name.EndsWith("Type")) ? target.Name.Substring(0, target.Name.LastIndexOf("Type")) : target.Name;
+                                associationName = target.Name.EndsWith("Type") ? target.Name.Substring(0, target.Name.LastIndexOf("Type")) : target.Name;
                             }
 
                             // We need to create a unique key for this particular class, independent of the class name. Names might be duplicated across different
-                            // messages with different scope identifiers. Thus, we create a prefix that is scope dependent.....
+                            // messages with different scope identifiers. Thus, we create a prefix that is scope dependent. Exception: in case of Profile scope,
+                            // the class lives in the common namespace, but the class name must be prefixed by the Profile name!
                             string classKeyToken;
-                            if (schemaScope == ClassifierContext.ScopeCode.Interface)    classKeyToken = this._commonSchema.NSToken;
+                            string targetName = target.Name;
+                            if (schemaScope == ClassifierContext.ScopeCode.Interface) classKeyToken = this._commonSchema.NSToken;
+                            else if (schemaScope == ClassifierContext.ScopeCode.Profile)
+                            {
+                                classKeyToken = (this._commonSchema != null)? this._commonSchema.NSToken: this._schema.NSToken;
+                                targetName = target.OwningPackage.Name + target.Name;
+                            }
                             else if (schemaScope == ClassifierContext.ScopeCode.Message) classKeyToken = this._schema.NSToken + "_" + this._currentCapability.AssignedRole;
-                            else if (schemaScope == ClassifierContext.ScopeCode.Remote)  classKeyToken = "remote_";
-                            else                                                         classKeyToken = this._schema.NSToken;
-                            classKeyToken += ":" + target.Name;
+                            else if (schemaScope == ClassifierContext.ScopeCode.Remote) classKeyToken = "remote_";
+                            else classKeyToken = this._schema.NSToken;
+                            classKeyToken += ":" + targetName;
                             Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAssociations >> Association stored with key: " + classKeyToken);
 
                             string qualifiedTargetName;
@@ -147,7 +157,9 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             }
 
                             string unqualifiedTargetName = qualifiedTargetName.Substring(qualifiedTargetName.IndexOf(':') + 1);     // Remove namespace token (if present).
-                            bool targetInCommonSchema = ((schemaScope == ClassifierContext.ScopeCode.Remote) || (schemaScope == ClassifierContext.ScopeCode.Interface));
+                            bool targetInCommonSchema = (schemaScope == ClassifierContext.ScopeCode.Remote) || 
+                                                        (schemaScope == ClassifierContext.ScopeCode.Interface) || 
+                                                        (this._commonSchema != null && schemaScope == ClassifierContext.ScopeCode.Profile);
                             Schema targetSchema = targetInCommonSchema ? this._commonSchema: this._schema;
                             if (targetSchema is XMLSchema)
                             {
@@ -157,10 +169,9 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             }
                             else
                             {
-                                JSONSchema classSchema = (targetInCommonSchema) ? (JSONSchema)this._commonSchema : null;
+                                JSONSchema classSchema = targetInCommonSchema ? (JSONSchema)this._commonSchema : null;
                                 associationList.Add(new JSONAssociation((JSONSchema)targetSchema, associationName, unqualifiedTargetName, sequenceKey, choiceGroup,
                                                                         cardinality, classSchema));
-
                             }
                             
                             // Add the association to the correct documentation context. Make sure to activate our original class, since recursive
@@ -189,7 +200,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                                 if (docScope == ClassifierContext.DocScopeCode.Common)
                                 {
                                     this._commonDocContext.AddXREF(unqualifiedTargetName, 
-                                                                   ((nodeDocScope == ClassifierContext.DocScopeCode.Common) ? this._commonDocContext.ContextID: this._currentOperationDocContext.ContextID), 
+                                                                   (nodeDocScope == ClassifierContext.DocScopeCode.Common) ? this._commonDocContext.ContextID: this._currentOperationDocContext.ContextID, 
                                                                    sourceScope, unqualifiedNodeName);
                                 }
                                 else this._currentOperationDocContext.AddXREF(unqualifiedTargetName, this._currentOperationDocContext.ContextID, sourceScope, unqualifiedNodeName);
@@ -223,7 +234,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         /// </summary>
         /// <param name="node">The class for which we're collecting attributes.</param>
         /// <param name="sequenceBase">Reflects position of attribute set in a classhierarchy, used to properly offset attributes within the hierarchy.</param>
-        /// <param name="inCommonSchema">Set to 'true' is node is defined in Common Schema.</param>
+        /// <param name="inCommonSchema">Set to 'true' if node is defined in Common Schema.</param>
         /// <param name="unqualifiedNodeName">Identifies the name under which the node type is registered in the schema (unique type key).</param>
         /// <param name="nodeDocScope">Identifies the documentation scope of the current class (can be different from schema scope).</param>
         /// <returns>List of attribute declarations for the element or empty list in case of errors (or no attributes).</returns>
@@ -252,7 +263,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                     if (this._panel != null) this._panel.WriteInfo(this._panelIndex + 2, "Processing attribute: '" + attribute.Name + "' with classifier: '" + classifier.Name + "'..");
 
                     // Assures that we have an attribute classifier definition and we know where to store it and where to document it...
-                    ClassifierContext classifierCtx = ProcessClassifier(classifier);
+                    ClassifierContext classifierCtx = ProcessClassifier(classifier, attribute.Type == ModelElementType.Supplementary);
                     if (classifierCtx == null)
                     {
                         string message = "Unable to obtain a proper classifier '" + classifier.Name + "' for '" + node.Name + "." + attribute.Name + "'; Skipping attribute!";
@@ -263,7 +274,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
 
                     DocContext classifierDocCtx = this._commonDocContext;
                     if (!classifierCtx.IsInCommonDocContext) classifierDocCtx = this._currentOperationDocContext;
-                    Schema targetSchema = (classifierCtx.IsInCommonSchema) ? this._commonSchema : this._schema;
+                    Schema targetSchema = classifierCtx.IsInCommonSchema ? this._commonSchema : this._schema;
 
                     string attributeName = (attribute.AliasName != string.Empty) ? attribute.AliasName : attribute.Name;
                     if (attribute.Type == ModelElementType.Supplementary)
@@ -395,7 +406,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                         {
                             // In this case, we need the ContextID (and scope) of the SOURCE, not the Target....
                             this._commonDocContext.AddXREF(classifierCtx.Name,
-                                                           ((nodeDocScope == ClassifierContext.DocScopeCode.Common) ? this._commonDocContext.ContextID : this._currentOperationDocContext.ContextID),
+                                                           (nodeDocScope == ClassifierContext.DocScopeCode.Common) ? this._commonDocContext.ContextID : this._currentOperationDocContext.ContextID,
                                                            sourceScope, unqualifiedNodeName);
                         }
                         else this._currentOperationDocContext.AddXREF(classifierCtx.Name, this._currentOperationDocContext.ContextID, sourceScope, unqualifiedNodeName);
@@ -444,6 +455,10 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                 var associationList = new List<SchemaAssociation>();
                 ClassifierContext.ScopeCode schemaScope = scope.Item1;
                 ClassifierContext.DocScopeCode docScope = scope.Item2;
+                bool inCommonSchema = this._commonSchema != null && 
+                                      (schemaScope == ClassifierContext.ScopeCode.Remote ||
+                                       schemaScope == ClassifierContext.ScopeCode.Interface ||
+                                       schemaScope == ClassifierContext.ScopeCode.Profile);
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.processClass >> Schema scope: '" + 
                                  schemaScope + "', Doc. scope: '" + docScope + "'.");
 
@@ -499,8 +514,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                     }
                 }
 
-                bool inCommonSchema = ((schemaScope == ClassifierContext.ScopeCode.Remote) || (schemaScope == ClassifierContext.ScopeCode.Interface));
-                foreach (MEClass node in classHierarchy.Values)                           // Process one node at a time (node == element in class hierarchy).
+                foreach (MEClass node in classHierarchy.Values)
                 {
                     attribList.AddRange(ProcessAttributes(node, inCommonSchema, seqBase, unqualifiedName, docScope));
                     associationList.AddRange(ProcessAssociations(node, inCommonSchema, seqBase, ref attribList, unqualifiedName, docScope));
@@ -539,17 +553,33 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         /// Subsequently, the type designator is stored in the classifier cache using the unique key in order to mark this classifier as 'resolved'.
         /// </summary>
         /// <param name="classifier">The classifier element.</param>
+        /// <param name="isSupplementary">True in case this is a classifier for a supplementary attribute.</param>
         /// <returns>Classifier Context or NULL if context could not be obtained.</returns>
-        private ClassifierContext ProcessClassifier(MEDataType classifier)
+        private ClassifierContext ProcessClassifier(MEDataType classifier, bool isSupplementary)
         {
+            // Special case to check: if we have an Enumeration classifier that has 'suppress enumeration' enabled AND is a supplementary attribute,
+            // we must handle the replacement here since 'DefineClassifier' only works for CDT and BDT types!
+            if (isSupplementary && classifier.Type == ModelElementType.Enumeration && ((MEEnumeratedType)classifier).MustSuppressEnumeration)
+            {
+                string origName = classifier.Name;
+                var replacementClassifier = ModelSlt.GetModelSlt().FindDataType(ContextSlt.GetContextSlt().GetConfigProperty(_PrimDataTypesPathName),
+                                                                                ContextSlt.GetContextSlt().GetConfigProperty(_SuppressSupplementaryEnumClassifier));
+                if (replacementClassifier != null) classifier = replacementClassifier;
+                else
+                {
+                    Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessClassifier >> Unable to create suppressed-enum replacement type for enumeration '" + origName + "'!");
+                    return null;
+                }
+            }
+            
             // In case of primitive types, we do not have to create an explicit type definition since these will be translated to "built-in" XSD primitives!
             if (classifier.HasStereotype(ContextSlt.GetContextSlt().GetConfigProperty(_PrimitiveDataTypeStereotype)))
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessClassifier >> This is a PRIM type, do nothing!");
                 var primScope = new Tuple<ClassifierContext.ScopeCode, ClassifierContext.DocScopeCode>
                 (
-                    ((this._commonSchema != null) ? ClassifierContext.ScopeCode.Interface : ClassifierContext.ScopeCode.Operation),
-                    ((this._commonDocContext != null) ? ClassifierContext.DocScopeCode.Common : ClassifierContext.DocScopeCode.Local)
+                    (this._commonSchema != null) ? ClassifierContext.ScopeCode.Interface : ClassifierContext.ScopeCode.Operation,
+                    (this._commonDocContext != null) ? ClassifierContext.DocScopeCode.Common : ClassifierContext.DocScopeCode.Local
                 );
                 return new ClassifierContext(ClassifierContext.ContentTypeCode.Simple, classifier.Name, primScope);
             }
@@ -560,6 +590,10 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
             ClassifierContext context;
             ClassifierContext.ScopeCode schemaScope = scope.Item1;
             ClassifierContext.DocScopeCode docScope = scope.Item2;
+
+            // As far as classifiers are concerned, profile scope is equal to interface scope as all classifiers end-up in the Common Schema!
+            // Except when we don't have a common schema, in which case scope will change to 'operation'...
+            if (schemaScope == ClassifierContext.ScopeCode.Profile) schemaScope = this._commonSchema != null? ClassifierContext.ScopeCode.Interface: ClassifierContext.ScopeCode.Operation;
 
             string classifKey;
             if (schemaScope == ClassifierContext.ScopeCode.Interface)    classifKey = this._commonSchema.NSToken;
@@ -614,7 +648,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessUnion >> Going to use classifier: " + classifier.Name);
                     if (this._panel != null) this._panel.WriteInfo(this._panelIndex + 3, "Processing Union: '" + target.Name + "', using classifier: '" + classifier.Name + "'..");
 
-                    ClassifierContext classifierCtx = ProcessClassifier(classifier); // Assures that we have a classifier definition.
+                    ClassifierContext classifierCtx = ProcessClassifier(classifier, false); // Assures that we have a classifier definition.
                     if (classifierCtx == null) return null;
 
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessUnion >> Attribute, default= '" + attribute.DefaultValue +

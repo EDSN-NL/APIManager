@@ -31,6 +31,8 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         private const string _ServiceModelPkgName                   = "ServiceModelPkgName";
         private const string _SuppressEnumClassifier                = "SuppressEnumClassifier";
         private const string _CoreDataTypesPathName                 = "CoreDataTypesPathName";
+        private const string _BasicProfileName                      = "BasicProfileName";
+        private const string _ProfileStereotype                     = "ProfileStereotype";
 
         /// <summary>
         /// This method is invoked whenever we want to save the processed Capability to an output file. The method assures that the schema is sorted
@@ -285,7 +287,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         /// <param name="type">Identifies the type of schema that we're building.</param>
         /// <param name="name">A meaningfull name, with which we can identify the schema.</param>
         /// <param name="namespaceToken">Namespace token.</param>
-        /// <param name="ns">Schema namespace, preferably an URI.</param>
+        /// <param name="schemaNamespace">Schema namespace, preferably an URI.</param>
         /// <param name="version">Major, minor and build number of the schema. When omitted, the version defaults to '1.0.0'</param>
         /// <returns>Appropriate Schema implementation.</returns>
         /// <exception cref="MissingFieldException">No schema implementation has been defined for the current interface type.</exception>
@@ -390,7 +392,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                         // Supplementary attributes MUST be EITHER a primitive type OR an Enumeration. In the latter case, it MIGHT be defined in
                         // the Schema namespace and we must take this into account when creating the supplementary attribute...
                         // By default, supplementaries have a primitive-type classifier that is defined in the XSD (remote) namespace.
-                        if (ProcessClassifier(desc.Classifier).SchemaScope != ClassifierContext.ScopeCode.Remote) classifierInSchemaNS = true;
+                        if (ProcessClassifier(desc.Classifier, true).SchemaScope != ClassifierContext.ScopeCode.Remote) classifierInSchemaNS = true;
                     }
                     Schema targetSchema = this._commonSchema ?? this._schema;
                     if (targetSchema is XMLSchema)
@@ -427,23 +429,35 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         private string GetQualifiedClassName(MEClass thisClass, ClassifierContext.ScopeCode scope)
         {
             scope = (scope == ClassifierContext.ScopeCode.Remote) ? ClassifierContext.ScopeCode.Interface : scope;  // We treat Remote equal to Interface!
-            string classNs = (scope == ClassifierContext.ScopeCode.Interface) ? this._commonSchema.NSToken : this._schema.NSToken;
+            string classNs = (this._commonSchema != null && 
+                              (scope == ClassifierContext.ScopeCode.Interface || scope == ClassifierContext.ScopeCode.Profile)) ? this._commonSchema.NSToken : this._schema.NSToken;
             string qualifiedName = thisClass.AliasName != string.Empty ? thisClass.AliasName : thisClass.Name;
             string role = this._currentCapability.AssignedRole;
 
-            // In case of Message Scope, which is the most restrictive scope, we prefix the class name with the name of the role in which the
-            // class is used. Also, if the role name is different from the package name in which the class resides, we also add the package
-            // name. All in all, the resulting name might be: <role><package><className> (or <role><className> if package name == role name).
-            // If the role is already part of the original class name, we will not add it again. So, worst-case the class name is not changed
-            // at all (if package name == role name and role name is already part of class name).
             if (scope == ClassifierContext.ScopeCode.Message)
             {
+                // In case of Message Scope, which is the most restrictive scope, we prefix the class name with the name of the role in which the
+                // class is used. Also, if the role name is different from the package name in which the class resides, we also add the package
+                // name. All in all, the resulting name might be: <role><package><className> (or <role><className> if package name == role name).
+                // If the role is already part of the original class name, we will not add it again. So, worst-case the class name is not changed
+                // at all (if package name == role name and role name is already part of class name).
                 // The package name is added ONLY if this is an operation name (as is used in case of REST Operations). For SOAP, the
                 // package name is equal to the Service Model package name and we do NOT add it since it has no added value!
                 if (thisClass.OwningPackage.Name != ContextSlt.GetContextSlt().GetConfigProperty(_ServiceModelPkgName) && 
                     string.Compare(role, thisClass.OwningPackage.Name, true) != 0)
                     qualifiedName = thisClass.OwningPackage.Name + qualifiedName;
                 if (!(qualifiedName.StartsWith(role) || qualifiedName.EndsWith(role))) qualifiedName = role + qualifiedName;
+            }
+            else if (scope == ClassifierContext.ScopeCode.Profile)
+            {
+                // In case of Profile scope, we must add the name of the profile as a prefix to the class, to assure uniqueness across all possible
+                // scopes. Note that the "Basic" scope does not yield any name changes (Basic scope is assumed for all packages that do not have the
+                // 'profile' stereotype OR that are named after the Basic profile).
+                // In all other cases, the name of the profile is equal to the name of the package that 'owns' this class.
+                ContextSlt context = ContextSlt.GetContextSlt();
+                if (thisClass.OwningPackage.HasStereotype(context.GetConfigProperty(_ProfileStereotype)) && 
+                    thisClass.OwningPackage.Name != context.GetConfigProperty(_BasicProfileName))
+                    qualifiedName = thisClass.OwningPackage.Name + qualifiedName;
             }
 
             Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.GetQualifiedClassName >> Returning: " + 

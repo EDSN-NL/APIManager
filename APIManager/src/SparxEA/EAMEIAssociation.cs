@@ -579,26 +579,30 @@ namespace SparxEA.Model
             // an appropriate data type or a class...
             MEClass owner = null;
             EA.Element element = ((EAModelImplementation)this._model).Repository.GetElementByID(classID);
-            if (element.Type == "Class") owner = new MEClass(classID);
-            else // element.Type is not a class, we assume it's a data type instead....
+            if (element != null)
             {
-                ModelSlt model = ModelSlt.GetModelSlt();
-                owner = model.GetDataType(classID);
-            }
+                if (element.Type == "Class") owner = new MEClass(classID);
+                else // element.Type is not a class, we assume it's a data type instead....
+                {
+                    ModelSlt model = ModelSlt.GetModelSlt();
+                    owner = model.GetDataType(classID);
+                }
 
-            EndpointDescriptor descriptor;
+                EndpointDescriptor descriptor;
 
-            // Case-insensitive compare...
-            if (string.Compare(this._connector.Type, "Generalization", StringComparison.OrdinalIgnoreCase) == 0)
-            {
-                descriptor = new EndpointDescriptor(owner);
+                // Case-insensitive compare...
+                if (string.Compare(this._connector.Type, "Generalization", StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    descriptor = new EndpointDescriptor(owner);
+                }
+                else
+                {
+                    bool isNavigable = (string.Compare(endpoint.Navigable, "Navigable", StringComparison.OrdinalIgnoreCase) == 0);
+                    descriptor = new EndpointDescriptor(owner, endpoint.Cardinality, endpoint.Role, endpoint.Alias, isNavigable);
+                }
+                return descriptor;
             }
-            else
-            {
-                bool isNavigable = (string.Compare(endpoint.Navigable, "Navigable", StringComparison.OrdinalIgnoreCase) == 0);
-                descriptor = new EndpointDescriptor(owner, endpoint.Cardinality, endpoint.Role, endpoint.Alias, isNavigable);
-            }
-            return descriptor;
+            return null;
         }
     }
 }

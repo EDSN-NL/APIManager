@@ -15,18 +15,22 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         private const string _ClassScopeInterface               = "ClassScopeInterface";
         private const string _ClassScopeOperation               = "ClassScopeOperation";
         private const string _ClassScopeMessage                 = "ClassScopeMessage";
+        private const string _ClassScopeProfile                 = "ClassScopeProfile";
         private const string _RequestPkgName                    = "RequestPkgName";
         private const string _ResponsePkgName                   = "ResponsePkgName";
         private const string _CommonPkgName                     = "CommonPkgName";
         private const string _MessageAssemblyPkgStereotype      = "MessageAssemblyPkgStereotype";
         private const string _ServiceDeclPkgStereotype          = "ServiceDeclPkgStereotype";
         private const string _ServiceOperationPkgStereotype     = "ServiceOperationPkgStereotype";
+        private const string _BasicProfileName                  = "BasicProfileName";
+        private const string _ProfileStereotype                 = "ProfileStereotype";
 
         internal enum ContentTypeCode { Simple, Complex, Enum, Union, Unknown }   // Defines the schema content type of a classifier definition.
         internal enum ScopeCode       { Interface,                // Classifier is defined at Interface level (Common Schema);
                                         Operation,                // Classifier is defined at Operation level (unique for request/response);
                                         Message,                  // Classifier is Message-specific;
-                                        Remote }                  // Classifier is defined outside the scope of the Interface (remote schema). 
+                                        Remote,                   // Classifier is defined outside the scope of the Interface (remote schema); 
+                                        Profile }                 // Classifier is defined at Interface level, but in a separate profile.
         internal enum DocScopeCode    { Common, Local }           // For documentation purposes, the classifier can have either common- or local scope.
         
         private ContentTypeCode _contentType;
@@ -61,7 +65,9 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         /// </summary>
         internal bool IsInCommonSchema
         {
-            get { return ((this._schemaScope == ScopeCode.Interface) || (this._schemaScope == ScopeCode.Remote)); }
+            get { return (this._schemaScope == ScopeCode.Interface) || 
+                         (this._schemaScope == ScopeCode.Remote) || 
+                         (this._schemaScope == ScopeCode.Profile); }
         }
 
         /// <summary>
@@ -140,6 +146,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                     docScope = commonDocCtxDefined ? DocScopeCode.Common : DocScopeCode.Local;
                 }
                 else if (scopeTag == context.GetConfigProperty(_ClassScopeOperation).ToLower()) schemaScope = ScopeCode.Operation;
+                else if (scopeTag == context.GetConfigProperty(_ClassScopeProfile).ToLower()) schemaScope = commonSchemaDefined ? ScopeCode.Profile : ScopeCode.Operation;
             }
             else
             {
@@ -178,7 +185,13 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                         docScope = commonDocCtxDefined ? DocScopeCode.Common : DocScopeCode.Local;
                     }
                 }
+                else if (parent.HasStereotype(context.GetConfigProperty(_ProfileStereotype)) && parent.Name != context.GetConfigProperty(_BasicProfileName))
+                {
+                    schemaScope = ScopeCode.Profile;
+                    docScope = commonDocCtxDefined ? DocScopeCode.Common : DocScopeCode.Local;
+                }
                 // Package is not within Service context, assume remote definition, unless we don't have a common schema, in which case it will be 'Operation' scope.
+                // If we're in the 'Basic' profile, this is treated as Remote scope (i.e. we collect definitions 'as is' in the common schema)...
                 else
                 {
                     schemaScope = commonSchemaDefined ? ScopeCode.Remote : ScopeCode.Operation;

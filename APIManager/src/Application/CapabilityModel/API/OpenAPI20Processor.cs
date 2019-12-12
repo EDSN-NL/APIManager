@@ -186,11 +186,12 @@ namespace Plugin.Application.CapabilityModel.API
                         }
                         else if (capability is RESTResourceCapability)
                         {
-                            // We MUST NOT process Document Resources, these are just placeholders for the message schemas!
-                            if (((RESTResourceCapability)capability).Archetype != RESTResourceCapability.ResourceArchetype.Document)
+                            // We MUST NOT process Document (or ProfileSet) Resources, these are just placeholders for the message schemas!
+                            if (((RESTResourceCapability)capability).Archetype != RESTResourceCapability.ResourceArchetype.Document &&
+                                ((RESTResourceCapability)capability).Archetype != RESTResourceCapability.ResourceArchetype.ProfileSet)
                             {
                                 this._panel.WriteInfo(this._panelIndex + 1, "Processing Resource '" + capability.Name + "'...");
-                                if (this._inOperation) this._currentOperation = null;   // Remove the previous Operation capability.
+                                if (this._inOperation) this._currentOperation = null;   // In a (new) resource, close any pending Operation...
                                 this._inOperation = false;
                                 DefinePath(capability as RESTResourceCapability);
                             }
@@ -411,7 +412,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="name">A meaningfull name, with which we can identify the schema.</param>
         /// <param name="namespaceToken">Namespace token.</param>
-        /// <param name="ns">Schema namespace, preferably an URI.</param>
+        /// <param name="schemaNamespace">Schema namespace, preferably an URI.</param>
         /// <param name="version">Major, minor and build number of the schema. When omitted, the version defaults to '1.0.0'</param>
         /// <returns>Appropriate Schema implementation.</returns>
         /// <exception cref="MissingFieldException">No schema implementation has been defined for the current interface type.</exception>

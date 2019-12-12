@@ -22,7 +22,8 @@ namespace Plugin.Application.CapabilityModel.API
 
         private List<RESTResourceCapability> _tagList;              // The list of REST Resources that have tags defined for them.
         private List<RESTResourceCapability> _rootLevelTagList;     // The list of Root-level REST Resources that have tags defined for them.
-        private List<RESTResourceCapability> _documentList;         // The list of REST Document resources for this API.
+        private List<Tuple<int,RESTResourceCapability>>_documentList;       // The list of registered Document resources for this API.
+        private List<Tuple<int, RESTResourceCapability>> _profileSetList;   // The list of registered ProfileSet resources for this API.
 
         // Keep track of classes and associations to show in the diagram...
         private List<MEClass> _diagramClassList;
@@ -31,7 +32,28 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Returns the list of Document Resources for this API.
         /// </summary>
-        internal List<RESTResourceCapability> DocumentList { get { return this._documentList; } }
+        internal List<RESTResourceCapability> DocumentList
+        {
+            get
+            {
+                List<RESTResourceCapability> documentList = new List<RESTResourceCapability>();
+                foreach (var entry in this._documentList) documentList.Add(entry.Item2);
+                return documentList;
+            }
+        }
+
+        /// <summary>
+        /// Returns the list of ProfileSet Resources for this API.
+        /// </summary>
+        internal List<RESTResourceCapability> ProfileSetList
+        {
+            get
+            {
+                List<RESTResourceCapability> profileSetList = new List<RESTResourceCapability>();
+                foreach (var entry in this._profileSetList) profileSetList.Add(entry.Item2);
+                return profileSetList;
+            }
+        }
 
         /// <summary>
         /// Returns the list of Resources that have one or more assigned tag names. This list ALWAYS contains all root-level resources first,
@@ -81,7 +103,8 @@ namespace Plugin.Application.CapabilityModel.API
             ModelSlt model = ModelSlt.GetModelSlt();
             this._tagList = new List<RESTResourceCapability>();
             this._rootLevelTagList = new List<RESTResourceCapability>();
-            this._documentList = new List<RESTResourceCapability>();
+            this._documentList = new List<Tuple<int, RESTResourceCapability>>();
+            this._profileSetList = new List<Tuple<int, RESTResourceCapability>>();
 
             try
             {
@@ -153,7 +176,8 @@ namespace Plugin.Application.CapabilityModel.API
                 ContextSlt context = ContextSlt.GetContextSlt();
                 this._tagList = new List<RESTResourceCapability>();
                 this._rootLevelTagList = new List<RESTResourceCapability>();
-                this._documentList = new List<RESTResourceCapability>();
+                this._documentList = new List<Tuple<int, RESTResourceCapability>>();
+                this._profileSetList = new List<Tuple<int, RESTResourceCapability>>();
                 string archetypeStr = this._serviceClass.GetTag(context.GetConfigProperty(_ServiceArchetypeTag));
                 if (string.IsNullOrEmpty(archetypeStr))
                 {
@@ -174,33 +198,24 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Searches the list of registered Document resource for a resource with the given name. If found, associated
-        /// capability is removed from the list. If not found, the method fails silently.
-        /// </summary>
-        /// <param name="name">Name of resource to be removed.</param>
-        internal void DeleteDocumentResource(string name)
-        {
-            for (int i=0; i<this._documentList.Count; i++)
-            {
-                if (this._documentList[i].Name == name)
-                {
-                    this._documentList.RemoveAt(i);
-                    break;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Searches the list of registered Document resource for a resource with the given name. If found, the capability is returned.
+        /// Searches the list of registered Document resources for a resource with the given name. If found, it is returned.
         /// </summary>
         /// <param name="name">Name to be found.</param>
         /// <returns>Document resource with given name or NULL if not found.</returns>
         internal RESTResourceCapability FindDocumentResource(string name)
         {
-            foreach (RESTResourceCapability cap in this._documentList)
-            {
-                if (cap.Name == name) return cap;
-            }
+            foreach (var entry in this._documentList) if (entry.Item2.Name == name) return entry.Item2;
+            return null;
+        }
+
+        /// <summary>
+        /// Searches the list of registered ProfileSet resources for a resource with the given name. If found, it is returned.
+        /// </summary>
+        /// <param name="name">Name to be found.</param>
+        /// <returns>Document resource with given name or NULL if not found.</returns>
+        internal RESTResourceCapability FindProfileSet(string name)
+        {
+            foreach (var entry in this._profileSetList) if (entry.Item2.Name == name) return entry.Item2;
             return null;
         }
 
@@ -211,7 +226,45 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="documentResource">The resource to be registered.</param>
         internal void RegisterDocument(RESTResourceCapability documentResource)
         {
-            if (!this._documentList.Contains(documentResource)) this._documentList.Add(documentResource);
+            bool mayAdd = true; 
+            for (int i = 0; i < this._documentList.Count; i++)
+            {
+                if (this._documentList[i].Item2.Name == documentResource.Name)
+                {
+                    if (this._documentList[i].Item2 != documentResource)
+                    {
+                        var newEntry = new Tuple<int, RESTResourceCapability>(this._documentList[i].Item1 + 1, this._documentList[i].Item2);
+                        this._documentList[i] = newEntry;
+                        mayAdd = false;
+                    }
+                    else mayAdd = false;
+                }
+            }
+            if (mayAdd) this._documentList.Add(new Tuple<int, RESTResourceCapability>(1, documentResource));
+        }
+
+        /// <summary>
+        /// Registers the provided resource as an element of the profile-set list. We register the resource only if there is not yet a 
+        /// similarly named resource in the list.
+        /// </summary>
+        /// <param name="profileSet">The resource to be registered.</param>
+        internal void RegisterProfileSet(RESTResourceCapability profileSet)
+        {
+            bool mayAdd = true;
+            for (int i = 0; i < this._profileSetList.Count; i++)
+            {
+                if (this._profileSetList[i].Item2.Name == profileSet.Name)
+                {
+                    if (this._profileSetList[i].Item2 != profileSet)
+                    {
+                        var newEntry = new Tuple<int, RESTResourceCapability>(this._profileSetList[i].Item1 + 1, this._profileSetList[i].Item2);
+                        this._profileSetList[i] = newEntry;
+                        mayAdd = false;
+                    }
+                    else mayAdd = false;
+                }
+            }
+            if (mayAdd) this._profileSetList.Add(new Tuple<int, RESTResourceCapability>(1, profileSet));
         }
 
         /// <summary>
@@ -224,6 +277,44 @@ namespace Plugin.Application.CapabilityModel.API
         {
             if (resource.IsRootLevel && !this._rootLevelTagList.Contains(resource)) this._rootLevelTagList.Add(resource);
             else if (!this._tagList.Contains(resource)) this._tagList.Add(resource);
+        }
+
+        /// <summary>
+        /// Searches the list of registered Document resources for a resource with the given name. If found, the associated reference counter
+        /// is decremented and when all references are gone, the capability is removed from the list. If not found, the method fails silently.
+        /// </summary>
+        /// <param name="name">Name of Document resource to be unregistered.</param>
+        internal void UnregisterDocumentResource(string name)
+        {
+            for (int i = 0; i < this._documentList.Count; i++)
+            {
+                if (this._documentList[i].Item2.Name == name)
+                {
+                    var newEntry = new Tuple<int, RESTResourceCapability>(this._documentList[i].Item1 - 1, this._documentList[i].Item2);
+                    if (newEntry.Item1 <= 0) this._documentList.RemoveAt(i);
+                    else this._documentList[i] = newEntry;
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Searches the list of registered ProfileSet resources for a resource with the given name. If found, the associated reference counter
+        /// is decremented and when all references are gone, the capability is removed from the list. If not found, the method fails silently.
+        /// </summary>
+        /// <param name="name">Name of ProfileSet resource to be unregistered.</param>
+        internal void UnregisterProfileSet(string name)
+        {
+            for (int i = 0; i < this._profileSetList.Count; i++)
+            {
+                if (this._profileSetList[i].Item2.Name == name)
+                {
+                    var newEntry = new Tuple<int, RESTResourceCapability>(this._profileSetList[i].Item1 - 1, this._profileSetList[i].Item2);
+                    if (newEntry.Item1 <= 0) this._profileSetList.RemoveAt(i);
+                    else this._profileSetList[i] = newEntry;
+                    break;
+                }
+            }
         }
 
         /// <summary>

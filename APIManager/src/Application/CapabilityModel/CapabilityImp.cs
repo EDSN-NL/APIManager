@@ -4,6 +4,7 @@ using Framework.Logging;
 using Framework.Util;
 using Framework.Model;
 using Framework.Context;
+using Framework.View;
 
 namespace Plugin.Application.CapabilityModel
 {
@@ -21,6 +22,11 @@ namespace Plugin.Application.CapabilityModel
         internal static string ServiceCapabilityClassBaseStereotype = "ServiceCapabilityClassBaseStereotype";
         private const string _FileNameTag = "FileNameTag";
         private const string _PathNameTag = "PathNameTag";
+
+        /// <summary>
+        /// Get- or set the color that should be used to 'paint' the capability on a diagram.
+        /// </summary>
+        internal Diagram.ClassColor Color { get; set; }
 
         protected Service _rootService;                             // All capabilities 'belong' to a service instance.
         protected MEClass _capabilityClass;                         // Capabilities are always associated with a model element.
@@ -627,6 +633,7 @@ namespace Plugin.Application.CapabilityModel
             this._assignedRole = string.Empty;
             this._rootService = parentService;
             this._capabilityClass = null;           // As long as this is not set, the object is in invalid state!
+            Color = Diagram.ClassColor.Default;     // Color used to paint the capability on a diagram.
         }
     }
 }

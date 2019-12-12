@@ -351,23 +351,31 @@ namespace SparxEA.Model
             MEDataType dataType = null;
             ContextSlt context = ContextSlt.GetContextSlt();
 
-            if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeComplexDataType), StringComparison.OrdinalIgnoreCase) == 0 ||
-                String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeSimpleDataType), StringComparison.OrdinalIgnoreCase) == 0)
+            if (element != null)
             {
-                dataType = new MEDataType(element.ElementID);
-            }
-            else if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeEnumeration), StringComparison.OrdinalIgnoreCase) == 0)
-            {
-                dataType = new MEEnumeratedType(element.ElementID);
-            }
-            else if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeUnion), StringComparison.OrdinalIgnoreCase) == 0)
-            {
-                dataType = new MEUnionType(element.ElementID);
+                if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeComplexDataType), StringComparison.OrdinalIgnoreCase) == 0 ||
+                    String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeSimpleDataType), StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    dataType = new MEDataType(element.ElementID);
+                }
+                else if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeEnumeration), StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    dataType = new MEEnumeratedType(element.ElementID);
+                }
+                else if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeUnion), StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    dataType = new MEUnionType(element.ElementID);
+                }
+                else
+                {
+                    Logger.WriteError("SparxEA.Model.EAModelImplementation.getDataType >> Element '" + element.Name +
+                                     "' is of illegal type '" + element.MetaType + "', giving up!");
+                }
             }
             else
             {
-                Logger.WriteError("SparxEA.Model.EAModelImplementation.getDataType >> Element '" + element.Name +
-                                 "'is of illegal type '" + element.MetaType + "', giving up!");
+                Logger.WriteError("SparxEA.Model.EAModelImplementation.getDataType >> Element ID '" + typeID +
+                                  "' could not be found in the repository, giving up!");
             }
             return dataType;
         }
@@ -384,23 +392,31 @@ namespace SparxEA.Model
             MEDataType dataType = null;
             ContextSlt context = ContextSlt.GetContextSlt();
 
-            if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeComplexDataType), StringComparison.OrdinalIgnoreCase) == 0 ||
-                String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeSimpleDataType), StringComparison.OrdinalIgnoreCase) == 0)
+            if (element != null)
             {
-                dataType = new MEDataType(element.ElementID);
-            }
-            else if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeEnumeration), StringComparison.OrdinalIgnoreCase) == 0)
-            {
-                dataType = new MEEnumeratedType(element.ElementID);
-            }
-            else if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeUnion), StringComparison.OrdinalIgnoreCase) == 0)
-            {
-                dataType = new MEUnionType(element.ElementID);
+                if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeComplexDataType), StringComparison.OrdinalIgnoreCase) == 0 ||
+                    String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeSimpleDataType), StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    dataType = new MEDataType(element.ElementID);
+                }
+                else if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeEnumeration), StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    dataType = new MEEnumeratedType(element.ElementID);
+                }
+                else if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeUnion), StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    dataType = new MEUnionType(element.ElementID);
+                }
+                else
+                {
+                    Logger.WriteError("SparxEA.Model.EAModelImplementation.getDataType >> Element '" + element.Name +
+                                     "'is of illegal type '" + element.MetaType + "', giving up!");
+                }
             }
             else
             {
-                Logger.WriteError("SparxEA.Model.EAModelImplementation.getDataType >> Element '" + element.Name +
-                                 "'is of illegal type '" + element.MetaType + "', giving up!");
+                Logger.WriteError("SparxEA.Model.EAModelImplementation.getDataType >> Element ID '" + typeGUID +
+                                  "' could not be found in the repository, giving up!");
             }
             return dataType;
         }
@@ -811,9 +827,6 @@ namespace SparxEA.Model
             const string _BusinessComponentStereotype = "BusinessComponentStereotype";
             const string _ClassType = "Class";
             const string _DataType = "DataType";
-            //const string _ComplexBDTDBEntry             = "@STEREO;Name=BDTComplexType;FQName=Enexis ECDM::BDTComplexType;@ENDSTEREO;@STEREO;Name=LDT;FQName=Enexis ECDM::LDT;@ENDSTEREO;@STEREO;Name=BDT;FQName=Enexis ECDM::BDT;@ENDSTEREO;";
-            //const string _SimpleBDTDBEntry              = "@STEREO;Name=BDTSimpleType;FQName=Enexis ECDM::BDTSimpleType;@ENDSTEREO;@STEREO;Name=LDT;FQName=Enexis ECDM::LDT;@ENDSTEREO;@STEREO;Name=BDT;FQName=Enexis ECDM::BDT;@ENDSTEREO;";
-            //const string _ComponentDBEntry              = "@STEREO;Name=BusinessComponent;FQName=Enexis ECDM::BusinessComponent;@ENDSTEREO";
 
             Logger.WriteInfo("Framework.Model.ModelImplementation.UpdateModelElementType >> Updating Model Element '" +
                              element.Name + "' to type '" + stereotype + "'...");
@@ -834,8 +847,11 @@ namespace SparxEA.Model
                     this._repository.Execute(query);    // Undocumented feature that facilitates execution of 'random' SQL against the repository.
 
                     EA.Element physicalElement = this._repository.GetElementByID(element.ElementID);
-                    physicalElement.StereotypeEx = stereotype;
-                    physicalElement.Update();
+                    if (physicalElement != null)
+                    {
+                        physicalElement.StereotypeEx = stereotype;
+                        physicalElement.Update();
+                    }
                 }
                 catch (Exception exc)
                 {

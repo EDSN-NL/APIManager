@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="windows-1252"?>
 <UMLProfile profiletype="uml2">
-	<Documentation id="9B84831D-3" name="Enexis ECDM" version="4.10" notes="20170918:  Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109:  Vs 3.1:	Added support for 'nillable' elements.&#xA;20180110:  Vs 3.2:	Added 'alternativeNaming' tag to CommonSchema (SOAP backwards compatibility).&#xA;20180213: Vs 3.3:	Defines Service Archtetype and added _metatype to Service.&#xA;20180216: Vs 3.4:	Resource: removed 'isTag', added 'tagNames'.&#xA;20180308: Vs 4.0:	Implemented first draft of the Configuration Management Profile.&#xA;20180620: Vs 4.1:	Added another state to Service CM state: CheckedOut.&#xA;20180815: Vs 4.2: Added CM Ticket"/>
+	<Documentation id="9B84831D-3" name="Enexis ECDM" version="4.12" notes="20170918:  Vs 3.0:	Enhanced Service Profile for use with REST.&#xA;20180109:  Vs 3.1:	Added support for 'nillable' elements.&#xA;20180110:  Vs 3.2:	Added 'alternativeNaming' tag to CommonSchema (SOAP backwards compatibility).&#xA;20180213: Vs 3.3:	Defines Service Archtetype and added _metatype to Service.&#xA;20180216: Vs 3.4:	Resource: removed 'isTag', added 'tagNames'.&#xA;20180308: Vs 4.0:	Implemented first draft of the Configuration Management Profile.&#xA;20180620: Vs 4.1:	Added another state to Service CM state: CheckedOut.&#xA;20180815: Vs 4.2: Added CM Ticket"/>
 	<Content>
 		<Stereotypes>
 			<Stereotype name="_ASBIE" notes="Association Business Information Entity, used to qualify the association between two Business Components (ABIE's)." cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMAssoc" baseStereotypes="ECDMAssoc"/>
@@ -104,10 +104,10 @@
 			</Stereotype>
 			<Stereotype name="ECDMAssoc" notes="" cx="0" cy="0" bgcolor="16700649" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" isAbstract="true" generalizes="ECDMMeta" baseStereotypes="ECDMMeta">
 				<AppliesTo>
-					<Apply type="Composition">
+					<Apply type="Association">
 						<Property name="direction" value="Source -&gt; Destination"/>
 					</Apply>
-					<Apply type="Association">
+					<Apply type="Composition">
 						<Property name="direction" value="Source -&gt; Destination"/>
 					</Apply>
 				</AppliesTo>
@@ -262,6 +262,7 @@
 			<Stereotype name="PRIMModel" notes="This stereotype is 'reserved' for qualification of the Primitive Data Type library, of which there must be at most ONE within the framework!" cx="0" cy="0" bgcolor="11009769" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="ECDMPkg" baseStereotypes="ECDMPkg"/>
 			<Stereotype name="PRIMSimpleType" metatype="SimpleType" notes="Primitive, Simple Type." cx="0" cy="0" bgcolor="11009527" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="PRIM" baseStereotypes="PRIM"/>
 			<Stereotype name="PRIMUnion" metatype="Union" notes="Classification of Data Type. Union may only consist of Simple Types." cx="0" cy="0" bgcolor="11009527" fontcolor="0" bordercolor="0" borderwidth="1" hideicon="0" generalizes="PRIM" baseStereotypes="PRIM"/>
+			<Stereotype name="Profile" notes="Indicates that the associated package is a message profile (e.g. a variant of a subset of a given domain model)" cx="0" cy="0" bgcolor="-1" fontcolor="-1" bordercolor="-1" borderwidth="-1" hideicon="0" generalizes="ECDMPkg" baseStereotypes="ECDMPkg"/>
 			<Stereotype name="Release" metatype="ReleaseType" notes="Represents a formal release of one or more services (identified through a collection of associated features incorporated in the release)." cx="0" cy="0" bgcolor="16771561" fontcolor="-1" bordercolor="6908265" borderwidth="1" hideicon="0" generalizes="ECDMReleaseManagement" baseStereotypes="ECDMReleaseManagement">
 				<TaggedValues>
 					<Tag name="version" type="int" description="Version number of the release.&#xA;When a release is 'repeated' (i.e. because of last-minute changes and/or bugs), the release number is incremented for each subsequent release." unit="" values="" default=""/>
@@ -332,7 +333,11 @@
 					<Apply type="Actor"/>
 				</AppliesTo>
 			</Stereotype>
-			<Stereotype name="ServiceCapability" notes="A service capability represents a functional component of a (web-)service. Different 'flavours' of capabilities exist that are used to define messages, operations, contracts, etc." cx="0" cy="0" bgcolor="11009769" fontcolor="3947580" bordercolor="-1" borderwidth="1" hideicon="0" generalizes="ECDMComponent" baseStereotypes="ECDMComponent"/>
+			<Stereotype name="ServiceCapability" notes="A service capability represents a functional component of a (web-)service. Different 'flavours' of capabilities exist that are used to define messages, operations, contracts, etc." cx="0" cy="0" bgcolor="11009769" fontcolor="3947580" bordercolor="-1" borderwidth="1" hideicon="0" generalizes="ECDMComponent" baseStereotypes="ECDMComponent">
+				<TaggedValues>
+					<Tag name="color" type="string" description="Can be used to specify a specific color to be used to 'paint' the capability on a diagram." unit="" values="" default="Default"/>
+				</TaggedValues>
+			</Stereotype>
 			<Stereotype name="ServiceContainer" notes="A Service Container is a package in which a number of services are grouped together that serve a common functional domain.&#xA;Typically, the service container represents an adapter for a data source." cx="0" cy="0" bgcolor="11009769" fontcolor="-1" bordercolor="-1" borderwidth="1" hideicon="0" generalizes="ECDMPkg" baseStereotypes="ECDMPkg"/>
 			<Stereotype name="ServiceDeclaration" notes="This is the root package that contains all the components that comprise a specific major version of a service." cx="0" cy="0" bgcolor="11009769" fontcolor="-1" bordercolor="-1" borderwidth="1" hideicon="0" generalizes="ECDMPkg" baseStereotypes="ECDMPkg"/>
 			<Stereotype name="ServiceOperation" notes="" cx="0" cy="0" bgcolor="11009769" fontcolor="-1" bordercolor="-1" borderwidth="1" hideicon="0" generalizes="ECDMPkg" baseStereotypes="ECDMPkg"/>

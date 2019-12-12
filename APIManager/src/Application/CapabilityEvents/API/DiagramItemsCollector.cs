@@ -106,17 +106,20 @@ namespace Plugin.Application.Events.API
                     }
                 }
                 // Note that in case of SOAP, the first check will catch ALL SOAP capabilities, since they all live in the package of the
-                // Service Model.
+                // Service Model. The second test will select all REST Resources. This might result in some 'clutter', which has to be removed by hand.
                 else if (cap.OwningPackage == this._currentDiagram.OwningPackage || cap is RESTResourceCapability)
                 {
-                    this._diagramClassList.Add(cap.CapabilityClass);
-                    foreach (MEAssociation assoc in cap.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                    if (!this._diagramClassList.Contains(cap.CapabilityClass))  // Make sure we collect only unique classes...
                     {
-                        this._diagramAssocList.Add(assoc);
-                        // If the endpoint of the association is a Message Assembly, we MIGHT have to add it to the diagram manually...
-                        if (assoc.Destination.EndPoint.HasStereotype(this._messageAssemblyStereotype) && this._mustShowMessageAssembly)
+                        this._diagramClassList.Add(cap.CapabilityClass);
+                        foreach (MEAssociation assoc in cap.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
                         {
-                            this._diagramClassList.Add(assoc.Destination.EndPoint);
+                            this._diagramAssocList.Add(assoc);
+                            // If the endpoint of the association is a Message Assembly, we MIGHT have to add it to the diagram manually...
+                            if (assoc.Destination.EndPoint.HasStereotype(this._messageAssemblyStereotype) && this._mustShowMessageAssembly)
+                            {
+                                this._diagramClassList.Add(assoc.Destination.EndPoint);
+                            }
                         }
                     }
                 }

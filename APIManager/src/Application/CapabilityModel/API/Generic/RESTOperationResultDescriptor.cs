@@ -590,21 +590,25 @@ namespace Plugin.Application.CapabilityModel.API
                 int oldID = this._document != null ? this._document.CapabilityClass.ElementID : -1;
 
                 if (this._collection.ParentResource == null) return string.Empty;    // Context incomplete or wrong. Do nothing.
-                List<RESTResourceCapability> documentList = this._collection.ParentResource.ResourceList(RESTResourceCapability.ResourceArchetype.Document);
-                if (documentList.Count > 0)
+
+                // We retrieve the list(s) of Document- and Profile Set resources from our parent and merge them into a single list...
+                List<RESTResourceCapability> targetResourceList = this._collection.ParentResource.ResourceList(RESTResourceCapability.ResourceArchetype.Document);
+                List<RESTResourceCapability> profileSetList = this._collection.ParentResource.ResourceList(RESTResourceCapability.ResourceArchetype.ProfileSet);
+                foreach (var resource in profileSetList) targetResourceList.Add(resource);
+                if (targetResourceList.Count > 0)
                 {
                     // If we only have a single associated Document Resource, this is selected automatically. When there are multiple,
                     // we ask the user which one to use...
-                    if (documentList.Count == 1)
+                    if (targetResourceList.Count == 1)
                     {
-                        this._document = documentList[0];
+                        this._document = targetResourceList[0];
                         documentName = this._document.Name;
                         if (!this._payloadChange) this._payloadChange = this._document.CapabilityClass.ElementID != oldID;
                     }
                     else
                     {
-                        List<Capability> capList = documentList.ConvertAll(x => (Capability)x);
-                        using (CapabilityPicker dialog = new CapabilityPicker("Select Document resource", capList, false, false))
+                        List<Capability> capList = targetResourceList.ConvertAll(x => (Capability)x);
+                        using (CapabilityPicker dialog = new CapabilityPicker("Select Document- / Profile Set resource", capList, false, false))
                         {
                             if (dialog.ShowDialog() == DialogResult.OK)
                             {
@@ -621,7 +625,7 @@ namespace Plugin.Application.CapabilityModel.API
                         }
                     }
                 }
-                else MessageBox.Show("No suitable Document Resources to select, add one first!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                else MessageBox.Show("No suitable Document- or Profile Set Resources to select, add one first!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else if (this._payloadType == ResultPayloadType.CustomResponse)
             {

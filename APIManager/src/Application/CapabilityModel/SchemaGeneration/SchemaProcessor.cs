@@ -270,14 +270,19 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         /// <returns>Fully qualified class name (token:name) or empty string in case of errors.</returns>
         internal string ProcessClass(MEClass messageClass, string token)
         {
-            if (this._cache == null) this._cache = ClassCacheSlt.GetClassCacheSlt(); // Obtain a valid context for processing.
+            if (this._cache == null) this._cache = ClassCacheSlt.GetClassCacheSlt();
             if (this._panel == null) this._panel = ProgressPanelSlt.GetProgressPanelSlt();
-            string qualifiedClassName = GetQualifiedClassName(messageClass, ClassifierContext.ScopeCode.Operation);
-            return (this._cache.HasClassKey(token))? qualifiedClassName:
-                                                     ProcessClass(messageClass, token, 
-                                                                  new Tuple<ClassifierContext.ScopeCode, 
-                                                                            ClassifierContext.DocScopeCode>(ClassifierContext.ScopeCode.Operation, 
-                                                                                                            ClassifierContext.DocScopeCode.Common));
+
+            // Check whether we're using profiles. This is indicated by the name/stereotype of the 'owning' package...
+            ContextSlt context = ContextSlt.GetContextSlt();
+            ClassifierContext.ScopeCode scope = (messageClass.OwningPackage.HasStereotype(context.GetConfigProperty(_ProfileStereotype)) &&
+                                                 messageClass.OwningPackage.Name != context.GetConfigProperty(_BasicProfileName)) ? 
+                                                 ClassifierContext.ScopeCode.Profile : ClassifierContext.ScopeCode.Operation;
+            string qualifiedClassName = GetQualifiedClassName(messageClass, scope);
+            return this._cache.HasClassKey(token)? qualifiedClassName:
+                                                   ProcessClass(messageClass, token, 
+                                                                new Tuple<ClassifierContext.ScopeCode, ClassifierContext.DocScopeCode>
+                                                                    (scope, ClassifierContext.DocScopeCode.Common));
         }
 
         /// <summary>
@@ -355,11 +360,11 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                     string unqualifiedClassName = this._qualifiedClassName.Substring(this._qualifiedClassName.IndexOf(':') + 1);  // Remove namespace token.
                     bool isCommonDecl = (!this._qualifiedClassName.Contains(this._schema.NSToken) && this._commonSchema != null) ? true : false;
                     string elementName = Conversions.ToPascalCase(parent.AssignedRole) + Conversions.ToPascalCase(this._currentCapability.AssignedRole);
-                    string elementNamespace = (isCommonDecl) ? this._commonSchema.SchemaNamespace : this._schema.SchemaNamespace;
+                    string elementNamespace = isCommonDecl ? this._commonSchema.SchemaNamespace : this._schema.SchemaNamespace;
                     success = this._schema.AddElement(elementName, elementNamespace, unqualifiedClassName, GetCapabilityDocumentation(this._currentCapability.CapabilityClass));
                     this._messageName = elementName;
-                    this._messageNsToken = (isCommonDecl) ? this._commonSchema.NSToken : this._schema.NSToken;
-                    this._messageNamespace = (isCommonDecl) ? this._commonSchema.SchemaNamespace : this._schema.SchemaNamespace;
+                    this._messageNsToken = isCommonDecl ? this._commonSchema.NSToken : this._schema.NSToken;
+                    this._messageNamespace = isCommonDecl ? this._commonSchema.SchemaNamespace : this._schema.SchemaNamespace;
                     this._generatedOutput = true;
                 }
 

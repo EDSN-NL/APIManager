@@ -16,13 +16,17 @@ namespace Plugin.Application.CapabilityModel.API
     /// Depending on the archetype of the resource, some restrictions apply:
     /// 1) Collection and Store resources MUST own at least ONE PathExpression object and SHALL NOT be used at the end of an URL.
     /// 2) Controller resources MUST ONLY exist at the end of an URL and SHALL NOT contain PathExpressions.
-    /// 3) Document resources MUST ONLY exist at the end of a REST Flow, are NOT displayed as part of the URL and thus CAN NOT have any children.
+    /// 3) Document- or ProfileSet resources MUST ONLY exist at the end of a REST Flow, are NOT displayed as part of the URL and 
+    ///    thus CAN NOT have any children.
     /// 4) Identifier resources are not so much actual resources, but represent a resource instance (primary key).
     /// </summary>
     internal class RESTResourceCapability: Capability, IRESTResourceContainer
     {
         // This is used to specify the generic resource type that is represented by this resource within a given REST flow...
-        internal enum ResourceArchetype { Collection, Controller, Document, Identifier, Store, Unknown }
+        internal enum ResourceArchetype { Collection, Controller, Document, ProfileSet, Identifier, Store, Unknown }
+
+        // The basic profile is the 'default' when no profiles are explicitly defined and is the only choice in case of 'Document' resources.
+        internal const string _BasicProfile = "Basic";
 
         /// <summary>
         /// Add one or more child resources to the current resource. We do not check whether the names are indeed unique, 
@@ -111,6 +115,20 @@ namespace Plugin.Application.CapabilityModel.API
             get
             {
                 if (this._imp != null) return ((RESTResourceCapabilityImp)this._imp).BusinessComponent;
+                else throw new MissingImplementationException("RESTResourceCapabilityImp");
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of all document-payload classes that are associated with this resource. In case of a Document resource, this list will only have
+        /// a single entry. In case of a ProfileSet resource, this list contains all alternative models (Profiles) that are part of the ProfileSet.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal SortedList<string, MEClass> ProfileSet
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTResourceCapabilityImp)this._imp).ProfileSet;
                 else throw new MissingImplementationException("RESTResourceCapabilityImp");
             }
         }

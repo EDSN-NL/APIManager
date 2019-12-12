@@ -30,6 +30,15 @@ namespace SparxEA.Model
         private const string _MetaTypeEnumeration           = "MetaTypeEnumeration";
         private const string _MetaTypeUnion                 = "MetaTypeUnion";
 
+        // Used to specify EA Classifiers...
+        private const string _ClassType                     = "Class";
+        private const string _ObjectType                    = "Object";
+        private const string _ArtifactType                  = "Artifact";
+        private const string _PackageType                   = "Package";
+        private const string _DataType                      = "DataType";
+        private const string _EnumType                      = "Enumeration";
+        private const string _LogicalDiagramType            = "Logical";
+
         private EA.Package _package;                        // EA Package representation.
         private bool _useLocks;                             // Is set to 'true' when we're using repository security.
 
@@ -163,7 +172,7 @@ namespace SparxEA.Model
             // Prevent the 'AddNew' + 'Update' to generate scope switches until we're ready for them...
             ControllerSlt.GetControllerSlt().EnableScopeSwitch = false;
 
-            var newElement = this._package.Elements.AddNew(name, "Class") as EA.Element;
+            var newElement = this._package.Elements.AddNew(name, _ClassType) as EA.Element;
             newElement.Update();        // Update immediately to properly finish the create. Note that this triggers a Scope Switch to incomplete object!
             this._package.Elements.Refresh();
             bool needUpdate = false;
@@ -210,7 +219,7 @@ namespace SparxEA.Model
             // Prevent the 'AddNew' + 'Update' to generate scope switches until we're ready for them...
             ControllerSlt.GetControllerSlt().EnableScopeSwitch = false;
 
-            var newElement = this._package.Elements.AddNew(name, "DataType") as EA.Element;
+            var newElement = this._package.Elements.AddNew(name, metaType == MEDataType.MetaDataType.Enumeration ? _EnumType : _DataType) as EA.Element;
             newElement.Update();        // Update immediately to properly finish the create.
             this._package.Elements.Refresh();
 
@@ -268,7 +277,7 @@ namespace SparxEA.Model
             // Prevent the 'AddNew' + 'Update' to generate scope switches until we're ready for them...
             ControllerSlt.GetControllerSlt().EnableScopeSwitch = false;
 
-            var diagram = this._package.Diagrams.AddNew(diagramName, "Logical") as EA.Diagram;
+            var diagram = this._package.Diagrams.AddNew(diagramName, _LogicalDiagramType) as EA.Diagram;
             diagram.Update();
             this._package.Diagrams.Refresh();
             ControllerSlt.GetControllerSlt().EnableScopeSwitch = true;
@@ -313,7 +322,7 @@ namespace SparxEA.Model
 
             try
             {
-                newElement = this._package.Elements.AddNew(name, "Object") as EA.Element;
+                newElement = this._package.Elements.AddNew(name, _ObjectType) as EA.Element;
                 newElement.ClassfierID = classifier.ElementID;
                 newElement.ClassifierName = classifier.Name;
                 if (sortID != -1) newElement.TreePos = sortID;
@@ -357,7 +366,7 @@ namespace SparxEA.Model
             // Prevent the 'AddNew' + 'Update' to generate scope switches until we're ready for them...
             ControllerSlt.GetControllerSlt().EnableScopeSwitch = false;
 
-            var newPackage = this._package.Packages.AddNew(name, "Package") as EA.Package;
+            var newPackage = this._package.Packages.AddNew(name, _PackageType) as EA.Package;
             newPackage.Update();    // Update immediately to properly finish the creation!
             newPackage.Element.Update();
             this._package.Packages.Refresh();
@@ -398,7 +407,7 @@ namespace SparxEA.Model
             for (short i = 0; i < this._package.Elements.Count; i++)
             {
                 var currElement = this._package.Elements.GetAt(i) as EA.Element;
-                if (currElement.ElementID == thisOne.ElementID)
+                if (currElement != null && currElement.ElementID == thisOne.ElementID)
                 {
                     this._package.Elements.DeleteAt(i, true); // Refresh options currently does not work.
                     this._package.Elements.Refresh();
@@ -426,7 +435,7 @@ namespace SparxEA.Model
                 Logger.WriteInfo("SparxEA.Model.EAMEIPackage.deleteObject >> Examining index: " + i);
                 var currElement = this._package.Elements.GetAt(i) as EA.Element;
                 Logger.WriteInfo("SparxEA.Model.EAMEIPackage.deleteObject >> Found element: '" + currElement.Name + "'...");
-                if (currElement.ElementID == thisOne.ElementID)
+                if (currElement != null && currElement.ElementID == thisOne.ElementID)
                 {
                     this._package.Elements.DeleteAt(i, true); // Refresh options currently does not work.
                     this._package.Elements.Refresh();
@@ -449,7 +458,7 @@ namespace SparxEA.Model
             for (short i = 0; i < this._package.Packages.Count; i++)
             {
                 var childPackage = this._package.Packages.GetAt(i) as EA.Package;
-                if (childPackage.PackageID == child.ElementID)
+                if (childPackage != null && childPackage.PackageID == child.ElementID)
                 {
                     this._package.Packages.DeleteAt(i, true);   // Refresh options currently does not work.
                     this._package.Packages.Refresh();
@@ -501,9 +510,12 @@ namespace SparxEA.Model
         internal override MEClass FindClass(string className, string stereotype)
         {
             this._package.Elements.Refresh();   // Make sure that we're looking at the most up-to-date state.
-            foreach (EA.Element element in this._package.Elements)
+            foreach (Object anObject in this._package.Elements)
             {
-                if (element.Name == className)
+                // Coding trick to avoid exceptions in case EA returns an object from the Elements list that is not really an Element.
+                // Unfortunately, we found out the hard way that this happens some times.
+                EA.Element element = anObject as EA.Element;
+                if (element != null && element.Type == _ClassType && element.Name == className)
                 {
                     if (!string.IsNullOrEmpty(stereotype))
                     {
@@ -597,14 +609,16 @@ namespace SparxEA.Model
         {
             ModelSlt model = ModelSlt.GetModelSlt();
             this._package.Elements.Refresh();   // Make sure that we're looking at the most up-to-date state.
-            foreach (EA.Element element in this._package.Elements)
+            foreach (Object anObject in this._package.Elements)
             {
-                if (element.Name == typeName)
+                EA.Element element = anObject as EA.Element;
+                if (element != null && (element.Type == _DataType || element.Type == _EnumType) && element.Name == typeName)
                 {
                     if (!string.IsNullOrEmpty(stereotype))
                     {
                         if (element.HasStereotype(stereotype)) return model.GetDataType(element.ElementID);
-                    } else return model.GetDataType(element.ElementID);
+                    }
+                    else return model.GetDataType(element.ElementID);
                 }
             }
             return null;
@@ -748,14 +762,13 @@ namespace SparxEA.Model
         {
             this._package.Elements.Refresh();   // Make sure that we're looking at the most up-to-date state.
             if (!string.IsNullOrEmpty(nameFragment)) nameFragment = nameFragment.ToLower();
-            foreach (EA.Element element in this._package.Elements)
+            foreach (Object anObject in this._package.Elements)
             {
-                if (element.Type == "Artifact")
+                EA.Element element = anObject as EA.Element;
+                if (element != null && element.Type == _ArtifactType && 
+                    (string.IsNullOrEmpty(nameFragment) || element.Name.ToLower().Contains(nameFragment)))
                 {
-                    if (string.IsNullOrEmpty(nameFragment) || element.Name.ToLower().Contains(nameFragment))
-                    {
-                        return new MEProfiler(element.ElementID);
-                    }
+                    return new MEProfiler(element.ElementID);
                 }
             }
             return null;
@@ -779,9 +792,12 @@ namespace SparxEA.Model
         internal override IEnumerable<MEClass> GetClasses()
         {
             this._package.Elements.Refresh();   // Assures that we're looking at the most up-to-date contents.
-            foreach (EA.Element element in this._package.Elements)
+            
+            foreach (Object anObject in this._package.Elements)
             {
-                yield return new MEClass(element.ElementID);
+                EA.Element element = anObject as EA.Element;
+                //if (element != null && element.Type == _ClassType) yield return new MEClass(element.ElementID);
+                if (element != null) yield return new MEClass(element.ElementID);
             }
         }
 
@@ -800,34 +816,39 @@ namespace SparxEA.Model
             string enumStereotype = context.GetConfigProperty(_BDTEnumStereotype);
 
             this._package.Elements.Refresh();   // Assures that we're looking at the most up-to-date contents.
-            foreach (EA.Element element in this._package.Elements)
+
+            foreach (Object anObject in this._package.Elements)
             {
-                if (!string.IsNullOrEmpty(stereotype))
+                EA.Element element = anObject as EA.Element;
+                if (element != null && element.Type == _ClassType)
                 {
-                    if (element.HasStereotype(stereotype)) classList.Add(new MEClass(element.ElementID));
-                }
-                else
-                {
-                    if (element.HasStereotype(componentStereotype))
+                    if (!string.IsNullOrEmpty(stereotype))
                     {
-                        // 'Standard' component (class).
-                        classList.Add(new MEClass(element.ElementID));
+                        if (element.HasStereotype(stereotype)) classList.Add(new MEClass(element.ElementID));
                     }
                     else
                     {
-                        // Check if this is a recognized data type...
-                        if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeComplexDataType), StringComparison.OrdinalIgnoreCase) == 0 ||
-						                      String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeSimpleDataType), StringComparison.OrdinalIgnoreCase) == 0)
+                        if (element.HasStereotype(componentStereotype))
                         {
-                            classList.Add(new MEDataType(element.ElementID));
+                            // 'Standard' component (class).
+                            classList.Add(new MEClass(element.ElementID));
                         }
-                        else if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeEnumeration), StringComparison.OrdinalIgnoreCase) == 0)
+                        else
                         {
-                            classList.Add(new MEEnumeratedType(element.ElementID));
-                        }
-                        else if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeUnion), StringComparison.OrdinalIgnoreCase) == 0)
-                        {
-                            classList.Add(new MEUnionType(element.ElementID));
+                            // Check if this is a recognized data type...
+                            if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeComplexDataType), StringComparison.OrdinalIgnoreCase) == 0 ||
+                                                  String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeSimpleDataType), StringComparison.OrdinalIgnoreCase) == 0)
+                            {
+                                classList.Add(new MEDataType(element.ElementID));
+                            }
+                            else if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeEnumeration), StringComparison.OrdinalIgnoreCase) == 0)
+                            {
+                                classList.Add(new MEEnumeratedType(element.ElementID));
+                            }
+                            else if (String.Compare(element.MetaType, context.GetConfigProperty(_MetaTypeUnion), StringComparison.OrdinalIgnoreCase) == 0)
+                            {
+                                classList.Add(new MEUnionType(element.ElementID));
+                            }
                         }
                     }
                 }
@@ -1373,19 +1394,23 @@ namespace SparxEA.Model
 
             Logger.WriteInfo("SparxEA.Model.EAMEIPackage.RepairStereotypeInPackage >> Checking package '" + package.Name + 
                              "' for elements with stereotype '" + stereotype + "'...");
-            foreach (EA.Element el in package.Elements)
+            foreach (Object anObject in package.Elements)
             {
-                string stereoTypes = el.StereotypeEx;
-                // If we have the name part, the the 'HasStereotype' check fails, this implies that the profile-part is missing.
-                // We have to correct this here.
-                if (stereoTypes.Contains(namePart) && !el.HasStereotype(stereotype))
+                EA.Element el = anObject as EA.Element;
+                if (el != null && el.Type == _ClassType)
                 {
-                    int splitAt = stereoTypes.IndexOf(namePart);
-                    el.StereotypeEx = stereoTypes.Substring(0, splitAt) + prefix + stereoTypes.Substring(splitAt);
-                    Logger.WriteInfo("SparxEA.Model.EAMEIPackage.RepairStereotypeInPackage >> Element '" + package.Name + "." + el.Name + 
-                                     "' has been corrected.");
-                    el.Update();
-                    ((EAModelImplementation)this._model).Repository.AdviseElementChange(el.ElementID);
+                    string stereoTypes = el.StereotypeEx;
+                    // If we have the name part, the the 'HasStereotype' check fails, this implies that the profile-part is missing.
+                    // We have to correct this here.
+                    if (stereoTypes.Contains(namePart) && !el.HasStereotype(stereotype))
+                    {
+                        int splitAt = stereoTypes.IndexOf(namePart);
+                        el.StereotypeEx = stereoTypes.Substring(0, splitAt) + prefix + stereoTypes.Substring(splitAt);
+                        Logger.WriteInfo("SparxEA.Model.EAMEIPackage.RepairStereotypeInPackage >> Element '" + package.Name + "." + el.Name +
+                                         "' has been corrected.");
+                        el.Update();
+                        ((EAModelImplementation)this._model).Repository.AdviseElementChange(el.ElementID);
+                    }
                 }
             }
             if (entireHierarchy) foreach (EA.Package child in package.Packages) RepairRecursivePackages(child, stereotype, entireHierarchy);

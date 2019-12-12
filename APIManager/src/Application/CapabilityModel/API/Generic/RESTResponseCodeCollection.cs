@@ -522,11 +522,11 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
 
-                if (payloadClass == null)   // We must have found a payload somewhere...
+                // We must have found a payload somewhere. If it's gone, we might have deleted something that we should not have deleted!
+                if (payloadClass == null)   
                 {
-                    string message = "Missing expected payload class for response code '" + Name + "." + attrib.Name + "'!";
-                    Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection.CreateDescriptorFromAttribute >> " + message);
-                    throw new InvalidOperationException(message);
+                    Logger.WriteWarning("Missing expected payload class for response code '" + Name + "." + attrib.Name + "', payload changed to NONE!");
+                    payloadType = RESTOperationResultDescriptor.ResultPayloadType.None;
                 }
 
                 // In case of 'document' payload, we must convert the class to its corresponding capability object. We can simply instantiate

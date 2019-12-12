@@ -69,16 +69,18 @@
             this.DefineIdentifierToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.CreateDocument = new System.Windows.Forms.Button();
             this.LinkDocument = new System.Windows.Forms.Button();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.OperationsBox.SuspendLayout();
             this.PropertiesBox.SuspendLayout();
             this.OperationMenuStrip.SuspendLayout();
             this.DocumentationBox.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(370, 316);
+            this.Ok.Location = new System.Drawing.Point(370, 346);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
             this.Ok.TabIndex = 10;
@@ -88,7 +90,7 @@
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(451, 316);
+            this.Cancel.Location = new System.Drawing.Point(451, 346);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
             this.Cancel.TabIndex = 9;
@@ -112,10 +114,10 @@
             this.OperationsBox.Controls.Add(this.AddOperation);
             this.OperationsBox.Location = new System.Drawing.Point(260, 8);
             this.OperationsBox.Name = "OperationsBox";
-            this.OperationsBox.Size = new System.Drawing.Size(266, 164);
+            this.OperationsBox.Size = new System.Drawing.Size(266, 190);
             this.OperationsBox.TabIndex = 5;
             this.OperationsBox.TabStop = false;
-            this.OperationsBox.Text = "Associated Operations";
+            this.OperationsBox.Text = "Associated operations";
             // 
             // OperationsList
             // 
@@ -125,10 +127,11 @@
             this.OperationsList.FullRowSelect = true;
             this.OperationsList.GridLines = true;
             this.OperationsList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.OperationsList.HideSelection = false;
             this.OperationsList.Location = new System.Drawing.Point(7, 19);
             this.OperationsList.MultiSelect = false;
             this.OperationsList.Name = "OperationsList";
-            this.OperationsList.Size = new System.Drawing.Size(250, 104);
+            this.OperationsList.Size = new System.Drawing.Size(250, 130);
             this.OperationsList.TabIndex = 0;
             this.OperationsList.UseCompatibleStateImageBehavior = false;
             this.OperationsList.View = System.Windows.Forms.View.Details;
@@ -146,7 +149,7 @@
             // EditOperation
             // 
             this.EditOperation.Image = ((System.Drawing.Image)(resources.GetObject("EditOperation.Image")));
-            this.EditOperation.Location = new System.Drawing.Point(68, 129);
+            this.EditOperation.Location = new System.Drawing.Point(68, 155);
             this.EditOperation.Name = "EditOperation";
             this.EditOperation.Size = new System.Drawing.Size(25, 25);
             this.EditOperation.TabIndex = 3;
@@ -156,7 +159,7 @@
             // DeleteOperation
             // 
             this.DeleteOperation.Image = ((System.Drawing.Image)(resources.GetObject("DeleteOperation.Image")));
-            this.DeleteOperation.Location = new System.Drawing.Point(37, 129);
+            this.DeleteOperation.Location = new System.Drawing.Point(37, 155);
             this.DeleteOperation.Name = "DeleteOperation";
             this.DeleteOperation.Size = new System.Drawing.Size(25, 25);
             this.DeleteOperation.TabIndex = 2;
@@ -166,7 +169,7 @@
             // AddOperation
             // 
             this.AddOperation.Image = ((System.Drawing.Image)(resources.GetObject("AddOperation.Image")));
-            this.AddOperation.Location = new System.Drawing.Point(6, 129);
+            this.AddOperation.Location = new System.Drawing.Point(6, 155);
             this.AddOperation.Name = "AddOperation";
             this.AddOperation.Size = new System.Drawing.Size(25, 25);
             this.AddOperation.TabIndex = 1;
@@ -195,7 +198,7 @@
             this.PropertiesBox.Controls.Add(this.label3);
             this.PropertiesBox.Controls.Add(this.ParameterName);
             this.PropertiesBox.Controls.Add(this.label2);
-            this.PropertiesBox.Location = new System.Drawing.Point(5, 81);
+            this.PropertiesBox.Location = new System.Drawing.Point(5, 107);
             this.PropertiesBox.Name = "PropertiesBox";
             this.PropertiesBox.Size = new System.Drawing.Size(249, 91);
             this.PropertiesBox.TabIndex = 6;
@@ -279,7 +282,7 @@
             // NewMinorVersion
             // 
             this.NewMinorVersion.AutoSize = true;
-            this.NewMinorVersion.Location = new System.Drawing.Point(5, 324);
+            this.NewMinorVersion.Location = new System.Drawing.Point(5, 346);
             this.NewMinorVersion.Name = "NewMinorVersion";
             this.NewMinorVersion.Size = new System.Drawing.Size(138, 17);
             this.NewMinorVersion.TabIndex = 8;
@@ -288,16 +291,16 @@
             // 
             // ResourceNameFld
             // 
-            this.ResourceNameFld.Location = new System.Drawing.Point(110, 49);
+            this.ResourceNameFld.Location = new System.Drawing.Point(112, 25);
             this.ResourceNameFld.Name = "ResourceNameFld";
-            this.ResourceNameFld.Size = new System.Drawing.Size(144, 20);
+            this.ResourceNameFld.Size = new System.Drawing.Size(131, 20);
             this.ResourceNameFld.TabIndex = 2;
             this.ResourceNameFld.Leave += new System.EventHandler(this.ResourceNameFld_Leave);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(66, 52);
+            this.label1.Location = new System.Drawing.Point(68, 28);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(38, 13);
             this.label1.TabIndex = 0;
@@ -314,16 +317,16 @@
             this.DocumentationBox.Controls.Add(this.label5);
             this.DocumentationBox.Controls.Add(this.DocDescription);
             this.DocumentationBox.Controls.Add(this.label4);
-            this.DocumentationBox.Location = new System.Drawing.Point(5, 178);
+            this.DocumentationBox.Location = new System.Drawing.Point(5, 204);
             this.DocumentationBox.Name = "DocumentationBox";
-            this.DocumentationBox.Size = new System.Drawing.Size(521, 132);
+            this.DocumentationBox.Size = new System.Drawing.Size(521, 136);
             this.DocumentationBox.TabIndex = 7;
             this.DocumentationBox.TabStop = false;
-            this.DocumentationBox.Text = "Documentation";
+            this.DocumentationBox.Text = "Documentation properties";
             // 
             // TagNames
             // 
-            this.TagNames.Location = new System.Drawing.Point(75, 100);
+            this.TagNames.Location = new System.Drawing.Point(75, 103);
             this.TagNames.Name = "TagNames";
             this.TagNames.Size = new System.Drawing.Size(427, 20);
             this.TagNames.TabIndex = 4;
@@ -332,7 +335,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(29, 103);
+            this.label8.Location = new System.Drawing.Point(29, 106);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(40, 13);
             this.label8.TabIndex = 0;
@@ -340,7 +343,7 @@
             // 
             // ExternalDocURL
             // 
-            this.ExternalDocURL.Location = new System.Drawing.Point(299, 74);
+            this.ExternalDocURL.Location = new System.Drawing.Point(299, 77);
             this.ExternalDocURL.Name = "ExternalDocURL";
             this.ExternalDocURL.Size = new System.Drawing.Size(203, 20);
             this.ExternalDocURL.TabIndex = 3;
@@ -349,7 +352,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(261, 77);
+            this.label7.Location = new System.Drawing.Point(261, 80);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(32, 13);
             this.label7.TabIndex = 0;
@@ -358,7 +361,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(242, 29);
+            this.label6.Location = new System.Drawing.Point(245, 35);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(57, 13);
             this.label6.TabIndex = 0;
@@ -376,7 +379,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(242, 16);
+            this.label5.Location = new System.Drawing.Point(245, 22);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(45, 13);
             this.label5.TabIndex = 0;
@@ -384,7 +387,7 @@
             // 
             // DocDescription
             // 
-            this.DocDescription.Location = new System.Drawing.Point(75, 19);
+            this.DocDescription.Location = new System.Drawing.Point(75, 22);
             this.DocDescription.Multiline = true;
             this.DocDescription.Name = "DocDescription";
             this.DocDescription.Size = new System.Drawing.Size(164, 75);
@@ -394,7 +397,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(6, 16);
+            this.label4.Location = new System.Drawing.Point(6, 22);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(63, 13);
             this.label4.TabIndex = 0;
@@ -407,7 +410,7 @@
             // CreateDocument
             // 
             this.CreateDocument.Image = ((System.Drawing.Image)(resources.GetObject("CreateDocument.Image")));
-            this.CreateDocument.Location = new System.Drawing.Point(5, 46);
+            this.CreateDocument.Location = new System.Drawing.Point(9, 22);
             this.CreateDocument.Name = "CreateDocument";
             this.CreateDocument.Size = new System.Drawing.Size(25, 25);
             this.CreateDocument.TabIndex = 3;
@@ -417,12 +420,25 @@
             // LinkDocument
             // 
             this.LinkDocument.Image = ((System.Drawing.Image)(resources.GetObject("LinkDocument.Image")));
-            this.LinkDocument.Location = new System.Drawing.Point(35, 46);
+            this.LinkDocument.Location = new System.Drawing.Point(40, 22);
             this.LinkDocument.Name = "LinkDocument";
             this.LinkDocument.Size = new System.Drawing.Size(25, 25);
             this.LinkDocument.TabIndex = 10;
             this.LinkDocument.UseVisualStyleBackColor = true;
             this.LinkDocument.Click += new System.EventHandler(this.LinkDocument_Click);
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.CreateDocument);
+            this.groupBox1.Controls.Add(this.LinkDocument);
+            this.groupBox1.Controls.Add(this.label1);
+            this.groupBox1.Controls.Add(this.ResourceNameFld);
+            this.groupBox1.Location = new System.Drawing.Point(5, 40);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(249, 61);
+            this.groupBox1.TabIndex = 11;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Document / Profile properties";
             // 
             // RESTResourceDialog
             // 
@@ -430,12 +446,9 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(534, 357);
-            this.Controls.Add(this.LinkDocument);
-            this.Controls.Add(this.CreateDocument);
+            this.ClientSize = new System.Drawing.Size(534, 387);
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.DocumentationBox);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.ResourceNameFld);
             this.Controls.Add(this.NewMinorVersion);
             this.Controls.Add(this.ResourceTypeBox);
             this.Controls.Add(this.PropertiesBox);
@@ -455,6 +468,8 @@
             this.OperationMenuStrip.ResumeLayout(false);
             this.DocumentationBox.ResumeLayout(false);
             this.DocumentationBox.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -501,5 +516,6 @@
         private System.Windows.Forms.Button LinkDocument;
         private System.Windows.Forms.TextBox TagNames;
         private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.GroupBox groupBox1;
     }
 }
