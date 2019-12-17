@@ -217,8 +217,8 @@ namespace Plugin.Application.Forms
         /// <summary>
         /// This event is raised when the user selects a payload type. 
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="sender">Ignored</param>
+        /// <param name="e">Ignored</param>
         private void PayloadType_CheckedChanged(object sender, EventArgs e)
         {
             RESTOperationResultDescriptor.ResultPayloadType oldType = this._result.PayloadType;

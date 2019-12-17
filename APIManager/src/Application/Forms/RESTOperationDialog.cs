@@ -540,7 +540,12 @@ namespace Plugin.Application.Forms
                 if (response.Category == RESTOperationResultDescriptor.ResponseCategory.Success)
                 {
                     foundOk = true;
-                    if (response.ResultCode == "200" && response.Document == null && response.PayloadClass == null) message += "Success code 200 implies a payload;";
+                    if (response.ResultCode == "200" && 
+                        response.Document == null && 
+                        response.PayloadClass == null && 
+                        MessageBox.Show("Success code 200 typically implies a payload, do you want to assign one?", 
+                                        "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                        this.DialogResult = DialogResult.None;
                 }
                 else if (response.Category == RESTOperationResultDescriptor.ResponseCategory.ClientError) foundError = true;
                 if (!response.IsValid)
