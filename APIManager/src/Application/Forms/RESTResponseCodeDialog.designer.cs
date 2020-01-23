@@ -31,6 +31,7 @@ namespace Plugin.Application.Forms
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RESTResponseCodeDialog));
             this.Cancel = new System.Windows.Forms.Button();
             this.Ok = new System.Windows.Forms.Button();
@@ -64,30 +65,51 @@ namespace Plugin.Application.Forms
             this.ExternalLink = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.IsRange = new System.Windows.Forms.CheckBox();
+            this.ResponseHeaderGroup = new System.Windows.Forms.GroupBox();
+            this.UseReqHeaderCollection = new System.Windows.Forms.Button();
+            this.EditReqHeaderCollections = new System.Windows.Forms.Button();
+            this.EditReqHeader = new System.Windows.Forms.Button();
+            this.DeleteReqHeader = new System.Windows.Forms.Button();
+            this.AddReqHeader = new System.Windows.Forms.Button();
+            this.ResponseHeaderList = new System.Windows.Forms.ListView();
+            this.ReqHdrName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.ReqHdrDescription = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.CategoryCodeGroup = new System.Windows.Forms.GroupBox();
+            this.PayloadGroup = new System.Windows.Forms.GroupBox();
+            this.ResponseHeaderMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.addToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.useHeaderCollectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editHeaderCollectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CategoryBox.SuspendLayout();
             this.PayloadTypeBox.SuspendLayout();
             this.ResponsePayloadBox.SuspendLayout();
             this.RspCardinalityGroup.SuspendLayout();
             this.ExternalLinkBox.SuspendLayout();
+            this.ResponseHeaderGroup.SuspendLayout();
+            this.CategoryCodeGroup.SuspendLayout();
+            this.PayloadGroup.SuspendLayout();
+            this.ResponseHeaderMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(304, 346);
+            this.Cancel.Location = new System.Drawing.Point(711, 353);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
-            this.Cancel.TabIndex = 6;
+            this.Cancel.TabIndex = 4;
             this.Cancel.Text = "Cancel";
             this.Cancel.UseVisualStyleBackColor = true;
             // 
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(223, 346);
+            this.Ok.Location = new System.Drawing.Point(630, 353);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
-            this.Ok.TabIndex = 7;
+            this.Ok.TabIndex = 5;
             this.Ok.Text = "Ok";
             this.Ok.UseVisualStyleBackColor = true;
             // 
@@ -108,9 +130,9 @@ namespace Plugin.Application.Forms
             this.CategoryBox.Controls.Add(this.IsRedirection);
             this.CategoryBox.Controls.Add(this.IsSuccess);
             this.CategoryBox.Controls.Add(this.IsInformational);
-            this.CategoryBox.Location = new System.Drawing.Point(12, 12);
+            this.CategoryBox.Location = new System.Drawing.Point(6, 19);
             this.CategoryBox.Name = "CategoryBox";
-            this.CategoryBox.Size = new System.Drawing.Size(90, 166);
+            this.CategoryBox.Size = new System.Drawing.Size(101, 164);
             this.CategoryBox.TabIndex = 1;
             this.CategoryBox.TabStop = false;
             this.CategoryBox.Text = "Category";
@@ -185,18 +207,19 @@ namespace Plugin.Application.Forms
             this.IsInformational.AutoSize = true;
             this.IsInformational.Location = new System.Drawing.Point(6, 19);
             this.IsInformational.Name = "IsInformational";
-            this.IsInformational.Size = new System.Drawing.Size(46, 17);
+            this.IsInformational.Size = new System.Drawing.Size(77, 17);
             this.IsInformational.TabIndex = 1;
             this.IsInformational.TabStop = true;
             this.IsInformational.Tag = "Informational";
-            this.IsInformational.Text = "Info.";
+            this.IsInformational.Text = "Information";
+            this.IsInformational.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.IsInformational.UseVisualStyleBackColor = true;
             this.IsInformational.CheckedChanged += new System.EventHandler(this.Category_CheckedChanged);
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 245);
+            this.label3.Location = new System.Drawing.Point(113, 19);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(66, 13);
             this.label3.TabIndex = 0;
@@ -205,16 +228,16 @@ namespace Plugin.Application.Forms
             // ResponseCode
             // 
             this.ResponseCode.FormattingEnabled = true;
-            this.ResponseCode.Location = new System.Drawing.Point(84, 240);
+            this.ResponseCode.Location = new System.Drawing.Point(182, 16);
             this.ResponseCode.Name = "ResponseCode";
-            this.ResponseCode.Size = new System.Drawing.Size(180, 21);
-            this.ResponseCode.TabIndex = 4;
+            this.ResponseCode.Size = new System.Drawing.Size(293, 21);
+            this.ResponseCode.TabIndex = 2;
             this.ResponseCode.SelectedIndexChanged += new System.EventHandler(this.ResponseCode_SelectedIndexChanged);
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(15, 272);
+            this.label4.Location = new System.Drawing.Point(113, 63);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(63, 13);
             this.label4.TabIndex = 0;
@@ -222,11 +245,11 @@ namespace Plugin.Application.Forms
             // 
             // ResponseDescription
             // 
-            this.ResponseDescription.Location = new System.Drawing.Point(84, 269);
+            this.ResponseDescription.Location = new System.Drawing.Point(182, 66);
             this.ResponseDescription.Multiline = true;
             this.ResponseDescription.Name = "ResponseDescription";
-            this.ResponseDescription.Size = new System.Drawing.Size(295, 71);
-            this.ResponseDescription.TabIndex = 5;
+            this.ResponseDescription.Size = new System.Drawing.Size(293, 117);
+            this.ResponseDescription.TabIndex = 4;
             this.ResponseDescription.Leave += new System.EventHandler(this.DescriptionNameFld_Leave);
             // 
             // PayloadTypeBox
@@ -236,17 +259,17 @@ namespace Plugin.Application.Forms
             this.PayloadTypeBox.Controls.Add(this.IsDefaultResponseType);
             this.PayloadTypeBox.Controls.Add(this.IsCustomType);
             this.PayloadTypeBox.Controls.Add(this.IsDocument);
-            this.PayloadTypeBox.Location = new System.Drawing.Point(108, 12);
+            this.PayloadTypeBox.Location = new System.Drawing.Point(6, 19);
             this.PayloadTypeBox.Name = "PayloadTypeBox";
-            this.PayloadTypeBox.Size = new System.Drawing.Size(284, 92);
-            this.PayloadTypeBox.TabIndex = 2;
+            this.PayloadTypeBox.Size = new System.Drawing.Size(145, 142);
+            this.PayloadTypeBox.TabIndex = 1;
             this.PayloadTypeBox.TabStop = false;
-            this.PayloadTypeBox.Text = "Response payload type";
+            this.PayloadTypeBox.Text = "Payload type";
             // 
             // IsNone
             // 
             this.IsNone.AutoSize = true;
-            this.IsNone.Location = new System.Drawing.Point(8, 65);
+            this.IsNone.Location = new System.Drawing.Point(6, 111);
             this.IsNone.Name = "IsNone";
             this.IsNone.Size = new System.Drawing.Size(51, 17);
             this.IsNone.TabIndex = 5;
@@ -259,10 +282,10 @@ namespace Plugin.Application.Forms
             // IsExternalLink
             // 
             this.IsExternalLink.AutoSize = true;
-            this.IsExternalLink.Location = new System.Drawing.Point(8, 42);
+            this.IsExternalLink.Location = new System.Drawing.Point(6, 88);
             this.IsExternalLink.Name = "IsExternalLink";
             this.IsExternalLink.Size = new System.Drawing.Size(82, 17);
-            this.IsExternalLink.TabIndex = 3;
+            this.IsExternalLink.TabIndex = 4;
             this.IsExternalLink.TabStop = true;
             this.IsExternalLink.Tag = "Link";
             this.IsExternalLink.Text = "External link";
@@ -272,10 +295,10 @@ namespace Plugin.Application.Forms
             // IsDefaultResponseType
             // 
             this.IsDefaultResponseType.AutoSize = true;
-            this.IsDefaultResponseType.Location = new System.Drawing.Point(143, 42);
+            this.IsDefaultResponseType.Location = new System.Drawing.Point(6, 65);
             this.IsDefaultResponseType.Name = "IsDefaultResponseType";
             this.IsDefaultResponseType.Size = new System.Drawing.Size(128, 17);
-            this.IsDefaultResponseType.TabIndex = 4;
+            this.IsDefaultResponseType.TabIndex = 3;
             this.IsDefaultResponseType.TabStop = true;
             this.IsDefaultResponseType.Tag = "DefaultResponse";
             this.IsDefaultResponseType.Text = "Default response type";
@@ -285,7 +308,7 @@ namespace Plugin.Application.Forms
             // IsCustomType
             // 
             this.IsCustomType.AutoSize = true;
-            this.IsCustomType.Location = new System.Drawing.Point(142, 19);
+            this.IsCustomType.Location = new System.Drawing.Point(6, 42);
             this.IsCustomType.Name = "IsCustomType";
             this.IsCustomType.Size = new System.Drawing.Size(129, 17);
             this.IsCustomType.TabIndex = 2;
@@ -298,7 +321,7 @@ namespace Plugin.Application.Forms
             // IsDocument
             // 
             this.IsDocument.AutoSize = true;
-            this.IsDocument.Location = new System.Drawing.Point(8, 19);
+            this.IsDocument.Location = new System.Drawing.Point(6, 19);
             this.IsDocument.Name = "IsDocument";
             this.IsDocument.Size = new System.Drawing.Size(130, 17);
             this.IsDocument.TabIndex = 1;
@@ -314,10 +337,10 @@ namespace Plugin.Application.Forms
             this.ResponsePayloadBox.Controls.Add(this.RemoveResponse);
             this.ResponsePayloadBox.Controls.Add(this.SelectResponse);
             this.ResponsePayloadBox.Controls.Add(this.ResponseTypeName);
-            this.ResponsePayloadBox.Location = new System.Drawing.Point(108, 110);
+            this.ResponsePayloadBox.Location = new System.Drawing.Point(157, 19);
             this.ResponsePayloadBox.Name = "ResponsePayloadBox";
-            this.ResponsePayloadBox.Size = new System.Drawing.Size(284, 68);
-            this.ResponsePayloadBox.TabIndex = 8;
+            this.ResponsePayloadBox.Size = new System.Drawing.Size(319, 68);
+            this.ResponsePayloadBox.TabIndex = 2;
             this.ResponsePayloadBox.TabStop = false;
             this.ResponsePayloadBox.Text = "Document / Custom response type";
             // 
@@ -326,10 +349,10 @@ namespace Plugin.Application.Forms
             this.RspCardinalityGroup.Controls.Add(this.label7);
             this.RspCardinalityGroup.Controls.Add(this.RspCardHi);
             this.RspCardinalityGroup.Controls.Add(this.RspCardLo);
-            this.RspCardinalityGroup.Location = new System.Drawing.Point(206, 12);
+            this.RspCardinalityGroup.Location = new System.Drawing.Point(240, 11);
             this.RspCardinalityGroup.Name = "RspCardinalityGroup";
             this.RspCardinalityGroup.Size = new System.Drawing.Size(70, 47);
-            this.RspCardinalityGroup.TabIndex = 6;
+            this.RspCardinalityGroup.TabIndex = 3;
             this.RspCardinalityGroup.TabStop = false;
             this.RspCardinalityGroup.Text = "Cardinality";
             // 
@@ -384,17 +407,17 @@ namespace Plugin.Application.Forms
             this.ResponseTypeName.Location = new System.Drawing.Point(70, 30);
             this.ResponseTypeName.Name = "ResponseTypeName";
             this.ResponseTypeName.ReadOnly = true;
-            this.ResponseTypeName.Size = new System.Drawing.Size(130, 20);
+            this.ResponseTypeName.Size = new System.Drawing.Size(164, 20);
             this.ResponseTypeName.TabIndex = 0;
             // 
             // ExternalLinkBox
             // 
             this.ExternalLinkBox.Controls.Add(this.ExternalLink);
             this.ExternalLinkBox.Controls.Add(this.label2);
-            this.ExternalLinkBox.Location = new System.Drawing.Point(12, 184);
+            this.ExternalLinkBox.Location = new System.Drawing.Point(157, 93);
             this.ExternalLinkBox.Name = "ExternalLinkBox";
-            this.ExternalLinkBox.Size = new System.Drawing.Size(380, 52);
-            this.ExternalLinkBox.TabIndex = 9;
+            this.ExternalLinkBox.Size = new System.Drawing.Size(318, 68);
+            this.ExternalLinkBox.TabIndex = 3;
             this.ExternalLinkBox.TabStop = false;
             this.ExternalLinkBox.Text = "External link";
             // 
@@ -402,7 +425,7 @@ namespace Plugin.Application.Forms
             // 
             this.ExternalLink.Location = new System.Drawing.Point(42, 22);
             this.ExternalLink.Name = "ExternalLink";
-            this.ExternalLink.Size = new System.Drawing.Size(325, 20);
+            this.ExternalLink.Size = new System.Drawing.Size(262, 20);
             this.ExternalLink.TabIndex = 1;
             this.ExternalLink.Leave += new System.EventHandler(this.ExternalLink_Leave);
             // 
@@ -418,13 +441,180 @@ namespace Plugin.Application.Forms
             // IsRange
             // 
             this.IsRange.AutoSize = true;
-            this.IsRange.Location = new System.Drawing.Point(270, 244);
+            this.IsRange.Location = new System.Drawing.Point(182, 43);
             this.IsRange.Name = "IsRange";
             this.IsRange.Size = new System.Drawing.Size(122, 17);
-            this.IsRange.TabIndex = 10;
+            this.IsRange.TabIndex = 3;
             this.IsRange.Text = "Enforce range (nXX)";
             this.IsRange.UseVisualStyleBackColor = true;
             this.IsRange.CheckedChanged += new System.EventHandler(this.IsRange_CheckedChanged);
+            // 
+            // ResponseHeaderGroup
+            // 
+            this.ResponseHeaderGroup.Controls.Add(this.UseReqHeaderCollection);
+            this.ResponseHeaderGroup.Controls.Add(this.EditReqHeaderCollections);
+            this.ResponseHeaderGroup.Controls.Add(this.EditReqHeader);
+            this.ResponseHeaderGroup.Controls.Add(this.DeleteReqHeader);
+            this.ResponseHeaderGroup.Controls.Add(this.AddReqHeader);
+            this.ResponseHeaderGroup.Controls.Add(this.ResponseHeaderList);
+            this.ResponseHeaderGroup.Location = new System.Drawing.Point(502, 12);
+            this.ResponseHeaderGroup.Name = "ResponseHeaderGroup";
+            this.ResponseHeaderGroup.Size = new System.Drawing.Size(284, 193);
+            this.ResponseHeaderGroup.TabIndex = 3;
+            this.ResponseHeaderGroup.TabStop = false;
+            this.ResponseHeaderGroup.Text = "Response headers";
+            // 
+            // UseReqHeaderCollection
+            // 
+            this.UseReqHeaderCollection.Image = ((System.Drawing.Image)(resources.GetObject("UseReqHeaderCollection.Image")));
+            this.UseReqHeaderCollection.Location = new System.Drawing.Point(105, 155);
+            this.UseReqHeaderCollection.Name = "UseReqHeaderCollection";
+            this.UseReqHeaderCollection.Size = new System.Drawing.Size(25, 25);
+            this.UseReqHeaderCollection.TabIndex = 4;
+            this.UseReqHeaderCollection.UseVisualStyleBackColor = true;
+            this.UseReqHeaderCollection.Click += new System.EventHandler(this.UseRspHeaderCollection_Click);
+            // 
+            // EditReqHeaderCollections
+            // 
+            this.EditReqHeaderCollections.Image = ((System.Drawing.Image)(resources.GetObject("EditReqHeaderCollections.Image")));
+            this.EditReqHeaderCollections.Location = new System.Drawing.Point(134, 155);
+            this.EditReqHeaderCollections.Name = "EditReqHeaderCollections";
+            this.EditReqHeaderCollections.Size = new System.Drawing.Size(25, 25);
+            this.EditReqHeaderCollections.TabIndex = 5;
+            this.EditReqHeaderCollections.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.EditReqHeaderCollections.UseVisualStyleBackColor = true;
+            this.EditReqHeaderCollections.Click += new System.EventHandler(this.EditRspHeaderCollections_Click);
+            // 
+            // EditReqHeader
+            // 
+            this.EditReqHeader.Image = ((System.Drawing.Image)(resources.GetObject("EditReqHeader.Image")));
+            this.EditReqHeader.Location = new System.Drawing.Point(74, 155);
+            this.EditReqHeader.Name = "EditReqHeader";
+            this.EditReqHeader.Size = new System.Drawing.Size(25, 25);
+            this.EditReqHeader.TabIndex = 3;
+            this.EditReqHeader.UseVisualStyleBackColor = true;
+            this.EditReqHeader.Click += new System.EventHandler(this.EditRspHeader_Click);
+            // 
+            // DeleteReqHeader
+            // 
+            this.DeleteReqHeader.Image = ((System.Drawing.Image)(resources.GetObject("DeleteReqHeader.Image")));
+            this.DeleteReqHeader.Location = new System.Drawing.Point(43, 155);
+            this.DeleteReqHeader.Name = "DeleteReqHeader";
+            this.DeleteReqHeader.Size = new System.Drawing.Size(25, 25);
+            this.DeleteReqHeader.TabIndex = 2;
+            this.DeleteReqHeader.UseVisualStyleBackColor = true;
+            this.DeleteReqHeader.Click += new System.EventHandler(this.DeleteRspHeader_Click);
+            // 
+            // AddReqHeader
+            // 
+            this.AddReqHeader.Image = ((System.Drawing.Image)(resources.GetObject("AddReqHeader.Image")));
+            this.AddReqHeader.Location = new System.Drawing.Point(12, 155);
+            this.AddReqHeader.Name = "AddReqHeader";
+            this.AddReqHeader.Size = new System.Drawing.Size(25, 25);
+            this.AddReqHeader.TabIndex = 1;
+            this.AddReqHeader.UseVisualStyleBackColor = true;
+            this.AddReqHeader.Click += new System.EventHandler(this.AddRspHeader_Click);
+            // 
+            // ResponseHeaderList
+            // 
+            this.ResponseHeaderList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.ReqHdrName,
+            this.ReqHdrDescription});
+            this.ResponseHeaderList.FullRowSelect = true;
+            this.ResponseHeaderList.GridLines = true;
+            this.ResponseHeaderList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.ResponseHeaderList.HideSelection = false;
+            this.ResponseHeaderList.Location = new System.Drawing.Point(12, 19);
+            this.ResponseHeaderList.MultiSelect = false;
+            this.ResponseHeaderList.Name = "ResponseHeaderList";
+            this.ResponseHeaderList.Size = new System.Drawing.Size(261, 130);
+            this.ResponseHeaderList.Sorting = System.Windows.Forms.SortOrder.Ascending;
+            this.ResponseHeaderList.TabIndex = 0;
+            this.ResponseHeaderList.UseCompatibleStateImageBehavior = false;
+            this.ResponseHeaderList.View = System.Windows.Forms.View.Details;
+            // 
+            // ReqHdrName
+            // 
+            this.ReqHdrName.Text = "Name";
+            this.ReqHdrName.Width = 128;
+            // 
+            // ReqHdrDescription
+            // 
+            this.ReqHdrDescription.Text = "Description";
+            this.ReqHdrDescription.Width = 197;
+            // 
+            // CategoryCodeGroup
+            // 
+            this.CategoryCodeGroup.Controls.Add(this.CategoryBox);
+            this.CategoryCodeGroup.Controls.Add(this.label3);
+            this.CategoryCodeGroup.Controls.Add(this.IsRange);
+            this.CategoryCodeGroup.Controls.Add(this.ResponseCode);
+            this.CategoryCodeGroup.Controls.Add(this.ResponseDescription);
+            this.CategoryCodeGroup.Controls.Add(this.label4);
+            this.CategoryCodeGroup.Location = new System.Drawing.Point(12, 12);
+            this.CategoryCodeGroup.Name = "CategoryCodeGroup";
+            this.CategoryCodeGroup.Size = new System.Drawing.Size(484, 193);
+            this.CategoryCodeGroup.TabIndex = 1;
+            this.CategoryCodeGroup.TabStop = false;
+            this.CategoryCodeGroup.Text = "Response type definition";
+            // 
+            // PayloadGroup
+            // 
+            this.PayloadGroup.Controls.Add(this.PayloadTypeBox);
+            this.PayloadGroup.Controls.Add(this.ResponsePayloadBox);
+            this.PayloadGroup.Controls.Add(this.ExternalLinkBox);
+            this.PayloadGroup.Location = new System.Drawing.Point(12, 211);
+            this.PayloadGroup.Name = "PayloadGroup";
+            this.PayloadGroup.Size = new System.Drawing.Size(484, 173);
+            this.PayloadGroup.TabIndex = 2;
+            this.PayloadGroup.TabStop = false;
+            this.PayloadGroup.Text = "Payload definition";
+            // 
+            // ResponseHeaderMenuStrip
+            // 
+            this.ResponseHeaderMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.addToolStripMenuItem,
+            this.deleteToolStripMenuItem,
+            this.editToolStripMenuItem,
+            this.useHeaderCollectionToolStripMenuItem,
+            this.editHeaderCollectionToolStripMenuItem});
+            this.ResponseHeaderMenuStrip.Name = "ResponseHeaderMenuStrip";
+            this.ResponseHeaderMenuStrip.Size = new System.Drawing.Size(177, 114);
+            // 
+            // addToolStripMenuItem
+            // 
+            this.addToolStripMenuItem.Name = "addToolStripMenuItem";
+            this.addToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.addToolStripMenuItem.Text = "Add";
+            this.addToolStripMenuItem.Click += new System.EventHandler(this.AddRspHeader_Click);
+            // 
+            // deleteToolStripMenuItem
+            // 
+            this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.deleteToolStripMenuItem.Text = "Delete";
+            this.deleteToolStripMenuItem.Click += new System.EventHandler(this.DeleteRspHeader_Click);
+            // 
+            // editToolStripMenuItem
+            // 
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.editToolStripMenuItem.Text = "Edit";
+            this.editToolStripMenuItem.Click += new System.EventHandler(this.EditRspHeader_Click);
+            // 
+            // useHeaderCollectionToolStripMenuItem
+            // 
+            this.useHeaderCollectionToolStripMenuItem.Name = "useHeaderCollectionToolStripMenuItem";
+            this.useHeaderCollectionToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.useHeaderCollectionToolStripMenuItem.Text = "UseCollection";
+            this.useHeaderCollectionToolStripMenuItem.Click += new System.EventHandler(this.UseRspHeaderCollection_Click);
+            // 
+            // editHeaderCollectionToolStripMenuItem
+            // 
+            this.editHeaderCollectionToolStripMenuItem.Name = "editHeaderCollectionToolStripMenuItem";
+            this.editHeaderCollectionToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.editHeaderCollectionToolStripMenuItem.Text = "ManageCollections";
+            this.editHeaderCollectionToolStripMenuItem.Click += new System.EventHandler(this.EditRspHeaderCollections_Click);
             // 
             // RESTResponseCodeDialog
             // 
@@ -432,16 +622,10 @@ namespace Plugin.Application.Forms
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(405, 389);
-            this.Controls.Add(this.IsRange);
-            this.Controls.Add(this.ExternalLinkBox);
-            this.Controls.Add(this.ResponsePayloadBox);
-            this.Controls.Add(this.PayloadTypeBox);
-            this.Controls.Add(this.ResponseDescription);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.ResponseCode);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.CategoryBox);
+            this.ClientSize = new System.Drawing.Size(797, 393);
+            this.Controls.Add(this.PayloadGroup);
+            this.Controls.Add(this.CategoryCodeGroup);
+            this.Controls.Add(this.ResponseHeaderGroup);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.Ok);
             this.Controls.Add(this.Cancel);
@@ -461,6 +645,11 @@ namespace Plugin.Application.Forms
             this.RspCardinalityGroup.PerformLayout();
             this.ExternalLinkBox.ResumeLayout(false);
             this.ExternalLinkBox.PerformLayout();
+            this.ResponseHeaderGroup.ResumeLayout(false);
+            this.CategoryCodeGroup.ResumeLayout(false);
+            this.CategoryCodeGroup.PerformLayout();
+            this.PayloadGroup.ResumeLayout(false);
+            this.ResponseHeaderMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -500,5 +689,22 @@ namespace Plugin.Application.Forms
         private Label label2;
         private RadioButton IsDefault;
         private CheckBox IsRange;
+        private GroupBox ResponseHeaderGroup;
+        private Button UseReqHeaderCollection;
+        private Button EditReqHeaderCollections;
+        private Button EditReqHeader;
+        private Button DeleteReqHeader;
+        private Button AddReqHeader;
+        private ListView ResponseHeaderList;
+        private ColumnHeader ReqHdrName;
+        private ColumnHeader ReqHdrDescription;
+        private GroupBox CategoryCodeGroup;
+        private GroupBox PayloadGroup;
+        private ContextMenuStrip ResponseHeaderMenuStrip;
+        private ToolStripMenuItem addToolStripMenuItem;
+        private ToolStripMenuItem deleteToolStripMenuItem;
+        private ToolStripMenuItem editToolStripMenuItem;
+        private ToolStripMenuItem useHeaderCollectionToolStripMenuItem;
+        private ToolStripMenuItem editHeaderCollectionToolStripMenuItem;
     }
 }

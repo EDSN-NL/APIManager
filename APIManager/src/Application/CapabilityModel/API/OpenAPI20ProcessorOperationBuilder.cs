@@ -177,8 +177,8 @@ namespace Plugin.Application.CapabilityModel.API
                         }
 
                         // Finally, check whether we have to process header parameters and/or links...
-                        if (this._currentOperation.UseHeaderParameters || this._currentOperation.UseLinkHeaders)
-                            WriteResponseHeaderParameters(operationResult.Category);
+                        if (operationResult.ResponseHeaders.UseHeaderParameters || this._currentOperation.UseLinkHeaders)
+                            WriteResponseHeaderParameters(operationResult);
                     }
                     this._JSONWriter.WriteEndObject();              // Close this result.
                 }
@@ -240,7 +240,7 @@ namespace Plugin.Application.CapabilityModel.API
                 }
 
                 // Finally, check if whe have any header parameters...
-                if (operation.UseHeaderParameters) WriteRequestHeaderParameters();
+                if (operation.RequestHeaders.UseHeaderParameters) WriteRequestHeaderParameters(operation.RequestHeaders);
             }
             return result;
         }
@@ -361,6 +361,55 @@ namespace Plugin.Application.CapabilityModel.API
                     result = true;
                     break;
                 }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Is called when we detect an association with a pagination class. The method processes all attributes in that class and writes them as a series of 
+        /// query parameters to the current OpenAPI specification.
+        /// </summary>
+        /// <param name="paginationClass">Pagination class found for our operation.</param>
+        /// <returns>True on success, false on errors.</returns>
+        private bool WritePagination(MEClass paginationClass)
+        {
+            bool result = false;
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WritePagination >> Writing pagination parameters from class '" + paginationClass.Name + "'...");
+            var paramList = new SortedList<string, RESTParameterDeclaration>();
+            foreach (MEAttribute attrib in paginationClass.Attributes) paramList.Add(attrib.Name, new RESTParameterDeclaration(attrib));
+
+            List<SchemaAttribute> paginationProperties = this._schema.ProcessProperties(paginationClass);
+            foreach (JSONContentAttribute attrib in paginationProperties)
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WritePagination >> Processing '" + attrib.Name + "'...");
+                this._JSONWriter.WriteStartObject();
+                {
+                    this._JSONWriter.WritePropertyName("name"); this._JSONWriter.WriteValue(RESTUtil.GetAssignedRoleName(attrib.Name));
+                    this._JSONWriter.WritePropertyName("in"); this._JSONWriter.WriteValue("query");
+                    if (!string.IsNullOrEmpty(attrib.Annotation))
+                    {
+                        this._JSONWriter.WritePropertyName("description"); this._JSONWriter.WriteValue(attrib.Annotation);
+                    }
+                    this._JSONWriter.WritePropertyName("required"); this._JSONWriter.WriteValue(attrib.IsMandatory ? true : false);
+
+                    // Collect the JSON Schema for the attribute as a string...
+                    string attribText = attrib.GetClassifierAsJSONSchemaText();
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WritePagination >> Got attribute: '" + attribText + "'...");
+                    this._JSONWriter.WriteRaw("," + attribText);
+                    if (attrib.IsListRequired)
+                    {
+                        RESTParameterDeclaration.QueryCollectionFormat collectionFormat = paramList[attrib.Name].CollectionFormat;
+                        if (collectionFormat != RESTParameterDeclaration.QueryCollectionFormat.Unknown &&
+                            collectionFormat != RESTParameterDeclaration.QueryCollectionFormat.NA)
+                        {
+                            this._JSONWriter.WritePropertyName("collectionFormat");
+                            this._JSONWriter.WriteValue(collectionFormat.ToString().ToLower());
+                        }
+                        else Logger.WriteWarning("Collection specification is missing in attribute '" + attrib.Name + "'!");
+                    }
+                }
+                this._JSONWriter.WriteEndObject();
+                result = true;
             }
             return result;
         }
@@ -662,7 +711,20 @@ namespace Plugin.Application.CapabilityModel.API
                     string token = schemaTokenName + ":" + profile + target.Name;
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestBodyParameter >> Found Business Component '" + token + "', processing...");
                     qualifiedClassName = this._schema.ProcessClass(target, token);
-                    if (!string.IsNullOrEmpty(qualifiedClassName)) schemaClasses.Add(new Tuple<string, MEClass>(qualifiedClassName, target));
+                    if (!string.IsNullOrEmpty(qualifiedClassName))
+                    {
+                        bool duplicate = false;
+                        foreach (var entry in schemaClasses)
+                        {
+                            if (entry.Item1 == qualifiedClassName)
+                            {
+                                Logger.WriteWarning("Duplicate association detected for Document '" + documentResourceClass.Name + "', ignored!");
+                                duplicate = true;
+                                break;
+                            }
+                        }
+                        if (!duplicate) schemaClasses.Add(new Tuple<string, MEClass>(qualifiedClassName, target));
+                    }
                     else
                     {
                         Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestBodyParameter >> Error processing class '" + token + "', aborting!");
@@ -683,22 +745,19 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This method iterates over all attributes of the (temporary) Header Parameters class. For each attribute, a Request Header 
-        /// Parameter Object is created in the OpenAPI definition. If the class is not defined (or has no attributes), no actions are performed.
+        /// This method iterates over all attributes of the Header Parameters class. For each attribute, a Request Header 
+        /// Parameter Object is created in the OpenAPI definition.
         /// </summary>
-        private void WriteRequestHeaderParameters()
+        /// <param name="requestHeaders">The collection of operation request header parameters.</param>
+        private void WriteRequestHeaderParameters(RESTHeaderParameterCollection requestHeaders)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestHeaderParameters >> Looking for header parameters...");
             ContextSlt context = ContextSlt.GetContextSlt();
-            ModelSlt model = ModelSlt.GetModelSlt();
-            MEClass parameterClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
-                                                     context.GetConfigProperty(_RequestHdrParamClassName));
-            if (parameterClass == null) return;     // Nothing to do.
 
             // Create a separate list of all collection formats for each attribute. We need this when we have an attribute with cardinality > 1...
             var sortedCollectionFmtList = new SortedList<string, RESTParameterDeclaration.QueryCollectionFormat>();
             string collectionFmtTagName = context.GetConfigProperty(_CollectionFormatTag);
-            foreach (MEAttribute attrib in parameterClass.Attributes)
+            foreach (MEAttribute attrib in requestHeaders.CollectionClass.Attributes)
             {
                 string collectionFmtTag = attrib.GetTag(collectionFmtTagName);
                 if (!string.IsNullOrEmpty(collectionFmtTag))
@@ -706,7 +765,7 @@ namespace Plugin.Application.CapabilityModel.API
                 else sortedCollectionFmtList.Add(attrib.Name, RESTParameterDeclaration.QueryCollectionFormat.NA);
             }
 
-            List<SchemaAttribute> headerProperties = this._schema.ProcessProperties(parameterClass);
+            List<SchemaAttribute> headerProperties = this._schema.ProcessProperties(requestHeaders.CollectionClass);
             foreach (JSONContentAttribute attrib in headerProperties)
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestHeaderParameters >> Processing '" + attrib.Name + "'...");
@@ -718,7 +777,8 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         this._JSONWriter.WritePropertyName("description"); this._JSONWriter.WriteValue(attrib.Annotation);
                     }
-                    this._JSONWriter.WritePropertyName("required"); this._JSONWriter.WriteValue(attrib.IsMandatory);
+                    // Request headers do not need this.
+                    //this._JSONWriter.WritePropertyName("required"); this._JSONWriter.WriteValue(attrib.IsMandatory);
 
                     // Collect the JSON Schema for the attribute as a string. Note that this includes possible default values, min- and max
                     // values, etc....
@@ -741,7 +801,110 @@ namespace Plugin.Application.CapabilityModel.API
                 this._JSONWriter.WriteEndObject();
             }
         }
-        
+
+        /// <summary>
+        /// Helper method that writes a reference to the Response Body, either as a single reference or, in case of cardinality > 1, as an
+        /// array of references.
+        /// </summary>
+        /// <param name="className">Name of the body class that must be referenced.</param>
+        /// <param name="cardinality">Cardinality of the association.</param>
+        private void WriteResponseBodyReference(string className, Cardinality cardinality)
+        {
+            if (cardinality.IsList)
+            {
+                this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("array");
+                this._JSONWriter.WritePropertyName("items"); this._JSONWriter.WriteStartObject();
+                {
+                    this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
+                }
+                this._JSONWriter.WriteEndObject();
+                if (cardinality.IsMandatory)
+                {
+                    this._JSONWriter.WritePropertyName("minItems"); this._JSONWriter.WriteValue(cardinality.LowerBoundary);
+                }
+                if (cardinality.IsBoundedList)
+                {
+                    this._JSONWriter.WritePropertyName("maxItems"); this._JSONWriter.WriteValue(cardinality.UpperBoundary);
+                }
+            }
+            else this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
+        }
+
+        /// <summary>
+        /// This method iterates over all attributes of the Header Parameters class for this specific operation result. For each attribute, a Response Header 
+        /// Parameter Object is created in the OpenAPI definition. If the header collection is empty, no action is performed.
+        /// </summary>
+        private void WriteResponseHeaderParameters(RESTOperationResultDescriptor thisResult)
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Looking for header parameters...");
+            ContextSlt context = ContextSlt.GetContextSlt();
+
+            var headerProperties = new List<SchemaAttribute>();
+            var sortedParamList = new SortedList<string, RESTParameterDeclaration>();
+            if (thisResult.ResponseHeaders.UseHeaderParameters) headerProperties = this._schema.ProcessProperties(thisResult.ResponseHeaders.CollectionClass);
+
+            if (this._currentOperation.UseLinkHeaders || headerProperties.Count > 0)
+            {
+                this._JSONWriter.WritePropertyName("headers"); this._JSONWriter.WriteStartObject();
+                {
+                    foreach (JSONContentAttribute attrib in headerProperties)
+                    {
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Processing '" + attrib.Name + "'...");
+                        this._JSONWriter.WritePropertyName(attrib.Name); this._JSONWriter.WriteStartObject();
+                        {
+                            if (!string.IsNullOrEmpty(attrib.Annotation))
+                            {
+                                this._JSONWriter.WritePropertyName("description"); this._JSONWriter.WriteValue(attrib.Annotation);
+                                this._JSONWriter.WriteRaw(",");
+                            }
+
+                            // Collect the JSON Schema for the attribute as a string. Note that this includes possible default values, min- and max
+                            // values, etc....
+                            string attribText = attrib.GetClassifierAsJSONSchemaText();
+                            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Got attribute: '" + attribText + "'...");
+                            this._JSONWriter.WriteRaw(attribText);
+                            if (attrib.IsListRequired)
+                            {
+                                RESTParameterDeclaration.QueryCollectionFormat collectionFormat = sortedParamList[attrib.Name].CollectionFormat;
+                                if (collectionFormat != RESTParameterDeclaration.QueryCollectionFormat.Unknown &&
+                                    collectionFormat != RESTParameterDeclaration.QueryCollectionFormat.NA)
+                                {
+                                    this._JSONWriter.WritePropertyName("collectionFormat");
+                                    this._JSONWriter.WriteValue(collectionFormat.ToString().ToLower());
+                                }
+                                else Logger.WriteWarning("Collection specification is missing in attribute '" + attrib.Name + "'!");
+                            }
+                        }
+                        this._JSONWriter.WriteEndObject();
+                    }
+
+                    // When instructed to do so, we create a definition for the 'Link' header parameter as a comma-separated array of strings...
+                    // But we ONLY do this for 'success' responses!
+                    if (this._currentOperation.UseLinkHeaders && thisResult.Category == RESTOperationResultDescriptor.ResponseCategory.Success)
+                    {
+                        this._JSONWriter.WritePropertyName("Link"); this._JSONWriter.WriteStartObject();
+                        {
+                            this._JSONWriter.WritePropertyName("description");
+                            this._JSONWriter.WriteValue("The Link header field provides a means for describing a relationship between two " +
+                                                        "resources, generally between the requested resource and some other resource. An entity MAY " +
+                                                        "include multiple Link values. Links at the metainformation level typically indicate " +
+                                                        "relationships like hierarchical structure and navigation paths. The Link field is " +
+                                                        "semantically equivalent to the <LINK> element in HTML.");
+                            this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("array");
+                            this._JSONWriter.WritePropertyName("items"); this._JSONWriter.WriteStartObject();
+                            {
+                                this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("string");
+                            }
+                            this._JSONWriter.WriteEndObject();
+                            this._JSONWriter.WritePropertyName("collectionFormat"); this._JSONWriter.WriteValue("csv");
+                        }
+                        this._JSONWriter.WriteEndObject();
+                    }
+                }
+                this._JSONWriter.WriteEndObject();
+            }
+        }
+
         /// <summary>
         /// This method receives a reference to a response payload class, parses this class into a JSON structure and inserts the proper reference in
         /// the output schema.
@@ -879,161 +1042,6 @@ namespace Plugin.Application.CapabilityModel.API
                 result = true;
             }
             return result;
-        }
-
-        /// <summary>
-        /// This method iterates over all attributes of the (temporary) Header Parameters class. For each attribute, a Response Header 
-        /// Parameter Object is created in the OpenAPI definition. If the class is not defined (or has no attributes), no actions are performed.
-        /// </summary>
-        private void WriteResponseHeaderParameters(RESTOperationResultDescriptor.ResponseCategory category)
-        {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Looking for header parameters...");
-            ContextSlt context = ContextSlt.GetContextSlt();
-            ModelSlt model = ModelSlt.GetModelSlt();
-            MEClass parameterClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
-                                                     context.GetConfigProperty(_ResponseHdrParamClassName));
-            if (parameterClass == null && !this._currentOperation.UseLinkHeaders) return;     // Nothing to do.
-
-            var headerProperties = new List<SchemaAttribute>();
-            var sortedParamList = new SortedList<string, RESTParameterDeclaration>();
-            if (parameterClass != null) headerProperties = this._schema.ProcessProperties(parameterClass);
-
-            if (this._currentOperation.UseLinkHeaders || headerProperties.Count > 0)
-            {
-                this._JSONWriter.WritePropertyName("headers"); this._JSONWriter.WriteStartObject();
-                {
-                    foreach (JSONContentAttribute attrib in headerProperties)
-                    {
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Processing '" + attrib.Name + "'...");
-                        this._JSONWriter.WritePropertyName(attrib.Name); this._JSONWriter.WriteStartObject();
-                        {
-                            if (!string.IsNullOrEmpty(attrib.Annotation))
-                            {
-                                this._JSONWriter.WritePropertyName("description"); this._JSONWriter.WriteValue(attrib.Annotation);
-                                this._JSONWriter.WriteRaw(",");
-                            }
-
-                            // Collect the JSON Schema for the attribute as a string. Note that this includes possible default values, min- and max
-                            // values, etc....
-                            string attribText = attrib.GetClassifierAsJSONSchemaText();
-                            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Got attribute: '" + attribText + "'...");
-                            this._JSONWriter.WriteRaw(attribText);
-                            if (attrib.IsListRequired)
-                            {
-                                RESTParameterDeclaration.QueryCollectionFormat collectionFormat = sortedParamList[attrib.Name].CollectionFormat;
-                                if (collectionFormat != RESTParameterDeclaration.QueryCollectionFormat.Unknown &&
-                                    collectionFormat != RESTParameterDeclaration.QueryCollectionFormat.NA)
-                                {
-                                    this._JSONWriter.WritePropertyName("collectionFormat");
-                                    this._JSONWriter.WriteValue(collectionFormat.ToString().ToLower());
-                                }
-                                else Logger.WriteWarning("Collection specification is missing in attribute '" + attrib.Name + "'!");
-                            }
-                        }
-                        this._JSONWriter.WriteEndObject();
-                    }
-
-                    // When instructed to do so, we create a definition for the 'Link' header parameter as a comma-separated array of strings...
-                    // But we ONLY do this for 'success' responses!
-                    if (this._currentOperation.UseLinkHeaders && category == RESTOperationResultDescriptor.ResponseCategory.Success)
-                    {
-                        this._JSONWriter.WritePropertyName("Link"); this._JSONWriter.WriteStartObject();
-                        {
-                            this._JSONWriter.WritePropertyName("description");
-                            this._JSONWriter.WriteValue("The Link header field provides a means for describing a relationship between two " +
-                                                        "resources, generally between the requested resource and some other resource. An entity MAY " +
-                                                        "include multiple Link values. Links at the metainformation level typically indicate " +
-                                                        "relationships like hierarchical structure and navigation paths. The Link field is " +
-                                                        "semantically equivalent to the <LINK> element in HTML.");
-                            this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("array");
-                            this._JSONWriter.WritePropertyName("items"); this._JSONWriter.WriteStartObject();
-                            {
-                                this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("string");
-                            }
-                            this._JSONWriter.WriteEndObject();
-                            this._JSONWriter.WritePropertyName("collectionFormat"); this._JSONWriter.WriteValue("csv");
-                        }
-                        this._JSONWriter.WriteEndObject();
-                    }
-                }
-                this._JSONWriter.WriteEndObject();
-            }
-        }
-
-        /// <summary>
-        /// Is called when we detect an association with a pagination class. The method processes all attributes in that class and writes them as a series of 
-        /// query parameters to the current OpenAPI specification.
-        /// </summary>
-        /// <param name="paginationClass">Pagination class found for our operation.</param>
-        /// <returns>True on success, false on errors.</returns>
-        private bool WritePagination(MEClass paginationClass)
-        {
-            bool result = false;
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WritePagination >> Writing pagination parameters from class '" + paginationClass.Name + "'...");
-            var paramList = new SortedList<string, RESTParameterDeclaration>();
-            foreach (MEAttribute attrib in paginationClass.Attributes) paramList.Add(attrib.Name, new RESTParameterDeclaration(attrib));
-
-            List<SchemaAttribute> paginationProperties = this._schema.ProcessProperties(paginationClass);
-            foreach (JSONContentAttribute attrib in paginationProperties)
-            {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WritePagination >> Processing '" + attrib.Name + "'...");
-                this._JSONWriter.WriteStartObject();
-                {
-                    this._JSONWriter.WritePropertyName("name"); this._JSONWriter.WriteValue(RESTUtil.GetAssignedRoleName(attrib.Name));
-                    this._JSONWriter.WritePropertyName("in"); this._JSONWriter.WriteValue("query");
-                    if (!string.IsNullOrEmpty(attrib.Annotation))
-                    {
-                        this._JSONWriter.WritePropertyName("description"); this._JSONWriter.WriteValue(attrib.Annotation);
-                    }
-                    this._JSONWriter.WritePropertyName("required"); this._JSONWriter.WriteValue(attrib.IsMandatory ? true : false);
-
-                    // Collect the JSON Schema for the attribute as a string...
-                    string attribText = attrib.GetClassifierAsJSONSchemaText();
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WritePagination >> Got attribute: '" + attribText + "'...");
-                    this._JSONWriter.WriteRaw("," + attribText);
-                    if (attrib.IsListRequired)
-                    {
-                        RESTParameterDeclaration.QueryCollectionFormat collectionFormat = paramList[attrib.Name].CollectionFormat;
-                        if (collectionFormat != RESTParameterDeclaration.QueryCollectionFormat.Unknown &&
-                            collectionFormat != RESTParameterDeclaration.QueryCollectionFormat.NA)
-                        {
-                            this._JSONWriter.WritePropertyName("collectionFormat");
-                            this._JSONWriter.WriteValue(collectionFormat.ToString().ToLower());
-                        }
-                        else Logger.WriteWarning("Collection specification is missing in attribute '" + attrib.Name + "'!");
-                    }
-                }
-                this._JSONWriter.WriteEndObject();
-                result = true;
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// Helper method that writes a reference to the Response Body, either as a single reference or, in case of cardinality > 1, as an
-        /// array of references.
-        /// </summary>
-        /// <param name="className">Name of the body class that must be referenced.</param>
-        /// <param name="cardinality">Cardinality of the association.</param>
-        private void WriteResponseBodyReference(string className, Cardinality cardinality)
-        {
-            if (cardinality.IsList)
-            {
-                this._JSONWriter.WritePropertyName("type"); this._JSONWriter.WriteValue("array");
-                this._JSONWriter.WritePropertyName("items"); this._JSONWriter.WriteStartObject();
-                {
-                    this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
-                } this._JSONWriter.WriteEndObject();
-                if (cardinality.IsMandatory)
-                {
-                    this._JSONWriter.WritePropertyName("minItems"); this._JSONWriter.WriteValue(cardinality.LowerBoundary);
-                }
-                if (cardinality.IsBoundedList)
-                {
-                    this._JSONWriter.WritePropertyName("maxItems"); this._JSONWriter.WriteValue(cardinality.UpperBoundary);
-                }
-            }
-            else this._JSONWriter.WriteRaw("\"$ref\": \"#/definitions/" + className + "\"");
         }
     }
 }

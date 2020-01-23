@@ -150,19 +150,40 @@ namespace SparxEA.Model
         /// <returns>Next association.</returns>
         internal override IEnumerable<MEAssociation> AssociationList()
         {
+            EA.Repository repository = ((EAModelImplementation)this._model).Repository;
             this._element.Connectors.Refresh();
+
+            string query = @"SELECT c.Connector_ID AS ConnectorID
+                            FROM t_connector c WHERE c.Start_Object_ID = '" + this._elementID +
+                            "' AND c.Connector_Type = 'Association';";
+
+            var queryResult = new XmlDocument();
+            queryResult.LoadXml(repository.SQLQuery(query));
+            XmlNodeList elements = queryResult.GetElementsByTagName("Row");
+
+            // Since we now have a list of associations, return them one at a time...
+            for (int i = 0; i < elements.Count; i++)
+            {
+                int connectorID = Convert.ToInt32(elements[i]["ConnectorID"].InnerText.Trim());
+                var association = this._model.GetModelElementImplementation(ModelElementType.Association, connectorID) as EAMEIAssociation;
+                if (association != null) yield return new MEAssociation(association);
+            }
+
+            /******** OLD INEFFICIENT STUFF....
             string traceStereotype = ContextSlt.GetContextSlt().GetConfigProperty(_TraceAssociationStereotype);
 
             for (short i = 0; i < this._element.Connectors.Count; i++)
             {
                 var connector = this._element.Connectors.GetAt(i) as EA.Connector;
                 // Make sure to return only connectors that originate from the current class and are NOT 'trace' associations...
-                if (connector.ClientID == this._elementID && !connector.StereotypeEx.Contains(traceStereotype))
+                if (connector != null && connector.ClientID == this._elementID && 
+                    !string.IsNullOrEmpty(connector.StereotypeEx) && !connector.StereotypeEx.Contains(traceStereotype))
                 {
                     var association = this._model.GetModelElementImplementation(ModelElementType.Association, connector.ConnectorID) as EAMEIAssociation;
-                    yield return new MEAssociation(association);
+                    if (association != null) yield return new MEAssociation(association);
                 }
             }
+            ******/
         }
 
         /// <summary>
@@ -171,18 +192,23 @@ namespace SparxEA.Model
         /// <returns>Next association of specified type.</returns>
         internal override IEnumerable<MEAssociation> AssociationList(MEAssociation.AssociationType type)
         {
+            EA.Repository repository = ((EAModelImplementation)this._model).Repository;
             this._element.Connectors.Refresh();
-            string traceStereotype = ContextSlt.GetContextSlt().GetConfigProperty(_TraceAssociationStereotype);
 
-            for (short i = 0; i < this._element.Connectors.Count; i++)
+            string query = @"SELECT c.Connector_ID AS ConnectorID
+                            FROM t_connector c WHERE c.Start_Object_ID = '" + this._elementID +
+                            "' AND c.Connector_Type IN ('Association', 'Generalization', 'Usage');";
+
+            var queryResult = new XmlDocument();
+            queryResult.LoadXml(repository.SQLQuery(query));
+            XmlNodeList elements = queryResult.GetElementsByTagName("Row");
+
+            // Since we now have a list of associations, return them one at a time, but only if they're of the correct type...
+            for (int i = 0; i < elements.Count; i++)
             {
-                var connector = this._element.Connectors.GetAt(i) as EA.Connector;
-                // Make sure to return only connectors that originate from the current class and are NOT 'trace' associations...
-                if (connector.ClientID == this._elementID && !connector.StereotypeEx.Contains(traceStereotype))
-                {
-                    var association = this._model.GetModelElementImplementation(ModelElementType.Association, connector.ConnectorID) as EAMEIAssociation;
-                    if (association.GetAssociationType() == type) yield return new MEAssociation(association);
-                }
+                int connectorID = Convert.ToInt32(elements[i]["ConnectorID"].InnerText.Trim());
+                var association = this._model.GetModelElementImplementation(ModelElementType.Association, connectorID) as EAMEIAssociation;
+                if (association != null && association.GetAssociationType() == type) yield return new MEAssociation(association);
             }
         }
 
@@ -199,7 +225,7 @@ namespace SparxEA.Model
             {
                 var connector = this._element.Connectors.GetAt(i) as EA.Connector;
                 // Make sure to return only connectors that end in the current class and are generalizations...
-                if (connector.SupplierID == this._elementID && connector.Type == "Generalization")
+                if (connector != null && connector.SupplierID == this._elementID && connector.Type == "Generalization")
                 {
                     var association = this._model.GetModelElementImplementation(ModelElementType.Association, connector.ConnectorID) as EAMEIAssociation;
                     yield return new MEAssociation(association);
@@ -644,7 +670,7 @@ namespace SparxEA.Model
         /// <returns>Meta data descriptor.</returns>
         internal override MEClassMetaData GetClassMetaData()
         {
-            MEClassMetaData metaData = new MEClassMetaData(this._element.Name, this._element.Alias, this._element.StereotypeEx);
+            MEClassMetaData metaData = new MEClassMetaData(this, this._element.StereotypeEx);
             ContextSlt context = ContextSlt.GetContextSlt();
             string facetStereotype = context.GetConfigProperty(_FacetAttStereotype);
             string suppStereotype = context.GetConfigProperty(_SupplementaryAttStereotype);

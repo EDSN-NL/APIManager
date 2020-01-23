@@ -292,7 +292,10 @@ namespace Plugin.Application.CapabilityModel.API
                     jsonWriter.WriteToken(jsonReader);
                     string api = stringWriter.ToString();
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.BuildHeader >> Created output:" + Environment.NewLine + api);
-                    using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8)) writer.Write(api);
+
+                    // Since many tools have issues with the presence of a Byte-Order-Mark (BOM) at the beginning of an UTF-8 encoded file,
+                    // we create the streamwriter with BOM-suppression...
+                    using (StreamWriter writer = new StreamWriter(stream, new UTF8Encoding(false))) writer.Write(api);
                 }
             }
         }

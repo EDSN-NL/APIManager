@@ -51,7 +51,7 @@ namespace Plugin.Application.Events.API
             }
             catch (Exception exc)
             {
-                Logger.WriteError("Plugin.Application.Events.API.CopyServiceDeclarationEvent.HandleEvent >> Unable to copy service because: " + Environment.NewLine + exc.Message);
+                Logger.WriteError("Plugin.Application.Events.API.CopyServiceDeclarationEvent.HandleEvent >> Unable to copy service because: " + Environment.NewLine + exc.ToString());
                 return;
             }
         }

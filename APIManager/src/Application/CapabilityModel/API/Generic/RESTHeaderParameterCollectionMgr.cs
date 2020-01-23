@@ -2,63 +2,65 @@
 using System.Collections.Generic;
 using Framework.Model;
 using Framework.Context;
+using Framework.Util;
 using Framework.Logging;
 using Plugin.Application.Forms;
 
 namespace Plugin.Application.CapabilityModel.API
 {
     /// <summary>
-    /// Maintains a list of Response Code Collections for the given service and facilitates creation/edit/retrieval of Response Code Collections.
-    /// This class is used solely for the management of "predefined" lists of response codes, independent of use within operations.
-    /// There exists two types of response code lists: Global and Local. A Global list is defined across multiple API's and can be considered
-    /// an "ECDM Template" for response codes. Local lists have API scope and must be defined explicitly at API level. These can not be
+    /// Maintains a list of Header Parameter Collections for the given service and facilitates creation/edit/retrieval of such Collections.
+    /// This class is used solely for the management of "predefined" lists of header parameter collections, independent of use within operations.
+    /// There exists two types of collections: Global and Local. A Global list is defined across multiple API's and can be considered
+    /// an "ECDM Template" for header parameters. Local lists have API scope and must be defined explicitly at API level. These can not be
     /// re-used across API's.
     /// </summary>
-    internal sealed class RESTResponseCodeCollectionMgr: RESTCollectionMgr
+    internal sealed class RESTHeaderParameterCollectionMgr: RESTCollectionMgr
     {
         // Unique key used to differentiate entries for this type in a global, static, collection...
-        private const string _Token                                     = "RCCollection";
+        private const string _Token                                 = "HPCollection";
 
         // Configuration properties used by this module:
-        private const string _RCCStereotype                             = "RCCStereotype";
-        private const string _RESTResponseCodeCollectionsPathName       = "RESTResponseCodeCollectionsPathName";
-        private const string _RESTResponseCodeCollectionsPkgName        = "RESTResponseCodeCollectionsPkgName";
+        private const string _HPCStereotype                         = "HPCStereotype";
+        private const string _RESTHeaderParamCollectionsPathName    = "RESTHeaderParamCollectionsPathName";
+        private const string _RESTHeaderParamCollectionsPkgName     = "RESTHeaderParamCollectionsPkgName";
 
         // Flag to force one-time load of global collections of this type...
-        private static bool _mustInit                                   = true;
+        private static bool _mustInit                               = true;
 
         /// <summary>
-        /// Create a new Collection Manager on behalf of the specified service.
+        /// Create a new Collection Manager on behalf of the specified service. When this service is 'NULL', we're dealing with a
+        /// global collection and we thus collect header parameters from our global packages only.
         /// </summary>
-        /// <param name="thisService">Service for which we have to maintain the collection.</param>
-        internal RESTResponseCodeCollectionMgr(Service thisService) : base(thisService)
+        /// <param name="thisService">Optional Service for which we have to maintain the collection.</param>
+        internal RESTHeaderParameterCollectionMgr(Service thisService) : base(thisService)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
-            string collectionStereotype = context.GetConfigProperty(_RCCStereotype);
+            string collectionStereotype = context.GetConfigProperty(_HPCStereotype);
             if (thisService != null)
             {
                 foreach (MEClass collection in thisService.ModelPkg.FindClasses(null, collectionStereotype))
                 {
-                    InsertCollection(_Token, RESTCollection.CollectionScope.API, new RESTResponseCodeCollection(null, collection));
+                    InsertCollection(_Token, RESTCollection.CollectionScope.API, new RESTHeaderParameterCollection(null, collection));
                 }
             }
 
             // Check whether we have 'global' collections and if so, add them to our list...
             if (_mustInit)
             {
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollectionMgr >> Loading global collections...");
-                string globalCollectionPath = context.GetConfigProperty(_RESTResponseCodeCollectionsPathName);
-                string globalCollectionPkgName = context.GetConfigProperty(_RESTResponseCodeCollectionsPkgName);
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollectionMgr >> Loading global collections...");
+                string globalCollectionPath = context.GetConfigProperty(_RESTHeaderParamCollectionsPathName);
+                string globalCollectionPkgName = context.GetConfigProperty(_RESTHeaderParamCollectionsPkgName);
                 MEPackage globalCollections = ModelSlt.GetModelSlt().FindPackage(globalCollectionPath, globalCollectionPkgName);
                 if (globalCollections != null)
                 {
                     foreach (MEClass collection in globalCollections.FindClasses(null, collectionStereotype))
                     {
-                        InsertCollection(_Token, RESTCollection.CollectionScope.Global, new RESTResponseCodeCollection(null, collection));
+                        InsertCollection(_Token, RESTCollection.CollectionScope.Global, new RESTHeaderParameterCollection(null, collection));
                     }
                     _mustInit = false;
                 }
-                else Logger.WriteWarning("Could not find package '" + globalCollectionPath + ":" + globalCollectionPkgName + "', skipping global response code collections!");
+                else Logger.WriteWarning("Could not find package '" + globalCollectionPath + ":" + globalCollectionPkgName + "', skipping global header parameter collections!");
             }
         }
 
@@ -69,8 +71,8 @@ namespace Plugin.Application.CapabilityModel.API
         internal override RESTCollection AddCollection()
         {
             ContextSlt context = ContextSlt.GetContextSlt();
-            string globalCollectionPath = context.GetConfigProperty(_RESTResponseCodeCollectionsPathName);
-            string globalCollectionPkgName = context.GetConfigProperty(_RESTResponseCodeCollectionsPkgName);
+            string globalCollectionPath = context.GetConfigProperty(_RESTHeaderParamCollectionsPathName);
+            string globalCollectionPkgName = context.GetConfigProperty(_RESTHeaderParamCollectionsPkgName);
             MEPackage globalCollections = ModelSlt.GetModelSlt().FindPackage(globalCollectionPath, globalCollectionPkgName);
 
             if (globalCollections == null)
@@ -79,10 +81,11 @@ namespace Plugin.Application.CapabilityModel.API
                                     "', ignoring global response code collections!");
             }
 
-            using (var editDialog = new RESTResponseCodeCollectionEdit(null))
+            using (var editDialog = new RESTHeaderParameterCollectionEdit(null))
             {
                 if (editDialog.ShowDialog() == DialogResult.OK)
                 {
+                    string prefix = EnumConversions<RESTCollection.CollectionScope>.EnumToString(editDialog.Scope);
                     if (HasCollection(_Token, editDialog.CollectionName, editDialog.Scope))
                     {
                         MessageBox.Show("Duplicate collection name, please try again!",
@@ -119,7 +122,8 @@ namespace Plugin.Application.CapabilityModel.API
         /// <returns>The name of the modified collection (might have been changed as a result of the edit operation).</returns>
         internal override string EditCollection(string collectionName, RESTCollection.CollectionScope scope)
         {
-            RESTResponseCodeCollection thisCollection = GetCollection(_Token, collectionName, scope) as RESTResponseCodeCollection;
+            string scopeNm = EnumConversions<RESTCollection.CollectionScope>.EnumToString(scope);
+            RESTHeaderParameterCollection thisCollection = GetCollection(_Token, collectionName, scope) as RESTHeaderParameterCollection;
             if (thisCollection == null)
             {
                 MessageBox.Show("Specified collection '" + collectionName + "' with scope '" + scope + "' not found, please try again!",
@@ -127,7 +131,7 @@ namespace Plugin.Application.CapabilityModel.API
                 return string.Empty;
             }
 
-            using (var editDialog = new RESTResponseCodeCollectionEdit(thisCollection))
+            using (var editDialog = new RESTHeaderParameterCollectionEdit(thisCollection))
             {
                 if (editDialog.ShowDialog() == DialogResult.OK)
                 {
@@ -149,13 +153,13 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Is invoked when the user wants to use the contents of a Response Code Collection. If only a single collection exists, the contents
-        /// of this collection is returned as a list of OperationResultDeclaration objects. If multiple collections exist, the user is presented
+        /// Is invoked when the user wants to use the contents of a Header Parameter Collection. If only a single collection exists, the contents
+        /// of this collection is returned as a list of Header Parameter Descriptor objects. If multiple collections exist, the user is presented
         /// with a dialog from which to select the appropriate collection. When no collections exist (or the user does not select one), the
         /// function returns an empty list.
         /// </summary>
-        /// <returns>List of Operation Result Declaration objects (can be empty).</returns>
-        internal List<RESTOperationResultDescriptor> GetCollectionContents()
+        /// <returns>List of Header Parameter Descriptor objects (can be empty).</returns>
+        internal List<RESTHeaderParameterDescriptor> GetCollectionContents()
         {
             int APIcollectionCount = GetCollectionCount(_Token, RESTCollection.CollectionScope.API);
             int GlobalCollectionCount = GetCollectionCount(_Token, RESTCollection.CollectionScope.Global);
@@ -164,14 +168,14 @@ namespace Plugin.Application.CapabilityModel.API
                 if (APIcollectionCount == 1 && GlobalCollectionCount == 0)
                 {
                     // One entry in the API collection set and no global collections...
-                    var result = GetCollections(_Token, RESTCollection.CollectionScope.API)[0] as RESTResponseCodeCollection;
-                    return result.Collection != null ? result.Collection : new List<RESTOperationResultDescriptor>();
+                    var result = GetCollections(_Token, RESTCollection.CollectionScope.API)[0] as RESTHeaderParameterCollection;
+                    return result.Collection != null ? result.Collection : new List<RESTHeaderParameterDescriptor>();
                 }
                 else if (APIcollectionCount == 0 && GlobalCollectionCount == 1)
                 {
                     // One entry in the global collections and no API collections...
-                    var result = GetCollections(_Token, RESTCollection.CollectionScope.Global)[0] as RESTResponseCodeCollection;
-                    return result.Collection != null ? result.Collection : new List<RESTOperationResultDescriptor>();
+                    var result = GetCollections(_Token, RESTCollection.CollectionScope.Global)[0] as RESTHeaderParameterCollection;
+                    return result.Collection != null ? result.Collection : new List<RESTHeaderParameterDescriptor>();
                 }
                 else
                 {
@@ -192,12 +196,12 @@ namespace Plugin.Application.CapabilityModel.API
                                 scope = RESTCollection.CollectionScope.Global;
                                 key = key.Substring(_GlobalPrefix.Length);
                             }
-                            return ((RESTResponseCodeCollection)GetCollection(_Token, key, scope)).Collection;
-                        }    
+                            return ((RESTHeaderParameterCollection)GetCollection(_Token, key, scope)).Collection;
+                        }
                     }
                 }
             }
-            return new List<RESTOperationResultDescriptor>();
+            return new List<RESTHeaderParameterDescriptor>();
         }
 
         /// <summary>

@@ -6,11 +6,11 @@ using Framework.Util;
 namespace Plugin.Application.Forms
 {
     /// <summary>
-    /// This dialog facilitates add-, delete- or update of response code collections.
+    /// This dialog facilitates add-, delete- or update of collections.
     /// </summary>
-    internal partial class RESTResponseCodeCollectionSetEdit : Form
+    internal partial class RESTCollectionSetEdit : Form
     {
-        private RESTResponseCodeCollectionMgr _manager;
+        private RESTCollectionMgr _manager;
 
         // Separates scope from name in collections...
         private const string _ScopeSeparator = ": ";
@@ -20,7 +20,7 @@ namespace Plugin.Application.Forms
         /// on that set.
         /// </summary>
         /// <param name="setManager">The Collection Set Manager used to manage the created lists.</param>
-        internal RESTResponseCodeCollectionSetEdit(RESTResponseCodeCollectionMgr setManager)
+        internal RESTCollectionSetEdit(RESTCollectionMgr setManager)
         {
             InitializeComponent();
             this._manager = setManager;
@@ -37,9 +37,9 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void AddCollection_Click(object sender, EventArgs e)
         {
-            RESTResponseCodeCollection newCollection = this._manager.AddCollection();
+            RESTCollection newCollection = this._manager.AddCollection();
             if (newCollection != null)
-                CollectionListFld.Items.Add(EnumConversions<RESTResponseCodeCollection.CollectionScope>.EnumToString(newCollection.Scope) + 
+                CollectionListFld.Items.Add(EnumConversions<RESTCollection.CollectionScope>.EnumToString(newCollection.Scope) + 
                                             _ScopeSeparator + newCollection.Name);
         }
 
@@ -55,7 +55,7 @@ namespace Plugin.Application.Forms
             {
                 string scope = selectedName.Substring(0, selectedName.IndexOf(_ScopeSeparator));
                 string collection = selectedName.Substring(selectedName.IndexOf(_ScopeSeparator) + _ScopeSeparator.Length);
-                this._manager.DeleteCollection(collection, EnumConversions<RESTResponseCodeCollection.CollectionScope>.StringToEnum(scope));
+                this._manager.DeleteCollection(collection, EnumConversions<RESTCollection.CollectionScope>.StringToEnum(scope));
                 CollectionListFld.Items.Remove(selectedName);
             }
         }
@@ -72,11 +72,15 @@ namespace Plugin.Application.Forms
             {
                 string scope = selectedName.Substring(0, selectedName.IndexOf(_ScopeSeparator));
                 string collection = selectedName.Substring(selectedName.IndexOf(_ScopeSeparator) + _ScopeSeparator.Length);
-                string updatedName = this._manager.EditCollection(collection, EnumConversions<RESTResponseCodeCollection.CollectionScope>.StringToEnum(scope));
-                if (updatedName != string.Empty && updatedName != selectedName)
+                string updatedName = this._manager.EditCollection(collection, EnumConversions<RESTCollection.CollectionScope>.StringToEnum(scope));
+                if (updatedName != string.Empty)
                 {
-                    CollectionListFld.Items.Remove(selectedName);
-                    CollectionListFld.Items.Add(scope + _ScopeSeparator + updatedName);
+                    updatedName = scope + _ScopeSeparator + updatedName;
+                    if (updatedName != selectedName)
+                    {
+                        CollectionListFld.Items.Remove(selectedName);
+                        CollectionListFld.Items.Add(updatedName);
+                    }
                 }
             }
         }

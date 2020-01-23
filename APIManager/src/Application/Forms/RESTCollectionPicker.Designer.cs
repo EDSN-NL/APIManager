@@ -1,6 +1,6 @@
 ﻿namespace Plugin.Application.Forms
 {
-    partial class RESTOperationResultCodeCollectionPicker
+    partial class RESTCollectionPicker
     {
         /// <summary>
         /// Required designer variable.
@@ -36,7 +36,7 @@
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(91, 189);
+            this.Cancel.Location = new System.Drawing.Point(164, 189);
             this.Cancel.Margin = new System.Windows.Forms.Padding(2);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
@@ -47,7 +47,7 @@
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(12, 189);
+            this.Ok.Location = new System.Drawing.Point(85, 189);
             this.Ok.Margin = new System.Windows.Forms.Padding(2);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
@@ -60,16 +60,16 @@
             this.CollectionList.FormattingEnabled = true;
             this.CollectionList.Location = new System.Drawing.Point(12, 11);
             this.CollectionList.Name = "CollectionList";
-            this.CollectionList.Size = new System.Drawing.Size(154, 173);
+            this.CollectionList.Size = new System.Drawing.Size(226, 173);
             this.CollectionList.TabIndex = 1;
             // 
-            // RESTOperationResultCodeCollectionPicker
+            // RESTCollectionPicker
             // 
             this.AcceptButton = this.Ok;
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(179, 228);
+            this.ClientSize = new System.Drawing.Size(250, 228);
             this.Controls.Add(this.CollectionList);
             this.Controls.Add(this.Ok);
             this.Controls.Add(this.Cancel);
@@ -77,7 +77,7 @@
             this.Margin = new System.Windows.Forms.Padding(2);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "RESTOperationResultCodeCollectionPicker";
+            this.Name = "RESTCollectionPicker";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Select collection to use";
             this.TopMost = true;

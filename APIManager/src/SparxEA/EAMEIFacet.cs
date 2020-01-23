@@ -203,6 +203,14 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Updates the classifier of this facet (the 'type' of the facet).
+        /// </summary>
+        internal override void SetClassifier(MEDataType newClassifier)
+        {
+            this._attributePart.SetClassifier(newClassifier);
+        }
+
+        /// <summary>
         /// Updates the index of the attribute within the owning class. Index must be >= 0, otherwise no action is performed.
         /// </summary>
         /// <param name="index">New index of attribute within owning class.</param>

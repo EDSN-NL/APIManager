@@ -94,7 +94,12 @@ namespace Plugin.Application.Forms
             this.RequestHeaderList = new System.Windows.Forms.ListView();
             this.ReqHdrName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.ReqHdrDescription = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.UseHeaderParameters = new System.Windows.Forms.CheckBox();
+            this.RequestHeaderMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.addToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.editToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.useCollectionToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.manageCollectionsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.OperationGroup.SuspendLayout();
             this.FilterGroup.SuspendLayout();
             this.ResponseCodeGroup.SuspendLayout();
@@ -105,6 +110,7 @@ namespace Plugin.Application.Forms
             this.RequestParamBox.SuspendLayout();
             this.ReqCardinalityGroup.SuspendLayout();
             this.RequestHeaderGroup.SuspendLayout();
+            this.RequestHeaderMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // Cancel
@@ -113,7 +119,7 @@ namespace Plugin.Application.Forms
             this.Cancel.Location = new System.Drawing.Point(523, 567);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
-            this.Cancel.TabIndex = 12;
+            this.Cancel.TabIndex = 11;
             this.Cancel.Text = "Cancel";
             this.Cancel.UseVisualStyleBackColor = true;
             // 
@@ -123,7 +129,7 @@ namespace Plugin.Application.Forms
             this.Ok.Location = new System.Drawing.Point(442, 567);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
-            this.Ok.TabIndex = 13;
+            this.Ok.TabIndex = 12;
             this.Ok.Text = "Ok";
             this.Ok.UseVisualStyleBackColor = true;
             this.Ok.Click += new System.EventHandler(this.Ok_Click);
@@ -143,14 +149,14 @@ namespace Plugin.Application.Forms
             this.OperationNameFld.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.OperationNameFld.Location = new System.Drawing.Point(50, 18);
             this.OperationNameFld.Name = "OperationNameFld";
-            this.OperationNameFld.Size = new System.Drawing.Size(223, 20);
+            this.OperationNameFld.Size = new System.Drawing.Size(235, 20);
             this.OperationNameFld.TabIndex = 1;
             this.OperationNameFld.Leave += new System.EventHandler(this.OperationNameFld_Leave);
             // 
             // OperationTypeFld
             // 
             this.OperationTypeFld.FormattingEnabled = true;
-            this.OperationTypeFld.Location = new System.Drawing.Point(352, 17);
+            this.OperationTypeFld.Location = new System.Drawing.Point(351, 17);
             this.OperationTypeFld.Name = "OperationTypeFld";
             this.OperationTypeFld.Size = new System.Drawing.Size(223, 21);
             this.OperationTypeFld.TabIndex = 2;
@@ -169,7 +175,7 @@ namespace Plugin.Application.Forms
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(312, 21);
+            this.label2.Location = new System.Drawing.Point(311, 20);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(34, 13);
             this.label2.TabIndex = 0;
@@ -194,7 +200,7 @@ namespace Plugin.Application.Forms
             this.HasPagination.Location = new System.Drawing.Point(12, 408);
             this.HasPagination.Name = "HasPagination";
             this.HasPagination.Size = new System.Drawing.Size(97, 17);
-            this.HasPagination.TabIndex = 6;
+            this.HasPagination.TabIndex = 7;
             this.HasPagination.Text = "Use pagination";
             this.HasPagination.UseVisualStyleBackColor = true;
             this.HasPagination.CheckedChanged += new System.EventHandler(this.Indicator_CheckedChanged);
@@ -206,7 +212,7 @@ namespace Plugin.Application.Forms
             this.NewMinorVersion.Location = new System.Drawing.Point(12, 567);
             this.NewMinorVersion.Name = "NewMinorVersion";
             this.NewMinorVersion.Size = new System.Drawing.Size(138, 17);
-            this.NewMinorVersion.TabIndex = 11;
+            this.NewMinorVersion.TabIndex = 10;
             this.NewMinorVersion.Text = "Increment minor version";
             this.NewMinorVersion.UseVisualStyleBackColor = true;
             // 
@@ -218,8 +224,8 @@ namespace Plugin.Application.Forms
             this.FilterGroup.Controls.Add(this.AddFilter);
             this.FilterGroup.Location = new System.Drawing.Point(12, 67);
             this.FilterGroup.Name = "FilterGroup";
-            this.FilterGroup.Size = new System.Drawing.Size(287, 180);
-            this.FilterGroup.TabIndex = 7;
+            this.FilterGroup.Size = new System.Drawing.Size(296, 180);
+            this.FilterGroup.TabIndex = 2;
             this.FilterGroup.TabStop = false;
             this.FilterGroup.Text = "Filter parameters";
             // 
@@ -255,7 +261,7 @@ namespace Plugin.Application.Forms
             this.FilterParameterList.Location = new System.Drawing.Point(11, 19);
             this.FilterParameterList.MultiSelect = false;
             this.FilterParameterList.Name = "FilterParameterList";
-            this.FilterParameterList.Size = new System.Drawing.Size(265, 121);
+            this.FilterParameterList.Size = new System.Drawing.Size(274, 121);
             this.FilterParameterList.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.FilterParameterList.TabIndex = 0;
             this.FilterParameterList.UseCompatibleStateImageBehavior = false;
@@ -292,9 +298,9 @@ namespace Plugin.Application.Forms
             this.ResponseCodeGroup.Location = new System.Drawing.Point(314, 67);
             this.ResponseCodeGroup.Name = "ResponseCodeGroup";
             this.ResponseCodeGroup.Size = new System.Drawing.Size(284, 180);
-            this.ResponseCodeGroup.TabIndex = 8;
+            this.ResponseCodeGroup.TabIndex = 3;
             this.ResponseCodeGroup.TabStop = false;
-            this.ResponseCodeGroup.Text = "Responses";
+            this.ResponseCodeGroup.Text = "Response codes";
             // 
             // UseCollection
             // 
@@ -302,7 +308,7 @@ namespace Plugin.Application.Forms
             this.UseCollection.Location = new System.Drawing.Point(105, 146);
             this.UseCollection.Name = "UseCollection";
             this.UseCollection.Size = new System.Drawing.Size(25, 25);
-            this.UseCollection.TabIndex = 5;
+            this.UseCollection.TabIndex = 4;
             this.UseCollection.UseVisualStyleBackColor = true;
             this.UseCollection.Click += new System.EventHandler(this.UseCollection_Click);
             // 
@@ -312,7 +318,7 @@ namespace Plugin.Application.Forms
             this.EditCollections.Location = new System.Drawing.Point(136, 146);
             this.EditCollections.Name = "EditCollections";
             this.EditCollections.Size = new System.Drawing.Size(25, 25);
-            this.EditCollections.TabIndex = 4;
+            this.EditCollections.TabIndex = 5;
             this.EditCollections.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.EditCollections.UseVisualStyleBackColor = true;
             this.EditCollections.Click += new System.EventHandler(this.EditCollections_Click);
@@ -459,8 +465,8 @@ namespace Plugin.Application.Forms
             this.MimeBox.Controls.Add(this.label3);
             this.MimeBox.Location = new System.Drawing.Point(12, 327);
             this.MimeBox.Name = "MimeBox";
-            this.MimeBox.Size = new System.Drawing.Size(287, 75);
-            this.MimeBox.TabIndex = 9;
+            this.MimeBox.Size = new System.Drawing.Size(296, 75);
+            this.MimeBox.TabIndex = 6;
             this.MimeBox.TabStop = false;
             this.MimeBox.Text = "MIME types";
             // 
@@ -468,8 +474,8 @@ namespace Plugin.Application.Forms
             // 
             this.ConsumesMIME.Location = new System.Drawing.Point(63, 42);
             this.ConsumesMIME.Name = "ConsumesMIME";
-            this.ConsumesMIME.Size = new System.Drawing.Size(213, 20);
-            this.ConsumesMIME.TabIndex = 3;
+            this.ConsumesMIME.Size = new System.Drawing.Size(222, 20);
+            this.ConsumesMIME.TabIndex = 2;
             this.ConsumesMIME.TextChanged += new System.EventHandler(this.ConsumesMIME_TextChanged);
             // 
             // label4
@@ -485,7 +491,7 @@ namespace Plugin.Application.Forms
             // 
             this.ProducesMIME.Location = new System.Drawing.Point(63, 16);
             this.ProducesMIME.Name = "ProducesMIME";
-            this.ProducesMIME.Size = new System.Drawing.Size(213, 20);
+            this.ProducesMIME.Size = new System.Drawing.Size(222, 20);
             this.ProducesMIME.TabIndex = 1;
             this.ProducesMIME.TextChanged += new System.EventHandler(this.ProducesMIME_TextChanged);
             // 
@@ -506,7 +512,7 @@ namespace Plugin.Application.Forms
             this.DocumentationBox.Location = new System.Drawing.Point(12, 439);
             this.DocumentationBox.Name = "DocumentationBox";
             this.DocumentationBox.Size = new System.Drawing.Size(586, 122);
-            this.DocumentationBox.TabIndex = 10;
+            this.DocumentationBox.TabIndex = 9;
             this.DocumentationBox.TabStop = false;
             this.DocumentationBox.Text = "Documentation";
             // 
@@ -544,20 +550,20 @@ namespace Plugin.Application.Forms
             this.RequestParamBox.Controls.Add(this.SelectRequest);
             this.RequestParamBox.Location = new System.Drawing.Point(12, 253);
             this.RequestParamBox.Name = "RequestParamBox";
-            this.RequestParamBox.Size = new System.Drawing.Size(287, 68);
-            this.RequestParamBox.TabIndex = 2;
+            this.RequestParamBox.Size = new System.Drawing.Size(296, 68);
+            this.RequestParamBox.TabIndex = 4;
             this.RequestParamBox.TabStop = false;
-            this.RequestParamBox.Text = "Request";
+            this.RequestParamBox.Text = "Request payload";
             // 
             // ReqCardinalityGroup
             // 
             this.ReqCardinalityGroup.Controls.Add(this.label6);
             this.ReqCardinalityGroup.Controls.Add(this.ReqCardHi);
             this.ReqCardinalityGroup.Controls.Add(this.ReqCardLo);
-            this.ReqCardinalityGroup.Location = new System.Drawing.Point(206, 12);
+            this.ReqCardinalityGroup.Location = new System.Drawing.Point(215, 11);
             this.ReqCardinalityGroup.Name = "ReqCardinalityGroup";
             this.ReqCardinalityGroup.Size = new System.Drawing.Size(70, 47);
-            this.ReqCardinalityGroup.TabIndex = 6;
+            this.ReqCardinalityGroup.TabIndex = 3;
             this.ReqCardinalityGroup.TabStop = false;
             this.ReqCardinalityGroup.Text = "Cardinality";
             // 
@@ -590,7 +596,7 @@ namespace Plugin.Application.Forms
             // RemoveRequest
             // 
             this.RemoveRequest.Image = ((System.Drawing.Image)(resources.GetObject("RemoveRequest.Image")));
-            this.RemoveRequest.Location = new System.Drawing.Point(39, 27);
+            this.RemoveRequest.Location = new System.Drawing.Point(42, 26);
             this.RemoveRequest.Name = "RemoveRequest";
             this.RemoveRequest.Size = new System.Drawing.Size(25, 25);
             this.RemoveRequest.TabIndex = 2;
@@ -599,16 +605,16 @@ namespace Plugin.Application.Forms
             // 
             // RequestTypeName
             // 
-            this.RequestTypeName.Location = new System.Drawing.Point(70, 30);
+            this.RequestTypeName.Location = new System.Drawing.Point(73, 30);
             this.RequestTypeName.Name = "RequestTypeName";
             this.RequestTypeName.ReadOnly = true;
-            this.RequestTypeName.Size = new System.Drawing.Size(130, 20);
+            this.RequestTypeName.Size = new System.Drawing.Size(141, 20);
             this.RequestTypeName.TabIndex = 0;
             // 
             // SelectRequest
             // 
             this.SelectRequest.Image = ((System.Drawing.Image)(resources.GetObject("SelectRequest.Image")));
-            this.SelectRequest.Location = new System.Drawing.Point(9, 27);
+            this.SelectRequest.Location = new System.Drawing.Point(11, 26);
             this.SelectRequest.Name = "SelectRequest";
             this.SelectRequest.Size = new System.Drawing.Size(25, 25);
             this.SelectRequest.TabIndex = 1;
@@ -626,7 +632,7 @@ namespace Plugin.Application.Forms
             this.RequestHeaderGroup.Location = new System.Drawing.Point(314, 253);
             this.RequestHeaderGroup.Name = "RequestHeaderGroup";
             this.RequestHeaderGroup.Size = new System.Drawing.Size(284, 180);
-            this.RequestHeaderGroup.TabIndex = 14;
+            this.RequestHeaderGroup.TabIndex = 5;
             this.RequestHeaderGroup.TabStop = false;
             this.RequestHeaderGroup.Text = "Request headers";
             // 
@@ -636,8 +642,9 @@ namespace Plugin.Application.Forms
             this.UseReqHeaderCollection.Location = new System.Drawing.Point(105, 146);
             this.UseReqHeaderCollection.Name = "UseReqHeaderCollection";
             this.UseReqHeaderCollection.Size = new System.Drawing.Size(25, 25);
-            this.UseReqHeaderCollection.TabIndex = 5;
+            this.UseReqHeaderCollection.TabIndex = 4;
             this.UseReqHeaderCollection.UseVisualStyleBackColor = true;
+            this.UseReqHeaderCollection.Click += new System.EventHandler(this.UseReqHeaderCollection_Click);
             // 
             // EditReqHeaderCollections
             // 
@@ -645,9 +652,10 @@ namespace Plugin.Application.Forms
             this.EditReqHeaderCollections.Location = new System.Drawing.Point(136, 146);
             this.EditReqHeaderCollections.Name = "EditReqHeaderCollections";
             this.EditReqHeaderCollections.Size = new System.Drawing.Size(25, 25);
-            this.EditReqHeaderCollections.TabIndex = 4;
+            this.EditReqHeaderCollections.TabIndex = 5;
             this.EditReqHeaderCollections.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.EditReqHeaderCollections.UseVisualStyleBackColor = true;
+            this.EditReqHeaderCollections.Click += new System.EventHandler(this.EditReqHeaderCollections_Click);
             // 
             // EditReqHeader
             // 
@@ -657,6 +665,7 @@ namespace Plugin.Application.Forms
             this.EditReqHeader.Size = new System.Drawing.Size(25, 25);
             this.EditReqHeader.TabIndex = 3;
             this.EditReqHeader.UseVisualStyleBackColor = true;
+            this.EditReqHeader.Click += new System.EventHandler(this.EditReqHeader_Click);
             // 
             // DeleteReqHeader
             // 
@@ -666,6 +675,7 @@ namespace Plugin.Application.Forms
             this.DeleteReqHeader.Size = new System.Drawing.Size(25, 25);
             this.DeleteReqHeader.TabIndex = 2;
             this.DeleteReqHeader.UseVisualStyleBackColor = true;
+            this.DeleteReqHeader.Click += new System.EventHandler(this.DeleteReqHeader_Click);
             // 
             // AddReqHeader
             // 
@@ -675,6 +685,7 @@ namespace Plugin.Application.Forms
             this.AddReqHeader.Size = new System.Drawing.Size(25, 25);
             this.AddReqHeader.TabIndex = 1;
             this.AddReqHeader.UseVisualStyleBackColor = true;
+            this.AddReqHeader.Click += new System.EventHandler(this.AddReqHeader_Click);
             // 
             // RequestHeaderList
             // 
@@ -704,15 +715,51 @@ namespace Plugin.Application.Forms
             this.ReqHdrDescription.Text = "Description";
             this.ReqHdrDescription.Width = 197;
             // 
-            // UseHeaderParameters
+            // RequestHeaderMenuStrip
             // 
-            this.UseHeaderParameters.AutoSize = true;
-            this.UseHeaderParameters.Location = new System.Drawing.Point(115, 408);
-            this.UseHeaderParameters.Name = "UseHeaderParameters";
-            this.UseHeaderParameters.Size = new System.Drawing.Size(136, 17);
-            this.UseHeaderParameters.TabIndex = 15;
-            this.UseHeaderParameters.Text = "Use header parameters";
-            this.UseHeaderParameters.UseVisualStyleBackColor = true;
+            this.RequestHeaderMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.addToolStripMenuItem2,
+            this.deleteToolStripMenuItem2,
+            this.editToolStripMenuItem2,
+            this.useCollectionToolStripMenuItem1,
+            this.manageCollectionsToolStripMenuItem1});
+            this.RequestHeaderMenuStrip.Name = "contextMenuStrip1";
+            this.RequestHeaderMenuStrip.Size = new System.Drawing.Size(177, 114);
+            // 
+            // addToolStripMenuItem2
+            // 
+            this.addToolStripMenuItem2.Name = "addToolStripMenuItem2";
+            this.addToolStripMenuItem2.Size = new System.Drawing.Size(176, 22);
+            this.addToolStripMenuItem2.Text = "Add";
+            this.addToolStripMenuItem2.Click += new System.EventHandler(this.AddReqHeader_Click);
+            // 
+            // deleteToolStripMenuItem2
+            // 
+            this.deleteToolStripMenuItem2.Name = "deleteToolStripMenuItem2";
+            this.deleteToolStripMenuItem2.Size = new System.Drawing.Size(176, 22);
+            this.deleteToolStripMenuItem2.Text = "Delete";
+            this.deleteToolStripMenuItem2.Click += new System.EventHandler(this.DeleteReqHeader_Click);
+            // 
+            // editToolStripMenuItem2
+            // 
+            this.editToolStripMenuItem2.Name = "editToolStripMenuItem2";
+            this.editToolStripMenuItem2.Size = new System.Drawing.Size(176, 22);
+            this.editToolStripMenuItem2.Text = "Edit";
+            this.editToolStripMenuItem2.Click += new System.EventHandler(this.EditReqHeader_Click);
+            // 
+            // useCollectionToolStripMenuItem1
+            // 
+            this.useCollectionToolStripMenuItem1.Name = "useCollectionToolStripMenuItem1";
+            this.useCollectionToolStripMenuItem1.Size = new System.Drawing.Size(176, 22);
+            this.useCollectionToolStripMenuItem1.Text = "UseCollection";
+            this.useCollectionToolStripMenuItem1.Click += new System.EventHandler(this.UseReqHeaderCollection_Click);
+            // 
+            // manageCollectionsToolStripMenuItem1
+            // 
+            this.manageCollectionsToolStripMenuItem1.Name = "manageCollectionsToolStripMenuItem1";
+            this.manageCollectionsToolStripMenuItem1.Size = new System.Drawing.Size(176, 22);
+            this.manageCollectionsToolStripMenuItem1.Text = "ManageCollections";
+            this.manageCollectionsToolStripMenuItem1.Click += new System.EventHandler(this.EditReqHeaderCollections_Click);
             // 
             // RESTOperationDialog
             // 
@@ -720,8 +767,7 @@ namespace Plugin.Application.Forms
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(610, 612);
-            this.Controls.Add(this.UseHeaderParameters);
+            this.ClientSize = new System.Drawing.Size(611, 612);
             this.Controls.Add(this.RequestHeaderGroup);
             this.Controls.Add(this.RequestParamBox);
             this.Controls.Add(this.HasPagination);
@@ -755,6 +801,7 @@ namespace Plugin.Application.Forms
             this.ReqCardinalityGroup.ResumeLayout(false);
             this.ReqCardinalityGroup.PerformLayout();
             this.RequestHeaderGroup.ResumeLayout(false);
+            this.RequestHeaderMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -824,6 +871,11 @@ namespace Plugin.Application.Forms
         private ListView RequestHeaderList;
         private ColumnHeader ReqHdrName;
         private ColumnHeader ReqHdrDescription;
-        private CheckBox UseHeaderParameters;
+        private ContextMenuStrip RequestHeaderMenuStrip;
+        private ToolStripMenuItem addToolStripMenuItem2;
+        private ToolStripMenuItem deleteToolStripMenuItem2;
+        private ToolStripMenuItem editToolStripMenuItem2;
+        private ToolStripMenuItem useCollectionToolStripMenuItem1;
+        private ToolStripMenuItem manageCollectionsToolStripMenuItem1;
     }
 }

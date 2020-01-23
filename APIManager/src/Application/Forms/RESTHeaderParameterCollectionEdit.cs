@@ -7,11 +7,11 @@ using Plugin.Application.CapabilityModel.API;
 namespace Plugin.Application.Forms
 {
     /// <summary>
-    /// Presents a user dialog that facilitates either creation of a new collection of changing an existing one.
+    /// Presents a user dialog that facilitates either creation of a new header parameter collection or changing an existing one.
     /// </summary>
-    internal partial class RESTResponseCodeCollectionEdit : Form
+    internal partial class RESTHeaderParameterCollectionEdit : Form
     {
-        private RESTResponseCodeCollection _collection;
+        private RESTHeaderParameterCollection _collection;
         private RESTCollection.CollectionScope _scope;
 
         /// <summary>
@@ -22,7 +22,7 @@ namespace Plugin.Application.Forms
         /// <summary>
         /// Returns the created or modified collection.
         /// </summary>
-        internal RESTResponseCodeCollection Collection { get { return this._collection; } }
+        internal RESTHeaderParameterCollection Collection { get { return this._collection; } }
 
         /// <summary>
         /// Returns the user-selected scope of the collection.
@@ -33,7 +33,7 @@ namespace Plugin.Application.Forms
         /// Dialog that facilitates creation of a new Operation Result Declaration (or editing of an existing one).
         /// </summary>
         /// <param name="result">Initial declaration to use for editing.</param>
-        internal RESTResponseCodeCollectionEdit(RESTResponseCodeCollection thisCollection)
+        internal RESTHeaderParameterCollectionEdit(RESTHeaderParameterCollection thisCollection)
         {
             InitializeComponent();
             ContextSlt context = ContextSlt.GetContextSlt();
@@ -47,13 +47,13 @@ namespace Plugin.Application.Forms
                 ScopeGroup.Enabled = false;             // You can NOT change the scope of an existing collection!
 
                 // Load the result codes from the existing collection...
-                foreach (RESTOperationResultDescriptor resultDesc in thisCollection.Collection)
+                foreach (RESTHeaderParameterDescriptor resultDesc in thisCollection.Collection)
                 {
                     if (resultDesc.IsValid)
                     {
-                        ListViewItem newItem = new ListViewItem(resultDesc.ResultCode);
+                        ListViewItem newItem = new ListViewItem(resultDesc.Name);
                         newItem.SubItems.Add(resultDesc.Description);
-                        ResponseCodeList.Items.Add(newItem);
+                        HeaderParameterList.Items.Add(newItem);
                     }
                 }
             }
@@ -62,11 +62,11 @@ namespace Plugin.Application.Forms
                 this.Text = "Create new Collection";
                 this.Ok.Enabled = false;
                 this._scope = RESTCollection.CollectionScope.API;
-                this._collection = new RESTResponseCodeCollection(null, this._scope);
+                this._collection = new RESTHeaderParameterCollection(null, this._scope);
             }
 
             // Assign context menus to the appropriate controls...
-            ResponseCodeList.ContextMenuStrip = ResponseCodeMenuStrip;
+            HeaderParameterList.ContextMenuStrip = ResponseCodeMenuStrip;
 
             // Find out which radio button to select for the scope...
             foreach (Control control in ScopeGroup.Controls)
@@ -80,61 +80,60 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
-        /// This event is raised when the user clicks the 'Add Response Code' button.
-        /// The method facilitates creation of an additional response code (link between a HTTP response code and an
-        /// associated data type).
+        /// This event is raised when the user clicks the 'Add Header Parameter' button.
+        /// The method facilitates creation of an additional header parameter.
         /// </summary>
         /// <param name="sender">Ignored.</param>
         /// <param name="e">Ignored.</param>
-        private void AddResponseCode_Click(object sender, EventArgs e)
+        private void AddHeaderParameter_Click(object sender, EventArgs e)
         {
-            RESTOperationResultDescriptor result = this._collection.AddOperationResult();
+            RESTHeaderParameterDescriptor result = this._collection.AddHeaderParameter();
             if (result != null && result.IsValid)
             {
-                ListViewItem newItem = new ListViewItem(result.ResultCode);
+                ListViewItem newItem = new ListViewItem(result.Name);
                 newItem.SubItems.Add(result.Description);
-                ResponseCodeList.Items.Add(newItem);
+                HeaderParameterList.Items.Add(newItem);
             }
         }
 
         /// <summary>
-        /// This event is raised when the user selects a response code for deletion.
+        /// This event is raised when the user selects a header parameter for deletion.
         /// </summary>
         /// <param name="sender">Ignored.</param>
         /// <param name="e">Ignored.</param>
-        private void DeleteResponseCode_Click(object sender, EventArgs e)
+        private void DeleteHeaderParameter_Click(object sender, EventArgs e)
         {
-            if (ResponseCodeList.SelectedItems.Count > 0)
+            if (HeaderParameterList.SelectedItems.Count > 0)
             {
-                ListViewItem key = ResponseCodeList.SelectedItems[0];
-                this._collection.DeleteOperationResult(key.Text);
-                ResponseCodeList.Items.Remove(key);
+                ListViewItem key = HeaderParameterList.SelectedItems[0];
+                this._collection.DeleteHeaderParameter(key.Text);
+                HeaderParameterList.Items.Remove(key);
             }
         }
 
         /// <summary>
-        /// This event is raised when the user selects a response code for edit.
+        /// This event is raised when the user selects a header parameter for edit.
         /// </summary>
         /// <param name="sender">Ignored.</param>
         /// <param name="e">Ignored.</param>
-        private void EditResponseCode_Click(object sender, EventArgs e)
+        private void EditHeaderParameter_Click(object sender, EventArgs e)
         {
-            if (ResponseCodeList.SelectedItems.Count > 0)
+            if (HeaderParameterList.SelectedItems.Count > 0)
             {
-                ListViewItem key = ResponseCodeList.SelectedItems[0];
+                ListViewItem key = HeaderParameterList.SelectedItems[0];
                 string originalKey = key.Text;
-                RESTOperationResultDescriptor result = this._collection.EditOperationResult(key.Text);
+                RESTHeaderParameterDescriptor result = this._collection.EditHeaderParameter(key.Text);
                 if (result != null)
                 {
-                    key.SubItems[0].Text = result.ResultCode;
+                    key.SubItems[0].Text = result.Name;
                     key.SubItems[1].Text = result.Description;
-                    ResponseCodeList.Sort();
+                    HeaderParameterList.Sort();
                 }
             }
         }
 
         /// <summary>
-        /// This event is raised when the user leaves the collection name field. It checks whether the field has some
+        /// This event is raised when the user leaves the parameter name field. It checks whether the field has some
         /// contents and if so, enables the Ok key.
         /// </summary>
         /// <param name="sender">Ignored</param>

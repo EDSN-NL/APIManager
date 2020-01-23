@@ -393,7 +393,7 @@ namespace Plugin.Application.Events.API
             this._serviceClass = svcClass;
             this._serviceModelPackage = svcClass.OwningPackage;
             this._declarationPackage = this._serviceModelPackage.Parent;
-            this._diagram = this._serviceModelPackage.FindDiagram(this._serviceModelPackage.Name);
+            this._serviceDiagram = this._serviceModelPackage.FindDiagram(this._serviceModelPackage.Name);
             this._type = Service.ServiceArchetype.Unknown;
 
             // These will not be available in this context...
@@ -424,7 +424,7 @@ namespace Plugin.Application.Events.API
             BuildHierarchy();
 
             Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Service type is: '" + this._type + "'.");
-            Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Found diagram: " + this._diagram.Name);
+            Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Found diagram: " + this._serviceDiagram.Name);
             Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Selected service class: " + this._serviceClass.Name);
             Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Found declaration package: " + this._declarationPackage.Name);
             Logger.WriteInfo("Plugin.Application.Events.API.ServiceContext >> Found service model package: " + this._serviceModelPackage.Name);

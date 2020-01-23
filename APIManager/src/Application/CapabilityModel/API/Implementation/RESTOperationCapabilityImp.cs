@@ -24,11 +24,14 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _OperationResultClassName          = "OperationResultClassName";
         private const string _PaginationRoleName                = "PaginationRoleName";
         private const string _APISupportModelPathName           = "APISupportModelPathName";
+        private const string _RequestHdrParamClassName          = "RequestHdrParamClassName";
+        private const string _ResponseHdrParamClassName         = "ResponseHdrParamClassName";
         private const string _ConsumesMIMEListTag               = "ConsumesMIMEListTag";
         private const string _ProducesMIMEListTag               = "ProducesMIMEListTag";
         private const string _RESTUseHeaderParametersTag        = "RESTUseHeaderParametersTag";
         private const string _RESTUseLinkHeaderTag              = "RESTUseLinkHeaderTag";
         private const string _RCCStereotype                     = "RCCStereotype";
+        private const string _HPCStereotype                     = "HPCStereotype";
 
         // This is NOT a configuration item since the use of the old Operation Result Capabilities has been deprecated!
         private const string _DEPRECATEDOperationResultStereotype = "RESTOperationResult";
@@ -40,12 +43,15 @@ namespace Plugin.Application.CapabilityModel.API
         private RESTResourceCapability _requestBodyDocument;    // If the operation has a request body, this is the associated Document Resource.
         private Cardinality _requestCardinality;                // Cardinality of request body document. Only valid if requestBodyDocument is specified.
         private RESTResponseCodeCollection _responseCollection; // Contains the list of response codes (plus associated metadata).
-        private bool _useHeaderParameters;                      // Set to 'true' when operation muse use configured Header Parameters.
+        private RESTHeaderParameterCollection _requestHeaderCollection;     // Contains the set of request header parameters.
         private bool _useLinkHeaders;                           // Set to 'true' when the response must contain a definition for Link Headers.
         private bool _usePagination;                            // Set to 'true' when the operation uses pagination.
         private bool _disposed;                                 // Mark myself as invalid after call to dispose!
 
-        private const string _CollectionNamePostfix             = "Responses";  // Will be added to the operation name to create a collection name.
+        private const string _CollectionNamePostfix             = "Responses";  // Will be added to the operation name to create a response code collection name.
+
+        // Request Header collections all have the same name. This is no issue since request headers all live in a separate (operation) package...
+        private const string _HdrCollectionName = "RequestHeaders";
 
         /// <summary>
         /// This is the normal entry for all users of the object that want to indicate that the resource declaration is not required anymore.
@@ -59,7 +65,6 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Getters for class properties:
         /// HTTPOperationType = Returns the HTTP operation type that is associated with this REST operation (as an enumeration).
-        /// UseHeaderParameters = Returns true if the operation muse use configured Header Parameters.
         /// UseLinkHeaders = Returns true if the operation Ok response must contain a definition for Link Headers.
         /// ConsumedMIMEList = Returns list of non-standard MIME types consumed by the operation.
         /// ProducedMIMEList = Returns list of non-standard MIME types produced by the operation.
@@ -69,7 +74,6 @@ namespace Plugin.Application.CapabilityModel.API
         /// UsePagination = True if the operation has pagination support.
         /// </summary>
         internal HTTPOperation HTTPOperationType                { get { return this._operationType; } }
-        internal bool UseHeaderParameters                       { get { return this._useHeaderParameters; } }
         internal bool UseLinkHeaders                            { get { return this._useLinkHeaders; } }
         internal List<string> ConsumedMIMEList                  { get { return this._consumedMIMETypes; } }
         internal List<string> ProducedMIMEList                  { get { return this._producedMIMETypes; } }
@@ -77,6 +81,15 @@ namespace Plugin.Application.CapabilityModel.API
         internal RESTResourceCapability RequestBodyDocument     { get { return this._requestBodyDocument; } }
         internal Cardinality RequestCardinality                 { get { return this._requestCardinality; } }
         internal bool UsePagination                             { get { return this._usePagination; } }
+
+
+        /// <summary>
+        /// Returns the list of request header parameters for this operation (can be empty if no headers are defined).
+        /// </summary>
+        internal RESTHeaderParameterCollection RequestHeaders
+        {
+            get { return this._requestHeaderCollection; }
+        }
 
         /// <summary>
         /// Returns the list of operation response codes with their metadata...
@@ -108,14 +121,13 @@ namespace Plugin.Application.CapabilityModel.API
                 this._consumedMIMETypes = operation.ConsumedMIMETypes;
                 this._producedMIMETypes = operation.ProducedMIMETypes;
                 this._requestBodyDocument = operation.RequestDocument;
-                this._useHeaderParameters = operation.UseHeaderParametersIndicator;
                 this._usePagination = operation.PaginationIndicator;
 
                 this._capabilityClass = OperationPackage.CreateClass(operation.Name, context.GetConfigProperty(_RESTOperationClassStereotype));
                 if (this._capabilityClass != null)
                 {
+                    this._capabilityClass.SetTag(context.GetConfigProperty(_RESTUseHeaderParametersTag), string.Empty);     // This one is DEPRECATED, force to empty string!
                     this._capabilityClass.SetTag(context.GetConfigProperty(_ArchetypeTag), operation.OperationType.TypeName, true);
-                    this._capabilityClass.SetTag(context.GetConfigProperty(_RESTUseHeaderParametersTag), operation.UseHeaderParametersIndicator.ToString(), true);
                     this._capabilityClass.SetTag(context.GetConfigProperty(_RESTUseLinkHeaderTag), operation.UseLinkHeaderIndicator.ToString(), true);
                     this._capabilityClass.Version = parentResource.RootService.Version;
                     this._assignedRole = operation.Name;
@@ -196,6 +208,12 @@ namespace Plugin.Application.CapabilityModel.API
                     var collectionEndpoint = new EndpointDescriptor(this._responseCollection.CollectionClass, new Cardinality(Cardinality._Mandatory).ToString(), this._responseCollection.Name, null, true);
                     model.CreateAssociation(operationEndpoint, collectionEndpoint, MEAssociation.AssociationType.MessageAssociation);
 
+                    // Leoad Request Header collection and create an association with that collection...
+                    this._requestHeaderCollection = operation.RequestHeaders;
+                    this._requestHeaderCollection.Serialize(_HdrCollectionName, OperationPackage, RESTCollection.CollectionScope.Operation);
+                    collectionEndpoint = new EndpointDescriptor(this._requestHeaderCollection.CollectionClass, new Cardinality(Cardinality._Mandatory).ToString(), this._requestHeaderCollection.Name, null, true);
+                    CapabilityClass.CreateAssociation(operationEndpoint, collectionEndpoint, MEAssociation.AssociationType.MessageAssociation);
+
                     // Check whether we have to use Pagination. If so, we first attempt to create an association with the Request Pagination parameters,
                     // followed by the Response Pagination parameters...
                     string supportLocation = context.GetConfigProperty(_APISupportModelPathName);
@@ -252,8 +270,8 @@ namespace Plugin.Application.CapabilityModel.API
                 string operationArchetype = this._capabilityClass.GetTag(context.GetConfigProperty(_ArchetypeTag));
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (existing) >> Operation is of archetype: '" + operationArchetype + "'...");
                 this._operationType = new HTTPOperation(EnumConversions<HTTPOperation.Type>.StringToEnum(operationArchetype));
-                this._useHeaderParameters = string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_RESTUseHeaderParametersTag)), "true", true) == 0;
                 this._useLinkHeaders = string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_RESTUseLinkHeaderTag)), "true", true) == 0;
+                this._requestHeaderCollection = new RESTHeaderParameterCollection(this.ParentResource, RESTCollection.CollectionScope.Operation);
 
                 // We might encounter 'old' API's that still use the deprecated structure. For now, assume the best...
                 List<MEClass> deprecatedResponseClasses = null;
@@ -300,9 +318,10 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
 
-                // Check whether we're using Pagination, attempt to locate response collections and document cardinality ...
+                // Check whether we're using Pagination, attempt to locate response- and header collections and document cardinality ...
                 string paginationClassName = context.GetConfigProperty(_RequestPaginationClassName);
                 string collectionStereotype = context.GetConfigProperty(_RCCStereotype);
+                string headerCollectionStereotype = context.GetConfigProperty(_HPCStereotype);
                 foreach (MEAssociation association in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
                 {
                     if (association.Destination.EndPoint.HasStereotype(resourceStereotype))
@@ -321,6 +340,10 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         this._responseCollection = new RESTResponseCodeCollection(this._parent, association.Destination.EndPoint);
                     }
+                    else if (association.Destination.EndPoint.HasStereotype(headerCollectionStereotype))
+                    {
+                        this._requestHeaderCollection = new RESTHeaderParameterCollection(this._parent, association.Destination.EndPoint);
+                    }
                 }
                 if (this._responseCollection == null && deprecatedResponseClasses == null)
                 {
@@ -329,8 +352,18 @@ namespace Plugin.Application.CapabilityModel.API
                     return;
                 }
 
-                // When we discovered a list of 'deprecated' response capabilities, we will transform these into the new structure...
-                if (deprecatedResponseClasses != null) TransformResponseStructure(deprecatedResponseClasses);
+                // We might encounter API's that still use the deprecated 'UseHeaderParameters' tag. When found, we convert this to the new header structure.
+                string useHeaderParametersTag = this._capabilityClass.GetTag(context.GetConfigProperty(_RESTUseHeaderParametersTag));
+                bool transformHeaders = string.IsNullOrEmpty(useHeaderParametersTag) ? false : (string.Compare(useHeaderParametersTag, "true", true) == 0);
+
+                // When we discovered a list of deprecated response capabilities, we will transform these into the new structure.
+                // The transformation immediately creates the correct header structures, so we don't have to perform a separate
+                // header transformation in this case.
+                if (deprecatedResponseClasses != null) TransformResponseStructure(deprecatedResponseClasses, transformHeaders);
+                else if (transformHeaders)             TransformHeaderStructure();
+
+                // Finally, make sure that the old 'use headers' tag is removed in case it had 'a' value...
+                if (!string.IsNullOrEmpty(useHeaderParametersTag)) this._capabilityClass.SetTag(context.GetConfigProperty(_RESTUseHeaderParametersTag), string.Empty);
             }
             catch (Exception exc)
             {
@@ -425,12 +458,7 @@ namespace Plugin.Application.CapabilityModel.API
                     }
                 }
 
-                // Check changes to 'use header parameters' and 'use link header'...
-                if (operation.UseHeaderParametersIndicator != this._useHeaderParameters)
-                {
-                    this._useHeaderParameters = operation.UseHeaderParametersIndicator;
-                    this._capabilityClass.SetTag(context.GetConfigProperty(_RESTUseHeaderParametersTag), operation.UseHeaderParametersIndicator.ToString());
-                }
+                // Check changes to 'use link header'...
                 if (operation.UseLinkHeaderIndicator != this._useLinkHeaders)
                 {
                     this._useLinkHeaders = operation.UseLinkHeaderIndicator;
@@ -524,6 +552,47 @@ namespace Plugin.Application.CapabilityModel.API
                 // Replace the response collection by a (possibly new) version...
                 this._responseCollection = operation.ResponseCollection;
 
+                // Check what happened to our header parameters: if all have been deleted, we might have to delete the collection class.
+                // On the other hand, there might be a new collection (where there was none), in which case we have to serialize- and create
+                // the collection!
+                // Finally, it could be that the collection itself has been changed.
+                if (this._requestHeaderCollection.Collection.Count > 0 && operation.RequestHeaders.Collection.Count == 0)
+                {
+                    this._requestHeaderCollection.DeleteCollection();   // Clears all header parameters and removes the associated UML class.
+                }
+                else if (this._requestHeaderCollection.Collection.Count == 0 && operation.RequestHeaders.Collection.Count > 0)
+                {
+                    this._requestHeaderCollection.DeleteCollection();           // Assures that 'old' collection is cleaned up.
+                    this._requestHeaderCollection = operation.RequestHeaders;   // Replace old by new.
+                    this._requestHeaderCollection.Serialize(_HdrCollectionName, OwningPackage, RESTCollection.CollectionScope.Operation);
+
+                    // To be sure, we check whether we have an association with this header class (should not be the case)...
+                    bool foundClass = false;
+                    foreach (MEAssociation assoc in CapabilityClass.AssociationList)
+                    {
+                        if (assoc.Destination.EndPoint.Name == this._requestHeaderCollection.Name)
+                        {
+                            foundClass = true;
+                            break;
+                        }
+                    }
+                    if (!foundClass)
+                    {
+                        if (this._requestHeaderCollection.CollectionClass != null)
+                        {
+                            var sourceEndpoint = new EndpointDescriptor(CapabilityClass, "1", this._assignedRole, null, false);
+                            var headersEndpoint = new EndpointDescriptor(this._requestHeaderCollection.CollectionClass, "1", this._requestHeaderCollection.Name, null, true);
+                            CapabilityClass.CreateAssociation(sourceEndpoint, headersEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                        }
+                        else
+                        {
+                            Logger.WriteWarning("Unable to create request header parameter collection '" +
+                                                this._requestHeaderCollection.Name + "' in package '" + OwningPackage.Name + "'!");
+                        }
+                    }
+                }
+                else this._requestHeaderCollection.UpdateCollection(operation.RequestHeaders);
+
                 // This will update the service version, followed by all child capabilities!
                 // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
                 // managed differently).
@@ -596,15 +665,62 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Helper method that takes the old header parameter classes and creates request- and response headers according to the new structure. 
+        /// The method assumes that at least the response code structure adheres to current standards.
+        /// When we can't find the 'old' header template classes, the method performs no actions!
+        /// </summary>
+        private void TransformHeaderStructure()
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            ModelSlt model = ModelSlt.GetModelSlt();
+            MEClass requestParamClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
+                                                        context.GetConfigProperty(_RequestHdrParamClassName));
+            MEClass responseParamClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
+                                                         context.GetConfigProperty(_ResponseHdrParamClassName));
+
+            Logger.WriteWarning("Detected a deprecated header structure for operation '" + Name + "'; updating model structure in progress!");
+
+            // First, we create the request headers using a fully qualified collection (that can be serialized immediately)...
+            if (requestParamClass != null)
+            {
+                this._requestHeaderCollection = new RESTHeaderParameterCollection(this.ParentResource, _HdrCollectionName, this.OperationPackage);
+                foreach (MEAttribute attrib in requestParamClass.Attributes)
+                {
+                    this._requestHeaderCollection.AddHeaderParameter(new RESTHeaderParameterDescriptor(attrib.Name, attrib.Classifier, attrib.Annotation));
+                }
+            }
+            else Logger.WriteWarning("Unable to find old request header-parameter template '" + 
+                                     context.GetConfigProperty(_APISupportModelPathName) + ":" + 
+                                     context.GetConfigProperty(_RequestHdrParamClassName) + "', no request headers have been transformed!");
+
+            // Next, we create a response header collection for each response code...
+            if (responseParamClass != null)
+            {
+                foreach (MEAttribute attrib in responseParamClass.Attributes)
+                {
+                    foreach (RESTOperationResultDescriptor resultDesc in this._responseCollection.Collection)
+                    {
+                        resultDesc.AddHeaderParameter(new RESTHeaderParameterDescriptor(attrib.Name, attrib.Classifier, attrib.Annotation));
+                    }
+                }
+            }
+            else Logger.WriteWarning("Unable to find old response header-parameter template '" +
+                         context.GetConfigProperty(_APISupportModelPathName) + ":" +
+                         context.GetConfigProperty(_ResponseHdrParamClassName) + "', no response headers have been transformed!");
+        }
+
+        /// <summary>
         /// A helper function that receives a list of 'old' Response Capability classes from this operation and transforms this into
         /// our new Response Collection structure.
         /// </summary>
         /// <param name="deprecatedResponseClasses">List of all Operation Result Capability classes to be transformed.</param>
-        private void TransformResponseStructure(List<MEClass> deprecatedResponseClasses)
+        /// <param name="transformHeaders">When 'true', we ALSO have to transform the old header structure (based on a single flag)
+        /// to the new request- and response header structure.</param>
+        private void TransformResponseStructure(List<MEClass> deprecatedResponseClasses, bool transformHeaders)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             Logger.WriteWarning("Detected one or more deprecated Operation Result Capabilities for operation '" + Name + 
-                                "', updating model structure in progress!");
+                                "'; updating model structure in progress!");
 
             // First of all, create a new Response Code Collection and create an association with it... 
             if (this._responseCollection == null)
@@ -622,6 +738,41 @@ namespace Plugin.Application.CapabilityModel.API
                     resourceDiagram.AddAssociationList(new List<MEAssociation>() { newAssoc });
                     resourceDiagram.Redraw();
                 }
+            }
+
+            // Next, check whether we have Header Parameters for this operation and if so, create the appropriate request- and response collections...
+            // For the request headers, we create a qualified collection, containing name and owning package. This assures the collection is serialized immediately.
+            // For the response headers, we create an 'abstract' collection that is serialized only after adding it to the response code collection.
+            var rspHeaderCollection = new RESTHeaderParameterCollection(this.ParentResource, RESTCollection.CollectionScope.Operation);
+            if (transformHeaders)
+            {
+                ModelSlt model = ModelSlt.GetModelSlt();
+                MEClass requestParamClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
+                                                            context.GetConfigProperty(_RequestHdrParamClassName));
+                MEClass responseParamClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
+                                                             context.GetConfigProperty(_ResponseHdrParamClassName));
+                if (requestParamClass != null)
+                {
+                    this._requestHeaderCollection = new RESTHeaderParameterCollection(this.ParentResource, _HdrCollectionName, this.OperationPackage);
+                    foreach (MEAttribute attrib in requestParamClass.Attributes)
+                    {
+                        this._requestHeaderCollection.AddHeaderParameter(new RESTHeaderParameterDescriptor(attrib.Name, attrib.Classifier, attrib.Annotation));
+                    }
+                }
+                else Logger.WriteWarning("Unable to find old request header-parameter template '" +
+                                         context.GetConfigProperty(_APISupportModelPathName) + ":" +
+                                         context.GetConfigProperty(_RequestHdrParamClassName) + "', no request headers have been transformed!");
+
+                if (responseParamClass != null)
+                {
+                    foreach (MEAttribute attrib in responseParamClass.Attributes)
+                    {
+                        rspHeaderCollection.AddHeaderParameter(new RESTHeaderParameterDescriptor(attrib.Name, attrib.Classifier, attrib.Annotation));
+                    }
+                }
+                else Logger.WriteWarning("Unable to find old response header-parameter template '" +
+                                         context.GetConfigProperty(_APISupportModelPathName) + ":" +
+                                         context.GetConfigProperty(_ResponseHdrParamClassName) + "', no response headers have been transformed!");
             }
 
             // Next, iterate through all of the old Capability Classes and collect response metadata for a new Response Descriptor...
@@ -659,8 +810,8 @@ namespace Plugin.Application.CapabilityModel.API
 
                 // Now we have collected enough information to create a new response descriptor and remove the old stuff...
                 this._responseCollection.AddOperationResult(new RESTOperationResultDescriptor(this._responseCollection, resultCode,
-                                                                                              category, payloadType, description, null,
-                                                                                              responsePayload, document, cardinality));
+                                                                                              category, payloadType, description, rspHeaderCollection,
+                                                                                              null, responsePayload, document, cardinality));
                 oldResponse.OwningPackage.DeleteClass(oldResponse);
             }
         }

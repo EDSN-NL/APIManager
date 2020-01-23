@@ -71,6 +71,12 @@ namespace Framework.Model
         internal abstract bool IsOptional();
 
         /// <summary>
+        /// Replace the current classifier of the attribute by the specified classifier.
+        /// </summary>
+        /// <param name="classifier">New classifier for this attribute.</param>
+        internal abstract void SetClassifier(MEDataType classifier);
+
+        /// <summary>
         /// Updates the index of the attribute within the owning class. Index must be >= 0, otherwise no action is performed.
         /// </summary>
         /// <param name="index">New index of attribute within owning class.</param>

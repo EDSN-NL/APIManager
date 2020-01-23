@@ -519,17 +519,9 @@ namespace SparxEA.Model
                 {
                     if (!string.IsNullOrEmpty(stereotype))
                     {
-                        if (element.HasStereotype(stereotype))
-                        {
-                            MEIClass classImp = new EAMEIClass((EAModelImplementation)this._model, element.ElementID);
-                            return new MEClass(classImp);
-                        }
+                        if (element.HasStereotype(stereotype)) return new MEClass(element.ElementID);
                     }
-                    else // We found a match on name and stereotype is not specified.
-                    {
-                        MEIClass classImp = new EAMEIClass((EAModelImplementation)this._model, element.ElementID);
-                        return new MEClass(classImp);
-                    }
+                    else return new MEClass(element.ElementID); // We found a match on name and stereotype is not specified.
                 }
             }
             return null;

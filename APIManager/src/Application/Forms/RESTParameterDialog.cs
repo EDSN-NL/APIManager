@@ -68,15 +68,20 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored</param>
         private void ParameterName_TextChanged(object sender, EventArgs e)
         {
-            string newName = Conversions.ToPascalCase(ParameterName.Text);
-            this._hasName = false;
-            if (newName != string.Empty)
+            string newName = Conversions.ToPascalCase(ParameterName.Text.Trim());
+            if (!newName.Contains(" "))
             {
-                ParameterName.Text = newName;
-                this._parameter.Name = newName;
-                this._hasName = true;
+                this._hasName = false;
+                if (newName != string.Empty)
+                {
+                    ParameterName.Text = newName;
+                    this._parameter.Name = newName;
+                    this._hasName = true;
+                }
+                CheckOK();
             }
-            CheckOK();
+            else MessageBox.Show("Parameter name must NOT contain spaces, please try again!",
+                                 "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         /// <summary>

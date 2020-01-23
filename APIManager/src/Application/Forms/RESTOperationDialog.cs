@@ -19,6 +19,7 @@ namespace Plugin.Application.Forms
         private bool _initializing;                     // Set to 'true' during construction to suppress unwanted events.
         private RESTResourceDeclaration _parent;        // Parent resource of this operation.
         private RESTResponseCodeCollectionMgr _responseManager;     // Response code collection manager.
+        private RESTHeaderParameterCollectionMgr _headerManager;    // Header parameter manager.
 
         /// <summary>
         /// Returns 'true' when Operation Minor Version must be updated.
@@ -62,6 +63,7 @@ namespace Plugin.Application.Forms
             this._parent = parent;
             var unknownOperation = new HTTPOperation();
             this._responseManager = new RESTResponseCodeCollectionMgr(myService);
+            this._headerManager = new RESTHeaderParameterCollectionMgr(myService);
 
             SummaryText.Text = operation.Summary;
             Description.Text = operation.Description;
@@ -74,7 +76,6 @@ namespace Plugin.Application.Forms
 
             // Set remaining indicators according to current settings...
             HasPagination.Checked       = operation.PaginationIndicator;
-            UseHeaderParameters.Checked = operation.UseHeaderParametersIndicator;
 
             // Initialize the MIME-type fields...
             string MIMETypes = string.Empty;
@@ -127,22 +128,34 @@ namespace Plugin.Application.Forms
                 }
             }
 
-            // Load the result codes from our collection in the received operation declaration...
+            // Load the result codes from our collection...
             foreach (RESTOperationResultDescriptor resultDesc in operation.ResponseCollection.Collection)
             {
-                var listDesc = resultDesc;
-                if (listDesc.IsValid)
+                if (resultDesc.IsValid)
                 {
-                    ListViewItem newItem = new ListViewItem(listDesc.ResultCode);
-                    newItem.Name = listDesc.ResultCode;
-                    newItem.SubItems.Add(listDesc.Description);
+                    ListViewItem newItem = new ListViewItem(resultDesc.ResultCode);
+                    newItem.Name = resultDesc.ResultCode;
+                    newItem.SubItems.Add(resultDesc.Description);
                     ResponseCodeList.Items.Add(newItem);
+                }
+            }
+
+            // Load the request header parameters from our collection...
+            foreach (RESTHeaderParameterDescriptor paramDesc in operation.RequestHeaders.Collection)
+            {
+                if (paramDesc.IsValid)
+                {
+                    ListViewItem newItem = new ListViewItem(paramDesc.Name);
+                    newItem.Name = paramDesc.Name;
+                    newItem.SubItems.Add(paramDesc.Description);
+                    RequestHeaderList.Items.Add(newItem);
                 }
             }
 
             // Assign context menus to the appropriate controls...
             FilterParameterList.ContextMenuStrip = FilterParametersMenuStrip;
             ResponseCodeList.ContextMenuStrip = ResponseCodeMenuStrip;
+            RequestHeaderList.ContextMenuStrip = RequestHeaderMenuStrip;
 
             // If CM is enabled, we have to suppress the 'minor version' checkbox...
             if (CMRepositorySlt.GetRepositorySlt().IsCMEnabled) NewMinorVersion.Visible = false;
@@ -263,6 +276,25 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
+        /// This event is raised when the user clicks the 'Add Request Header' button.
+        /// The method facilitates creation of an additional request header parameter.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void AddReqHeader_Click(object sender, EventArgs e)
+        {
+            RESTHeaderParameterDescriptor parameter = this._operation.AddHeaderParameter();
+            if (parameter != null && parameter.IsValid)
+            {
+                ListViewItem newItem = new ListViewItem(parameter.Name);
+                newItem.Name = parameter.Name;
+                newItem.SubItems.Add(parameter.Description);
+                RequestHeaderList.Items.Add(newItem);
+                this._dirty = true;
+            }
+        }
+
+        /// <summary>
         /// This event is raised when the user clicks the 'Add Response Code' button.
         /// The method facilitates creation of an additional response code (an HTTP response code with associated metadata such as
         /// payload, description, cardinality, etc.).
@@ -295,6 +327,23 @@ namespace Plugin.Application.Forms
                 ListViewItem key = FilterParameterList.SelectedItems[0];
                 this._operation.DeleteParameter(key.Text);
                 FilterParameterList.Items.Remove(key);
+                this._dirty = true;
+            }
+        }
+
+        /// <summary>
+        /// This event is raised when the user selects a previously defined request header parameter for deletion. It removes the selected
+        /// header parameter.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void DeleteReqHeader_Click(object sender, EventArgs e)
+        {
+            if (RequestHeaderList.SelectedItems.Count > 0)
+            {
+                ListViewItem key = RequestHeaderList.SelectedItems[0];
+                this._operation.DeleteHeaderParameter(key.Text);
+                RequestHeaderList.Items.Remove(key);
                 this._dirty = true;
             }
         }
@@ -340,6 +389,28 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
+        /// This event is raised when the user selects a header parameter for edit.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void EditReqHeader_Click(object sender, EventArgs e)
+        {
+            if (RequestHeaderList.SelectedItems.Count > 0)
+            {
+                ListViewItem key = RequestHeaderList.SelectedItems[0];
+                ContextSlt context = ContextSlt.GetContextSlt();
+                string originalKey = key.Text;
+                RESTHeaderParameterDescriptor parameter = this._operation.EditHeaderParameter(key.Text);
+                if (parameter != null)
+                {
+                    key.SubItems[0].Text = parameter.Name;
+                    key.SubItems[1].Text = parameter.Description;
+                    this._dirty = true;
+                }
+            }
+        }
+
+        /// <summary>
         /// This event is raised when the user selects a response code for edit.
         /// </summary>
         /// <param name="sender">Ignored.</param>
@@ -371,7 +442,6 @@ namespace Plugin.Application.Forms
         {
             if (this._initializing) return;   // Ignore event during initialization.
             this._operation.PaginationIndicator = HasPagination.Checked;
-            this._operation.UseHeaderParametersIndicator = UseHeaderParameters.Checked;
             this._dirty = true;
         }
 
@@ -487,6 +557,27 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
+        /// This event is raised when the user clicks the 'use header collection' button. We return a (selected) parameter collection from
+        /// the appropriate collection manager and copy all header parameters that do not yet exist in our current request list.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void UseReqHeaderCollection_Click(object sender, EventArgs e)
+        {
+            foreach (RESTHeaderParameterDescriptor parameter in this._headerManager.GetCollectionContents())
+            {
+                if (RequestHeaderList.FindItemWithText(parameter.Name) == null && this._operation.AddHeaderParameter(parameter))
+                {
+                    ListViewItem newItem = new ListViewItem(parameter.Name);
+                    newItem.Name = parameter.Name;
+                    newItem.SubItems.Add(parameter.Description);
+                    RequestHeaderList.Items.Add(newItem);
+                    this._dirty = true;
+                }
+            }
+        }
+
+        /// <summary>
         /// This event is raised when the user clicks the 'edit collections' button. This brings up a subsequent dialog,
         /// which facilitates create- delete- or edit of response code collections.
         /// </summary>
@@ -495,6 +586,17 @@ namespace Plugin.Application.Forms
         private void EditCollections_Click(object sender, EventArgs e)
         {
             this._responseManager.ManageCollection();
+        }
+
+        /// <summary>
+        /// This event is raised when the user clicks the 'edit header param collections' button. This brings up a subsequent dialog,
+        /// which facilitates create-, delete- or edit of header parameter collections.
+        /// </summary>
+        /// <param name="sender">Ignored.</param>
+        /// <param name="e">Ignored.</param>
+        private void EditReqHeaderCollections_Click(object sender, EventArgs e)
+        {
+            this._headerManager.ManageCollection();
         }
 
         /// <summary>

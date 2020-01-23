@@ -165,9 +165,14 @@
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\SetMetadataEvent.cs" />
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\RepairAttributeOrderEvent.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Generic\HTTPOperation.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\RESTCollection.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\RESTCollectionMgr.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTHeaderParameterCollectionMgr.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTHeaderParameterCollection.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTHeaderParameterDescriptor.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Generic\RESTResponseCodeCollectionMgr.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Generic\RESTResponseCodeCollection.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTSecuritySlt.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\RESTSecuritySlt.cs" />
     <Compile Include="src\Application\CapabilityModel\API\OpenAPI20ProcessorOperationBuilder.cs" />
     <Compile Include="src\Application\CapabilityModel\API\OpenAPI20ProcessorHdrBuilder.cs" />
     <Compile Include="src\Application\CapabilityModel\API\OpenAPI20Processor.cs" />
@@ -233,11 +238,11 @@
     <Compile Include="src\Application\Forms\CMReleaseMessage.Designer.cs">
       <DependentUpon>CMReleaseMessage.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTOperationResultCodeCollectionPicker.cs">
+    <Compile Include="src\Application\Forms\RESTCollectionPicker.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTOperationResultCodeCollectionPicker.Designer.cs">
-      <DependentUpon>RESTOperationResultCodeCollectionPicker.cs</DependentUpon>
+    <Compile Include="src\Application\Forms\RESTCollectionPicker.Designer.cs">
+      <DependentUpon>RESTCollectionPicker.cs</DependentUpon>
     </Compile>
     <Compile Include="src\Application\Forms\CMCheckoutService.cs">
       <SubType>Form</SubType>
@@ -257,11 +262,23 @@
     <Compile Include="src\Application\Forms\RepairStereotypeInput.Designer.cs">
       <DependentUpon>RepairStereotypeInput.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTResponseCodeCollectionSetEdit.cs">
+    <Compile Include="src\Application\Forms\RESTHeaderParameterDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTResponseCodeCollectionSetEdit.designer.cs">
-      <DependentUpon>RESTResponseCodeCollectionSetEdit.cs</DependentUpon>
+    <Compile Include="src\Application\Forms\RESTHeaderParameterDialog.Designer.cs">
+      <DependentUpon>RESTHeaderParameterDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTHeaderParameterCollectionEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTHeaderParameterCollectionEdit.designer.cs">
+      <DependentUpon>RESTHeaderParameterCollectionEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTCollectionSetEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Application\Forms\RESTCollectionSetEdit.designer.cs">
+      <DependentUpon>RESTCollectionSetEdit.cs</DependentUpon>
     </Compile>
     <Compile Include="src\Application\Forms\RESTResponseCodeCollectionEdit.cs">
       <SubType>Form</SubType>
@@ -665,8 +682,8 @@
     <EmbeddedResource Include="src\Application\Forms\CMReleaseMessage.resx">
       <DependentUpon>CMReleaseMessage.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RESTOperationResultCodeCollectionPicker.resx">
-      <DependentUpon>RESTOperationResultCodeCollectionPicker.cs</DependentUpon>
+    <EmbeddedResource Include="src\Application\Forms\RESTCollectionPicker.resx">
+      <DependentUpon>RESTCollectionPicker.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Application\Forms\CMCheckoutService.resx">
       <DependentUpon>CMCheckoutService.cs</DependentUpon>
@@ -683,8 +700,14 @@
     <EmbeddedResource Include="src\Application\Forms\RepairStereotypeInput.resx">
       <DependentUpon>RepairStereotypeInput.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RESTResponseCodeCollectionSetEdit.resx">
-      <DependentUpon>RESTResponseCodeCollectionSetEdit.cs</DependentUpon>
+    <EmbeddedResource Include="src\Application\Forms\RESTHeaderParameterDialog.resx">
+      <DependentUpon>RESTHeaderParameterDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\RESTHeaderParameterCollectionEdit.resx">
+      <DependentUpon>RESTHeaderParameterCollectionEdit.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Application\Forms\RESTCollectionSetEdit.resx">
+      <DependentUpon>RESTCollectionSetEdit.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Application\Forms\RESTResponseCodeCollectionEdit.resx">
       <DependentUpon>RESTResponseCodeCollectionEdit.cs</DependentUpon>

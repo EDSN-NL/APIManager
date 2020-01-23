@@ -30,6 +30,19 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Returns Request Headers defined for this operation (if any).
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
+        internal RESTHeaderParameterCollection RequestHeaders
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).RequestHeaders;
+                else throw new MissingImplementationException("RESTOperationCapabilityImp");
+            }
+        }
+
+        /// <summary>
         /// Returns cardinality of request body document (only valid in case such a body has been defined).
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
@@ -117,19 +130,6 @@ namespace Plugin.Application.CapabilityModel.API
             get
             {
                 if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).RequestBodyDocument;
-                else throw new MissingImplementationException("RESTOperationCapabilityImp");
-            }
-        }
-
-        /// <summary>
-        /// Returns true when the operation must use configured Header Parameters.
-        /// </summary>
-        /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal bool UseHeaderParameters
-        {
-            get
-            {
-                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).UseHeaderParameters;
                 else throw new MissingImplementationException("RESTOperationCapabilityImp");
             }
         }

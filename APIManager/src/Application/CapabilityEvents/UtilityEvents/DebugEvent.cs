@@ -61,12 +61,7 @@ namespace Plugin.Application.Events.Util
                 MEPackage currentPackage = context.CurrentPackage;
                 Diagram currentDiagram = context.CurrentDiagram;
 
-                string classList = string.Empty;
-                foreach (MEClass current in currentPackage.GetClasses())
-                {
-                    classList += current.ElementID + "." + current.Name + ",";
-                }
-                MessageBox.Show("Found: " + classList);
+                
 
                 //var svcContext = new ServiceContext(this._event.Scope == TreeScope.Diagram);
                 //CapabilityModel.Service myService = svcContext.GetServiceInstance(););
@@ -84,7 +79,6 @@ namespace Plugin.Application.Events.Util
                 Logger.WriteError("Oops, Caught exception:" + Environment.NewLine + exc.ToString());
             }
         }
-
 
         private void LeaveDotsAndSlashesEscaped()
         {

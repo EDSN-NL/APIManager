@@ -21,6 +21,9 @@ namespace Plugin.Application.Forms
             ClassName.Text = metaData.Name;
             AliasName.Text = metaData.Alias;
             StereoTypes.Text = metaData.Stereotypes;
+            ClassID.Text = metaData.ID.ToString();
+            ClassGUID.Text = metaData.GUID;
+            Ok.Select();
 
             foreach (MEAttributeMetaData att in metaData.Attributes)
             {

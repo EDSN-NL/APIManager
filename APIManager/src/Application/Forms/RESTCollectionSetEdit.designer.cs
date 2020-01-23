@@ -2,7 +2,7 @@
 
 namespace Plugin.Application.Forms
 {
-    partial class RESTResponseCodeCollectionSetEdit
+    partial class RESTCollectionSetEdit
     {
         /// <summary>
         /// Required designer variable.
@@ -31,7 +31,7 @@ namespace Plugin.Application.Forms
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RESTResponseCodeCollectionSetEdit));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RESTCollectionSetEdit));
             this.Cancel = new System.Windows.Forms.Button();
             this.Ok = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
@@ -112,7 +112,7 @@ namespace Plugin.Application.Forms
             this.CollectionListFld.Name = "CollectionListFld";
             this.CollectionListFld.Size = new System.Drawing.Size(289, 121);
             this.CollectionListFld.Sorted = true;
-            this.CollectionListFld.TabIndex = 4;
+            this.CollectionListFld.TabIndex = 0;
             // 
             // CollectionListMenuStrip
             // 
@@ -144,7 +144,7 @@ namespace Plugin.Application.Forms
             this.editCollectionToolStripMenuItem.Text = "Edit Collection";
             this.editCollectionToolStripMenuItem.Click += new System.EventHandler(this.EditCollection_Click);
             // 
-            // RESTResponseCodeCollectionSetEdit
+            // RESTCollectionSetEdit
             // 
             this.AcceptButton = this.Ok;
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -161,9 +161,9 @@ namespace Plugin.Application.Forms
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "RESTResponseCodeCollectionSetEdit";
+            this.Name = "RESTCollectionSetEdit";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Manage Response Code Collections";
+            this.Text = "Manage Collections";
             this.CollectionListMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();

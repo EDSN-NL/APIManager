@@ -92,6 +92,8 @@ namespace Framework.Model
         private string _classAlias;
         private string _classStereoTypes;
         private SortedSet<MEAttributeMetaData> _attributes;
+        private int _classID;
+        private string _classGUID;
 
         /// <summary>
         /// Getters for the class properties.
@@ -100,18 +102,21 @@ namespace Framework.Model
         internal string Alias                               { get { return this._classAlias; } }
         internal string Stereotypes                         { get { return this._classStereoTypes; } }
         internal SortedSet<MEAttributeMetaData> Attributes  { get { return this._attributes; } }
+        internal int ID                                     { get { return this._classID; } }
+        internal string GUID                                { get { return this._classGUID; } }
 
         /// <summary>
         /// Creates a new instance with given class properties.
         /// </summary>
-        /// <param name="name">Class name.</param>
-        /// <param name="alias">Optional class alias name.</param>
+        /// <param name="thisClass">Class to be used to retrieve stereotypes.</param>
         /// <param name="stereotypes">Comma separated list of stereotypes for the class.</param>
-        internal MEClassMetaData(string name, string alias, string stereotypes)
+        internal MEClassMetaData(MEIClass thisClass, string stereotypes)
         {
-            this._className = name;
-            this._classAlias = alias;
+            this._className = thisClass.Name;
+            this._classAlias = thisClass.AliasName;
             this._classStereoTypes = stereotypes;
+            this._classID = thisClass.ElementID;
+            this._classGUID = thisClass.GlobalID;
             this._attributes = new SortedSet<MEAttributeMetaData>();
         }
 

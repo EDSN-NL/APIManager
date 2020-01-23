@@ -49,6 +49,10 @@ namespace Plugin.Application.Forms
             this.label4 = new System.Windows.Forms.Label();
             this.StereoTypes = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.ClassID = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.ClassGUID = new System.Windows.Forms.TextBox();
             this.DeleteResource.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -58,7 +62,7 @@ namespace Plugin.Application.Forms
             this.Ok.Location = new System.Drawing.Point(505, 442);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
-            this.Ok.TabIndex = 6;
+            this.Ok.TabIndex = 1;
             this.Ok.Text = "Ok";
             this.Ok.UseVisualStyleBackColor = true;
             // 
@@ -84,11 +88,12 @@ namespace Plugin.Application.Forms
             this.ResourceList.FullRowSelect = true;
             this.ResourceList.GridLines = true;
             this.ResourceList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.ResourceList.HideSelection = false;
             this.ResourceList.Location = new System.Drawing.Point(12, 104);
             this.ResourceList.MultiSelect = false;
             this.ResourceList.Name = "ResourceList";
             this.ResourceList.Size = new System.Drawing.Size(568, 332);
-            this.ResourceList.TabIndex = 2;
+            this.ResourceList.TabIndex = 0;
             this.ResourceList.UseCompatibleStateImageBehavior = false;
             this.ResourceList.View = System.Windows.Forms.View.Details;
             // 
@@ -140,7 +145,7 @@ namespace Plugin.Application.Forms
             this.label2.Location = new System.Drawing.Point(12, 9);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(64, 13);
-            this.label2.TabIndex = 7;
+            this.label2.TabIndex = 0;
             this.label2.Text = "Class name:";
             // 
             // ClassName
@@ -148,8 +153,8 @@ namespace Plugin.Application.Forms
             this.ClassName.Location = new System.Drawing.Point(82, 6);
             this.ClassName.Name = "ClassName";
             this.ClassName.ReadOnly = true;
-            this.ClassName.Size = new System.Drawing.Size(236, 20);
-            this.ClassName.TabIndex = 8;
+            this.ClassName.Size = new System.Drawing.Size(209, 20);
+            this.ClassName.TabIndex = 0;
             // 
             // label3
             // 
@@ -157,7 +162,7 @@ namespace Plugin.Application.Forms
             this.label3.Location = new System.Drawing.Point(44, 37);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(32, 13);
-            this.label3.TabIndex = 9;
+            this.label3.TabIndex = 0;
             this.label3.Text = "Alias:";
             // 
             // AliasName
@@ -165,8 +170,8 @@ namespace Plugin.Application.Forms
             this.AliasName.Location = new System.Drawing.Point(83, 34);
             this.AliasName.Name = "AliasName";
             this.AliasName.ReadOnly = true;
-            this.AliasName.Size = new System.Drawing.Size(235, 20);
-            this.AliasName.TabIndex = 10;
+            this.AliasName.Size = new System.Drawing.Size(208, 20);
+            this.AliasName.TabIndex = 0;
             // 
             // label4
             // 
@@ -174,7 +179,7 @@ namespace Plugin.Application.Forms
             this.label4.Location = new System.Drawing.Point(12, 64);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(69, 13);
-            this.label4.TabIndex = 11;
+            this.label4.TabIndex = 0;
             this.label4.Text = "Stereotypes: ";
             // 
             // StereoTypes
@@ -182,8 +187,8 @@ namespace Plugin.Application.Forms
             this.StereoTypes.Location = new System.Drawing.Point(83, 61);
             this.StereoTypes.Name = "StereoTypes";
             this.StereoTypes.ReadOnly = true;
-            this.StereoTypes.Size = new System.Drawing.Size(474, 20);
-            this.StereoTypes.TabIndex = 12;
+            this.StereoTypes.Size = new System.Drawing.Size(497, 20);
+            this.StereoTypes.TabIndex = 0;
             // 
             // label5
             // 
@@ -191,8 +196,42 @@ namespace Plugin.Application.Forms
             this.label5.Location = new System.Drawing.Point(9, 88);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(54, 13);
-            this.label5.TabIndex = 13;
+            this.label5.TabIndex = 0;
             this.label5.Text = "Attributes:";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(313, 9);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(21, 13);
+            this.label6.TabIndex = 0;
+            this.label6.Text = "ID:";
+            // 
+            // ClassID
+            // 
+            this.ClassID.Location = new System.Drawing.Point(340, 6);
+            this.ClassID.Name = "ClassID";
+            this.ClassID.ReadOnly = true;
+            this.ClassID.Size = new System.Drawing.Size(240, 20);
+            this.ClassID.TabIndex = 0;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(297, 37);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(37, 13);
+            this.label7.TabIndex = 0;
+            this.label7.Text = "GUID:";
+            // 
+            // ClassGUID
+            // 
+            this.ClassGUID.Location = new System.Drawing.Point(340, 32);
+            this.ClassGUID.Name = "ClassGUID";
+            this.ClassGUID.ReadOnly = true;
+            this.ClassGUID.Size = new System.Drawing.Size(240, 20);
+            this.ClassGUID.TabIndex = 0;
             // 
             // ClassInspector
             // 
@@ -200,6 +239,10 @@ namespace Plugin.Application.Forms
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(592, 485);
+            this.Controls.Add(this.ClassGUID);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.ClassID);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.StereoTypes);
             this.Controls.Add(this.label4);
@@ -240,5 +283,9 @@ namespace Plugin.Application.Forms
         private TextBox StereoTypes;
         private ColumnHeader AttribCard;
         private Label label5;
+        private Label label6;
+        private TextBox ClassID;
+        private Label label7;
+        private TextBox ClassGUID;
     }
 }

@@ -29,7 +29,7 @@ namespace Framework.Model
         }
 
         /// <summary>
-        /// Return the classifier of this attribute (the attribute 'type').
+        /// Read or update the classifier of this attribute (the attribute 'type').
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
         internal MEDataType Classifier
@@ -37,6 +37,11 @@ namespace Framework.Model
             get
             {
                 if (this._imp != null) return ((MEIAttribute)this._imp).GetClassifier();
+                else throw new MissingImplementationException("MEIAttribute");
+            }
+            set
+            {
+                if (this._imp != null) ((MEIAttribute)this._imp).SetClassifier(value);
                 else throw new MissingImplementationException("MEIAttribute");
             }
         }

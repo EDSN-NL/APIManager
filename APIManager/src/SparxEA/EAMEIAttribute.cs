@@ -277,26 +277,18 @@ namespace SparxEA.Model
         }
 
         /// <summary>
-        /// Update the name of the attribute.
+        /// Replace the current classifier of the attribute by the specified classifier.
         /// </summary>
-        /// <param name="newName">New name to be assigned.</param>
-        internal override void SetName (string newName)
+        /// <param name="classifier">New classifier for this attribute.</param>
+        internal override void SetClassifier(MEDataType classifier)
         {
-            this._attribute.Name = newName;
-            this._name = newName;
-            this._attribute.Update();
-        }
-
-        /// <summary>
-        /// Updates the index of the attribute within the owning class. Index must be >= 0, otherwise no action is performed.
-        /// </summary>
-        /// <param name="index">New index of attribute within owning class.</param>
-        internal override void SetIndex(int index)
-        {
-            if (index >= 0) this._attribute.Pos = index;
-            this._attribute.Update();
-            EA.Element element = ((EAModelImplementation)this._model).Repository.GetElementByID(this._attribute.ParentID);
-            if (element != null) element.Refresh();
+            if (this._attribute.ClassifierID != classifier.ElementID)
+            {
+                this._attribute.ClassifierID = classifier.ElementID;
+                this._attribute.Type = classifier.Name;
+                this._attribute.Visibility = "Public";
+                this._attribute.Update();
+            }
         }
 
         /// <summary>
@@ -327,6 +319,29 @@ namespace SparxEA.Model
                 this._attribute.Default = value;
                 this._attribute.Update();
             }
+        }
+
+        /// <summary>
+        /// Updates the index of the attribute within the owning class. Index must be >= 0, otherwise no action is performed.
+        /// </summary>
+        /// <param name="index">New index of attribute within owning class.</param>
+        internal override void SetIndex(int index)
+        {
+            if (index >= 0) this._attribute.Pos = index;
+            this._attribute.Update();
+            EA.Element element = ((EAModelImplementation)this._model).Repository.GetElementByID(this._attribute.ParentID);
+            if (element != null) element.Refresh();
+        }
+
+        /// <summary>
+        /// Update the name of the attribute.
+        /// </summary>
+        /// <param name="newName">New name to be assigned.</param>
+        internal override void SetName(string newName)
+        {
+            this._attribute.Name = newName;
+            this._name = newName;
+            this._attribute.Update();
         }
 
         /// <summary>

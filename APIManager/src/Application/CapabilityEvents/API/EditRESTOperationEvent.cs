@@ -70,8 +70,10 @@ namespace Plugin.Application.Events.API
             var myService = new RESTService(svcContext.Hierarchy, context.GetConfigProperty(_ServiceDeclPkgStereotype));
             var myOperation = new RESTOperationCapability(svcContext.OperationClass);
             var myResource = new RESTResourceCapability(myOperation.Parent.CapabilityClass);
+            var myOperationDecl = new RESTOperationDeclaration(myOperation);
+            var myResourceDecl = new RESTResourceDeclaration(myResource);
 
-            using (var dialog = new RESTOperationDialog(myService, new RESTOperationDeclaration(myOperation), new RESTResourceDeclaration(myResource)))
+            using (var dialog = new RESTOperationDialog(myService, myOperationDecl, myResourceDecl))
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {

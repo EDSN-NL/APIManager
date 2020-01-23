@@ -2,7 +2,7 @@
 
 namespace Plugin.Application.Forms
 {
-    partial class RESTResponseCodeCollectionEdit
+    partial class RESTHeaderParameterCollectionEdit
     {
         /// <summary>
         /// Required designer variable.
@@ -31,16 +31,16 @@ namespace Plugin.Application.Forms
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RESTResponseCodeCollectionEdit));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RESTHeaderParameterCollectionEdit));
             this.Cancel = new System.Windows.Forms.Button();
             this.Ok = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.ResponseCodeGroup = new System.Windows.Forms.GroupBox();
-            this.EditResponseCode = new System.Windows.Forms.Button();
-            this.DeleteResponseCode = new System.Windows.Forms.Button();
-            this.AddResponseCode = new System.Windows.Forms.Button();
-            this.ResponseCodeList = new System.Windows.Forms.ListView();
-            this.Code = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.HeaderParameterGroup = new System.Windows.Forms.GroupBox();
+            this.EditHeaderParameter = new System.Windows.Forms.Button();
+            this.DeleteHeaderParameter = new System.Windows.Forms.Button();
+            this.AddHeaderParameter = new System.Windows.Forms.Button();
+            this.HeaderParameterList = new System.Windows.Forms.ListView();
+            this.ResponseName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.ResponseDesc = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.label2 = new System.Windows.Forms.Label();
             this.CollectionNmFld = new System.Windows.Forms.TextBox();
@@ -51,7 +51,7 @@ namespace Plugin.Application.Forms
             this.ScopeGroup = new System.Windows.Forms.GroupBox();
             this.APIScope = new System.Windows.Forms.RadioButton();
             this.GlobalScope = new System.Windows.Forms.RadioButton();
-            this.ResponseCodeGroup.SuspendLayout();
+            this.HeaderParameterGroup.SuspendLayout();
             this.ResponseCodeMenuStrip.SuspendLayout();
             this.ScopeGroup.SuspendLayout();
             this.SuspendLayout();
@@ -62,17 +62,17 @@ namespace Plugin.Application.Forms
             this.Cancel.Location = new System.Drawing.Point(422, 309);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 31);
-            this.Cancel.TabIndex = 3;
+            this.Cancel.TabIndex = 4;
             this.Cancel.Text = "Cancel";
             this.Cancel.UseVisualStyleBackColor = true;
             // 
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(340, 309);
+            this.Ok.Location = new System.Drawing.Point(341, 309);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
-            this.Ok.TabIndex = 4;
+            this.Ok.TabIndex = 5;
             this.Ok.Text = "Ok";
             this.Ok.UseVisualStyleBackColor = true;
             // 
@@ -85,76 +85,76 @@ namespace Plugin.Application.Forms
             this.label1.Size = new System.Drawing.Size(0, 16);
             this.label1.TabIndex = 0;
             // 
-            // ResponseCodeGroup
+            // HeaderParameterGroup
             // 
-            this.ResponseCodeGroup.Controls.Add(this.EditResponseCode);
-            this.ResponseCodeGroup.Controls.Add(this.DeleteResponseCode);
-            this.ResponseCodeGroup.Controls.Add(this.AddResponseCode);
-            this.ResponseCodeGroup.Controls.Add(this.ResponseCodeList);
-            this.ResponseCodeGroup.Location = new System.Drawing.Point(12, 62);
-            this.ResponseCodeGroup.Name = "ResponseCodeGroup";
-            this.ResponseCodeGroup.Size = new System.Drawing.Size(484, 241);
-            this.ResponseCodeGroup.TabIndex = 2;
-            this.ResponseCodeGroup.TabStop = false;
-            this.ResponseCodeGroup.Text = "Response codes";
+            this.HeaderParameterGroup.Controls.Add(this.EditHeaderParameter);
+            this.HeaderParameterGroup.Controls.Add(this.DeleteHeaderParameter);
+            this.HeaderParameterGroup.Controls.Add(this.AddHeaderParameter);
+            this.HeaderParameterGroup.Controls.Add(this.HeaderParameterList);
+            this.HeaderParameterGroup.Location = new System.Drawing.Point(12, 62);
+            this.HeaderParameterGroup.Name = "HeaderParameterGroup";
+            this.HeaderParameterGroup.Size = new System.Drawing.Size(484, 241);
+            this.HeaderParameterGroup.TabIndex = 3;
+            this.HeaderParameterGroup.TabStop = false;
+            this.HeaderParameterGroup.Text = "Header parameters";
             // 
-            // EditResponseCode
+            // EditHeaderParameter
             // 
-            this.EditResponseCode.Image = ((System.Drawing.Image)(resources.GetObject("EditResponseCode.Image")));
-            this.EditResponseCode.Location = new System.Drawing.Point(74, 210);
-            this.EditResponseCode.Name = "EditResponseCode";
-            this.EditResponseCode.Size = new System.Drawing.Size(25, 25);
-            this.EditResponseCode.TabIndex = 3;
-            this.EditResponseCode.UseVisualStyleBackColor = true;
-            this.EditResponseCode.Click += new System.EventHandler(this.EditResponseCode_Click);
+            this.EditHeaderParameter.Image = ((System.Drawing.Image)(resources.GetObject("EditHeaderParameter.Image")));
+            this.EditHeaderParameter.Location = new System.Drawing.Point(73, 210);
+            this.EditHeaderParameter.Name = "EditHeaderParameter";
+            this.EditHeaderParameter.Size = new System.Drawing.Size(25, 25);
+            this.EditHeaderParameter.TabIndex = 3;
+            this.EditHeaderParameter.UseVisualStyleBackColor = true;
+            this.EditHeaderParameter.Click += new System.EventHandler(this.EditHeaderParameter_Click);
             // 
-            // DeleteResponseCode
+            // DeleteHeaderParameter
             // 
-            this.DeleteResponseCode.Image = ((System.Drawing.Image)(resources.GetObject("DeleteResponseCode.Image")));
-            this.DeleteResponseCode.Location = new System.Drawing.Point(42, 210);
-            this.DeleteResponseCode.Name = "DeleteResponseCode";
-            this.DeleteResponseCode.Size = new System.Drawing.Size(25, 25);
-            this.DeleteResponseCode.TabIndex = 2;
-            this.DeleteResponseCode.UseVisualStyleBackColor = true;
-            this.DeleteResponseCode.Click += new System.EventHandler(this.DeleteResponseCode_Click);
+            this.DeleteHeaderParameter.Image = ((System.Drawing.Image)(resources.GetObject("DeleteHeaderParameter.Image")));
+            this.DeleteHeaderParameter.Location = new System.Drawing.Point(42, 210);
+            this.DeleteHeaderParameter.Name = "DeleteHeaderParameter";
+            this.DeleteHeaderParameter.Size = new System.Drawing.Size(25, 25);
+            this.DeleteHeaderParameter.TabIndex = 2;
+            this.DeleteHeaderParameter.UseVisualStyleBackColor = true;
+            this.DeleteHeaderParameter.Click += new System.EventHandler(this.DeleteHeaderParameter_Click);
             // 
-            // AddResponseCode
+            // AddHeaderParameter
             // 
-            this.AddResponseCode.Image = ((System.Drawing.Image)(resources.GetObject("AddResponseCode.Image")));
-            this.AddResponseCode.Location = new System.Drawing.Point(11, 210);
-            this.AddResponseCode.Name = "AddResponseCode";
-            this.AddResponseCode.Size = new System.Drawing.Size(25, 25);
-            this.AddResponseCode.TabIndex = 1;
-            this.AddResponseCode.UseVisualStyleBackColor = true;
-            this.AddResponseCode.Click += new System.EventHandler(this.AddResponseCode_Click);
+            this.AddHeaderParameter.Image = ((System.Drawing.Image)(resources.GetObject("AddHeaderParameter.Image")));
+            this.AddHeaderParameter.Location = new System.Drawing.Point(11, 210);
+            this.AddHeaderParameter.Name = "AddHeaderParameter";
+            this.AddHeaderParameter.Size = new System.Drawing.Size(25, 25);
+            this.AddHeaderParameter.TabIndex = 1;
+            this.AddHeaderParameter.UseVisualStyleBackColor = true;
+            this.AddHeaderParameter.Click += new System.EventHandler(this.AddHeaderParameter_Click);
             // 
-            // ResponseCodeList
+            // HeaderParameterList
             // 
-            this.ResponseCodeList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.Code,
+            this.HeaderParameterList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.ResponseName,
             this.ResponseDesc});
-            this.ResponseCodeList.FullRowSelect = true;
-            this.ResponseCodeList.GridLines = true;
-            this.ResponseCodeList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-            this.ResponseCodeList.HideSelection = false;
-            this.ResponseCodeList.Location = new System.Drawing.Point(12, 19);
-            this.ResponseCodeList.MultiSelect = false;
-            this.ResponseCodeList.Name = "ResponseCodeList";
-            this.ResponseCodeList.Size = new System.Drawing.Size(458, 185);
-            this.ResponseCodeList.Sorting = System.Windows.Forms.SortOrder.Ascending;
-            this.ResponseCodeList.TabIndex = 0;
-            this.ResponseCodeList.UseCompatibleStateImageBehavior = false;
-            this.ResponseCodeList.View = System.Windows.Forms.View.Details;
+            this.HeaderParameterList.FullRowSelect = true;
+            this.HeaderParameterList.GridLines = true;
+            this.HeaderParameterList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.HeaderParameterList.HideSelection = false;
+            this.HeaderParameterList.Location = new System.Drawing.Point(11, 19);
+            this.HeaderParameterList.MultiSelect = false;
+            this.HeaderParameterList.Name = "HeaderParameterList";
+            this.HeaderParameterList.Size = new System.Drawing.Size(461, 185);
+            this.HeaderParameterList.Sorting = System.Windows.Forms.SortOrder.Ascending;
+            this.HeaderParameterList.TabIndex = 0;
+            this.HeaderParameterList.UseCompatibleStateImageBehavior = false;
+            this.HeaderParameterList.View = System.Windows.Forms.View.Details;
             // 
-            // Code
+            // ResponseName
             // 
-            this.Code.Text = "Code";
-            this.Code.Width = 58;
+            this.ResponseName.Text = "Name";
+            this.ResponseName.Width = 192;
             // 
             // ResponseDesc
             // 
             this.ResponseDesc.Text = "Description";
-            this.ResponseDesc.Width = 213;
+            this.ResponseDesc.Width = 318;
             // 
             // label2
             // 
@@ -187,21 +187,21 @@ namespace Plugin.Application.Forms
             this.addToolStripMenuItem.Name = "addToolStripMenuItem";
             this.addToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.addToolStripMenuItem.Text = "Add";
-            this.addToolStripMenuItem.Click += new System.EventHandler(this.AddResponseCode_Click);
+            this.addToolStripMenuItem.Click += new System.EventHandler(this.AddHeaderParameter_Click);
             // 
             // deleteToolStripMenuItem
             // 
             this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
             this.deleteToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.deleteToolStripMenuItem.Text = "Delete";
-            this.deleteToolStripMenuItem.Click += new System.EventHandler(this.DeleteResponseCode_Click);
+            this.deleteToolStripMenuItem.Click += new System.EventHandler(this.DeleteHeaderParameter_Click);
             // 
             // editToolStripMenuItem
             // 
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
             this.editToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.editToolStripMenuItem.Text = "Edit";
-            this.editToolStripMenuItem.Click += new System.EventHandler(this.EditResponseCode_Click);
+            this.editToolStripMenuItem.Click += new System.EventHandler(this.EditHeaderParameter_Click);
             // 
             // ScopeGroup
             // 
@@ -238,27 +238,27 @@ namespace Plugin.Application.Forms
             this.GlobalScope.UseVisualStyleBackColor = true;
             this.GlobalScope.CheckedChanged += new System.EventHandler(this.ScopeGroup_CheckedChanged);
             // 
-            // RESTResponseCodeCollectionEdit
+            // RESTHeaderParameterCollectionEdit
             // 
             this.AcceptButton = this.Ok;
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(508, 350);
+            this.ClientSize = new System.Drawing.Size(508, 351);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.CollectionNmFld);
             this.Controls.Add(this.ScopeGroup);
-            this.Controls.Add(this.ResponseCodeGroup);
+            this.Controls.Add(this.HeaderParameterGroup);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.Ok);
             this.Controls.Add(this.Cancel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "RESTResponseCodeCollectionEdit";
+            this.Name = "RESTHeaderParameterCollectionEdit";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Create or Edit Collection";
-            this.ResponseCodeGroup.ResumeLayout(false);
+            this.HeaderParameterGroup.ResumeLayout(false);
             this.ResponseCodeMenuStrip.ResumeLayout(false);
             this.ScopeGroup.ResumeLayout(false);
             this.ScopeGroup.PerformLayout();
@@ -272,12 +272,12 @@ namespace Plugin.Application.Forms
         private System.Windows.Forms.Button Cancel;
         private System.Windows.Forms.Button Ok;
         private Label label1;
-        private GroupBox ResponseCodeGroup;
-        private Button EditResponseCode;
-        private Button DeleteResponseCode;
-        private Button AddResponseCode;
-        private ListView ResponseCodeList;
-        private ColumnHeader Code;
+        private GroupBox HeaderParameterGroup;
+        private Button EditHeaderParameter;
+        private Button DeleteHeaderParameter;
+        private Button AddHeaderParameter;
+        private ListView HeaderParameterList;
+        private ColumnHeader ResponseName;
         private ColumnHeader ResponseDesc;
         private Label label2;
         private TextBox CollectionNmFld;
