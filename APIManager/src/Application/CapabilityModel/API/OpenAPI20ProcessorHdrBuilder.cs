@@ -211,20 +211,17 @@ namespace Plugin.Application.CapabilityModel.API
         private void WriteContactInfo(JsonTextWriter wr, RESTInterfaceCapability itf)
         {
             string assocClassName = ContextSlt.GetContextSlt().GetConfigProperty(_ContactTypeClassName);
-            foreach (MEAssociation assoc in itf.CapabilityClass.AssociationList)
+            List<MEAssociation> targetList = itf.CapabilityClass.FindAssociationsByEndpointProperties(assocClassName, null);
+            if (targetList.Count > 0)
             {
-                if (assoc.Destination.EndPoint.Name == assocClassName)
+                wr.WritePropertyName("contact");
+                wr.WriteStartObject();
+                foreach (MEAttribute attrib in targetList[0].Destination.EndPoint.Attributes)
                 {
-                    wr.WritePropertyName("contact");
-                    wr.WriteStartObject();
-                    foreach (MEAttribute attrib in assoc.Destination.EndPoint.Attributes)
-                    {
-                        wr.WritePropertyName(attrib.Name.ToLower());
-                        wr.WriteValue(attrib.FixedValue);
-                    }
-                    wr.WriteEndObject();
-                    break;
+                    wr.WritePropertyName(attrib.Name.ToLower());
+                    wr.WriteValue(attrib.FixedValue);
                 }
+                wr.WriteEndObject();
             }
         }
 
@@ -237,20 +234,17 @@ namespace Plugin.Application.CapabilityModel.API
         private void WriteDocumentation(JsonTextWriter wr, MEClass thisClass)
         {
             string assocClassName = ContextSlt.GetContextSlt().GetConfigProperty(_DocumentationTypeClassName);
-            foreach (MEAssociation assoc in thisClass.AssociationList)
+            List<MEAssociation> targetList = thisClass.FindAssociationsByEndpointProperties(assocClassName, null);
+            if (targetList.Count > 0)
             {
-                if (assoc.Destination.EndPoint.Name == assocClassName)
+                wr.WritePropertyName("externalDocs");
+                wr.WriteStartObject();
+                foreach (MEAttribute attrib in targetList[0].Destination.EndPoint.Attributes)
                 {
-                    wr.WritePropertyName("externalDocs");
-                    wr.WriteStartObject();
-                    foreach (MEAttribute attrib in assoc.Destination.EndPoint.Attributes)
-                    {
-                        wr.WritePropertyName(attrib.Name.ToLower());
-                        wr.WriteValue(attrib.FixedValue);
-                    }
-                    wr.WriteEndObject();
-                    break;
+                    wr.WritePropertyName(attrib.Name.ToLower());
+                    wr.WriteValue(attrib.FixedValue);
                 }
+                wr.WriteEndObject();
             }
         }
 
@@ -263,20 +257,17 @@ namespace Plugin.Application.CapabilityModel.API
         private void WriteLicenseInfo(JsonTextWriter wr, RESTInterfaceCapability itf)
         {
             string assocClassName = ContextSlt.GetContextSlt().GetConfigProperty(_LicenseTypeClassName);
-            foreach (MEAssociation assoc in itf.CapabilityClass.AssociationList)
+            List<MEAssociation> targetList = itf.CapabilityClass.FindAssociationsByEndpointProperties(assocClassName, null);
+            if (targetList.Count > 0)
             {
-                if (assoc.Destination.EndPoint.Name == assocClassName)
+                wr.WritePropertyName("license");
+                wr.WriteStartObject();
+                foreach (MEAttribute attrib in targetList[0].Destination.EndPoint.Attributes)
                 {
-                    wr.WritePropertyName("license");
-                    wr.WriteStartObject();
-                    foreach (MEAttribute attrib in assoc.Destination.EndPoint.Attributes)
-                    {
-                        wr.WritePropertyName(attrib.Name.ToLower());
-                        wr.WriteValue(attrib.FixedValue);
-                    }
-                    wr.WriteEndObject();
-                    break;
+                    wr.WritePropertyName(attrib.Name.ToLower());
+                    wr.WriteValue(attrib.FixedValue);
                 }
+                wr.WriteEndObject();
             }
         }
 

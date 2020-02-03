@@ -364,6 +364,7 @@ namespace SparxEA.Model
                     {
                         t.Value = tagValue;
                         t.Update();
+                        this._attribute.Update();
                         this._attribute.TaggedValues.Refresh();
                         return;
                     }
@@ -375,6 +376,7 @@ namespace SparxEA.Model
                     var newTag = this._attribute.TaggedValues.AddNew(tagName, "TaggedValue") as AttributeTag;
                     newTag.Value = tagValue;
                     newTag.Update();
+                    this._attribute.Update();
                     this._attribute.TaggedValues.Refresh();
                 }
             }

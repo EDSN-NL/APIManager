@@ -294,6 +294,22 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Returns the association that links the current class with the class specified by either classID and/or GUID. When both ID's are 
+        /// specified, we're looking for a class that has BOTH properties. Otherwise, we're looking for either the database ID or global ID (GUID).
+        /// When neither is specified, the function returns NULL. If there are multiple matches, we return the first one found.
+        /// When no associations exist, we return NULL.
+        /// </summary>
+        /// <param name="classID">Database ID of target class, use negative or 0 to skip.</param>
+        /// <param name="GUID">Global ID of target class, use NULL or empty string to skip.</param>
+        /// <returns>First matching association or NULL when no matches are found.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal MEAssociation FindAssociationByClassID(int classID, string GUID)
+        {
+            if (this._imp != null) return ((MEIClass)this._imp).FindAssociationByClassID(classID, GUID);
+            else throw new MissingImplementationException("MEIClass");
+        }
+
+        /// <summary>
         /// Searches all associations on the current class for any child class with specified name and stereotype and returns the
         /// list of matching classes.
         /// Note that the function only searches for the PRIMARY stereotype and ignores any generealized stereotypes!
@@ -305,6 +321,42 @@ namespace Framework.Model
         internal List<MEClass> FindAssociatedClasses(string childName, string childStereotype)
         {
             if (this._imp != null) return ((MEIClass)this._imp).FindAssociatedClasses(childName, childStereotype);
+            else throw new MissingImplementationException("MEIClass");
+        }
+
+        /// <summary>
+        /// Returns a list of all egress associations from the current class where the association name- and/or role matches a specified
+        /// name pattern. The class only considers "Association" type associations. Both name and role are optional. When left out, the function
+        /// returns ALL egress associations from this class.
+        /// By default, the function performs an exact-match. When optional parameter 'patternMatch' is set to 'true', an approximate match
+        /// is performed instead.
+        /// </summary>
+        /// <param name="assocName">Must occur in the association name.</param>
+        /// <param name="assocRole">Must occur in the association role.</param>
+        /// <param name="patternMatch">Optional parameter which, when 'true', performs an approximate match. Default is 'false'.</param>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        /// <returns>List of associations that match the search criteria.</returns>
+        internal List<MEAssociation> FindAssociationsByAssociationProperties(string assocName, string assocRole, bool patternMatch = false)
+        {
+            if (this._imp != null) return ((MEIClass)this._imp).FindAssociationsByAssociationProperties(assocName, assocRole, !patternMatch);
+            else throw new MissingImplementationException("MEIClass");
+        }
+
+        /// <summary>
+        /// Returns a list of all egress associations from the current class where the endpoint name- and/or stereotype matches a specified
+        /// name pattern. The class only considers "Association" type associations. The function MUST receive either a name or a stereotype (or
+        /// both). When no valid name/stereotype is passed, an empty list is returned.
+        /// By default, the function performs an exact-match. When optional parameter 'patternMatch' is set to 'true', an approximate match
+        /// is performed instead.
+        /// </summary>
+        /// <param name="className">Pattern for the class name.</param>
+        /// <param name="classStereotype">Pattern for the stereotype name.</param>
+        /// <param name="patternMatch">Optional parameter which, when 'true', performs an approximate match. Default is 'false'.</param>
+        /// <returns>List of associations that match specified name and/or stereotype.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal List<MEAssociation> FindAssociationsByEndpointProperties(string className, string classStereotype, bool patternMatch = false)
+        {
+            if (this._imp != null) return ((MEIClass)this._imp).FindAssociationsByEndpointProperties(className, classStereotype, !patternMatch);
             else throw new MissingImplementationException("MEIClass");
         }
 

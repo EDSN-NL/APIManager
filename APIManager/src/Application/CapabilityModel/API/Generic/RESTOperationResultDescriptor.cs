@@ -138,7 +138,7 @@ namespace Plugin.Application.CapabilityModel.API
         private string _description;                // Descriptive text to go with the response.
         private bool _isTemplate;                   // Partial response code definition to be used as a template to create other instances.
         private RESTResponseCodeCollection _collection; // The collection to which this descriptor belongs.
-        private RESTHeaderParameterCollection _responseHeaderCollection; // Contains the set of response header parameters for this response.
+        private List<RESTHeaderParameterDescriptor> _responseHeaderCollection; // Contains the set of response header parameters for this response.
         private ResultPayloadType _payloadType;     // Identifies the type of payload associated with this response code.
         private string _externalReference;          // URL of an external payload to be imported (not supported for all interface descriptors).
         private RESTResourceCapability _document;   // Document payload in case of document-type payload.
@@ -258,12 +258,18 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Returns the set of response header parameters, should always be defined, but can be uninitialised.
+        /// Get- or set the list of response headers currently defined for this operation result.
         /// </summary>
-        internal RESTHeaderParameterCollection ResponseHeaders
-        {
+        internal List<RESTHeaderParameterDescriptor> ResponseHeaders 
+        { 
             get { return this._responseHeaderCollection; }
+            set { this._responseHeaderCollection = value; }
         }
+
+        /// <summary>
+        /// Returns true if response header parameters are defined for this result descriptor.
+        /// </summary>
+        internal bool UseResponseHeaders { get { return this._responseHeaderCollection.Count > 0; } }
 
         /// <summary>
         /// Returns or loads the class that must be used as response payload in case of default / custom response class types.
@@ -390,7 +396,7 @@ namespace Plugin.Application.CapabilityModel.API
                                                ResponseCategory category,
                                                ResultPayloadType payloadType,
                                                string description,
-                                               RESTHeaderParameterCollection headers = null,
+                                               List<RESTHeaderParameterDescriptor> headers = null,
                                                string referenceURL = null,
                                                MEClass responsePayload = null,
                                                RESTResourceCapability document = null,
@@ -406,7 +412,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._payloadClass = responsePayload;
             this._document = document;
             this._responseCardinality = responseCardinality != null? responseCardinality: new Cardinality(Cardinality._Mandatory);
-            this._responseHeaderCollection = headers != null ? headers : new RESTHeaderParameterCollection(parent.ParentResource, parent.Scope);
+            this._responseHeaderCollection = headers == null ? new List<RESTHeaderParameterDescriptor>() : headers;
             this._payloadChange = false;
             this._disposed = false;
 
@@ -435,7 +441,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._document = null;
             this._externalReference = null;
             this._collection = parent;
-            this._responseHeaderCollection = new RESTHeaderParameterCollection(parent.ParentResource, parent.Scope);
+            this._responseHeaderCollection = new List<RESTHeaderParameterDescriptor>();
             this._isTemplate = parent.Scope != RESTCollection.CollectionScope.Operation;
             this._payloadChange = false;
             this._disposed = false;
@@ -498,7 +504,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._category = (code == _DefaultCode) ? ResponseCategory.Default : (ResponseCategory)int.Parse(code[0].ToString());
             this._collection = parent;
             this._isTemplate = parent.Scope != RESTCollection.CollectionScope.Operation;
-            this._responseHeaderCollection = new RESTHeaderParameterCollection(parent.ParentResource, parent.Scope);
+            this._responseHeaderCollection = new List<RESTHeaderParameterDescriptor>();
             this._payloadChange = false;
             this._disposed = false;
             DefineResponsePayloadType();
@@ -524,47 +530,29 @@ namespace Plugin.Application.CapabilityModel.API
             this._category = original._category;
             this._collection = parent;
             this._isTemplate = parent.Scope != RESTCollection.CollectionScope.Operation;
-            this._responseHeaderCollection = new RESTHeaderParameterCollection(parent.ParentResource, parent.Scope);
+            this._responseHeaderCollection = new List<RESTHeaderParameterDescriptor>(original._responseHeaderCollection);
             this._payloadChange = false;
             this._disposed = false;
 
-            // When the descriptor to be copied contains a filled header parameter collection, we perform a deep copy of the headers to assure
-            // that our new instance is independent of the one to copy from...
-            if (original._responseHeaderCollection.Collection.Count > 0)
-                this._responseHeaderCollection.CopyCollection(original._responseHeaderCollection);
             DetermineStatus();
         }
 
         /// <summary>
-        /// This function is invoked to add a new response header parameter to this result descriptor. The actual dialog with the
-        /// user is delegated to the collection.
+        /// This function is invoked to manage the series of response header parameters of this result descriptor. The actual dialog with the
+        /// user is delegated to the API-wide header parameter manager.
         /// </summary>
-        /// <returns>Newly created header parameter descriptor or NULL in case of errors or duplicates or user cancel.</returns>
-        internal RESTHeaderParameterDescriptor AddHeaderParameter()
+        /// <returns>Updated set of parameters (could be empty).</returns>
+        internal List<RESTHeaderParameterDescriptor> ManageHeaderParameters()
         {
-            RESTHeaderParameterDescriptor newDesc = this._responseHeaderCollection.AddHeaderParameter();
-            return newDesc;
-        }
+            if (this._collection.ParentResource == null)
+            {
+                // Not part of an API, impossible to determine header parameters!
+                return new List<RESTHeaderParameterDescriptor>();
+            }
 
-        /// <summary>
-        /// This function receives a predefined RequestHeaderDescriptor and inserts the object in my header parameter list (if 
-        /// no such parameter yet exists).
-        /// </summary>
-        /// <param name="parameter">The header parameter to insert.</param>
-        /// <returns>True if successfully inserted, false on duplicate code.</returns>
-        internal bool AddHeaderParameter(RESTHeaderParameterDescriptor parameter)
-        {
-            RESTHeaderParameterDescriptor newDesc = this._responseHeaderCollection.AddHeaderParameter(parameter);
-            return newDesc != null;
-        }
-
-        /// <summary>
-        /// This function receives a complete collection and replaces the current collection by the new one.
-        /// </summary>
-        /// <param name="collection">The new collection to load.</param>
-        internal void AddHeaderParameters(RESTHeaderParameterCollection collection)
-        {
-            this._responseHeaderCollection = collection;
+            // Transform my list of response header parameters using the API-wide header parameter manager...
+            this._responseHeaderCollection = ((RESTService)this._collection.ParentResource.RootService).HeaderManager.ManageParameters(RESTServiceHeaderParameterMgr.Scope.Response, this._responseHeaderCollection);
+            return this._responseHeaderCollection;
         }
 
         /// <summary>
@@ -573,26 +561,56 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="paramName">Header parameter to be deleted.</param>
         internal void DeleteHeaderParameter(string paramName)
         {
-            this._responseHeaderCollection.DeleteHeaderParameter(paramName);
-        }
-
-        /// <summary>
-        /// Deletes the entire header parameter collection.
-        /// </summary>
-        internal void DeleteHeaderParameters()
-        {
-            this._responseHeaderCollection.DeleteCollection();
+            foreach (RESTHeaderParameterDescriptor param in this._responseHeaderCollection)
+            {
+                if (param.Name == paramName)
+                {
+                    this._responseHeaderCollection.Remove(param);
+                    break;
+                }
+            }
         }
 
         /// <summary>
         /// This function is invoked to edit an existing response header parameter for this operation. It displays the Header Parameter Dialog, which
-        /// facilitates the user in changing the parameter. The updated object is added to the response parameter list for this result as long as
-        /// it has a unique name. The actual edit processing is 'delegated' to our header parameter collection.
+        /// facilitates the user in changing the parameter. The updated object is added to the response parameter list for this operation as long as
+        /// it has a unique name. The actual edit processing is 'delegated' to the header parameter manager at service level.
         /// </summary>
         /// <returns>Updated result record or NULL in case of errors or duplicates or user cancel.</returns>
         internal RESTHeaderParameterDescriptor EditHeaderParameter(string paramName)
         {
-            return this._responseHeaderCollection.EditHeaderParameter(paramName);
+            RESTHeaderParameterDescriptor currentParm = null;
+            int parmIndex = -1;
+            for (int i = 0; i < this._responseHeaderCollection.Count; i++)
+            {
+                if (this._responseHeaderCollection[i].Name == paramName)
+                {
+                    currentParm = this._responseHeaderCollection[i];
+                    parmIndex = i;
+                    break;
+                }
+            }
+            if (parmIndex == -1) return null;   // Parameter not found in our collection!
+
+            RESTHeaderParameterDescriptor editParm = ((RESTService)this._collection.ParentResource.RootService).HeaderManager.EditParameter(RESTServiceHeaderParameterMgr.Scope.Response, paramName);
+            if (editParm != null)
+            {
+                // Successfull edit, update our entry...
+                this._responseHeaderCollection[parmIndex] = editParm;
+            }
+            else
+            {
+                // When we receive a 'null', this could mean that the parameter has been removed outside our scope and we should inspect the current state.
+                // It could ALSO mean that we did not make any changes at all, so let's first check if the parameter still exists...
+                RESTHeaderParameterDescriptor myParam = ((RESTService)this._collection.ParentResource.RootService).HeaderManager.GetParameter(RESTServiceHeaderParameterMgr.Scope.Response, currentParm.ID);
+                if (myParam == null)
+                {
+                    // Parameter has been gone. Remove from collection as well!
+                    this._responseHeaderCollection.RemoveAt(parmIndex);
+                }
+                else editParm = currentParm;    // When it's still there, we simply return our original parameter.
+            }
+            return editParm;
         }
 
         /// <summary>

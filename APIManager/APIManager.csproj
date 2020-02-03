@@ -166,6 +166,7 @@
     <Compile Include="src\Application\CapabilityEvents\UtilityEvents\RepairAttributeOrderEvent.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Generic\HTTPOperation.cs" />
     <Compile Include="src\Application\CapabilityModel\API\RESTCollection.cs" />
+    <Compile Include="src\Application\CapabilityModel\API\RESTServiceHeaderParameterMgr.cs" />
     <Compile Include="src\Application\CapabilityModel\API\RESTCollectionMgr.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Generic\RESTHeaderParameterCollectionMgr.cs" />
     <Compile Include="src\Application\CapabilityModel\API\Generic\RESTHeaderParameterCollection.cs" />

@@ -27,22 +27,26 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _ServiceModelPkgName                   = "ServiceModelPkgName";
         private const string _ServiceOperationPkgStereotype         = "ServiceOperationPkgStereotype";
         private const string _ServiceModelPkgStereotype             = "ServiceModelPkgStereotype";
+        private const string _RCCHeadersTag                         = "RCCHeadersTag";
 
         // Together with the response code, this creates a role name for the payload class associated with a response (e.g. '200-Payload')...
         private const string _ResponsePayloadRolePostfix            = "-Payload";
-
-        // This is used as the fixed role name for response headers (and is also used to create -part of- the name of the class...
-        private const string _ResponseHeadersRole                   = "ResponseHeaders";
-
         private const string _CollectionRole                        = "Collection"; // Used for the collection-end of the association
 
         private List<RESTOperationResultDescriptor> _collection;    // The actual collection.
+        private RESTResourceCapability _parentResource;             // For operation-scoped collections, this is the declaration of the parent resource that contains the operation.
         private bool _mustInit;                                     // Indicates that init. has not been taken place.
 
         /// <summary>
         /// Returns the list of Operation Result Descriptors that comprises the collection.
         /// </summary>
         internal List<RESTOperationResultDescriptor> Collection { get { LoadDescriptors(); return this._collection; } }
+
+        /// <summary>
+        /// Returns the REST Resource that owns the operation, which in turn owns this response collection. This property is available only for
+        /// Operation-scoped collections; in all other cases, it will return NULL.
+        /// </summary>
+        internal RESTResourceCapability ParentResource { get { return this._parentResource; } }
 
         /// <summary>
         /// Either loads an existing collection with specified name from the specified package, or creates a new, empty, collection
@@ -54,7 +58,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// collection: if this is a ServiceModel package, the scope is 'API'. If the package is an Operation-type, the scope is 'Operation'
         /// and all others are considered 'Global'.</param>
         /// <exception cref="InvalidOperationException">Is thrown when we can't find the attribute classifier.</exception>
-        internal RESTResponseCodeCollection(RESTResourceCapability parent, string collectionName, MEPackage package): base(parent, collectionName, package)
+        internal RESTResponseCodeCollection(RESTResourceCapability parent, string collectionName, MEPackage package): base(collectionName, package)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Creating instance '" +
                              collectionName + "' in Package '" + package.Parent.Name + "/" + package.Name + "'...");
@@ -62,12 +66,13 @@ namespace Plugin.Application.CapabilityModel.API
             ContextSlt context = ContextSlt.GetContextSlt();
             string collectionStereotype = context.GetConfigProperty(_RCCStereotype);
             string responseDescriptorStereotype = context.GetConfigProperty(_RCDStereotype);
+            this._parentResource = parent;
             this._collection = new List<RESTOperationResultDescriptor>();
-            this._collectionClass = package.FindClass(collectionName, collectionStereotype);
-            if (this._collectionClass != null)
+            MEClass collectionClass = package.FindClass(collectionName, collectionStereotype);
+            if (collectionClass != null)
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Existing collection class, lazy init!");
-                InitCollectionClass();
+                InitCollectionClass(collectionClass);
                 this._mustInit = true;
             }
             else
@@ -81,7 +86,7 @@ namespace Plugin.Application.CapabilityModel.API
                     else if (package.Name == context.GetConfigProperty(_ServiceModelPkgName) &&
                              package.HasStereotype(context.GetConfigProperty(_ServiceModelPkgStereotype))) SetScope(CollectionScope.API);
                     LockCollection();
-                    CreateCollectionClass(collectionStereotype);
+                    CreateCollectionClass(collectionName, collectionStereotype);
                     this._mustInit = false;
                 }
                 finally { UnlockCollection(); }
@@ -95,7 +100,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="collectionClass">Collection class.</param>
         /// <exception cref="InvalidOperationException">Thrown when a collection class is passed that is not of the correct stereotype or 
         /// when we can't find the correct attribute classifier.</exception>
-        internal RESTResponseCodeCollection(RESTResourceCapability parent, MEClass collectionClass): base(parent, collectionClass)
+        internal RESTResponseCodeCollection(RESTResourceCapability parent, MEClass collectionClass): base(collectionClass)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Creating instance from class '" +
                               collectionClass.Name + "'...");
@@ -108,7 +113,8 @@ namespace Plugin.Application.CapabilityModel.API
                 throw new InvalidOperationException(msg);
             }
 
-            InitCollectionClass();
+            InitCollectionClass(collectionClass);
+            this._parentResource = parent;
             this._collection = null;
             this._mustInit = true;      // We use lazy initialization and postpone loading descriptors until required.
         }
@@ -119,10 +125,11 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="parent">For non-template collections, this is the parent resource owning the collection.</param>
         /// <param name="initialScope">Contains the initial scope for the collection.</param>
-        internal RESTResponseCodeCollection(RESTResourceCapability parent, CollectionScope initialScope = CollectionScope.Unknown): base(parent, initialScope)
+        internal RESTResponseCodeCollection(RESTResourceCapability parent, CollectionScope initialScope = CollectionScope.Unknown): base(initialScope)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection >> Default constructor.");
             this._collection = new List<RESTOperationResultDescriptor>();
+            this._parentResource = parent;
             this._mustInit = false;     // Actually, there is nothing to initialize here ;-)
         }
 
@@ -137,7 +144,7 @@ namespace Plugin.Application.CapabilityModel.API
             ContextSlt context = ContextSlt.GetContextSlt();
             RESTOperationResultDescriptor newResult = null;
             LoadDescriptors();      // Lazy initilization: complete contents of this collection!
-            using (var dialog = new RESTResponseCodeDialog(ParentResource != null? ParentResource.RootService: null, this, null))
+            using (var dialog = new RESTResponseCodeDialog(this._parentResource != null? (RESTService)this._parentResource.RootService: null, this, null))
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
@@ -199,17 +206,17 @@ namespace Plugin.Application.CapabilityModel.API
                 if (desc.ResultCode == code)
                 {
                     // If we have a serialized collection, we remove the UML attribute, associated payload association and header parameters (if any)...
-                    if (this._collectionClass != null)
+                    if (CollectionClass != null)
                     {
                         ContextSlt context = ContextSlt.GetContextSlt();
-                        foreach (MEAttribute attrib in this._collectionClass.Attributes)
+                        foreach (MEAttribute attrib in CollectionClass.Attributes)
                         {
                             if (attrib.Name == code)
                             {
                                 try
                                 {
                                     LockCollection();
-                                    this._collectionClass.DeleteAttribute(attrib);
+                                    CollectionClass.DeleteAttribute(attrib);
 
                                     // Check whether we have an association with a payload class...
                                     if (desc.PayloadType == RESTOperationResultDescriptor.ResultPayloadType.DefaultResponse ||
@@ -217,24 +224,8 @@ namespace Plugin.Application.CapabilityModel.API
                                         (Scope == CollectionScope.Operation && desc.PayloadType == RESTOperationResultDescriptor.ResultPayloadType.Document))
                                     {
                                         string endpointRole = attrib.Name + _ResponsePayloadRolePostfix;
-                                        foreach (MEAssociation assoc in this._collectionClass.AssociationList)
-                                        {
-                                            if (assoc.Destination.Role == endpointRole)
-                                            {
-                                                this._collectionClass.DeleteAssociation(assoc);
-                                                break;
-                                            }
-                                        }
-                                    }
-
-                                    // Check whether we have an association with a header parameter class...
-                                    foreach (MEAssociation assoc in this._collectionClass.AssociationList)
-                                    {
-                                        if (assoc.Name == attrib.Name && assoc.Destination.Role == _ResponseHeadersRole)
-                                        {
-                                            assoc.Destination.EndPoint.OwningPackage.DeleteClass(assoc.Destination.EndPoint);
-                                            break;
-                                        }
+                                        List<MEAssociation> assoc = CollectionClass.FindAssociationsByAssociationProperties(null, endpointRole);
+                                        if (assoc.Count > 0) CollectionClass.DeleteAssociation(assoc[0]);
                                     }
                                 }
                                 finally { UnlockCollection(); }
@@ -274,7 +265,7 @@ namespace Plugin.Application.CapabilityModel.API
             if (currentDesc != null)
             {
                 // Create a (temporary) copy so we can properly detect changes...
-                using (var dialog = new RESTResponseCodeDialog(ParentResource != null? ParentResource.RootService: null, this, new RESTOperationResultDescriptor(this, currentDesc)))
+                using (var dialog = new RESTResponseCodeDialog(this._parentResource != null? (RESTService)this._parentResource.RootService: null, this, new RESTOperationResultDescriptor(this, currentDesc)))
                 {
                     if (dialog.ShowDialog() == DialogResult.OK)
                     {
@@ -297,11 +288,46 @@ namespace Plugin.Application.CapabilityModel.API
             }
             else
             {
-                string msg = "Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection.EditOperationResult >> Can't find existing attribute '" + this._collectionClass.Name + "." + code + "'!";
+                string msg = "Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection.EditOperationResult >> Can't find existing attribute '" + CollectionClass.Name + "." + code + "'!";
                 Logger.WriteError(msg);
                 throw new ArgumentException(msg);
             }
             return editDesc;
+        }
+
+        /// <summary>
+        /// Is called during transformation of an old response-header structure to the new version. The function receives a list of response
+        /// header parameter descriptors and assigns this list to each result code in our collection...
+        /// </summary>
+        /// <param name="response">Response descriptor to save</param>
+        internal void EnforceResponseHeaders(List<RESTHeaderParameterDescriptor> headers)
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string attribStereotype = context.GetConfigProperty(_RCDStereotype);
+            string responseHeadersTag = context.GetConfigProperty(_RCCHeadersTag);
+            
+            // Create an ID-set for our response code attributes...
+            string newIDList = string.Empty;
+            bool firstOne = true;
+            foreach (RESTHeaderParameterDescriptor desc in headers)
+            {
+                newIDList += firstOne ? desc.ID.ToString() : "," + desc.ID.ToString();
+                firstOne = false;
+            }
+
+            // Next, we go through our list of result descriptors, updating each in turn...
+            foreach (RESTOperationResultDescriptor resultDesc in this._collection)
+            {
+                resultDesc.ResponseHeaders = headers;    // Replace the existing parameter list by this one.
+                foreach (MEAttribute attrib in CollectionClass.Attributes)  // Locate the attribute and update the header tag...
+                {
+                    if (attrib.Name == resultDesc.ResultCode && attrib.HasStereotype(attribStereotype))
+                    {
+                        attrib.SetTag(responseHeadersTag, newIDList, true);
+                        break;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -316,15 +342,15 @@ namespace Plugin.Application.CapabilityModel.API
         /// <exception cref="InvalidOperationException">Thrown when we could not create the attribute.</exception>
         private void CreateAttributeFromDescriptor(RESTOperationResultDescriptor desc)
         {
-            if (this._collectionClass == null) return;
+            if (CollectionClass == null) return;
 
             ContextSlt context = ContextSlt.GetContextSlt();
 
             // Create an attribute of type 'unknown', which implies that the stereotype is left empty. This way, we can
             // assign our specific 'RCDStereotype' afterwards...
-            MEAttribute newAttrib = this._collectionClass.CreateAttribute(desc.ResultCode, null, AttributeType.Unknown, null, 
-                                                                          new Cardinality(Cardinality._Mandatory),
-                                                                          false, desc.Description);
+            MEAttribute newAttrib = CollectionClass.CreateAttribute(desc.ResultCode, null, AttributeType.Unknown, null, 
+                                                                    new Cardinality(Cardinality._Mandatory),
+                                                                    false, desc.Description);
             if (newAttrib != null)
             {
                 newAttrib.AddStereotype(context.GetConfigProperty(_RCDStereotype)); // Will define the tags below!
@@ -342,44 +368,13 @@ namespace Plugin.Application.CapabilityModel.API
                 {
                     MEClass target = desc.PayloadClass != null ? desc.PayloadClass : desc.Document.CapabilityClass; // One of these MUST be filled!
                     string endpointRole = desc.ResultCode + _ResponsePayloadRolePostfix;
-                    var sourceEndpoint = new EndpointDescriptor(this._collectionClass, "1", _CollectionRole, null, false);
+                    var sourceEndpoint = new EndpointDescriptor(CollectionClass, "1", _CollectionRole, null, false);
                     var payloadEndpoint = new EndpointDescriptor(target, desc.ResponseCardinality.ToString(), endpointRole, null, true);
-                    this._collectionClass.CreateAssociation(sourceEndpoint, payloadEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                    CollectionClass.CreateAssociation(sourceEndpoint, payloadEndpoint, MEAssociation.AssociationType.MessageAssociation);
                 }
 
-                // Check whether we have a header parameter collection and if so, create the appropriate class and association...
-                RESTHeaderParameterCollection headers = desc.ResponseHeaders;
-                if (headers != null && headers.Collection.Count > 0)
-                {
-                    string collectionName = desc.ResultCode + _ResponseHeadersRole;
-                    headers.Serialize(collectionName, OwningPackage, Scope);    // Assures that the collection class exists with the given name.
-
-                    // Check whether we already have an association with the parameter class (could be an existing one). If not, we must
-                    // create an association with that class...
-                    bool foundClass = false;
-                    foreach (MEAssociation assoc in this._collectionClass.AssociationList)
-                    {
-                        if (assoc.Destination.EndPoint.Name == collectionName)
-                        {
-                            foundClass = true;
-                            break;
-                        }
-                    }
-                    if (!foundClass)
-                    {
-                        if (headers.CollectionClass != null)
-                        {
-                            var sourceEndpoint = new EndpointDescriptor(this._collectionClass, "1", _CollectionRole, null, false);
-                            var headersEndpoint = new EndpointDescriptor(headers.CollectionClass, "1", _ResponseHeadersRole, null, true);
-                            this._collectionClass.CreateAssociation(sourceEndpoint, headersEndpoint, MEAssociation.AssociationType.MessageAssociation, desc.ResultCode);
-                        }
-                        else
-                        {
-                            Logger.WriteWarning("Unable to create response header parameter collection '" + 
-                                                collectionName + "' in package '" + OwningPackage.Name + "'!");
-                        }
-                    }
-                }
+                // If we have a header parameter collection, convert to tag for the new attribute...
+                CreateTagFromResponseHeaders(newAttrib, desc.ResponseHeaders);
             }
             else
             {
@@ -396,7 +391,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="attrib">UML attribute to be used to create the new descriptor.</param>
         /// <exception cref="IllegalEnumException">Thrown in case we can't translate model strings to enumerations.</exception>
         /// <exception cref="InvalidOperationException">Is thrown when expected context is missing.</exception>
-        private void CreateDescriptorFromAttribute(MEAttribute attrib, List<MEAssociation> assocList)
+        private void CreateDescriptorFromAttribute(MEAttribute attrib)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             string referenceURL = attrib.GetTag(context.GetConfigProperty(_RCDReferenceURLTag));
@@ -405,6 +400,7 @@ namespace Plugin.Application.CapabilityModel.API
             MEClass payloadClass = null;
             Cardinality payloadCard = null;
             RESTResourceCapability documentResource = null;
+            List<MEAssociation> assocList;
 
             // Check whether we must have an association with a payload class...
             if (payloadType == RESTOperationResultDescriptor.ResultPayloadType.DefaultResponse ||
@@ -412,14 +408,13 @@ namespace Plugin.Application.CapabilityModel.API
                 (Scope == CollectionScope.Operation && payloadType == RESTOperationResultDescriptor.ResultPayloadType.Document))
             {
                 string endpointRole = attrib.Name + _ResponsePayloadRolePostfix;
-                foreach (MEAssociation assoc in assocList)
+                assocList = CollectionClass.FindAssociationsByAssociationProperties(null, endpointRole);
+                if (assocList.Count > 0)    // Must be exactly one, when more are found (which is wrong), we use the first in the list.
                 {
-                    if (assoc.Destination.Role == endpointRole)
-                    {
-                        payloadClass = assoc.Destination.EndPoint;
-                        payloadCard = assoc.GetCardinality(MEAssociation.AssociationEnd.Destination);
-                        break;
-                    }
+                    payloadClass = assocList[0].Destination.EndPoint;
+                    payloadCard = assocList[0].GetCardinality(MEAssociation.AssociationEnd.Destination);
+                    if (assocList.Count > 1) 
+                        Logger.WriteWarning("Response code '" + attrib.Name + "' in collection '" + Name + "' has multiple payload classes!");
                 }
 
                 // We must have found a payload somewhere. If it's gone, we might have deleted something that we should not have deleted!
@@ -438,21 +433,10 @@ namespace Plugin.Application.CapabilityModel.API
                 }
             }
 
-            // Check whether we have Header Parameters for this response and if so, create the appropriate collection...
-            string collectionName = attrib.Name + _ResponseHeadersRole;
-            RESTHeaderParameterCollection headers = null;
-            MEClass headerClass = null;
-            foreach (MEAssociation assoc in assocList)
-            {
-                if (assoc.Destination.EndPoint.Name == collectionName)
-                {
-                    headerClass = assoc.Destination.EndPoint;
-                    break;
-                }
-            }
-            if (headerClass != null) headers = new RESTHeaderParameterCollection(ParentResource, headerClass);
-
-            this._collection.Add(new RESTOperationResultDescriptor(this, attrib.Name, category, payloadType, attrib.Annotation, headers,
+            // We now have enough info to actually create the result descriptor. Headers are retrieved from the API-level header parameter manager
+            // by means of the 'CreateResponseHeadersFromAttribute' helper function...
+            this._collection.Add(new RESTOperationResultDescriptor(this, attrib.Name, category, payloadType, attrib.Annotation, 
+                                                                   CreateResponseHeadersFromAttribute(attrib),
                                                                    referenceURL, payloadClass, documentResource, payloadCard));
         }
 
@@ -468,11 +452,10 @@ namespace Plugin.Application.CapabilityModel.API
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             string collectionStereotype = context.GetConfigProperty(_RCCStereotype);
-            this._name = name;
             if (OwningPackage != null)
             {
                 // First of all, check spurious name assignments (nothing to do in that case)...
-                if (this._collectionClass != null && this._collectionClass.Name == name) return;
+                if (CollectionClass != null && CollectionClass.Name == name) return;
 
                 try
                 {
@@ -487,18 +470,18 @@ namespace Plugin.Application.CapabilityModel.API
                     else
                     {
                         // Check whether we already own a class (with another name)...
-                        if (this._collectionClass != null)
+                        if (CollectionClass != null)
                         {
                             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection.SetName >> Existing class with name '" +
-                                             this._collectionClass.Name + "', rename to '" + name + "'...");
-                            this._collectionClass.Name = name;
+                                             CollectionClass.Name + "', rename to '" + name + "'...");
+                            CollectionClass.Name = name;
                         }
                         else
                         {
                             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection.SetName >> No class yet, creating one...");
                             try
                             {
-                                CreateCollectionClass(collectionStereotype);
+                                CreateCollectionClass(name, collectionStereotype);
                                 if (this._collection.Count > 0)
                                 {
                                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection.SetName >> We already have some attributes, move to new class...");
@@ -522,6 +505,66 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Helper function that receives a Response Code attribute and extracts the list of Response Header parameters from that attribute. Since we
+        /// only store Header ID's, we have to reach out the the API-wide header parameter manager to retrieve the actual parameters, which might have
+        /// been deleted since the attribute has last been saved. If this is the case, we update the attribute to reflect current state so all is
+        /// consistent on return.
+        /// </summary>
+        /// <param name="attrib">The attribute to convert.</param>
+        /// <returns>List of response header parameters.</returns>
+        private List<RESTHeaderParameterDescriptor> CreateResponseHeadersFromAttribute(MEAttribute attrib)
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string responseHeadersTag = context.GetConfigProperty(_RCCHeadersTag);
+            string responseHdrIDList = attrib.GetTag(responseHeadersTag);
+            List<int> idList = new List<int>();
+            List<RESTHeaderParameterDescriptor> responseHeaders = new List<RESTHeaderParameterDescriptor>();
+            if (!string.IsNullOrEmpty(responseHdrIDList) && this._parentResource != null)
+            {
+                foreach (string ID in responseHdrIDList.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    int paramID;
+                    if (int.TryParse(ID.Trim(), out paramID)) idList.Add(paramID);
+                }
+                responseHeaders = ((RESTService)this._parentResource.RootService).HeaderManager.FindParametersByID(RESTServiceHeaderParameterMgr.Scope.Response, idList);
+            }
+
+            if (responseHeaders.Count < idList.Count)
+            {
+                // We have received less header parameters then ID's. This means that some of our ID's have been deleted!
+                // Update the tag with the current, valid, ID set...
+                responseHdrIDList = string.Empty;
+                bool firstOne = true;
+                foreach (RESTHeaderParameterDescriptor desc in responseHeaders)
+                {
+                    responseHdrIDList += firstOne ? desc.ID.ToString() : "," + desc.ID.ToString();
+                    firstOne = false;
+                }
+                attrib.SetTag(responseHeadersTag, responseHdrIDList);
+            }
+            return responseHeaders;
+        }
+
+        /// <summary>
+        /// Helper function that takes a list of response headers for a given response code and translates this into an attribute tag.
+        /// </summary>
+        /// <param name="attrib">The associated response code attribute to update.</param>
+        /// <param name="responseHeaders">List of response headers that need to be stored.</param>
+        private void CreateTagFromResponseHeaders(MEAttribute attrib, List<RESTHeaderParameterDescriptor> responseHeaders)
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string responseHdrIDList = string.Empty;
+            string responseHeadersTag = context.GetConfigProperty(_RCCHeadersTag);
+            bool firstOne = true;
+            foreach (RESTHeaderParameterDescriptor hdrDesc in responseHeaders)
+            {
+                responseHdrIDList += firstOne ? hdrDesc.ID.ToString() : "," + hdrDesc.ID.ToString();
+                firstOne = false;
+            }
+            attrib.SetTag(responseHeadersTag, responseHdrIDList, true);
+        }
+
+        /// <summary>
         /// This helper function performs the final phase of class initialization by loading all ResponseCode descriptors from the model.
         /// Since this is a fairly expensive operation, we perform a lazy initialization and postpone the load until it is really necessary 
         /// (that is, when an action on the Response Code collection is required).
@@ -535,17 +578,13 @@ namespace Plugin.Application.CapabilityModel.API
                 this._collection = new List<RESTOperationResultDescriptor>();
                 string attribStereotype = context.GetConfigProperty(_RCDStereotype);
 
-                // We fetch the list of all associations once, since this is a reasonably expensive operation and we don't want to do this
-                // again and again for each attribute...
-                List<MEAssociation> assocList = new List<MEAssociation>(this._collectionClass.AssociationList);
-
-                foreach (MEAttribute attrib in this._collectionClass.Attributes)
+                foreach (MEAttribute attrib in CollectionClass.Attributes)
                 {
                     if (attrib.HasStereotype(attribStereotype))
                     {
                         Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection.LoadDescriptors >> Found Response Code Descriptor '" +
                                          attrib.Name + "'...");
-                        CreateDescriptorFromAttribute(attrib, assocList);
+                        CreateDescriptorFromAttribute(attrib);
                     }
                 }
                 this._mustInit = false;
@@ -561,10 +600,10 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="newDesc">The new descriptor, created by the user.</param>
         private void UpdateAttributeFromDescriptor(RESTOperationResultDescriptor oldDesc, RESTOperationResultDescriptor newDesc)
         {
-            if (this._collectionClass == null) return;      // ignore in case we have not serialized our collection yet.
+            if (CollectionClass == null) return;      // ignore in case we have not serialized our collection yet.
 
             ContextSlt context = ContextSlt.GetContextSlt();
-            foreach (MEAttribute attrib in this._collectionClass.Attributes)
+            foreach (MEAttribute attrib in CollectionClass.Attributes)
             {
                 if (attrib.Name == oldDesc.ResultCode)
                 {
@@ -588,7 +627,7 @@ namespace Plugin.Application.CapabilityModel.API
                         bool mustReplace = true;
                         if (oldDesc.PayloadClass != null || oldDesc.Document != null)
                         {
-                            foreach (MEAssociation assoc in this._collectionClass.AssociationList)
+                            foreach (MEAssociation assoc in CollectionClass.AssociationList)
                             {
                                 if (assoc.Destination.Role == endpointOldRole)
                                 {
@@ -596,7 +635,7 @@ namespace Plugin.Application.CapabilityModel.API
                                         oldDesc.Document != newDesc.Document ||
                                         oldDesc.PayloadClass != newDesc.PayloadClass)
                                     {
-                                        this._collectionClass.DeleteAssociation(assoc);
+                                        CollectionClass.DeleteAssociation(assoc);
                                         break;
                                     }
                                     else mustReplace = false;   // This indicates that the new association is equal to the old, no need to replace!
@@ -610,81 +649,37 @@ namespace Plugin.Application.CapabilityModel.API
                              newDesc.PayloadType == RESTOperationResultDescriptor.ResultPayloadType.CustomResponse ||
                              (Scope == CollectionScope.Operation && newDesc.PayloadType == RESTOperationResultDescriptor.ResultPayloadType.Document)))
                         {
-                            EndpointDescriptor sourceEndpoint = new EndpointDescriptor(this._collectionClass, "1", _CollectionRole, null, false);
+                            EndpointDescriptor sourceEndpoint = new EndpointDescriptor(CollectionClass, "1", _CollectionRole, null, false);
                             EndpointDescriptor payloadEndpoint = new EndpointDescriptor(newDesc.PayloadType == RESTOperationResultDescriptor.ResultPayloadType.Document ?
                                                                                         newDesc.Document.CapabilityClass : newDesc.PayloadClass,
                                                                                         newDesc.ResponseCardinality.ToString(), endpointNewRole, null, true);
-                            this._collectionClass.CreateAssociation(sourceEndpoint, payloadEndpoint, MEAssociation.AssociationType.MessageAssociation);
+                            CollectionClass.CreateAssociation(sourceEndpoint, payloadEndpoint, MEAssociation.AssociationType.MessageAssociation);
                         }
                     }
                     else if (newDesc.ResultCode != oldDesc.ResultCode && (oldDesc.PayloadClass != null || oldDesc.Document != null))
                     {
                         // Even when the payload has not changed, we might have to update the role in case the response code has been updated...
-                        foreach (MEAssociation assoc in this._collectionClass.AssociationList)
+                        List<MEAssociation> targetList = CollectionClass.FindAssociationsByAssociationProperties(null, endpointOldRole);
+                        if (targetList.Count > 0)
                         {
-                            if (assoc.Destination.Role == endpointOldRole)
-                            {
-                                assoc.SetName(endpointNewRole, MEAssociation.AssociationEnd.Destination);
+                            targetList[0].SetName(endpointNewRole, MEAssociation.AssociationEnd.Destination);
 
-                                // Let's check whether we must update Cardinality as well...
-                                if (oldDesc.ResponseCardinality != newDesc.ResponseCardinality)
-                                    assoc.SetCardinality(newDesc.ResponseCardinality, MEAssociation.AssociationEnd.Destination);
-                                break;
-                            }
+                            // Let's check whether we must update Cardinality as well...
+                            if (oldDesc.ResponseCardinality != newDesc.ResponseCardinality)
+                                targetList[0].SetCardinality(newDesc.ResponseCardinality, MEAssociation.AssociationEnd.Destination);
                         }
                     }
                     else if (oldDesc.ResponseCardinality != newDesc.ResponseCardinality)
                     {
                         // When the payload and role have not changed, the cardinality COULD have. So, check and adjust if necessary...
-                        foreach (MEAssociation assoc in this._collectionClass.AssociationList)
-                        {
-                            if (assoc.Destination.Role == endpointNewRole)
-                            {
-                                assoc.SetCardinality(newDesc.ResponseCardinality, MEAssociation.AssociationEnd.Destination);
-                                break;
-                            }
-                        }
+                        List<MEAssociation> targetList = CollectionClass.FindAssociationsByAssociationProperties(null, endpointNewRole);
+                        if (targetList.Count > 0) targetList[0].SetCardinality(newDesc.ResponseCardinality, MEAssociation.AssociationEnd.Destination);
                     }
 
-                    // Check what happened to our Response Header collection, it might be empty in case we have to delete the existing class,
-                    // or it might have changed from empty to filled, in which case we have to create the class. In all other cases, the association
-                    // is Ok, but the contents might have changed!
-                    if (oldDesc.ResponseHeaders.Collection.Count > 0 && newDesc.ResponseHeaders.Collection.Count == 0)
-                    {
-                        oldDesc.DeleteHeaderParameters();   // Clears all header parameters and removes the associated UML class.
-                    }
-                    else if (oldDesc.ResponseHeaders.Collection.Count == 0 && newDesc.ResponseHeaders.Collection.Count > 0)
-                    {
-                        oldDesc.AddHeaderParameters(newDesc.ResponseHeaders);
-                        string collectionName = newDesc.ResultCode + _ResponseHeadersRole;
-                        oldDesc.ResponseHeaders.Serialize(collectionName, OwningPackage, Scope);    // Assures that the collection class exists with the given name.
+                    // We simply take the contents of the new response headers and persist those in the attribute tag, overwriting whatever parameters
+                    // used to be in there.
+                    CreateTagFromResponseHeaders(attrib, newDesc.ResponseHeaders);
 
-                        // To be sure, we check whether we have an association with this header class (should not be the case)...
-                        bool foundClass = false;
-                        foreach (MEAssociation assoc in this._collectionClass.AssociationList)
-                        {
-                            if (assoc.Destination.EndPoint.Name == newDesc.ResponseHeaders.Name)
-                            {
-                                foundClass = true;
-                                break;
-                            }
-                        }
-                        if (!foundClass)
-                        {
-                            if (newDesc.ResponseHeaders.CollectionClass != null)
-                            {
-                                var sourceEndpoint = new EndpointDescriptor(this._collectionClass, "1", _CollectionRole, null, false);
-                                var headersEndpoint = new EndpointDescriptor(newDesc.ResponseHeaders.CollectionClass, "1", _ResponseHeadersRole, null, true);
-                                this._collectionClass.CreateAssociation(sourceEndpoint, headersEndpoint, MEAssociation.AssociationType.MessageAssociation, newDesc.ResultCode);
-                            }
-                            else
-                            {
-                                Logger.WriteWarning("Unable to create response header parameter collection '" +
-                                                    collectionName + "' in package '" + OwningPackage.Name + "'!");
-                            }
-                        }
-                    }
-                    else oldDesc.ResponseHeaders.UpdateCollection(newDesc.ResponseHeaders);
                     UnlockCollection();
                     break;
                 }

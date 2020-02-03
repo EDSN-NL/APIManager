@@ -5,7 +5,6 @@ using Framework.Util;
 using Framework.Context;
 using Framework.Exceptions;
 using Plugin.Application.CapabilityModel.API;
-using Plugin.Application.CapabilityModel;
 
 namespace Plugin.Application.Forms
 {
@@ -25,7 +24,7 @@ namespace Plugin.Application.Forms
         /// <param name="myService">For non-template collections, this is the service that 'owns' our response codes.</param>
         /// <param name="collection">The collection that will 'own' the new descriptor.</param>
         /// <param name="descriptor">Initial declaration to use for editing.</param>
-        internal RESTResponseCodeDialog(Service myService, RESTResponseCodeCollection collection, RESTOperationResultDescriptor descriptor)
+        internal RESTResponseCodeDialog(RESTService myService, RESTResponseCodeCollection collection, RESTOperationResultDescriptor descriptor)
         {
             InitializeComponent();
             ContextSlt context = ContextSlt.GetContextSlt();
@@ -100,17 +99,22 @@ namespace Plugin.Application.Forms
                 RspCardLo.Text = this._result.ResponseCardinality.LowerBoundaryAsString;
                 RspCardHi.Text = this._result.ResponseCardinality.UpperBoundaryAsString;
 
-                // Load header parameters (if present)...
-                foreach (RESTHeaderParameterDescriptor paramDesc in descriptor.ResponseHeaders.Collection)
+                // Header parameters don't work in 'template mode'!
+                if (myService != null)
                 {
-                    if (paramDesc.IsValid)
+                    // Load header parameters (if present)...
+                    foreach (RESTHeaderParameterDescriptor paramDesc in descriptor.ResponseHeaders)
                     {
-                        ListViewItem newItem = new ListViewItem(paramDesc.Name);
-                        newItem.Name = paramDesc.Name;
-                        newItem.SubItems.Add(paramDesc.Description);
-                        ResponseHeaderList.Items.Add(newItem);
+                        if (paramDesc.IsValid)
+                        {
+                            ListViewItem newItem = new ListViewItem(paramDesc.Name);
+                            newItem.Name = paramDesc.Name;
+                            newItem.SubItems.Add(paramDesc.Description);
+                            ResponseHeaderList.Items.Add(newItem);
+                        }
                     }
                 }
+                else ResponseHeaderGroup.Enabled = false;
             }
 
             // Initialize the drop-down box with all possible codes for given category...
@@ -124,20 +128,26 @@ namespace Plugin.Application.Forms
         }
 
         /// <summary>
-        /// This event is raised when the user clicks the 'Add Response Header' button.
-        /// The method facilitates creation of an additional response header parameter.
+        /// This event is raised when the user clicks the 'Add Response Header' button. The method invokes the API-level 'manage header parameters'
+        /// dialog, which facilitates creation/modification/removal of response header parameters for the API as well as making selections from
+        /// the global list to the operation-specific list. On return, we simply replace the contents of our header parameter list with the
+        /// contents of the updated list.
         /// </summary>
         /// <param name="sender">Ignored.</param>
         /// <param name="e">Ignored.</param>
         private void AddRspHeader_Click(object sender, EventArgs e)
         {
-            RESTHeaderParameterDescriptor parameter = this._result.AddHeaderParameter();
-            if (parameter != null && parameter.IsValid)
+            List<RESTHeaderParameterDescriptor> parameters = this._result.ManageHeaderParameters();
+            ResponseHeaderList.Items.Clear();
+            foreach (RESTHeaderParameterDescriptor paramDesc in parameters)
             {
-                ListViewItem newItem = new ListViewItem(parameter.Name);
-                newItem.Name = parameter.Name;
-                newItem.SubItems.Add(parameter.Description);
-                ResponseHeaderList.Items.Add(newItem);
+                if (paramDesc.IsValid)
+                {
+                    ListViewItem newItem = new ListViewItem(paramDesc.Name);
+                    newItem.Name = paramDesc.Name;
+                    newItem.SubItems.Add(paramDesc.Description);
+                    ResponseHeaderList.Items.Add(newItem);
+                }
             }
         }
 
@@ -285,18 +295,14 @@ namespace Plugin.Application.Forms
                     key.SubItems[0].Text = parameter.Name;
                     key.SubItems[1].Text = parameter.Description;
                 }
+                else
+                {
+                    // Parameter has been removed outside our scope, remove from list...
+                    MessageBox.Show("Header parameter '" + originalKey + "' could no longer be found and will be removed from the list!", 
+                                    "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    ResponseHeaderList.Items.Remove(key);
+                }
             }
-        }
-
-        /// <summary>
-        /// This event is raised when the user clicks the 'edit header param collections' button. This brings up a subsequent dialog,
-        /// which facilitates create-, delete- or edit of header parameter collections.
-        /// </summary>
-        /// <param name="sender">Ignored.</param>
-        /// <param name="e">Ignored.</param>
-        private void EditRspHeaderCollections_Click(object sender, EventArgs e)
-        {
-            this._headerManager.ManageCollection();
         }
 
         /// <summary>
@@ -467,26 +473,6 @@ namespace Plugin.Application.Forms
             {
                 MessageBox.Show("Link '" + ExternalLink.Text + "' has illegal (absolute) URL format, please try again!", 
                                 "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        /// <summary>
-        /// This event is raised when the user clicks the 'use header collection' button. We return a (selected) parameter collection from
-        /// the appropriate collection manager and copy all header parameters that do not yet exist in our current request list.
-        /// </summary>
-        /// <param name="sender">Ignored.</param>
-        /// <param name="e">Ignored.</param>
-        private void UseRspHeaderCollection_Click(object sender, EventArgs e)
-        {
-            foreach (RESTHeaderParameterDescriptor parameter in this._headerManager.GetCollectionContents())
-            {
-                if (ResponseHeaderList.FindItemWithText(parameter.Name) == null && this._result.AddHeaderParameter(parameter))
-                {
-                    ListViewItem newItem = new ListViewItem(parameter.Name);
-                    newItem.Name = parameter.Name;
-                    newItem.SubItems.Add(parameter.Description);
-                    ResponseHeaderList.Items.Add(newItem);
-                }
             }
         }
     }

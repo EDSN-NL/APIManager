@@ -6,6 +6,7 @@ using Framework.Util;
 using Framework.Util.SchemaManagement;
 using Framework.Util.SchemaManagement.JSON;
 using Framework.Context;
+using Plugin.Application.CapabilityModel.SchemaGeneration;
 
 namespace Plugin.Application.CapabilityModel.API
 {
@@ -16,17 +17,11 @@ namespace Plugin.Application.CapabilityModel.API
     internal partial class OpenAPI20Processor : CapabilityProcessor
     {
         // Configuration properties used by this module...
-        private const string _ConsumesMIMEListTag               = "ConsumesMIMEListTag";
-        private const string _ProducesMIMEListTag               = "ProducesMIMEListTag";
         private const string _RequestPaginationClassName        = "RequestPaginationClassName";
         private const string _ResponsePaginationClassName       = "ResponsePaginationClassName";
         private const string _PaginationClassStereotype         = "PaginationClassStereotype";
-        private const string _OperationResultClassName          = "OperationResultClassName";
-        private const string _RequestHdrParamClassName          = "RequestHdrParamClassName";
-        private const string _ResponseHdrParamClassName         = "ResponseHdrParamClassName";
         private const string _ResourceClassStereotype           = "ResourceClassStereotype";
         private const string _BusinessComponentStereotype       = "BusinessComponentStereotype";
-        private const string _APISupportModelPathName           = "APISupportModelPathName";
         private const string _CollectionFormatTag               = "CollectionFormatTag";
         private const string _ResponsePkgName                   = "ResponsePkgName";
         private const string _ResponseMessageSuffix             = "ResponseMessageSuffix";
@@ -177,7 +172,7 @@ namespace Plugin.Application.CapabilityModel.API
                         }
 
                         // Finally, check whether we have to process header parameters and/or links...
-                        if (operationResult.ResponseHeaders.UseHeaderParameters || this._currentOperation.UseLinkHeaders)
+                        if (operationResult.UseResponseHeaders || this._currentOperation.UseLinkHeaders)
                             WriteResponseHeaderParameters(operationResult);
                     }
                     this._JSONWriter.WriteEndObject();              // Close this result.
@@ -240,7 +235,7 @@ namespace Plugin.Application.CapabilityModel.API
                 }
 
                 // Finally, check if whe have any header parameters...
-                if (operation.RequestHeaders.UseHeaderParameters) WriteRequestHeaderParameters(operation.RequestHeaders);
+                if (operation.UseRequestHeaders) WriteRequestHeaderParameters(operation.RequestHeaders);
             }
             return result;
         }
@@ -267,14 +262,11 @@ namespace Plugin.Application.CapabilityModel.API
             try
             {
                 // First of all, check whether pagination is defined for the current operation...
-                foreach (MEAssociation assoc in this._currentOperation.CapabilityClass.AssociationList)
+                List<MEAssociation> targetList = this._currentOperation.CapabilityClass.FindAssociationsByEndpointProperties(paginationClassName, null);
+                if (targetList.Count > 0)
                 {
-                    if (assoc.Destination.EndPoint.Name == paginationClassName)
-                    {
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.GetResponsePaginationClass >> Found Pagination class, processing...");
-                        templateClass = assoc.Destination.EndPoint;
-                        break;
-                    }
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.GetResponsePaginationClass >> Found Pagination class, processing...");
+                    templateClass = targetList[0].Destination.EndPoint;
                 }
 
                 // Next, we check whether an earlier pagination class already exists. If so, check whether we're lagging in version...
@@ -749,23 +741,31 @@ namespace Plugin.Application.CapabilityModel.API
         /// Parameter Object is created in the OpenAPI definition.
         /// </summary>
         /// <param name="requestHeaders">The collection of operation request header parameters.</param>
-        private void WriteRequestHeaderParameters(RESTHeaderParameterCollection requestHeaders)
+        private void WriteRequestHeaderParameters(List<RESTHeaderParameterDescriptor> requestHeaders)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestHeaderParameters >> Looking for header parameters...");
             ContextSlt context = ContextSlt.GetContextSlt();
 
-            // Create a separate list of all collection formats for each attribute. We need this when we have an attribute with cardinality > 1...
             var sortedCollectionFmtList = new SortedList<string, RESTParameterDeclaration.QueryCollectionFormat>();
             string collectionFmtTagName = context.GetConfigProperty(_CollectionFormatTag);
-            foreach (MEAttribute attrib in requestHeaders.CollectionClass.Attributes)
+
+            // Since we don't have a 'real' class that can be used to parse the header parameters, convert them to a list of simple attribute declarations that
+            // we can parse directly (we only need the classifiers and some metadata to be registered in the schema).
+            // Also, create a separate list of all collection formats for each attribute. We need this when we have an attribute with cardinality > 1...
+            var headerAttribList = new List<SchemaProcessor.SimpleAttributeDeclaration>();
+            foreach (RESTHeaderParameterDescriptor header in requestHeaders)
             {
-                string collectionFmtTag = attrib.GetTag(collectionFmtTagName);
-                if (!string.IsNullOrEmpty(collectionFmtTag))
-                    sortedCollectionFmtList.Add(attrib.Name, EnumConversions<RESTParameterDeclaration.QueryCollectionFormat>.StringToEnum(collectionFmtTag));
-                else sortedCollectionFmtList.Add(attrib.Name, RESTParameterDeclaration.QueryCollectionFormat.NA);
+                if (header.Parameter.Classifier is MEDataType)  // Only 'real' data types are allowed to be used as an atribute classifier!
+                {
+                    headerAttribList.Add(new SchemaProcessor.SimpleAttributeDeclaration(header.Name, (MEDataType)header.Parameter.Classifier, header.Parameter.Cardinality,
+                                                                                        header.Parameter.Description, header.Parameter.Default));
+                    sortedCollectionFmtList.Add(header.Name, header.Parameter.CollectionFormat);
+                }
+                else Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestHeaderParameters >> Header '" + header.Name +
+                                       "' has a non-datatype classifier '" + header.Parameter.Classifier.Name + "', which is not allowed here!");
             }
 
-            List<SchemaAttribute> headerProperties = this._schema.ProcessProperties(requestHeaders.CollectionClass);
+            List<SchemaAttribute> headerProperties = this._schema.ProcessSimpleAttributeDeclaration(headerAttribList);
             foreach (JSONContentAttribute attrib in headerProperties)
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteRequestHeaderParameters >> Processing '" + attrib.Name + "'...");
@@ -777,8 +777,7 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         this._JSONWriter.WritePropertyName("description"); this._JSONWriter.WriteValue(attrib.Annotation);
                     }
-                    // Request headers do not need this.
-                    //this._JSONWriter.WritePropertyName("required"); this._JSONWriter.WriteValue(attrib.IsMandatory);
+                    this._JSONWriter.WritePropertyName("required"); this._JSONWriter.WriteValue(attrib.IsMandatory);
 
                     // Collect the JSON Schema for the attribute as a string. Note that this includes possible default values, min- and max
                     // values, etc....
@@ -800,6 +799,117 @@ namespace Plugin.Application.CapabilityModel.API
                 }
                 this._JSONWriter.WriteEndObject();
             }
+        }
+
+        /// <summary>
+        /// Writes a response body parameter using the specified message Profile root. Each operation may have zero to many body parameters and each
+        /// must refer to an, operation specific, unique message model. The root of this model is specified by a Document Resource class that in turn
+        /// contains an association with the Business Component that acts as the actual message root. The method always creates a reference to this
+        /// Business Component class. If the association role has a cardinality > 1, we create an array of references.
+        /// </summary>
+        /// <param name="documentResourceClass">The Resource class describing the payload (either a Document or a ProfileSet).</param>
+        /// <param name="cardinality">The cardinality of the Document Resource association. If upper limit > 1, we must create an array.</param>
+        /// <returns>True when processed ok, false on errors.</returns>
+        private bool WriteResponseBodyParameter(MEClass documentResourceClass, Cardinality cardinality)
+        {
+            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Processing document class '" + documentResourceClass.Name + "'...");
+            this._panel.WriteInfo(this._panelIndex + 3, "Processing Response Message Body '" + documentResourceClass.Name + "'...");
+            ContextSlt context = ContextSlt.GetContextSlt();
+            bool result = false;
+            string qualifiedClassName = string.Empty;
+            string businessComponentStereotype = context.GetConfigProperty(_BusinessComponentStereotype);
+            string messageComponentStereotype = context.GetConfigProperty(_GenericMessageClassStereotype);
+            string profileStereotype = context.GetConfigProperty(_ProfileStereotype);
+            string schemaTokenName = context.GetConfigProperty(_SchemaTokenName);
+
+            // First of all, we check whether we must use response pagination parameters. If so, we create a class structure in the Response package
+            // of the current operation and use this to store both the pagination parameters and the actual response object. We then simply refer
+            // to this class in the OpenAPI definition response parameter. Reason: not all frameworks support a 'response object' in the response
+            // parameter...
+            MEClass paginationClass = GetResponsePaginationClass();
+
+            // Next, Locate the associated business component(s). We can't check by name since it might have used an Alias name...
+            // We should accept BOTH BusinessComponents (from domain profiles) OR Message Business Information Entities (message 'specials').
+            List<Tuple<string, MEClass>> schemaClasses = new List<Tuple<string, MEClass>>();
+            foreach (MEAssociation association in documentResourceClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+            {
+                // Here, we look for ALL target payload classes. In case of a Document, there should be only one but in case of a Profile, there
+                // can be any number of payload references. Each will subsequently be parsed into the schema and stored for final processing...
+                if (association.Destination.EndPoint.HasStereotype(businessComponentStereotype) ||
+                    association.Destination.EndPoint.HasStereotype(messageComponentStereotype))
+                {
+                    // Note that we might have used an Alias name for our Business Component (in order to create unique / meaningfull names)
+                    // and thus the Document Resource class is named after the Alias. We MUST use that name for all references to the Business
+                    // Component and thus we use the Document Resource class name to be sure we have the correct name...
+                    MEClass target = association.Destination.EndPoint;
+                    string profile = string.Empty;
+                    if (target.OwningPackage.HasStereotype(context.GetConfigProperty(_ProfileStereotype)) &&
+                        target.OwningPackage.Name != context.GetConfigProperty(_BasicProfileName)) profile = target.OwningPackage.Name;
+                    string token = schemaTokenName + ":" + profile + target.Name;
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Found Business Component '" + token + "', processing...");
+                    qualifiedClassName = this._schema.ProcessClass(target, token);
+                    if (!string.IsNullOrEmpty(qualifiedClassName)) schemaClasses.Add(new Tuple<string, MEClass>(qualifiedClassName, target));
+                    else
+                    {
+                        Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Error processing class '" + token + "', aborting!");
+                        return false;
+                    }
+                }
+            }
+
+            // If we have multiple payloads, assume we're dealing with a profile. In this case, we explicitly create an intermediate profile
+            // class to hold all the profile options and use this as the final payload. In case we have only a single payload, treat this as
+            // a simple business document reference.
+            // If we have only a single entry (=Document), qualifiedClassName still contains the name of the processed class.
+            MEClass payload = null;
+            if (schemaClasses.Count == 1) payload = schemaClasses[0].Item2;
+            else if (schemaClasses.Count > 1)
+            {
+                // In case of a Profile Set, we create a new class (or link to an existing one), which contains the actual profile associations.
+                // We use this class as the payload of the response...
+                Tuple<string, MEClass> profileSet = WriteProfileSet(documentResourceClass, schemaClasses);
+                payload = profileSet.Item2;
+                qualifiedClassName = profileSet.Item1;
+            }
+            else
+            {
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> No valid payload detected for Document / ProfileSet '" +
+                                  documentResourceClass.Name + "', aborting!");
+                return false;
+            }
+
+            // Next, check whether we must use pagination at all. If not, we can create a simple reference....
+            if (paginationClass != null)
+            {
+                // Pagination is required. The call to GetResponsePaginationClass has either cleaned-up the existing pagination class, or has
+                // created a new one. We must establish an association with the payload...
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Pagination, created class and association...");
+                string assocCard = cardinality.LowerBoundary.ToString();
+                if (cardinality.UpperBoundary == 0) assocCard += "..*";
+                else if (cardinality.UpperBoundary != cardinality.LowerBoundary) assocCard += ".." + cardinality.UpperBoundary.ToString();
+                string roleName = !string.IsNullOrEmpty(payload.AliasName) ? payload.AliasName : payload.Name;
+                if ((cardinality.UpperBoundary == 0 || cardinality.UpperBoundary > 1) && !roleName.EndsWith("List")) roleName += "List";
+                var source = new EndpointDescriptor(paginationClass, "1", paginationClass.Name, null, false);
+                var target = new EndpointDescriptor(payload, assocCard, roleName, null, true);
+                paginationClass.CreateAssociation(source, target, MEAssociation.AssociationType.MessageAssociation);
+                qualifiedClassName = this._schema.ProcessClass(paginationClass, context.GetConfigProperty(_SchemaTokenName) + ":" + paginationClass.Name);
+                cardinality = new Cardinality(Cardinality._Mandatory);    // Response is mandatory object and actual cardinality with payload has been solved otherwise.
+            }
+
+            if (qualifiedClassName != string.Empty)
+            {
+                // Since we 'might' use alias names in classes, the returned name 'might' be different from the offered name. To make sure we're referring
+                // to the correct name, we take the returned FQN and remove the token part. Remainder is the 'formal' type name.
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Gotten FQN '" + qualifiedClassName + "'.");
+                string className = qualifiedClassName.Substring(qualifiedClassName.IndexOf(':') + 1);
+                this._JSONWriter.WritePropertyName("schema"); this._JSONWriter.WriteStartObject();
+                {
+                    WriteResponseBodyReference(className, cardinality);
+                }
+                this._JSONWriter.WriteEndObject();
+                result = true;
+            }
+            return result;
         }
 
         /// <summary>
@@ -841,7 +951,25 @@ namespace Plugin.Application.CapabilityModel.API
 
             var headerProperties = new List<SchemaAttribute>();
             var sortedParamList = new SortedList<string, RESTParameterDeclaration>();
-            if (thisResult.ResponseHeaders.UseHeaderParameters) headerProperties = this._schema.ProcessProperties(thisResult.ResponseHeaders.CollectionClass);
+
+            // Since we don't have a 'real' class that can be used to parse the header parameters, convert them to a list of simple attribute declarations that
+            // we can parse directly (we only need the classifiers and some metadata to be registered in the schema).
+            if (thisResult.UseResponseHeaders)
+            {
+                var headerAttribList = new List<SchemaProcessor.SimpleAttributeDeclaration>();
+                foreach (RESTHeaderParameterDescriptor header in thisResult.ResponseHeaders)
+                {
+                    if (header.Parameter.Classifier is MEDataType)  // Only 'real' data types are allowed to be used as an atribute classifier!
+                    {
+                        headerAttribList.Add(new SchemaProcessor.SimpleAttributeDeclaration(header.Name, (MEDataType)header.Parameter.Classifier, header.Parameter.Cardinality,
+                                                                                            header.Parameter.Description, header.Parameter.Default));
+                        sortedParamList.Add(header.Name, header.Parameter);
+                    }
+                    else Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseHeaderParameters >> Header '" + header.Name +
+                                           "' has a non-datatype classifier '" + header.Parameter.Classifier.Name + "', which is not allowed here!");
+                }
+                headerProperties = this._schema.ProcessSimpleAttributeDeclaration(headerAttribList);
+            }
 
             if (this._currentOperation.UseLinkHeaders || headerProperties.Count > 0)
             {
@@ -928,117 +1056,6 @@ namespace Plugin.Application.CapabilityModel.API
                 {
                     WriteResponseBodyReference(payloadQName.Substring(payloadQName.IndexOf(':') + 1), cardinality);
                 } this._JSONWriter.WriteEndObject();
-                result = true;
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// Writes a response body parameter using the specified message Profile root. Each operation may have zero to many body parameters and each
-        /// must refer to an, operation specific, unique message model. The root of this model is specified by a Document Resource class that in turn
-        /// contains an association with the Business Component that acts as the actual message root. The method always creates a reference to this
-        /// Business Component class. If the association role has a cardinality > 1, we create an array of references.
-        /// </summary>
-        /// <param name="documentResourceClass">The Resource class describing the payload (either a Document or a ProfileSet).</param>
-        /// <param name="cardinality">The cardinality of the Document Resource association. If upper limit > 1, we must create an array.</param>
-        /// <returns>True when processed ok, false on errors.</returns>
-        private bool WriteResponseBodyParameter(MEClass documentResourceClass, Cardinality cardinality)
-        {
-            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Processing document class '" + documentResourceClass.Name + "'...");
-            this._panel.WriteInfo(this._panelIndex + 3, "Processing Response Message Body '" + documentResourceClass.Name + "'...");
-            ContextSlt context = ContextSlt.GetContextSlt();
-            bool result = false;
-            string qualifiedClassName = string.Empty;
-            string businessComponentStereotype = context.GetConfigProperty(_BusinessComponentStereotype);
-            string messageComponentStereotype = context.GetConfigProperty(_GenericMessageClassStereotype);
-            string profileStereotype = context.GetConfigProperty(_ProfileStereotype);
-            string schemaTokenName = context.GetConfigProperty(_SchemaTokenName);
-
-            // First of all, we check whether we must use response pagination parameters. If so, we create a class structure in the Response package
-            // of the current operation and use this to store both the pagination parameters and the actual response object. We then simply refer
-            // to this class in the OpenAPI definition response parameter. Reason: not all frameworks support a 'response object' in the response
-            // parameter...
-            MEClass paginationClass = GetResponsePaginationClass();
-
-            // Next, Locate the associated business component(s). We can't check by name since it might have used an Alias name...
-            // We should accept BOTH BusinessComponents (from domain profiles) OR Message Business Information Entities (message 'specials').
-            List<Tuple<string, MEClass>> schemaClasses = new List<Tuple<string, MEClass>>();
-            foreach (MEAssociation association in documentResourceClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
-            {
-                // Here, we look for ALL target payload classes. In case of a Document, there should be only one but in case of a Profile, there
-                // can be any number of payload references. Each will subsequently be parsed into the schema and stored for final processing...
-                if (association.Destination.EndPoint.HasStereotype(businessComponentStereotype) ||
-                    association.Destination.EndPoint.HasStereotype(messageComponentStereotype))
-                {
-                    // Note that we might have used an Alias name for our Business Component (in order to create unique / meaningfull names)
-                    // and thus the Document Resource class is named after the Alias. We MUST use that name for all references to the Business
-                    // Component and thus we use the Document Resource class name to be sure we have the correct name...
-                    MEClass target = association.Destination.EndPoint;
-                    string profile = string.Empty;
-                    if (target.OwningPackage.HasStereotype(context.GetConfigProperty(_ProfileStereotype)) &&
-                        target.OwningPackage.Name != context.GetConfigProperty(_BasicProfileName)) profile = target.OwningPackage.Name;
-                    string token = schemaTokenName + ":" + profile + target.Name;
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Found Business Component '" + token + "', processing...");
-                    qualifiedClassName = this._schema.ProcessClass(target, token);
-                    if (!string.IsNullOrEmpty(qualifiedClassName)) schemaClasses.Add(new Tuple<string, MEClass>(qualifiedClassName, target));
-                    else
-                    {
-                        Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Error processing class '" + token + "', aborting!");
-                        return false;
-                    }
-                }
-            }
-
-            // If we have multiple payloads, assume we're dealing with a profile. In this case, we explicitly create an intermediate profile
-            // class to hold all the profile options and use this as the final payload. In case we have only a single payload, treat this as
-            // a simple business document reference.
-            // If we have only a single entry (=Document), qualifiedClassName still contains the name of the processed class.
-            MEClass payload = null;
-            if (schemaClasses.Count == 1) payload = schemaClasses[0].Item2;
-            else if (schemaClasses.Count > 1)
-            {
-                // In case of a Profile Set, we create a new class (or link to an existing one), which contains the actual profile associations.
-                // We use this class as the payload of the response...
-                Tuple<string, MEClass> profileSet = WriteProfileSet(documentResourceClass, schemaClasses);
-                payload = profileSet.Item2;
-                qualifiedClassName = profileSet.Item1;
-            }
-            else
-            {
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> No valid payload detected for Document / ProfileSet '" + 
-                                  documentResourceClass.Name + "', aborting!");
-                return false;
-            }
-
-            // Next, check whether we must use pagination at all. If not, we can create a simple reference....
-            if (paginationClass != null)
-            {
-                // Pagination is required. The call to GetResponsePaginationClass has either cleaned-up the existing pagination class, or has
-                // created a new one. We must establish an association with the payload...
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Pagination, created class and association...");
-                string assocCard = cardinality.LowerBoundary.ToString();
-                if (cardinality.UpperBoundary == 0) assocCard += "..*";
-                else if (cardinality.UpperBoundary != cardinality.LowerBoundary) assocCard += ".." + cardinality.UpperBoundary.ToString();
-                string roleName = !string.IsNullOrEmpty(payload.AliasName) ? payload.AliasName : payload.Name;
-                if ((cardinality.UpperBoundary == 0 || cardinality.UpperBoundary > 1) && !roleName.EndsWith("List")) roleName += "List";
-                var source = new EndpointDescriptor(paginationClass, "1", paginationClass.Name, null, false);
-                var target = new EndpointDescriptor(payload, assocCard, roleName, null, true);
-                paginationClass.CreateAssociation(source, target, MEAssociation.AssociationType.MessageAssociation);
-                qualifiedClassName = this._schema.ProcessClass(paginationClass, context.GetConfigProperty(_SchemaTokenName) + ":" + paginationClass.Name);
-                cardinality = new Cardinality(Cardinality._Mandatory);    // Response is mandatory object and actual cardinality with payload has been solved otherwise.
-            }
-
-            if (qualifiedClassName != string.Empty)
-            {
-                // Since we 'might' use alias names in classes, the returned name 'might' be different from the offered name. To make sure we're referring
-                // to the correct name, we take the returned FQN and remove the token part. Remainder is the 'formal' type name.
-                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.OpenAPI20Processor.WriteResponseBodyParameter >> Gotten FQN '" + qualifiedClassName + "'.");
-                string className = qualifiedClassName.Substring(qualifiedClassName.IndexOf(':') + 1);
-                this._JSONWriter.WritePropertyName("schema"); this._JSONWriter.WriteStartObject();
-                {
-                    WriteResponseBodyReference(className, cardinality);
-                }
-                this._JSONWriter.WriteEndObject();
                 result = true;
             }
             return result;

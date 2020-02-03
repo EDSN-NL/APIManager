@@ -24,6 +24,7 @@ namespace Plugin.Application.CapabilityModel.API
         private List<RESTResourceCapability> _rootLevelTagList;     // The list of Root-level REST Resources that have tags defined for them.
         private List<Tuple<int,RESTResourceCapability>>_documentList;       // The list of registered Document resources for this API.
         private List<Tuple<int, RESTResourceCapability>> _profileSetList;   // The list of registered ProfileSet resources for this API.
+        private RESTServiceHeaderParameterMgr _headerManager;               // Manages request- and response headers for this API.
 
         // Keep track of classes and associations to show in the diagram...
         private List<MEClass> _diagramClassList;
@@ -41,6 +42,11 @@ namespace Plugin.Application.CapabilityModel.API
                 return documentList;
             }
         }
+
+        /// <summary>
+        /// Returns the header parameter manager assigned to this API.
+        /// </summary>
+        internal RESTServiceHeaderParameterMgr HeaderManager { get { return this._headerManager; } }
 
         /// <summary>
         /// Returns the list of ProfileSet Resources for this API.
@@ -99,15 +105,16 @@ namespace Plugin.Application.CapabilityModel.API
                              Ticket remoteTicket, string projectOrderID): 
             base(containerPackage, metaData.qualifiedName, declarationStereotype, initialState, useListElements, remoteTicket, projectOrderID)
         {
-            ContextSlt context = ContextSlt.GetContextSlt();
-            ModelSlt model = ModelSlt.GetModelSlt();
-            this._tagList = new List<RESTResourceCapability>();
-            this._rootLevelTagList = new List<RESTResourceCapability>();
-            this._documentList = new List<Tuple<int, RESTResourceCapability>>();
-            this._profileSetList = new List<Tuple<int, RESTResourceCapability>>();
-
             try
             {
+                ContextSlt context = ContextSlt.GetContextSlt();
+                ModelSlt model = ModelSlt.GetModelSlt();
+                this._tagList = new List<RESTResourceCapability>();
+                this._rootLevelTagList = new List<RESTResourceCapability>();
+                this._documentList = new List<Tuple<int, RESTResourceCapability>>();
+                this._profileSetList = new List<Tuple<int, RESTResourceCapability>>();
+                this._headerManager = new RESTServiceHeaderParameterMgr(this);
+
                 // REST API's use a single data model. Here we create the data model package...
                 // We try to read the relative package position from configuration and if this failed, use '50' as default value.
                 int packagePos;
@@ -178,6 +185,7 @@ namespace Plugin.Application.CapabilityModel.API
                 this._rootLevelTagList = new List<RESTResourceCapability>();
                 this._documentList = new List<Tuple<int, RESTResourceCapability>>();
                 this._profileSetList = new List<Tuple<int, RESTResourceCapability>>();
+                this._headerManager = new RESTServiceHeaderParameterMgr(this);
                 string archetypeStr = this._serviceClass.GetTag(context.GetConfigProperty(_ServiceArchetypeTag));
                 if (string.IsNullOrEmpty(archetypeStr))
                 {

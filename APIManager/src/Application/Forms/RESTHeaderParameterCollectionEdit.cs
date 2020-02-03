@@ -62,7 +62,7 @@ namespace Plugin.Application.Forms
                 this.Text = "Create new Collection";
                 this.Ok.Enabled = false;
                 this._scope = RESTCollection.CollectionScope.API;
-                this._collection = new RESTHeaderParameterCollection(null, this._scope);
+                this._collection = new RESTHeaderParameterCollection(this._scope);
             }
 
             // Assign context menus to the appropriate controls...
@@ -87,7 +87,7 @@ namespace Plugin.Application.Forms
         /// <param name="e">Ignored.</param>
         private void AddHeaderParameter_Click(object sender, EventArgs e)
         {
-            RESTHeaderParameterDescriptor result = this._collection.AddHeaderParameter();
+            RESTHeaderParameterDescriptor result = this._collection.AddParameter();
             if (result != null && result.IsValid)
             {
                 ListViewItem newItem = new ListViewItem(result.Name);
@@ -106,7 +106,7 @@ namespace Plugin.Application.Forms
             if (HeaderParameterList.SelectedItems.Count > 0)
             {
                 ListViewItem key = HeaderParameterList.SelectedItems[0];
-                this._collection.DeleteHeaderParameter(key.Text);
+                this._collection.DeleteParameter(key.Text);
                 HeaderParameterList.Items.Remove(key);
             }
         }
@@ -122,12 +122,17 @@ namespace Plugin.Application.Forms
             {
                 ListViewItem key = HeaderParameterList.SelectedItems[0];
                 string originalKey = key.Text;
-                RESTHeaderParameterDescriptor result = this._collection.EditHeaderParameter(key.Text);
+                RESTHeaderParameterDescriptor result = this._collection.EditParameter(key.Text);
                 if (result != null)
                 {
                     key.SubItems[0].Text = result.Name;
                     key.SubItems[1].Text = result.Description;
                     HeaderParameterList.Sort();
+                }
+                else
+                {
+                    // Parameter has been removed from the collection outside our scope. Remove here as well...
+                    HeaderParameterList.Items.Remove(key);
                 }
             }
         }

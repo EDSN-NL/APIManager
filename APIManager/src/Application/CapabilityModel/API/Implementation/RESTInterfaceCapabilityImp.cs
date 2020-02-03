@@ -327,14 +327,11 @@ namespace Plugin.Application.CapabilityModel.API
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTInterfaceCapabilityImp.RenameResource >> Found the resource!");
 
                     // First of all, we attempt to locate the association between this capability and the resource to be renamed so we can rename the role...
-                    foreach (MEAssociation association in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                    MEAssociation target = this._capabilityClass.FindAssociationByClassID(cap.CapabilityClass.ElementID, null);
+                    if (target != null)
                     {
-                        if (association.Destination.EndPoint == cap.CapabilityClass)
-                        {
-                            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTInterfaceCapabilityImp.RenameResource >> Found child association...");
-                            association.SetName(RESTUtil.GetAssignedRoleName(Conversions.ToCamelCase(newName)), MEAssociation.AssociationEnd.Destination);
-                            break;
-                        }
+                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTInterfaceCapabilityImp.RenameResource >> Found child association...");
+                        target.SetName(RESTUtil.GetAssignedRoleName(Conversions.ToCamelCase(newName)), MEAssociation.AssociationEnd.Destination);
                     }
 
                     if (cap.Name == oldName)    // Perform operation rename only if there is something to rename...

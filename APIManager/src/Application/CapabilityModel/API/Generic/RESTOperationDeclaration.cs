@@ -15,24 +15,10 @@ namespace Plugin.Application.CapabilityModel.API
     internal sealed class RESTOperationDeclaration: IEquatable<RESTOperationDeclaration>, IDisposable
     {
         // Configuration properties used by this module:
-        private const string _ArchetypeTag                  = "ArchetypeTag";
-        private const string _APISupportModelPathName       = "APISupportModelPathName";
-        private const string _OperationResultClassName      = "OperationResultClassName";
         private const string _RESTParameterStereotype       = "RESTParameterStereotype";
-        private const string _ResourceClassStereotype       = "ResourceClassStereotype";
-        private const string _RequestPaginationClassName    = "RequestPaginationClassName";
-        private const string _ConsumesMIMEListTag           = "ConsumesMIMEListTag";
-        private const string _ProducesMIMEListTag           = "ProducesMIMEListTag";
-        private const string _RESTUseLinkHeaderTag          = "RESTUseLinkHeaderTag";
-        private const string _ServiceContainerPkgStereotype = "ServiceContainerPkgStereotype";
-        private const string _RootPkgName                   = "RootPkgName";
-        private const string _RESTOperationResultStereotype = "RESTOperationResultStereotype";
 
         private const string _Summary                       = "summary: ";      // Separator between summary text and description text.
         private const string _RspCollectionPostfix          = "Responses";      // Added to operation name to create the response collection name.
-
-        // Request Header collections all have the same name. This is no issue since request headers all live in a separate (operation) package...
-        private const string _HdrCollectionName             = "RequestHeaders";
 
         // The status is used to track operations on the declaration.
         internal enum DeclarationStatus { Invalid, Created, Stable, Edited, Deleted }
@@ -49,7 +35,7 @@ namespace Plugin.Application.CapabilityModel.API
         private bool _publicAccess;                                 // Security must be overruled for this operation.
         private bool _useLinkHeaders;                               // Operations uses response Link Headers.
         private RESTResponseCodeCollection _responseCollection;     // Contains the set of response codes for this operation.
-        private RESTHeaderParameterCollection _requestHeaderCollection; // Contains the set of request header parameters.
+        private List<RESTHeaderParameterDescriptor> _requestHeaderCollection;   // Contains the set of request header parameters.
         private List<string> _producedMIMEList;                     // Non-standard MIME types produced by the operation.
         private List<string> _consumedMIMEList;                     // Non-standard MIME types consumed by the operation.
         private string _summaryText;                                // Short description of operation.
@@ -120,20 +106,14 @@ namespace Plugin.Application.CapabilityModel.API
         internal MEClass OperationClass { get { return this._existingOperation; } }
 
         /// <summary>
-        /// Returns the set of request header parameters.
+        /// Returns the list of request header parameters for the operation (if any)...
         /// </summary>
-        internal RESTHeaderParameterCollection RequestHeaders
-        {
-            get { return this._requestHeaderCollection; }
-        }
+        internal List<RESTHeaderParameterDescriptor> RequestHeaderParameters { get { return this._requestHeaderCollection; } }
 
         /// <summary>
         /// Returns the list of operation response codes with their metadata.
         /// </summary>
-        internal RESTResponseCodeCollection ResponseCollection
-        {
-            get { return this._responseCollection; }
-        }
+        internal RESTResponseCodeCollection ResponseCollection { get { return this._responseCollection; } }
 
         /// <summary>
         /// Returns the resource capability that 'owns' this operation.
@@ -159,7 +139,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Returns the list of all query parameters defined for this operation.
         /// </summary>
-        internal List<RESTParameterDeclaration> Parameters { get { return new List<RESTParameterDeclaration>(this._queryParams.Values); } }
+        internal List<RESTParameterDeclaration> QueryParameters { get { return new List<RESTParameterDeclaration>(this._queryParams.Values); } }
 
         /// <summary>
         /// Returns the list of MIME types produced by the operation. Empty if only default MIME types are produced.
@@ -329,7 +309,7 @@ namespace Plugin.Application.CapabilityModel.API
             this._requestDocument = null;
             this._requestCardinality = new Cardinality(Cardinality._Mandatory);
             this._responseCollection = new RESTResponseCodeCollection(parent, RESTCollection.CollectionScope.Operation);
-            this._requestHeaderCollection = new RESTHeaderParameterCollection(parent, RESTCollection.CollectionScope.Operation);
+            this._requestHeaderCollection = new List<RESTHeaderParameterDescriptor>();
             this._hasPagination = false;
             this._publicAccess = false;
             this._producedMIMEList = new List<string>();
@@ -360,12 +340,12 @@ namespace Plugin.Application.CapabilityModel.API
             this._consumedMIMEList = operation.ConsumedMIMEList;
             this._useLinkHeaders = operation.UseLinkHeaders;
             this._queryParams = new SortedList<string, RESTParameterDeclaration>();
+            this._requestHeaderCollection = operation.RequestHeaders;
 
             // We create the collections in this manner (by instantiating from the model) to assure we get a separate copy from our Operation capability
             // that we can edit and otherwise modify without affecting the current operation settings. Please note that, in case the collection has been serialized,
             // We will STILL SHARE the UML class (when present) and thus updates WILL affect this class (but not the in-memory copy)!
             this._responseCollection = new RESTResponseCodeCollection(this._parent, this._name + _RspCollectionPostfix, operation.CapabilityClass.OwningPackage);
-            this._requestHeaderCollection = new RESTHeaderParameterCollection(this._parent, _HdrCollectionName, operation.CapabilityClass.OwningPackage);
 
             this._summaryText = string.Empty;
             this._description = string.Empty;
@@ -411,9 +391,6 @@ namespace Plugin.Application.CapabilityModel.API
             // Load information regarding the request payload (response payload is part of the response collection).
             this._requestDocument = operation.RequestBodyDocument;
             this._requestCardinality = operation.RequestCardinality;
-            ContextSlt context = ContextSlt.GetContextSlt();
-            string resourceStereotype = context.GetConfigProperty(_ResourceClassStereotype);
-            string paginationClassName = context.GetConfigProperty(_RequestPaginationClassName);
         }
 
         /// <summary>
@@ -460,28 +437,16 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// This function is invoked to add a new request header parameter to the operation. The actual dialog with the
-        /// user is delegated to the collection.
+        /// This function is invoked to add one or more request header parameters to the operation. The actual dialog with the
+        /// user is delegated to the header parameter manager at service level.
         /// </summary>
-        /// <returns>Newly created header parameter descriptor or NULL in case of errors or duplicates or user cancel.</returns>
-        internal RESTHeaderParameterDescriptor AddHeaderParameter()
+        /// <returns>Updated set of header parameters.</returns>
+        internal List<RESTHeaderParameterDescriptor> AddHeaderParameters()
         {
-            RESTHeaderParameterDescriptor newDesc = this._requestHeaderCollection.AddHeaderParameter();
-            if (newDesc != null && this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-            return newDesc;
-        }
-
-        /// <summary>
-        /// This function receives a predefined RequestHeaderDescriptor and inserts the object in my header parameter list (if 
-        /// no such parameter yet exists).
-        /// </summary>
-        /// <param name="parameter">The header parameter to insert.</param>
-        /// <returns>True if successfully inserted, false on duplicate code.</returns>
-        internal bool AddHeaderParameter(RESTHeaderParameterDescriptor parameter)
-        {
-            RESTHeaderParameterDescriptor newDesc = this._requestHeaderCollection.AddHeaderParameter(parameter);
-            if (newDesc != null && this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-            return newDesc != null;
+            this._requestHeaderCollection = ((RESTService)this._parent.RootService).HeaderManager.ManageParameters(RESTServiceHeaderParameterMgr.Scope.Request, 
+                                                                                                                   this._requestHeaderCollection);
+            if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+            return this._requestHeaderCollection;
         }
 
         /// <summary>
@@ -635,20 +600,40 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="paramName">Header parameter to be deleted.</param>
         internal void DeleteHeaderParameter(string paramName)
         {
-            if (this._requestHeaderCollection.DeleteHeaderParameter(paramName) && this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+            foreach (RESTHeaderParameterDescriptor param in this._requestHeaderCollection)
+            {
+                if (param.Name == paramName)
+                {
+                    this._requestHeaderCollection.Remove(param);
+                    if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+                    break;
+                }
+            }
         }
 
         /// <summary>
         /// This function is invoked to edit an existing request header parameter for this operation. It displays the Header Parameter Dialog, which
         /// facilitates the user in changing the parameter. The updated object is added to the request parameter list for this operation as long as
-        /// it has a unique name. The actual edit processing is 'delegated' to our header parameter collection.
+        /// it has a unique name. The actual edit processing is 'delegated' to the header parameter manager at service level.
         /// </summary>
         /// <returns>Updated result record or NULL in case of errors or duplicates or user cancel.</returns>
         internal RESTHeaderParameterDescriptor EditHeaderParameter(string paramName)
         {
-            RESTHeaderParameterDescriptor result = this._requestHeaderCollection.EditHeaderParameter(paramName);
-            if (result != null && this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
-            return result;
+            RESTHeaderParameterDescriptor parameter = ((RESTService)this._parent.RootService).HeaderManager.EditParameter(RESTServiceHeaderParameterMgr.Scope.Request, paramName);
+            if (parameter != null)
+            {
+                // Successfull edit, update our entry...
+                for (int i = 0; i < this._requestHeaderCollection.Count; i++)
+                {
+                    if (this._requestHeaderCollection[i].Name == paramName)
+                    {
+                        this._requestHeaderCollection[i] = parameter;
+                        break;
+                    }
+                }
+                if (this._status != DeclarationStatus.Invalid) this._status = DeclarationStatus.Edited;
+            }
+            return parameter;
         }
 
         /// <summary>

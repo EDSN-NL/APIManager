@@ -28,126 +28,254 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RESTHeaderParameterDialog));
             this.Ok = new System.Windows.Forms.Button();
-            this.Cancel = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.ParameterName = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.ParameterClassifier = new System.Windows.Forms.TextBox();
-            this.SelectClassifier = new System.Windows.Forms.Button();
-            this.ClassifierBox = new System.Windows.Forms.GroupBox();
-            this.ParamDescription = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.ClassifierBox.SuspendLayout();
+            this.APIHeaderGroup = new System.Windows.Forms.GroupBox();
+            this.UseHeaderCollection = new System.Windows.Forms.Button();
+            this.EditHeaderCollections = new System.Windows.Forms.Button();
+            this.EditAPIHeaderParm = new System.Windows.Forms.Button();
+            this.DeleteAPIHeaderParm = new System.Windows.Forms.Button();
+            this.AddAPIHeaderParm = new System.Windows.Forms.Button();
+            this.APIHeaderList = new System.Windows.Forms.ListView();
+            this.APIHdrName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.APIHdrDescription = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.APIParametersMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.addToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.useCollectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.manageCollectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.SelectedHeaderGroup = new System.Windows.Forms.GroupBox();
+            this.SelectedHeaderList = new System.Windows.Forms.ListView();
+            this.SelectedHdrName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.SelectedHdrDescription = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.UnselectParameters = new System.Windows.Forms.Button();
+            this.SelectParameters = new System.Windows.Forms.Button();
+            this.APIHeaderGroup.SuspendLayout();
+            this.APIParametersMenuStrip.SuspendLayout();
+            this.SelectedHeaderGroup.SuspendLayout();
             this.SuspendLayout();
             // 
             // Ok
             // 
             this.Ok.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.Ok.Location = new System.Drawing.Point(333, 150);
+            this.Ok.Location = new System.Drawing.Point(578, 315);
             this.Ok.Name = "Ok";
             this.Ok.Size = new System.Drawing.Size(75, 31);
-            this.Ok.TabIndex = 5;
+            this.Ok.TabIndex = 4;
             this.Ok.Text = "Ok";
             this.Ok.UseVisualStyleBackColor = true;
             // 
-            // Cancel
+            // APIHeaderGroup
             // 
-            this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(414, 150);
-            this.Cancel.Name = "Cancel";
-            this.Cancel.Size = new System.Drawing.Size(75, 31);
-            this.Cancel.TabIndex = 4;
-            this.Cancel.Text = "Cancel";
-            this.Cancel.UseVisualStyleBackColor = true;
+            this.APIHeaderGroup.Controls.Add(this.UseHeaderCollection);
+            this.APIHeaderGroup.Controls.Add(this.EditHeaderCollections);
+            this.APIHeaderGroup.Controls.Add(this.EditAPIHeaderParm);
+            this.APIHeaderGroup.Controls.Add(this.DeleteAPIHeaderParm);
+            this.APIHeaderGroup.Controls.Add(this.AddAPIHeaderParm);
+            this.APIHeaderGroup.Controls.Add(this.APIHeaderList);
+            this.APIHeaderGroup.Location = new System.Drawing.Point(12, 12);
+            this.APIHeaderGroup.Name = "APIHeaderGroup";
+            this.APIHeaderGroup.Size = new System.Drawing.Size(284, 297);
+            this.APIHeaderGroup.TabIndex = 1;
+            this.APIHeaderGroup.TabStop = false;
+            this.APIHeaderGroup.Text = "Available header Parameters";
             // 
-            // label1
+            // UseHeaderCollection
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(37, 31);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(38, 13);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Name:";
+            this.UseHeaderCollection.Image = ((System.Drawing.Image)(resources.GetObject("UseHeaderCollection.Image")));
+            this.UseHeaderCollection.Location = new System.Drawing.Point(105, 266);
+            this.UseHeaderCollection.Name = "UseHeaderCollection";
+            this.UseHeaderCollection.Size = new System.Drawing.Size(25, 25);
+            this.UseHeaderCollection.TabIndex = 4;
+            this.UseHeaderCollection.UseVisualStyleBackColor = true;
+            this.UseHeaderCollection.Click += new System.EventHandler(this.UseHeaderCollection_Click);
             // 
-            // ParameterName
+            // EditHeaderCollections
             // 
-            this.ParameterName.Location = new System.Drawing.Point(81, 27);
-            this.ParameterName.Name = "ParameterName";
-            this.ParameterName.Size = new System.Drawing.Size(166, 20);
-            this.ParameterName.TabIndex = 1;
-            this.ParameterName.Leave += new System.EventHandler(this.ParameterName_TextChanged);
+            this.EditHeaderCollections.Image = ((System.Drawing.Image)(resources.GetObject("EditHeaderCollections.Image")));
+            this.EditHeaderCollections.Location = new System.Drawing.Point(136, 266);
+            this.EditHeaderCollections.Name = "EditHeaderCollections";
+            this.EditHeaderCollections.Size = new System.Drawing.Size(25, 25);
+            this.EditHeaderCollections.TabIndex = 5;
+            this.EditHeaderCollections.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.EditHeaderCollections.UseVisualStyleBackColor = true;
+            this.EditHeaderCollections.Click += new System.EventHandler(this.EditHeaderCollections_Click);
             // 
-            // label2
+            // EditAPIHeaderParm
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(8, 22);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(40, 13);
-            this.label2.TabIndex = 0;
-            this.label2.Text = "Select:";
+            this.EditAPIHeaderParm.Image = ((System.Drawing.Image)(resources.GetObject("EditAPIHeaderParm.Image")));
+            this.EditAPIHeaderParm.Location = new System.Drawing.Point(74, 266);
+            this.EditAPIHeaderParm.Name = "EditAPIHeaderParm";
+            this.EditAPIHeaderParm.Size = new System.Drawing.Size(25, 25);
+            this.EditAPIHeaderParm.TabIndex = 3;
+            this.EditAPIHeaderParm.UseVisualStyleBackColor = true;
+            this.EditAPIHeaderParm.Click += new System.EventHandler(this.EditAPIHeaderParm_Click);
             // 
-            // ParameterClassifier
+            // DeleteAPIHeaderParm
             // 
-            this.ParameterClassifier.Location = new System.Drawing.Point(52, 19);
-            this.ParameterClassifier.Name = "ParameterClassifier";
-            this.ParameterClassifier.ReadOnly = true;
-            this.ParameterClassifier.Size = new System.Drawing.Size(146, 20);
-            this.ParameterClassifier.TabIndex = 0;
+            this.DeleteAPIHeaderParm.Image = ((System.Drawing.Image)(resources.GetObject("DeleteAPIHeaderParm.Image")));
+            this.DeleteAPIHeaderParm.Location = new System.Drawing.Point(43, 266);
+            this.DeleteAPIHeaderParm.Name = "DeleteAPIHeaderParm";
+            this.DeleteAPIHeaderParm.Size = new System.Drawing.Size(25, 25);
+            this.DeleteAPIHeaderParm.TabIndex = 2;
+            this.DeleteAPIHeaderParm.UseVisualStyleBackColor = true;
+            this.DeleteAPIHeaderParm.Click += new System.EventHandler(this.DeleteAPIHeaderParm_Click);
             // 
-            // SelectClassifier
+            // AddAPIHeaderParm
             // 
-            this.SelectClassifier.Location = new System.Drawing.Point(204, 19);
-            this.SelectClassifier.Name = "SelectClassifier";
-            this.SelectClassifier.Size = new System.Drawing.Size(25, 21);
-            this.SelectClassifier.TabIndex = 1;
-            this.SelectClassifier.Text = "...";
-            this.SelectClassifier.UseVisualStyleBackColor = true;
-            this.SelectClassifier.Click += new System.EventHandler(this.SelectClassifier_Click);
+            this.AddAPIHeaderParm.Image = ((System.Drawing.Image)(resources.GetObject("AddAPIHeaderParm.Image")));
+            this.AddAPIHeaderParm.Location = new System.Drawing.Point(12, 266);
+            this.AddAPIHeaderParm.Name = "AddAPIHeaderParm";
+            this.AddAPIHeaderParm.Size = new System.Drawing.Size(25, 25);
+            this.AddAPIHeaderParm.TabIndex = 1;
+            this.AddAPIHeaderParm.UseVisualStyleBackColor = true;
+            this.AddAPIHeaderParm.Click += new System.EventHandler(this.AddAPIHeaderParm_Click);
             // 
-            // ClassifierBox
+            // APIHeaderList
             // 
-            this.ClassifierBox.Controls.Add(this.ParameterClassifier);
-            this.ClassifierBox.Controls.Add(this.label2);
-            this.ClassifierBox.Controls.Add(this.SelectClassifier);
-            this.ClassifierBox.Location = new System.Drawing.Point(253, 9);
-            this.ClassifierBox.Name = "ClassifierBox";
-            this.ClassifierBox.Size = new System.Drawing.Size(235, 53);
-            this.ClassifierBox.TabIndex = 2;
-            this.ClassifierBox.TabStop = false;
-            this.ClassifierBox.Text = "Classifier (CDT or BDT)";
+            this.APIHeaderList.BackColor = System.Drawing.Color.GhostWhite;
+            this.APIHeaderList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.APIHdrName,
+            this.APIHdrDescription});
+            this.APIHeaderList.ContextMenuStrip = this.APIParametersMenuStrip;
+            this.APIHeaderList.FullRowSelect = true;
+            this.APIHeaderList.GridLines = true;
+            this.APIHeaderList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.APIHeaderList.HideSelection = false;
+            this.APIHeaderList.Location = new System.Drawing.Point(12, 19);
+            this.APIHeaderList.Name = "APIHeaderList";
+            this.APIHeaderList.Size = new System.Drawing.Size(261, 241);
+            this.APIHeaderList.Sorting = System.Windows.Forms.SortOrder.Ascending;
+            this.APIHeaderList.TabIndex = 0;
+            this.APIHeaderList.UseCompatibleStateImageBehavior = false;
+            this.APIHeaderList.View = System.Windows.Forms.View.Details;
             // 
-            // ParamDescription
+            // APIHdrName
             // 
-            this.ParamDescription.Location = new System.Drawing.Point(81, 68);
-            this.ParamDescription.Multiline = true;
-            this.ParamDescription.Name = "ParamDescription";
-            this.ParamDescription.Size = new System.Drawing.Size(408, 76);
-            this.ParamDescription.TabIndex = 3;
-            this.ParamDescription.Leave += new System.EventHandler(this.ParamDescription_Leave);
+            this.APIHdrName.Text = "Name";
+            this.APIHdrName.Width = 128;
             // 
-            // label3
+            // APIHdrDescription
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 68);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(63, 13);
-            this.label3.TabIndex = 0;
-            this.label3.Text = "Description:";
+            this.APIHdrDescription.Text = "Description";
+            this.APIHdrDescription.Width = 197;
+            // 
+            // APIParametersMenuStrip
+            // 
+            this.APIParametersMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.addToolStripMenuItem,
+            this.deleteToolStripMenuItem,
+            this.editToolStripMenuItem,
+            this.useCollectionToolStripMenuItem,
+            this.manageCollectionToolStripMenuItem});
+            this.APIParametersMenuStrip.Name = "APIParametersMenuStrip";
+            this.APIParametersMenuStrip.Size = new System.Drawing.Size(180, 114);
+            // 
+            // addToolStripMenuItem
+            // 
+            this.addToolStripMenuItem.Name = "addToolStripMenuItem";
+            this.addToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.addToolStripMenuItem.Text = "Add";
+            this.addToolStripMenuItem.Click += new System.EventHandler(this.AddAPIHeaderParm_Click);
+            // 
+            // deleteToolStripMenuItem
+            // 
+            this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.deleteToolStripMenuItem.Text = "Delete";
+            this.deleteToolStripMenuItem.Click += new System.EventHandler(this.DeleteAPIHeaderParm_Click);
+            // 
+            // editToolStripMenuItem
+            // 
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.editToolStripMenuItem.Text = "Edit";
+            this.editToolStripMenuItem.Click += new System.EventHandler(this.EditAPIHeaderParm_Click);
+            // 
+            // useCollectionToolStripMenuItem
+            // 
+            this.useCollectionToolStripMenuItem.Name = "useCollectionToolStripMenuItem";
+            this.useCollectionToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.useCollectionToolStripMenuItem.Text = "Use Collection";
+            this.useCollectionToolStripMenuItem.Click += new System.EventHandler(this.UseHeaderCollection_Click);
+            // 
+            // manageCollectionToolStripMenuItem
+            // 
+            this.manageCollectionToolStripMenuItem.Name = "manageCollectionToolStripMenuItem";
+            this.manageCollectionToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.manageCollectionToolStripMenuItem.Text = "Manage Collections";
+            this.manageCollectionToolStripMenuItem.Click += new System.EventHandler(this.EditHeaderCollections_Click);
+            // 
+            // SelectedHeaderGroup
+            // 
+            this.SelectedHeaderGroup.Controls.Add(this.SelectedHeaderList);
+            this.SelectedHeaderGroup.Location = new System.Drawing.Point(369, 12);
+            this.SelectedHeaderGroup.Name = "SelectedHeaderGroup";
+            this.SelectedHeaderGroup.Size = new System.Drawing.Size(284, 297);
+            this.SelectedHeaderGroup.TabIndex = 0;
+            this.SelectedHeaderGroup.TabStop = false;
+            this.SelectedHeaderGroup.Text = "Selected header parameters";
+            // 
+            // SelectedHeaderList
+            // 
+            this.SelectedHeaderList.BackColor = System.Drawing.Color.GhostWhite;
+            this.SelectedHeaderList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.SelectedHdrName,
+            this.SelectedHdrDescription});
+            this.SelectedHeaderList.FullRowSelect = true;
+            this.SelectedHeaderList.GridLines = true;
+            this.SelectedHeaderList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.SelectedHeaderList.HideSelection = false;
+            this.SelectedHeaderList.Location = new System.Drawing.Point(12, 19);
+            this.SelectedHeaderList.Name = "SelectedHeaderList";
+            this.SelectedHeaderList.Size = new System.Drawing.Size(261, 241);
+            this.SelectedHeaderList.Sorting = System.Windows.Forms.SortOrder.Ascending;
+            this.SelectedHeaderList.TabIndex = 0;
+            this.SelectedHeaderList.UseCompatibleStateImageBehavior = false;
+            this.SelectedHeaderList.View = System.Windows.Forms.View.Details;
+            // 
+            // SelectedHdrName
+            // 
+            this.SelectedHdrName.Text = "Name";
+            this.SelectedHdrName.Width = 128;
+            // 
+            // SelectedHdrDescription
+            // 
+            this.SelectedHdrDescription.Text = "Description";
+            this.SelectedHdrDescription.Width = 197;
+            // 
+            // UnselectParameters
+            // 
+            this.UnselectParameters.Image = ((System.Drawing.Image)(resources.GetObject("UnselectParameters.Image")));
+            this.UnselectParameters.Location = new System.Drawing.Point(319, 168);
+            this.UnselectParameters.Name = "UnselectParameters";
+            this.UnselectParameters.Size = new System.Drawing.Size(25, 65);
+            this.UnselectParameters.TabIndex = 3;
+            this.UnselectParameters.UseVisualStyleBackColor = true;
+            this.UnselectParameters.Click += new System.EventHandler(this.UnselectParameters_Click);
+            // 
+            // SelectParameters
+            // 
+            this.SelectParameters.Image = ((System.Drawing.Image)(resources.GetObject("SelectParameters.Image")));
+            this.SelectParameters.Location = new System.Drawing.Point(319, 87);
+            this.SelectParameters.Name = "SelectParameters";
+            this.SelectParameters.Size = new System.Drawing.Size(25, 65);
+            this.SelectParameters.TabIndex = 2;
+            this.SelectParameters.UseVisualStyleBackColor = true;
+            this.SelectParameters.Click += new System.EventHandler(this.SelectParameters_Click);
             // 
             // RESTHeaderParameterDialog
             // 
             this.AcceptButton = this.Ok;
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(501, 193);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.ParamDescription);
-            this.Controls.Add(this.ClassifierBox);
-            this.Controls.Add(this.ParameterName);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.Cancel);
+            this.ClientSize = new System.Drawing.Size(666, 358);
+            this.Controls.Add(this.SelectedHeaderGroup);
+            this.Controls.Add(this.UnselectParameters);
+            this.Controls.Add(this.APIHeaderGroup);
+            this.Controls.Add(this.SelectParameters);
             this.Controls.Add(this.Ok);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -155,24 +283,36 @@
             this.Name = "RESTHeaderParameterDialog";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Add/Edit Header Parameter";
-            this.ClassifierBox.ResumeLayout(false);
-            this.ClassifierBox.PerformLayout();
+            this.APIHeaderGroup.ResumeLayout(false);
+            this.APIParametersMenuStrip.ResumeLayout(false);
+            this.SelectedHeaderGroup.ResumeLayout(false);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
 
         private System.Windows.Forms.Button Ok;
-        private System.Windows.Forms.Button Cancel;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox ParameterName;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox ParameterClassifier;
-        private System.Windows.Forms.Button SelectClassifier;
-        private System.Windows.Forms.GroupBox ClassifierBox;
-        private System.Windows.Forms.TextBox ParamDescription;
-        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.GroupBox APIHeaderGroup;
+        private System.Windows.Forms.Button UseHeaderCollection;
+        private System.Windows.Forms.Button EditHeaderCollections;
+        private System.Windows.Forms.Button EditAPIHeaderParm;
+        private System.Windows.Forms.Button DeleteAPIHeaderParm;
+        private System.Windows.Forms.Button AddAPIHeaderParm;
+        private System.Windows.Forms.ListView APIHeaderList;
+        private System.Windows.Forms.ColumnHeader APIHdrName;
+        private System.Windows.Forms.ColumnHeader APIHdrDescription;
+        private System.Windows.Forms.GroupBox SelectedHeaderGroup;
+        private System.Windows.Forms.ListView SelectedHeaderList;
+        private System.Windows.Forms.ColumnHeader SelectedHdrName;
+        private System.Windows.Forms.ColumnHeader SelectedHdrDescription;
+        private System.Windows.Forms.Button UnselectParameters;
+        private System.Windows.Forms.Button SelectParameters;
+        private System.Windows.Forms.ContextMenuStrip APIParametersMenuStrip;
+        private System.Windows.Forms.ToolStripMenuItem addToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem useCollectionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem manageCollectionToolStripMenuItem;
     }
 }

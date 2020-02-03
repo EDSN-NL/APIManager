@@ -26,15 +26,11 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _RESTCollectionScopeTag                = "RESTCollectionScopeTag";
 
         private MEPackage _owningPackage;                           // The package in which the collection lives.
-        private RESTResourceCapability _parentResource;             // For operation-scoped collections, this is the declaration of the parent resource that contains the operation.
+        private MEClass _collectionClass;                           // UML representation of the collection.
+        protected string _name;                                     // Collection name, identical to collectionClass name (when one is present).
         private CollectionScope _scope;                             // Scope of this collection.
         private string _collectionID;                               // Collection identifier.
         private bool _isLocked;                                     // Set to 'true' when global scope and locked.
-
-        // Since context management of the collection is implementation dependent, we assign a number of properties as protected properties so
-        // we can read/write these at parent level, yet manage them by specialized classes...
-        protected string _name;                                     // Collection name, identical to collectionClass name (when one is present).
-        protected MEClass _collectionClass;                         // UML representation of the collection.
 
         abstract protected void SetName(string name);               // Must be implemented by specialized classes to assign a (new) name to the collection and, when appropriate, create the class.
 
@@ -62,12 +58,6 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Returns the resource that 'owns' the operation that in turn owns the collection. Valid ONLY for 'Operation' scoped collections.
-        /// Returns NULL if no operation is (yet) defined.
-        /// </summary>
-        internal RESTResourceCapability ParentResource { get { return this._parentResource; } }
-
-        /// <summary>
         /// Returns the package in which the collection lives.
         /// </summary>
         internal MEPackage OwningPackage { get { return this._owningPackage; } }
@@ -80,32 +70,30 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Basic constructor, which assigns a number of generic properties and leaves the remainder of the construction to the specialized class.
         /// </summary>
-        /// <param name="parent">For operation-scoped collections, this is the resource owning the operation. Must be NULL for template collections.</param>
         /// <param name="collectionName">Name to be assigned to the collection.</param>
         /// <param name="package">Package that must contain the collection. The location of the package determines the scope of the
         /// collection: if this is a ServiceModel package, the scope is 'API'. If the package is an Operation-type, the scope is 'Operation'
         /// and all others are considered 'Global'.</param>
         /// <exception cref="InvalidOperationException">Is thrown when we can't find the attribute classifier.</exception>
-        internal RESTCollection(RESTResourceCapability parent, string collectionName, MEPackage package)
+        internal RESTCollection(string collectionName, MEPackage package)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTCollection >> Creating instance '" +
                              collectionName + "' in Package '" + package.Parent.Name + "/" + package.Name + "'...");
             this._owningPackage = package;
             this._name = collectionName;
             this._isLocked = false;
-            this._parentResource = parent;
             this._collectionID = string.Empty;
             this._scope = CollectionScope.Unknown;
+            this._collectionClass = null;
         }
 
         /// <summary>
         /// This constructor is called with an existing Collection class and initialises the collection from that class.
         /// </summary>
-        /// <param name="parent">For operation-scoped collections, this is the resource owning the operation. Must be NULL for template collections.</param>
         /// <param name="collectionClass">Collection class.</param>
         /// <exception cref="InvalidOperationException">Thrown when a collection class is passed that is not of the correct stereotype or 
         /// when we can't find the correct attribute classifier.</exception>
-        internal RESTCollection(RESTResourceCapability parent, MEClass collectionClass)
+        internal RESTCollection(MEClass collectionClass)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTCollection >> Creating instance from class '" +
                               collectionClass.Name + "'...");
@@ -114,23 +102,20 @@ namespace Plugin.Application.CapabilityModel.API
             this._collectionClass = collectionClass;
             this._owningPackage = collectionClass.OwningPackage;
             this._name = collectionClass.Name;
-            this._parentResource = parent;
         }
 
         /// <summary>
         /// The default constructor is used only when we want to create new (template) collections. In this case, we want to assign owning
         /// package, name and contents iteratively.
         /// </summary>
-        /// <param name="parent">For non-template collections, this is the parent resource owning the collection.</param>
         /// <param name="initialScope">Contains the initial scope for the collection.</param>
-        internal RESTCollection(RESTResourceCapability parent, CollectionScope initialScope = CollectionScope.Unknown)
+        internal RESTCollection(CollectionScope initialScope = CollectionScope.Unknown)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTCollection >> Default constructor.");
             this._isLocked = false;
             this._collectionClass = null;
             this._owningPackage = null;
             this._name = string.Empty;
-            this._parentResource = parent;
             this._collectionID = string.Empty;
             this._scope = initialScope;
         }
@@ -177,18 +162,30 @@ namespace Plugin.Application.CapabilityModel.API
 
         /// <summary>
         /// Helper function that creates a new collection class within the owning package and subsequently initializes the ID and scope.
-        /// Precondition is that the 'name' property has a valid value.
+        /// If we already have a collection class, the old class is deleted first!
         /// </summary>
+        ///<param name="name">Name to be assigned to the new class.</param>
         /// <param name="stereotype">Specialized-class dependent stereotype to be assigned to the new class.</param>
         /// <exception cref="InvalidOperationException">Thrown when an attempt is made to create a class without a valid name.</exception>
-        protected void CreateCollectionClass(string stereotype)
+        protected void CreateCollectionClass(string name, string stereotype)
         {
-            if (!string.IsNullOrEmpty(this._name))
+            if (!string.IsNullOrEmpty(name))
             {
-                this._collectionClass = this._owningPackage.CreateClass(this._name, stereotype);
-                this._collectionID = this._collectionClass.ElementID.ToString();
-                this._collectionClass.SetTag(ContextSlt.GetContextSlt().GetConfigProperty(_RESTCollectionIDTag), this._collectionID);
-                this._collectionClass.SetTag(ContextSlt.GetContextSlt().GetConfigProperty(_RESTCollectionScopeTag), EnumConversions<CollectionScope>.EnumToString(this._scope));
+                if (this._collectionClass != null) this._collectionClass.OwningPackage.DeleteClass(this._collectionClass);
+                this._name = name;
+                this._collectionClass = this._owningPackage.CreateClass(name, stereotype);
+                if (this._collectionClass != null)
+                {
+                    this._collectionID = this._collectionClass.ElementID.ToString();
+                    this._collectionClass.SetTag(ContextSlt.GetContextSlt().GetConfigProperty(_RESTCollectionIDTag), this._collectionID);
+                    this._collectionClass.SetTag(ContextSlt.GetContextSlt().GetConfigProperty(_RESTCollectionScopeTag), EnumConversions<CollectionScope>.EnumToString(this._scope));
+                }
+                else
+                {
+                    string message = "Unable to create collection class '" + this._owningPackage.Name + "." + this._name + "'!";
+                    Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTCollection.CreateCollectionClass >> " + message);
+                    throw new InvalidOperationException(message);
+                }
             }
             else
             {
@@ -200,16 +197,18 @@ namespace Plugin.Application.CapabilityModel.API
 
         /// <summary>
         /// Helper function that initializes collection scope- and ID from the collection class.
-        /// Precondition is that collectionClass is present!
         /// </summary>
+        /// <param name="collectionClass">Class to be used for initialization.</param>
         /// <exception cref="InvalidOperationException">Thrown when the collection class has not yet been loaded.</exception>
-        protected void InitCollectionClass()
+        protected void InitCollectionClass(MEClass collectionClass)
         {
-            if (this._collectionClass != null)
+            if (collectionClass != null)
             {
                 ContextSlt context = ContextSlt.GetContextSlt();
+                this._collectionClass = collectionClass;
                 this._collectionID = this._collectionClass.GetTag(context.GetConfigProperty(_RESTCollectionIDTag));
                 this._scope = EnumConversions<CollectionScope>.StringToEnum(this._collectionClass.GetTag(context.GetConfigProperty(_RESTCollectionScopeTag)));
+                this._owningPackage = collectionClass.OwningPackage;
             }
             else
             {

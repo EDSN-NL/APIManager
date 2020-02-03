@@ -28,7 +28,7 @@ namespace Plugin.Application.CapabilityModel.API
         // token. Key construction is 'token'-'name'.
         private SortedList<string, RESTCollection> _collectionListAPI = null;               // List of API-based collections.
         private static SortedList<string, RESTCollection> _collectionListGlobal = null;     // Static list of all 'global' collections.
-        private Service _myService = null;                                                  // Service for which we maintain the API-based list.
+        private RESTService _myService = null;                                              // Service for which we maintain the API-based list.
 
         /// <summary>
         /// Returns the combined list of all collection names (global- and API-scope) that are managed by this collection manager.
@@ -42,7 +42,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// Returns the service that 'owns' the collections managed by this Collection Manager.
         /// </summary>
-        internal Service OwningService { get { return _myService; } }
+        internal RESTService OwningService { get { return _myService; } }
 
         /// <summary>
         /// Facilitates creation of new collections and/or changing existing collections.
@@ -77,7 +77,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// global collection set only!
         /// </summary>
         /// <param name="thisService">Optional Service for which we have to maintain the collection.</param>
-        internal RESTCollectionMgr(Service thisService)
+        internal RESTCollectionMgr(RESTService thisService)
         {
             this._myService = thisService;
             this._collectionListAPI = new SortedList<string, RESTCollection>();

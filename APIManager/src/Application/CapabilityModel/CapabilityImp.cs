@@ -178,17 +178,7 @@ namespace Plugin.Application.CapabilityModel
             if (child.CapabilityClass.Valid)            // Invalid class indicates that is has been deleted already!
             {
                 // First of all, we attempt to locate the association between this capability and the child to be deleted...
-                MEAssociation childAssoc = null;
-                foreach (MEAssociation association in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
-                {
-                    if (association.Destination.EndPoint == child.CapabilityClass)
-                    {
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.CapabilityImp.deleteChild >> Found child association...");
-                        childAssoc = association;
-                        break;
-                    }
-                }
-
+                MEAssociation childAssoc = this._capabilityClass.FindAssociationByClassID(child.CapabilityClass.ElementID, null);
                 if (!deleteResources)
                 {
                     // Just unlink from capability tree and delete the association. Nothing else is touched!

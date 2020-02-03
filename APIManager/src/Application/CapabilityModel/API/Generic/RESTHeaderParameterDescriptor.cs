@@ -6,66 +6,49 @@ namespace Plugin.Application.CapabilityModel.API
     /// <summary>
     /// Defines the structure of a single header parameter.
     /// </summary>
-    internal sealed class RESTHeaderParameterDescriptor : IEquatable<RESTHeaderParameterDescriptor>, IDisposable
+    internal sealed class RESTHeaderParameterDescriptor : IEquatable<RESTHeaderParameterDescriptor>
     {
         // The status is used to track operational state of the descriptor. The descriptor has 'valid' state when all properties
         // are consistent in relationship with each other.
         internal enum DeclarationStatus { Invalid, Valid }
 
-        private MEDataType _classifier;             // [Primitive] data type of this header parameter.
-        private string _name;                       // Parameter name;
-        private string _description;                // Descriptive text to go with the parameter.
-        private DeclarationStatus _status;          // Descriptor status with regard to user editing.
-        private bool _disposed;                     // Mark myself as invalid after call to dispose!
+        private int _ID;                                // Unique parameter identifier (within collection).
+        private RESTParameterDeclaration _parameter;    // The actual parameter is represented by this parameter declaration object.
+        private DeclarationStatus _status;              // Descriptor status with regard to user editing.
 
         /// <summary>
-        /// Get or set the parameter classifier.
+        /// Returns the parameter description, taken directly from the parameter declaration object.
         /// </summary>
-        internal MEDataType Classifier
-        {
-            get { return this._classifier; }
-            set
-            {
-                if (this._classifier != value)
-                {
-                    this._classifier = value;
-                    DetermineStatus();
-                }
-            }
-        }
+        internal string Description { get { return this._parameter.Description; } }
 
         /// <summary>
-        /// This is the normal entry for all users of the object that want to indicate that the resource description is not required anymore.
+        /// Returns the unique identifier of this header parameter.
         /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+        internal int ID { get { return this._ID; } }
 
         /// <summary>
-        /// Returns or loads the associated description text.
-        /// </summary>
-        internal string Description
-        {
-            get { return this._description; }
-            set { this._description = value; }
-        }
-
-        /// <summary>
-        /// Get or set the name of the descriptor (identifies the header parameter).
+        /// Get or set the name of the descriptor (identifies the header parameter). The name is taken directly from the
+        /// parameter declaration object.
         /// </summary>
         internal string Name
         {
-            get { return this._name; }
+            get { return this._parameter.Name; }
             set
             {
-                if (this._name != value)
+                if (this._parameter.Name != value)
                 {
-                    this._name = value;
+                    this._parameter.Name = value;
                     DetermineStatus();
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns the actual parameter object.
+        /// </summary>
+        internal RESTParameterDeclaration Parameter
+        {
+            get { return this._parameter; }
         }
 
         /// <summary>
@@ -89,23 +72,23 @@ namespace Plugin.Application.CapabilityModel.API
 
         /// <summary>
         /// Compares the descriptor against another descriptor of same type. The function returns true 
-        /// if both descriptors have identical names. In all other cases, the function returns false.
+        /// if both descriptors have identical parameter declaration objects.
         /// </summary>
         /// <param name="other">The descriptor to compare against.</param>
         /// <returns>True if same object, false otherwise.</returns>
         public bool Equals(RESTHeaderParameterDescriptor other)
         {
-            return other != null && other._name == this._name;
+            return other != null && other._parameter == this._parameter;
         }
 
         /// <summary>
         /// Returns a hashcode that is associated with the descriptor. The hash code
-        /// is derived from the descriptor name.
+        /// is derived from the parameter declaration object.
         /// </summary>
         /// <returns>Hashcode for this descriptor.</returns>
         public override int GetHashCode()
         {
-            return this._name.GetHashCode();
+            return this._parameter.GetHashCode();
         }
 
         /// <summary>
@@ -142,27 +125,34 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="name">Parameter name.</param>
         /// <param name="classifier">Parameter classifier (must be a primitive data type).</param>
         /// <param name="description">Response descriptive text.</param>
-        internal RESTHeaderParameterDescriptor(string name,
-                                               MEDataType classifier,
-                                               string description)
+        internal RESTHeaderParameterDescriptor(int ID, RESTParameterDeclaration parameter)
         {
-            this._name = name;
-            this._classifier = classifier;
-            this._description = description;
-            this._disposed = false;
+            this._ID = ID;
+            this._parameter = parameter;
+            DetermineStatus();
+        }
+
+        /// <summary>
+        /// Create a new parameter descriptor from an UML attribute.
+        /// </summary>
+        /// <param name="ID">ID to be assigned to this parameter.</param>
+        /// <param name="attribute">The attribute to use as an initializer.</param>
+        internal RESTHeaderParameterDescriptor(int ID, MEAttribute attribute)
+        {
+            this._ID = ID;
+            this._parameter = new RESTParameterDeclaration(attribute);
             DetermineStatus();
         }
 
         /// <summary>
         /// This constructor creates a Header Parameter Descriptor as a copy of a provided (template) instance.
+        /// The new parameter receives the specified ID, the ID from the template is ignored.
         /// </summary>
         /// <param name="other">Instance to be used to copy from.</param>
-        internal RESTHeaderParameterDescriptor(RESTHeaderParameterDescriptor other)
+        internal RESTHeaderParameterDescriptor(int ID, RESTHeaderParameterDescriptor other)
         {
-            this._name = other._name;
-            this._classifier = new MEDataType(other._classifier);
-            this._description = other._description;
-            this._disposed = false;
+            this._ID = ID;
+            this._parameter = new RESTParameterDeclaration(other._parameter);
             DetermineStatus();
         }
 
@@ -171,25 +161,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         private void DetermineStatus()
         {
-            this._status = !string.IsNullOrEmpty(this._name) && this._classifier != null ? DeclarationStatus.Valid : DeclarationStatus.Invalid;
-        }
-
-        /// <summary>
-        /// This is the actual disposing interface, which takes case of structural removal of the object when no longer needed.
-        /// </summary>
-        /// <param name="disposing">Set to 'true' when called directly. Set to 'false' when called from the finalizer.</param>
-        private void Dispose(bool disposing)
-        {
-            if (!this._disposed)
-            {
-                try
-                {
-                    if (this._classifier != null) this._classifier.Dispose();
-                    this._classifier = null;
-                    this._disposed = true;
-                }
-                catch { };   // Ignore any exceptions, no use in processing them here.
-            }
+            this._status = this._parameter.Status != RESTParameterDeclaration.DeclarationStatus.Invalid ? DeclarationStatus.Valid : DeclarationStatus.Invalid;
         }
     }
 }

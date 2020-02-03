@@ -24,6 +24,8 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _HPCStereotype                         = "HPCStereotype";
         private const string _RESTHeaderParamCollectionsPathName    = "RESTHeaderParamCollectionsPathName";
         private const string _RESTHeaderParamCollectionsPkgName     = "RESTHeaderParamCollectionsPkgName";
+        private const string _RequestHeadersClassName               = "RequestHeadersClassName";
+        private const string _ResponseHeadersClassName              = "ResponseHeadersClassName";
 
         // Flag to force one-time load of global collections of this type...
         private static bool _mustInit                               = true;
@@ -33,15 +35,20 @@ namespace Plugin.Application.CapabilityModel.API
         /// global collection and we thus collect header parameters from our global packages only.
         /// </summary>
         /// <param name="thisService">Optional Service for which we have to maintain the collection.</param>
-        internal RESTHeaderParameterCollectionMgr(Service thisService) : base(thisService)
+        internal RESTHeaderParameterCollectionMgr(RESTService thisService) : base(thisService)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             string collectionStereotype = context.GetConfigProperty(_HPCStereotype);
+            string requestCollectionName = context.GetConfigProperty(_RequestHeadersClassName);
+            string responseCollectionName = context.GetConfigProperty(_ResponseHeadersClassName);
+
             if (thisService != null)
             {
                 foreach (MEClass collection in thisService.ModelPkg.FindClasses(null, collectionStereotype))
                 {
-                    InsertCollection(_Token, RESTCollection.CollectionScope.API, new RESTHeaderParameterCollection(null, collection));
+                    // Make sure to skip the service-wide collections being managed by the Service Header Parameter Manager...
+                    if (collection.Name != requestCollectionName && collection.Name != responseCollectionName)
+                        InsertCollection(_Token, RESTCollection.CollectionScope.API, new RESTHeaderParameterCollection(collection));
                 }
             }
 
@@ -56,7 +63,7 @@ namespace Plugin.Application.CapabilityModel.API
                 {
                     foreach (MEClass collection in globalCollections.FindClasses(null, collectionStereotype))
                     {
-                        InsertCollection(_Token, RESTCollection.CollectionScope.Global, new RESTHeaderParameterCollection(null, collection));
+                        InsertCollection(_Token, RESTCollection.CollectionScope.Global, new RESTHeaderParameterCollection(collection));
                     }
                     _mustInit = false;
                 }

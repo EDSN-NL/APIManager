@@ -66,8 +66,6 @@ namespace Plugin.Application.Forms
             this.label2 = new System.Windows.Forms.Label();
             this.IsRange = new System.Windows.Forms.CheckBox();
             this.ResponseHeaderGroup = new System.Windows.Forms.GroupBox();
-            this.UseReqHeaderCollection = new System.Windows.Forms.Button();
-            this.EditReqHeaderCollections = new System.Windows.Forms.Button();
             this.EditReqHeader = new System.Windows.Forms.Button();
             this.DeleteReqHeader = new System.Windows.Forms.Button();
             this.AddReqHeader = new System.Windows.Forms.Button();
@@ -80,8 +78,6 @@ namespace Plugin.Application.Forms
             this.addToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.useHeaderCollectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.editHeaderCollectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CategoryBox.SuspendLayout();
             this.PayloadTypeBox.SuspendLayout();
             this.ResponsePayloadBox.SuspendLayout();
@@ -359,10 +355,10 @@ namespace Plugin.Application.Forms
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.Location = new System.Drawing.Point(25, 13);
+            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.Location = new System.Drawing.Point(26, 18);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(21, 20);
+            this.label7.Size = new System.Drawing.Size(19, 13);
             this.label7.TabIndex = 0;
             this.label7.Text = "...";
             // 
@@ -451,8 +447,6 @@ namespace Plugin.Application.Forms
             // 
             // ResponseHeaderGroup
             // 
-            this.ResponseHeaderGroup.Controls.Add(this.UseReqHeaderCollection);
-            this.ResponseHeaderGroup.Controls.Add(this.EditReqHeaderCollections);
             this.ResponseHeaderGroup.Controls.Add(this.EditReqHeader);
             this.ResponseHeaderGroup.Controls.Add(this.DeleteReqHeader);
             this.ResponseHeaderGroup.Controls.Add(this.AddReqHeader);
@@ -463,27 +457,6 @@ namespace Plugin.Application.Forms
             this.ResponseHeaderGroup.TabIndex = 3;
             this.ResponseHeaderGroup.TabStop = false;
             this.ResponseHeaderGroup.Text = "Response headers";
-            // 
-            // UseReqHeaderCollection
-            // 
-            this.UseReqHeaderCollection.Image = ((System.Drawing.Image)(resources.GetObject("UseReqHeaderCollection.Image")));
-            this.UseReqHeaderCollection.Location = new System.Drawing.Point(105, 155);
-            this.UseReqHeaderCollection.Name = "UseReqHeaderCollection";
-            this.UseReqHeaderCollection.Size = new System.Drawing.Size(25, 25);
-            this.UseReqHeaderCollection.TabIndex = 4;
-            this.UseReqHeaderCollection.UseVisualStyleBackColor = true;
-            this.UseReqHeaderCollection.Click += new System.EventHandler(this.UseRspHeaderCollection_Click);
-            // 
-            // EditReqHeaderCollections
-            // 
-            this.EditReqHeaderCollections.Image = ((System.Drawing.Image)(resources.GetObject("EditReqHeaderCollections.Image")));
-            this.EditReqHeaderCollections.Location = new System.Drawing.Point(134, 155);
-            this.EditReqHeaderCollections.Name = "EditReqHeaderCollections";
-            this.EditReqHeaderCollections.Size = new System.Drawing.Size(25, 25);
-            this.EditReqHeaderCollections.TabIndex = 5;
-            this.EditReqHeaderCollections.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.EditReqHeaderCollections.UseVisualStyleBackColor = true;
-            this.EditReqHeaderCollections.Click += new System.EventHandler(this.EditRspHeaderCollections_Click);
             // 
             // EditReqHeader
             // 
@@ -575,46 +548,30 @@ namespace Plugin.Application.Forms
             this.ResponseHeaderMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addToolStripMenuItem,
             this.deleteToolStripMenuItem,
-            this.editToolStripMenuItem,
-            this.useHeaderCollectionToolStripMenuItem,
-            this.editHeaderCollectionToolStripMenuItem});
+            this.editToolStripMenuItem});
             this.ResponseHeaderMenuStrip.Name = "ResponseHeaderMenuStrip";
-            this.ResponseHeaderMenuStrip.Size = new System.Drawing.Size(177, 114);
+            this.ResponseHeaderMenuStrip.Size = new System.Drawing.Size(108, 70);
             // 
             // addToolStripMenuItem
             // 
             this.addToolStripMenuItem.Name = "addToolStripMenuItem";
-            this.addToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.addToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.addToolStripMenuItem.Text = "Add";
             this.addToolStripMenuItem.Click += new System.EventHandler(this.AddRspHeader_Click);
             // 
             // deleteToolStripMenuItem
             // 
             this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.deleteToolStripMenuItem.Text = "Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.DeleteRspHeader_Click);
             // 
             // editToolStripMenuItem
             // 
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
-            this.editToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.editToolStripMenuItem.Text = "Edit";
             this.editToolStripMenuItem.Click += new System.EventHandler(this.EditRspHeader_Click);
-            // 
-            // useHeaderCollectionToolStripMenuItem
-            // 
-            this.useHeaderCollectionToolStripMenuItem.Name = "useHeaderCollectionToolStripMenuItem";
-            this.useHeaderCollectionToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
-            this.useHeaderCollectionToolStripMenuItem.Text = "UseCollection";
-            this.useHeaderCollectionToolStripMenuItem.Click += new System.EventHandler(this.UseRspHeaderCollection_Click);
-            // 
-            // editHeaderCollectionToolStripMenuItem
-            // 
-            this.editHeaderCollectionToolStripMenuItem.Name = "editHeaderCollectionToolStripMenuItem";
-            this.editHeaderCollectionToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
-            this.editHeaderCollectionToolStripMenuItem.Text = "ManageCollections";
-            this.editHeaderCollectionToolStripMenuItem.Click += new System.EventHandler(this.EditRspHeaderCollections_Click);
             // 
             // RESTResponseCodeDialog
             // 
@@ -690,8 +647,6 @@ namespace Plugin.Application.Forms
         private RadioButton IsDefault;
         private CheckBox IsRange;
         private GroupBox ResponseHeaderGroup;
-        private Button UseReqHeaderCollection;
-        private Button EditReqHeaderCollections;
         private Button EditReqHeader;
         private Button DeleteReqHeader;
         private Button AddReqHeader;
@@ -704,7 +659,5 @@ namespace Plugin.Application.Forms
         private ToolStripMenuItem addToolStripMenuItem;
         private ToolStripMenuItem deleteToolStripMenuItem;
         private ToolStripMenuItem editToolStripMenuItem;
-        private ToolStripMenuItem useHeaderCollectionToolStripMenuItem;
-        private ToolStripMenuItem editHeaderCollectionToolStripMenuItem;
     }
 }

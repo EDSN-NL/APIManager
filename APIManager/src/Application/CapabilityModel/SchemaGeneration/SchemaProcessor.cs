@@ -288,7 +288,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         /// <summary>
         /// Special processing function that processes the attributes of the specified class and returns this as a list of Attribute Definitions
         /// that are valid for the current schema type. Since the method uses the 'regular' processing function, attribute classifiers are properly
-        /// registered in the schema and can be referred to if needed.
+        /// registered in the schema and can be referenced if needed.
         /// Be careful when calling this method since it runs in a partially initialized context!
         /// </summary>
         /// <param name="propertyClass">Class to be processed.</param>

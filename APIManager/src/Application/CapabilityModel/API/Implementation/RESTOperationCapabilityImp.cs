@@ -31,7 +31,7 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _RESTUseHeaderParametersTag        = "RESTUseHeaderParametersTag";
         private const string _RESTUseLinkHeaderTag              = "RESTUseLinkHeaderTag";
         private const string _RCCStereotype                     = "RCCStereotype";
-        private const string _HPCStereotype                     = "HPCStereotype";
+        private const string _RequestHeadersTag                 = "RequestHeadersTag";
 
         // This is NOT a configuration item since the use of the old Operation Result Capabilities has been deprecated!
         private const string _DEPRECATEDOperationResultStereotype = "RESTOperationResult";
@@ -43,15 +43,12 @@ namespace Plugin.Application.CapabilityModel.API
         private RESTResourceCapability _requestBodyDocument;    // If the operation has a request body, this is the associated Document Resource.
         private Cardinality _requestCardinality;                // Cardinality of request body document. Only valid if requestBodyDocument is specified.
         private RESTResponseCodeCollection _responseCollection; // Contains the list of response codes (plus associated metadata).
-        private RESTHeaderParameterCollection _requestHeaderCollection;     // Contains the set of request header parameters.
+        private List<int> _requestHeaderCollection;             // Contains the set of request header parameter ID's.
         private bool _useLinkHeaders;                           // Set to 'true' when the response must contain a definition for Link Headers.
         private bool _usePagination;                            // Set to 'true' when the operation uses pagination.
         private bool _disposed;                                 // Mark myself as invalid after call to dispose!
 
         private const string _CollectionNamePostfix             = "Responses";  // Will be added to the operation name to create a response code collection name.
-
-        // Request Header collections all have the same name. This is no issue since request headers all live in a separate (operation) package...
-        private const string _HdrCollectionName = "RequestHeaders";
 
         /// <summary>
         /// This is the normal entry for all users of the object that want to indicate that the resource declaration is not required anymore.
@@ -82,21 +79,28 @@ namespace Plugin.Application.CapabilityModel.API
         internal Cardinality RequestCardinality                 { get { return this._requestCardinality; } }
         internal bool UsePagination                             { get { return this._usePagination; } }
 
-
         /// <summary>
         /// Returns the list of request header parameters for this operation (can be empty if no headers are defined).
         /// </summary>
-        internal RESTHeaderParameterCollection RequestHeaders
+        internal List<RESTHeaderParameterDescriptor> RequestHeaders
         {
-            get { return this._requestHeaderCollection; }
+            get { return GetHeaderParameters(); }
         }
 
         /// <summary>
-        /// Returns the list of operation response codes with their metadata...
+        /// Returns the operation response code collection...
         /// </summary>
         internal RESTResponseCodeCollection ResponseCodeCollection
         {
             get { return this._responseCollection; }
+        }
+
+        /// <summary>
+        /// Returns true when request header parameters are defined for this operation.
+        /// </summary>
+        internal bool UseRequestHeaders
+        {
+            get { return GetHeaderParameters().Count > 0; }
         }
 
         /// <summary>
@@ -122,6 +126,7 @@ namespace Plugin.Application.CapabilityModel.API
                 this._producedMIMETypes = operation.ProducedMIMETypes;
                 this._requestBodyDocument = operation.RequestDocument;
                 this._usePagination = operation.PaginationIndicator;
+                bool firstOne;
 
                 this._capabilityClass = OperationPackage.CreateClass(operation.Name, context.GetConfigProperty(_RESTOperationClassStereotype));
                 if (this._capabilityClass != null)
@@ -136,7 +141,7 @@ namespace Plugin.Application.CapabilityModel.API
                     string MIMETypes = string.Empty;
                     if (this._producedMIMETypes != null && this._producedMIMETypes.Count > 0)
                     {
-                        bool firstOne = true;
+                        firstOne = true;
                         foreach(string MIMEType in this._producedMIMETypes)
                         {
                             MIMETypes += firstOne ? MIMEType : "," + MIMEType;
@@ -147,7 +152,7 @@ namespace Plugin.Application.CapabilityModel.API
                     MIMETypes = string.Empty;
                     if (this._consumedMIMETypes != null && this._consumedMIMETypes.Count > 0)
                     {
-                        bool firstOne = true;
+                        firstOne = true;
                         foreach (string MIMEType in this._consumedMIMETypes)
                         {
                             MIMETypes += firstOne ? MIMEType : "," + MIMEType;
@@ -163,10 +168,22 @@ namespace Plugin.Application.CapabilityModel.API
                     if (documentation.Count > 0) MEChangeLog.SetRTFDocumentation(this._capabilityClass, documentation);
 
                     // Define all query parameter attributes...
-                    foreach (RESTParameterDeclaration param in operation.Parameters)
+                    foreach (RESTParameterDeclaration param in operation.QueryParameters)
                     {
                         RESTParameterDeclaration.ConvertToAttribute(this._capabilityClass, param);
                     }
+
+                    // Load the request header parameters...
+                    this._requestHeaderCollection = new List<int>();
+                    string headerParmIDList = string.Empty;
+                    string requestHeadersTag = context.GetConfigProperty(_RequestHeadersTag);
+                    firstOne = true;
+                    foreach (RESTHeaderParameterDescriptor param in operation.RequestHeaderParameters)
+                    {
+                        this._requestHeaderCollection.Add(param.ID);
+                        headerParmIDList += firstOne ? param.ID.ToString() : "," + param.ID.ToString();
+                    }
+                    this._capabilityClass.SetTag(requestHeadersTag, headerParmIDList, true);
 
                     // Explicitly request a new Operation ID for this class (could not do this in the parent constructor since the capabilityClass
                     // object has not been initialized yet at that point).
@@ -207,12 +224,6 @@ namespace Plugin.Application.CapabilityModel.API
                     this._responseCollection.Serialize(operation.Name + _CollectionNamePostfix, OperationPackage, RESTResponseCodeCollection.CollectionScope.Operation);
                     var collectionEndpoint = new EndpointDescriptor(this._responseCollection.CollectionClass, new Cardinality(Cardinality._Mandatory).ToString(), this._responseCollection.Name, null, true);
                     model.CreateAssociation(operationEndpoint, collectionEndpoint, MEAssociation.AssociationType.MessageAssociation);
-
-                    // Leoad Request Header collection and create an association with that collection...
-                    this._requestHeaderCollection = operation.RequestHeaders;
-                    this._requestHeaderCollection.Serialize(_HdrCollectionName, OperationPackage, RESTCollection.CollectionScope.Operation);
-                    collectionEndpoint = new EndpointDescriptor(this._requestHeaderCollection.CollectionClass, new Cardinality(Cardinality._Mandatory).ToString(), this._requestHeaderCollection.Name, null, true);
-                    CapabilityClass.CreateAssociation(operationEndpoint, collectionEndpoint, MEAssociation.AssociationType.MessageAssociation);
 
                     // Check whether we have to use Pagination. If so, we first attempt to create an association with the Request Pagination parameters,
                     // followed by the Response Pagination parameters...
@@ -271,7 +282,7 @@ namespace Plugin.Application.CapabilityModel.API
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp (existing) >> Operation is of archetype: '" + operationArchetype + "'...");
                 this._operationType = new HTTPOperation(EnumConversions<HTTPOperation.Type>.StringToEnum(operationArchetype));
                 this._useLinkHeaders = string.Compare(this._capabilityClass.GetTag(context.GetConfigProperty(_RESTUseLinkHeaderTag)), "true", true) == 0;
-                this._requestHeaderCollection = new RESTHeaderParameterCollection(this.ParentResource, RESTCollection.CollectionScope.Operation);
+                this._requestHeaderCollection = new List<int>();
 
                 // We might encounter 'old' API's that still use the deprecated structure. For now, assume the best...
                 List<MEClass> deprecatedResponseClasses = null;
@@ -321,7 +332,6 @@ namespace Plugin.Application.CapabilityModel.API
                 // Check whether we're using Pagination, attempt to locate response- and header collections and document cardinality ...
                 string paginationClassName = context.GetConfigProperty(_RequestPaginationClassName);
                 string collectionStereotype = context.GetConfigProperty(_RCCStereotype);
-                string headerCollectionStereotype = context.GetConfigProperty(_HPCStereotype);
                 foreach (MEAssociation association in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
                 {
                     if (association.Destination.EndPoint.HasStereotype(resourceStereotype))
@@ -340,10 +350,6 @@ namespace Plugin.Application.CapabilityModel.API
                     {
                         this._responseCollection = new RESTResponseCodeCollection(this._parent, association.Destination.EndPoint);
                     }
-                    else if (association.Destination.EndPoint.HasStereotype(headerCollectionStereotype))
-                    {
-                        this._requestHeaderCollection = new RESTHeaderParameterCollection(this._parent, association.Destination.EndPoint);
-                    }
                 }
                 if (this._responseCollection == null && deprecatedResponseClasses == null)
                 {
@@ -358,9 +364,22 @@ namespace Plugin.Application.CapabilityModel.API
 
                 // When we discovered a list of deprecated response capabilities, we will transform these into the new structure.
                 // The transformation immediately creates the correct header structures, so we don't have to perform a separate
-                // header transformation in this case.
+                // header transformation in this case. 
                 if (deprecatedResponseClasses != null) TransformResponseStructure(deprecatedResponseClasses, transformHeaders);
                 else if (transformHeaders)             TransformHeaderStructure();
+                else
+                {
+                    // Normal structure, read our list of request header ID's...
+                    string requestHeaderIDList = this._capabilityClass.GetTag(context.GetConfigProperty(_RequestHeadersTag));
+                    if (!string.IsNullOrEmpty(requestHeaderIDList))
+                    {
+                        foreach (string ID in requestHeaderIDList.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            int paramID;
+                            if (int.TryParse(ID.Trim(), out paramID)) this._requestHeaderCollection.Add(paramID);
+                        }
+                    }
+                }
 
                 // Finally, make sure that the old 'use headers' tag is removed in case it had 'a' value...
                 if (!string.IsNullOrEmpty(useHeaderParametersTag)) this._capabilityClass.SetTag(context.GetConfigProperty(_RESTUseHeaderParametersTag), string.Empty);
@@ -419,6 +438,7 @@ namespace Plugin.Application.CapabilityModel.API
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTOperationCapabilityImp.Edit >> Editing '" + operation.Name + "'...");
                 ContextSlt context = ContextSlt.GetContextSlt();
                 ModelSlt model = ModelSlt.GetModelSlt();
+                bool firstOne;
 
                 // Check whether our type has changed...
                 if (this._operationType != operation.OperationType)
@@ -448,14 +468,8 @@ namespace Plugin.Application.CapabilityModel.API
                     // Update class name and role name (which must match the class name)...
                     this._capabilityClass.Name = operation.Name;
                     this._assignedRole = operation.Name;
-                    foreach (MEAssociation assoc in Parent.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
-                    {
-                        if (assoc.Destination.EndPoint == this.CapabilityClass)
-                        {
-                            assoc.SetName(operation.Name, MEAssociation.AssociationEnd.Destination);
-                            break;
-                        }
-                    }
+                    MEAssociation target = Parent.CapabilityClass.FindAssociationByClassID(this._capabilityClass.ElementID, null);
+                    if (target != null) target.SetName(operation.Name, MEAssociation.AssociationEnd.Destination);
                 }
 
                 // Check changes to 'use link header'...
@@ -477,7 +491,7 @@ namespace Plugin.Application.CapabilityModel.API
                     this._producedMIMETypes = operation.ProducedMIMETypes;
                     if (this._producedMIMETypes != null && this._producedMIMETypes.Count > 0)
                     {
-                        bool firstOne = true;
+                        firstOne = true;
                         foreach (string MIMEType in this._producedMIMETypes)
                         {
                             MIMETypes += firstOne ? MIMEType : "," + MIMEType;
@@ -488,7 +502,7 @@ namespace Plugin.Application.CapabilityModel.API
                     MIMETypes = string.Empty;
                     if (this._consumedMIMETypes != null && this._consumedMIMETypes.Count > 0)
                     {
-                        bool firstOne = true;
+                        firstOne = true;
                         foreach (string MIMEType in this._consumedMIMETypes)
                         {
                             MIMETypes += firstOne ? MIMEType : "," + MIMEType;
@@ -505,14 +519,11 @@ namespace Plugin.Application.CapabilityModel.API
                 {
                     if (this._requestBodyDocument != null)
                     {
-                        foreach (MEAssociation assoc in this._capabilityClass.AssociationList)
+                        MEAssociation target = this._capabilityClass.FindAssociationByClassID(this._requestBodyDocument.CapabilityClass.ElementID, null);
+                        if (target != null)
                         {
-                            if (assoc.Destination.EndPoint == this._requestBodyDocument.CapabilityClass)
-                            {
-                                this._capabilityClass.DeleteAssociation(assoc);
-                                this._requestBodyDocument = null;
-                                break;
-                            }
+                            this._capabilityClass.DeleteAssociation(target);
+                            this._requestBodyDocument = null;
                         }
                     }
                     if (operation.RequestDocument != null)
@@ -529,14 +540,11 @@ namespace Plugin.Application.CapabilityModel.API
                 else if (this._requestCardinality != operation.RequestCardinality && this._requestBodyDocument != null)
                 {
                     // Request cardinality has changed, update existing association...
-                    foreach (MEAssociation assoc in this._capabilityClass.AssociationList)
+                    MEAssociation target = this._capabilityClass.FindAssociationByClassID(this._requestBodyDocument.CapabilityClass.ElementID, null);
+                    if (target != null)
                     {
-                        if (assoc.Destination.EndPoint == this._requestBodyDocument.CapabilityClass)
-                        {
-                            this._requestCardinality = operation.RequestCardinality;
-                            assoc.SetCardinality(this._requestCardinality, MEAssociation.AssociationEnd.Destination);
-                            break;
-                        }
+                        this._requestCardinality = operation.RequestCardinality;
+                        target.SetCardinality(this._requestCardinality, MEAssociation.AssociationEnd.Destination);
                     }
                 }
                 
@@ -547,51 +555,22 @@ namespace Plugin.Application.CapabilityModel.API
                 if (documentation.Count > 0) MEChangeLog.SetRTFDocumentation(this._capabilityClass, documentation);
 
                 // (re-)Define all query parameter attributes (ConvertToAttribute properly handles existing attributes)...
-                foreach (RESTParameterDeclaration param in operation.Parameters) RESTParameterDeclaration.ConvertToAttribute(this._capabilityClass, param);
+                foreach (RESTParameterDeclaration param in operation.QueryParameters) RESTParameterDeclaration.ConvertToAttribute(this._capabilityClass, param);
 
                 // Replace the response collection by a (possibly new) version...
                 this._responseCollection = operation.ResponseCollection;
 
-                // Check what happened to our header parameters: if all have been deleted, we might have to delete the collection class.
-                // On the other hand, there might be a new collection (where there was none), in which case we have to serialize- and create
-                // the collection!
-                // Finally, it could be that the collection itself has been changed.
-                if (this._requestHeaderCollection.Collection.Count > 0 && operation.RequestHeaders.Collection.Count == 0)
+                // Process the header parameters. In this case, we simply replace all parameter ID's and update the ID tag as well.
+                this._requestHeaderCollection = new List<int>();
+                string newIDList = string.Empty;
+                firstOne = true;
+                foreach (RESTHeaderParameterDescriptor param in operation.RequestHeaderParameters)
                 {
-                    this._requestHeaderCollection.DeleteCollection();   // Clears all header parameters and removes the associated UML class.
+                    newIDList += firstOne ? param.ID.ToString() : "," + param.ID.ToString();
+                    firstOne = false;
+                    this._requestHeaderCollection.Add(param.ID);
                 }
-                else if (this._requestHeaderCollection.Collection.Count == 0 && operation.RequestHeaders.Collection.Count > 0)
-                {
-                    this._requestHeaderCollection.DeleteCollection();           // Assures that 'old' collection is cleaned up.
-                    this._requestHeaderCollection = operation.RequestHeaders;   // Replace old by new.
-                    this._requestHeaderCollection.Serialize(_HdrCollectionName, OwningPackage, RESTCollection.CollectionScope.Operation);
-
-                    // To be sure, we check whether we have an association with this header class (should not be the case)...
-                    bool foundClass = false;
-                    foreach (MEAssociation assoc in CapabilityClass.AssociationList)
-                    {
-                        if (assoc.Destination.EndPoint.Name == this._requestHeaderCollection.Name)
-                        {
-                            foundClass = true;
-                            break;
-                        }
-                    }
-                    if (!foundClass)
-                    {
-                        if (this._requestHeaderCollection.CollectionClass != null)
-                        {
-                            var sourceEndpoint = new EndpointDescriptor(CapabilityClass, "1", this._assignedRole, null, false);
-                            var headersEndpoint = new EndpointDescriptor(this._requestHeaderCollection.CollectionClass, "1", this._requestHeaderCollection.Name, null, true);
-                            CapabilityClass.CreateAssociation(sourceEndpoint, headersEndpoint, MEAssociation.AssociationType.MessageAssociation);
-                        }
-                        else
-                        {
-                            Logger.WriteWarning("Unable to create request header parameter collection '" +
-                                                this._requestHeaderCollection.Name + "' in package '" + OwningPackage.Name + "'!");
-                        }
-                    }
-                }
-                else this._requestHeaderCollection.UpdateCollection(operation.RequestHeaders);
+                this._capabilityClass.SetTag(context.GetConfigProperty(_RequestHeadersTag), newIDList);
 
                 // This will update the service version, followed by all child capabilities!
                 // But the operation is executed ONLY when configuration management is disabled (with CM enabled, versions are
@@ -665,6 +644,35 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Helper function that converts the list of request header parameter ID's to a list of actual header parameter descriptors.
+        /// Since parameters could have been deleted outside our scope, we check the received list and in case of differences, update the internal
+        /// administration accordingly.
+        /// </summary>
+        /// <returns>List of request header parameters for this operation.</returns>
+        private List<RESTHeaderParameterDescriptor> GetHeaderParameters()
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string requestHeaderTag = context.GetConfigProperty(_RequestHeadersTag);
+            string newIDList = string.Empty;
+            List<RESTHeaderParameterDescriptor> resultSet = ((RESTService)this._parent.RootService).HeaderManager.FindParametersByID(RESTServiceHeaderParameterMgr.Scope.Request, this._requestHeaderCollection);
+            if (resultSet.Count == 0 && this._requestHeaderCollection.Count > 0) this._requestHeaderCollection = new List<int>();
+            else if (resultSet.Count < this._requestHeaderCollection.Count)
+            {
+                // We have received less header parameters then we have ID's. Obviously, some of our ID's have been deleted!
+                this._requestHeaderCollection = new List<int>();
+                bool firstOne = true;
+                foreach (RESTHeaderParameterDescriptor param in resultSet)
+                {
+                    newIDList += firstOne ? param.ID.ToString() : "," + param.ID.ToString();
+                    firstOne = false;
+                    this._requestHeaderCollection.Add(param.ID);
+                }
+                this._capabilityClass.SetTag(requestHeaderTag, newIDList);
+            }
+            return resultSet;
+        }
+
+        /// <summary>
         /// Helper method that takes the old header parameter classes and creates request- and response headers according to the new structure. 
         /// The method assumes that at least the response code structure adheres to current standards.
         /// When we can't find the 'old' header template classes, the method performs no actions!
@@ -677,17 +685,31 @@ namespace Plugin.Application.CapabilityModel.API
                                                         context.GetConfigProperty(_RequestHdrParamClassName));
             MEClass responseParamClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
                                                          context.GetConfigProperty(_ResponseHdrParamClassName));
+            RESTServiceHeaderParameterMgr paramManager = ((RESTService)this._parent.RootService).HeaderManager;
+            this._requestHeaderCollection = new List<int>();
+            List<RESTHeaderParameterDescriptor> responseHDRList = new List<RESTHeaderParameterDescriptor>();
+            string newIDList = string.Empty;
+            bool firstOne;
 
             Logger.WriteWarning("Detected a deprecated header structure for operation '" + Name + "'; updating model structure in progress!");
 
-            // First, we create the request headers using a fully qualified collection (that can be serialized immediately)...
+            // First, we create the request headers...
             if (requestParamClass != null)
             {
-                this._requestHeaderCollection = new RESTHeaderParameterCollection(this.ParentResource, _HdrCollectionName, this.OperationPackage);
+                firstOne = true;
                 foreach (MEAttribute attrib in requestParamClass.Attributes)
                 {
-                    this._requestHeaderCollection.AddHeaderParameter(new RESTHeaderParameterDescriptor(attrib.Name, attrib.Classifier, attrib.Annotation));
+                    RESTHeaderParameterDescriptor paramDesc = paramManager.GetParameter(RESTServiceHeaderParameterMgr.Scope.Request, attrib.Name);
+                    if (paramDesc == null)
+                    {
+                        // New parameter, not yet known to API collection. Let's add it. Note that the ID passed in the request is a dummy ID, which
+                        // will be replaced by manager on successfull insert in the collection.
+                        paramDesc = paramManager.AddParameter(RESTServiceHeaderParameterMgr.Scope.Request, new RESTHeaderParameterDescriptor(1, attrib));
+                    }
+                    this._requestHeaderCollection.Add(paramDesc.ID);
+                    newIDList += firstOne ? paramDesc.ID.ToString() : "," + paramDesc.ID.ToString();
                 }
+                this._capabilityClass.SetTag(context.GetConfigProperty(_RequestHeadersTag), newIDList, true);
             }
             else Logger.WriteWarning("Unable to find old request header-parameter template '" + 
                                      context.GetConfigProperty(_APISupportModelPathName) + ":" + 
@@ -698,11 +720,18 @@ namespace Plugin.Application.CapabilityModel.API
             {
                 foreach (MEAttribute attrib in responseParamClass.Attributes)
                 {
-                    foreach (RESTOperationResultDescriptor resultDesc in this._responseCollection.Collection)
+                    RESTHeaderParameterDescriptor paramDesc = paramManager.GetParameter(RESTServiceHeaderParameterMgr.Scope.Response, attrib.Name);
+                    if (paramDesc == null)
                     {
-                        resultDesc.AddHeaderParameter(new RESTHeaderParameterDescriptor(attrib.Name, attrib.Classifier, attrib.Annotation));
+                        // New parameter, not yet known to API collection. Let's add it. Note that the ID passed in the request is a dummy ID, which
+                        // will be replaced by manager on successfull insert in the collection.
+                        paramDesc = paramManager.AddParameter(RESTServiceHeaderParameterMgr.Scope.Response, new RESTHeaderParameterDescriptor(1, attrib));
                     }
+                    responseHDRList.Add(paramDesc);
                 }
+
+                // Next, assign this list of header parameter descriptors to each element in the response collection...
+                this._responseCollection.EnforceResponseHeaders(responseHDRList);
             }
             else Logger.WriteWarning("Unable to find old response header-parameter template '" +
                          context.GetConfigProperty(_APISupportModelPathName) + ":" +
@@ -719,6 +748,8 @@ namespace Plugin.Application.CapabilityModel.API
         private void TransformResponseStructure(List<MEClass> deprecatedResponseClasses, bool transformHeaders)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
+            List<RESTHeaderParameterDescriptor> headerParamList = new List<RESTHeaderParameterDescriptor>();
+            RESTServiceHeaderParameterMgr paramManager = ((RESTService)this._parent.RootService).HeaderManager;
             Logger.WriteWarning("Detected one or more deprecated Operation Result Capabilities for operation '" + Name + 
                                 "'; updating model structure in progress!");
 
@@ -743,7 +774,6 @@ namespace Plugin.Application.CapabilityModel.API
             // Next, check whether we have Header Parameters for this operation and if so, create the appropriate request- and response collections...
             // For the request headers, we create a qualified collection, containing name and owning package. This assures the collection is serialized immediately.
             // For the response headers, we create an 'abstract' collection that is serialized only after adding it to the response code collection.
-            var rspHeaderCollection = new RESTHeaderParameterCollection(this.ParentResource, RESTCollection.CollectionScope.Operation);
             if (transformHeaders)
             {
                 ModelSlt model = ModelSlt.GetModelSlt();
@@ -753,10 +783,16 @@ namespace Plugin.Application.CapabilityModel.API
                                                              context.GetConfigProperty(_ResponseHdrParamClassName));
                 if (requestParamClass != null)
                 {
-                    this._requestHeaderCollection = new RESTHeaderParameterCollection(this.ParentResource, _HdrCollectionName, this.OperationPackage);
                     foreach (MEAttribute attrib in requestParamClass.Attributes)
                     {
-                        this._requestHeaderCollection.AddHeaderParameter(new RESTHeaderParameterDescriptor(attrib.Name, attrib.Classifier, attrib.Annotation));
+                        RESTHeaderParameterDescriptor paramDesc = paramManager.GetParameter(RESTServiceHeaderParameterMgr.Scope.Request, attrib.Name);
+                        if (paramDesc == null)
+                        {
+                            // New parameter, not yet known to API collection. Let's add it. Note that the ID passed in the request is a dummy ID, which
+                            // will be replaced by manager on successfull insert in the collection.
+                            paramDesc = paramManager.AddParameter(RESTServiceHeaderParameterMgr.Scope.Request, new RESTHeaderParameterDescriptor(1, attrib));
+                        }
+                        this._requestHeaderCollection.Add(paramDesc.ID);
                     }
                 }
                 else Logger.WriteWarning("Unable to find old request header-parameter template '" +
@@ -767,7 +803,14 @@ namespace Plugin.Application.CapabilityModel.API
                 {
                     foreach (MEAttribute attrib in responseParamClass.Attributes)
                     {
-                        rspHeaderCollection.AddHeaderParameter(new RESTHeaderParameterDescriptor(attrib.Name, attrib.Classifier, attrib.Annotation));
+                        RESTHeaderParameterDescriptor paramDesc = paramManager.GetParameter(RESTServiceHeaderParameterMgr.Scope.Response, attrib.Name);
+                        if (paramDesc == null)
+                        {
+                            // New parameter, not yet known to API collection. Let's add it. Note that the ID passed in the request is a dummy ID, which
+                            // will be replaced by manager on successfull insert in the collection.
+                            paramDesc = paramManager.AddParameter(RESTServiceHeaderParameterMgr.Scope.Response, new RESTHeaderParameterDescriptor(1, attrib));
+                        }
+                        headerParamList.Add(paramDesc);
                     }
                 }
                 else Logger.WriteWarning("Unable to find old response header-parameter template '" +
@@ -810,7 +853,7 @@ namespace Plugin.Application.CapabilityModel.API
 
                 // Now we have collected enough information to create a new response descriptor and remove the old stuff...
                 this._responseCollection.AddOperationResult(new RESTOperationResultDescriptor(this._responseCollection, resultCode,
-                                                                                              category, payloadType, description, rspHeaderCollection,
+                                                                                              category, payloadType, description, headerParamList,
                                                                                               null, responsePayload, document, cardinality));
                 oldResponse.OwningPackage.DeleteClass(oldResponse);
             }

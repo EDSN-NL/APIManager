@@ -48,6 +48,10 @@ namespace Plugin.Application.Forms
             this.FilterParameterList = new System.Windows.Forms.ListView();
             this.ParamName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.ParamType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.FilterParametersMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.addToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AddFilter = new System.Windows.Forms.Button();
             this.ResponseCodeGroup = new System.Windows.Forms.GroupBox();
             this.UseCollection = new System.Windows.Forms.Button();
@@ -58,10 +62,6 @@ namespace Plugin.Application.Forms
             this.ResponseCodeList = new System.Windows.Forms.ListView();
             this.RespCode = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.RespDescription = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.FilterParametersMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.addToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ResponseCodeMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.addToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
@@ -86,8 +86,6 @@ namespace Plugin.Application.Forms
             this.RequestTypeName = new System.Windows.Forms.TextBox();
             this.SelectRequest = new System.Windows.Forms.Button();
             this.RequestHeaderGroup = new System.Windows.Forms.GroupBox();
-            this.UseReqHeaderCollection = new System.Windows.Forms.Button();
-            this.EditReqHeaderCollections = new System.Windows.Forms.Button();
             this.EditReqHeader = new System.Windows.Forms.Button();
             this.DeleteReqHeader = new System.Windows.Forms.Button();
             this.AddReqHeader = new System.Windows.Forms.Button();
@@ -98,12 +96,10 @@ namespace Plugin.Application.Forms
             this.addToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
-            this.useCollectionToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.manageCollectionsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.OperationGroup.SuspendLayout();
             this.FilterGroup.SuspendLayout();
-            this.ResponseCodeGroup.SuspendLayout();
             this.FilterParametersMenuStrip.SuspendLayout();
+            this.ResponseCodeGroup.SuspendLayout();
             this.ResponseCodeMenuStrip.SuspendLayout();
             this.MimeBox.SuspendLayout();
             this.DocumentationBox.SuspendLayout();
@@ -251,9 +247,11 @@ namespace Plugin.Application.Forms
             // 
             // FilterParameterList
             // 
+            this.FilterParameterList.BackColor = System.Drawing.Color.GhostWhite;
             this.FilterParameterList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.ParamName,
             this.ParamType});
+            this.FilterParameterList.ContextMenuStrip = this.FilterParametersMenuStrip;
             this.FilterParameterList.FullRowSelect = true;
             this.FilterParameterList.GridLines = true;
             this.FilterParameterList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
@@ -276,6 +274,36 @@ namespace Plugin.Application.Forms
             // 
             this.ParamType.Text = "Type";
             this.ParamType.Width = 105;
+            // 
+            // FilterParametersMenuStrip
+            // 
+            this.FilterParametersMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.addToolStripMenuItem1,
+            this.deleteToolStripMenuItem,
+            this.editToolStripMenuItem});
+            this.FilterParametersMenuStrip.Name = "FilterParametersMenuStrip";
+            this.FilterParametersMenuStrip.Size = new System.Drawing.Size(108, 70);
+            this.FilterParametersMenuStrip.Click += new System.EventHandler(this.AddFilter_Click);
+            // 
+            // addToolStripMenuItem1
+            // 
+            this.addToolStripMenuItem1.Name = "addToolStripMenuItem1";
+            this.addToolStripMenuItem1.Size = new System.Drawing.Size(107, 22);
+            this.addToolStripMenuItem1.Text = "Add";
+            // 
+            // deleteToolStripMenuItem
+            // 
+            this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.deleteToolStripMenuItem.Text = "Delete";
+            this.deleteToolStripMenuItem.Click += new System.EventHandler(this.DeleteFilter_Click);
+            // 
+            // editToolStripMenuItem
+            // 
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.editToolStripMenuItem.Text = "Edit";
+            this.editToolStripMenuItem.Click += new System.EventHandler(this.EditFilter_Click);
             // 
             // AddFilter
             // 
@@ -355,9 +383,11 @@ namespace Plugin.Application.Forms
             // 
             // ResponseCodeList
             // 
+            this.ResponseCodeList.BackColor = System.Drawing.Color.GhostWhite;
             this.ResponseCodeList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.RespCode,
             this.RespDescription});
+            this.ResponseCodeList.ContextMenuStrip = this.ResponseCodeMenuStrip;
             this.ResponseCodeList.FullRowSelect = true;
             this.ResponseCodeList.GridLines = true;
             this.ResponseCodeList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
@@ -380,36 +410,6 @@ namespace Plugin.Application.Forms
             // 
             this.RespDescription.Text = "Description";
             this.RespDescription.Width = 197;
-            // 
-            // FilterParametersMenuStrip
-            // 
-            this.FilterParametersMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.addToolStripMenuItem1,
-            this.deleteToolStripMenuItem,
-            this.editToolStripMenuItem});
-            this.FilterParametersMenuStrip.Name = "FilterParametersMenuStrip";
-            this.FilterParametersMenuStrip.Size = new System.Drawing.Size(108, 70);
-            this.FilterParametersMenuStrip.Click += new System.EventHandler(this.AddFilter_Click);
-            // 
-            // addToolStripMenuItem1
-            // 
-            this.addToolStripMenuItem1.Name = "addToolStripMenuItem1";
-            this.addToolStripMenuItem1.Size = new System.Drawing.Size(107, 22);
-            this.addToolStripMenuItem1.Text = "Add";
-            // 
-            // deleteToolStripMenuItem
-            // 
-            this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
-            this.deleteToolStripMenuItem.Text = "Delete";
-            this.deleteToolStripMenuItem.Click += new System.EventHandler(this.DeleteFilter_Click);
-            // 
-            // editToolStripMenuItem
-            // 
-            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
-            this.editToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
-            this.editToolStripMenuItem.Text = "Edit";
-            this.editToolStripMenuItem.Click += new System.EventHandler(this.EditFilter_Click);
             // 
             // ResponseCodeMenuStrip
             // 
@@ -570,10 +570,10 @@ namespace Plugin.Application.Forms
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(25, 13);
+            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label6.Location = new System.Drawing.Point(26, 18);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(21, 20);
+            this.label6.Size = new System.Drawing.Size(19, 13);
             this.label6.TabIndex = 0;
             this.label6.Text = "...";
             // 
@@ -623,8 +623,6 @@ namespace Plugin.Application.Forms
             // 
             // RequestHeaderGroup
             // 
-            this.RequestHeaderGroup.Controls.Add(this.UseReqHeaderCollection);
-            this.RequestHeaderGroup.Controls.Add(this.EditReqHeaderCollections);
             this.RequestHeaderGroup.Controls.Add(this.EditReqHeader);
             this.RequestHeaderGroup.Controls.Add(this.DeleteReqHeader);
             this.RequestHeaderGroup.Controls.Add(this.AddReqHeader);
@@ -635,27 +633,6 @@ namespace Plugin.Application.Forms
             this.RequestHeaderGroup.TabIndex = 5;
             this.RequestHeaderGroup.TabStop = false;
             this.RequestHeaderGroup.Text = "Request headers";
-            // 
-            // UseReqHeaderCollection
-            // 
-            this.UseReqHeaderCollection.Image = ((System.Drawing.Image)(resources.GetObject("UseReqHeaderCollection.Image")));
-            this.UseReqHeaderCollection.Location = new System.Drawing.Point(105, 146);
-            this.UseReqHeaderCollection.Name = "UseReqHeaderCollection";
-            this.UseReqHeaderCollection.Size = new System.Drawing.Size(25, 25);
-            this.UseReqHeaderCollection.TabIndex = 4;
-            this.UseReqHeaderCollection.UseVisualStyleBackColor = true;
-            this.UseReqHeaderCollection.Click += new System.EventHandler(this.UseReqHeaderCollection_Click);
-            // 
-            // EditReqHeaderCollections
-            // 
-            this.EditReqHeaderCollections.Image = ((System.Drawing.Image)(resources.GetObject("EditReqHeaderCollections.Image")));
-            this.EditReqHeaderCollections.Location = new System.Drawing.Point(136, 146);
-            this.EditReqHeaderCollections.Name = "EditReqHeaderCollections";
-            this.EditReqHeaderCollections.Size = new System.Drawing.Size(25, 25);
-            this.EditReqHeaderCollections.TabIndex = 5;
-            this.EditReqHeaderCollections.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.EditReqHeaderCollections.UseVisualStyleBackColor = true;
-            this.EditReqHeaderCollections.Click += new System.EventHandler(this.EditReqHeaderCollections_Click);
             // 
             // EditReqHeader
             // 
@@ -689,9 +666,11 @@ namespace Plugin.Application.Forms
             // 
             // RequestHeaderList
             // 
+            this.RequestHeaderList.BackColor = System.Drawing.Color.GhostWhite;
             this.RequestHeaderList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.ReqHdrName,
             this.ReqHdrDescription});
+            this.RequestHeaderList.ContextMenuStrip = this.RequestHeaderMenuStrip;
             this.RequestHeaderList.FullRowSelect = true;
             this.RequestHeaderList.GridLines = true;
             this.RequestHeaderList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
@@ -720,46 +699,30 @@ namespace Plugin.Application.Forms
             this.RequestHeaderMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addToolStripMenuItem2,
             this.deleteToolStripMenuItem2,
-            this.editToolStripMenuItem2,
-            this.useCollectionToolStripMenuItem1,
-            this.manageCollectionsToolStripMenuItem1});
+            this.editToolStripMenuItem2});
             this.RequestHeaderMenuStrip.Name = "contextMenuStrip1";
-            this.RequestHeaderMenuStrip.Size = new System.Drawing.Size(177, 114);
+            this.RequestHeaderMenuStrip.Size = new System.Drawing.Size(108, 70);
             // 
             // addToolStripMenuItem2
             // 
             this.addToolStripMenuItem2.Name = "addToolStripMenuItem2";
-            this.addToolStripMenuItem2.Size = new System.Drawing.Size(176, 22);
+            this.addToolStripMenuItem2.Size = new System.Drawing.Size(107, 22);
             this.addToolStripMenuItem2.Text = "Add";
             this.addToolStripMenuItem2.Click += new System.EventHandler(this.AddReqHeader_Click);
             // 
             // deleteToolStripMenuItem2
             // 
             this.deleteToolStripMenuItem2.Name = "deleteToolStripMenuItem2";
-            this.deleteToolStripMenuItem2.Size = new System.Drawing.Size(176, 22);
+            this.deleteToolStripMenuItem2.Size = new System.Drawing.Size(107, 22);
             this.deleteToolStripMenuItem2.Text = "Delete";
             this.deleteToolStripMenuItem2.Click += new System.EventHandler(this.DeleteReqHeader_Click);
             // 
             // editToolStripMenuItem2
             // 
             this.editToolStripMenuItem2.Name = "editToolStripMenuItem2";
-            this.editToolStripMenuItem2.Size = new System.Drawing.Size(176, 22);
+            this.editToolStripMenuItem2.Size = new System.Drawing.Size(107, 22);
             this.editToolStripMenuItem2.Text = "Edit";
             this.editToolStripMenuItem2.Click += new System.EventHandler(this.EditReqHeader_Click);
-            // 
-            // useCollectionToolStripMenuItem1
-            // 
-            this.useCollectionToolStripMenuItem1.Name = "useCollectionToolStripMenuItem1";
-            this.useCollectionToolStripMenuItem1.Size = new System.Drawing.Size(176, 22);
-            this.useCollectionToolStripMenuItem1.Text = "UseCollection";
-            this.useCollectionToolStripMenuItem1.Click += new System.EventHandler(this.UseReqHeaderCollection_Click);
-            // 
-            // manageCollectionsToolStripMenuItem1
-            // 
-            this.manageCollectionsToolStripMenuItem1.Name = "manageCollectionsToolStripMenuItem1";
-            this.manageCollectionsToolStripMenuItem1.Size = new System.Drawing.Size(176, 22);
-            this.manageCollectionsToolStripMenuItem1.Text = "ManageCollections";
-            this.manageCollectionsToolStripMenuItem1.Click += new System.EventHandler(this.EditReqHeaderCollections_Click);
             // 
             // RESTOperationDialog
             // 
@@ -789,8 +752,8 @@ namespace Plugin.Application.Forms
             this.OperationGroup.ResumeLayout(false);
             this.OperationGroup.PerformLayout();
             this.FilterGroup.ResumeLayout(false);
-            this.ResponseCodeGroup.ResumeLayout(false);
             this.FilterParametersMenuStrip.ResumeLayout(false);
+            this.ResponseCodeGroup.ResumeLayout(false);
             this.ResponseCodeMenuStrip.ResumeLayout(false);
             this.MimeBox.ResumeLayout(false);
             this.MimeBox.PerformLayout();
@@ -863,8 +826,6 @@ namespace Plugin.Application.Forms
         private TextBox ReqCardHi;
         private TextBox ReqCardLo;
         private GroupBox RequestHeaderGroup;
-        private Button UseReqHeaderCollection;
-        private Button EditReqHeaderCollections;
         private Button EditReqHeader;
         private Button DeleteReqHeader;
         private Button AddReqHeader;
@@ -875,7 +836,5 @@ namespace Plugin.Application.Forms
         private ToolStripMenuItem addToolStripMenuItem2;
         private ToolStripMenuItem deleteToolStripMenuItem2;
         private ToolStripMenuItem editToolStripMenuItem2;
-        private ToolStripMenuItem useCollectionToolStripMenuItem1;
-        private ToolStripMenuItem manageCollectionsToolStripMenuItem1;
     }
 }

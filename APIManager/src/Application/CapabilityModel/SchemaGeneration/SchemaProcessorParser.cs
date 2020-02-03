@@ -33,9 +33,70 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         private const string _PrimDataTypesPathName                 = "PrimDataTypesPathName";
         private const string _SuppressSupplementaryEnumClassifier   = "SuppressSupplementaryEnumClassifier";
 
-
         // Static properties that are used across a series of schema generation operations...
         private ClassCacheSlt _cache;                               // Cache singleton, used to administer processed entities across builds.
+
+        /// <summary>
+        /// This is a simplified version of the 'ProcessAttributes' private function, which can be used to parse a set of simple attribute declarations into the 
+        /// current schema. The function does NOT take into consideration the common schema, nor does it generate autodoc contents. Also, all attributes are
+        /// considered 'Content' type and choices are not implemented either. The goal of this function is to add simple attribute sets to the schema for localized
+        /// definitions, e.g. of REST parameters.
+        /// A 'simple attribute declaration' consists of the 'bare-bones' components of an attribute: name, classifier, cardinality, description and an optional
+        /// default value. Helper class 'SimpleAttributeDeclaration' is provided to hold these contents.
+        /// </summary>
+        /// <param name="attributeList">List of bare-bones attribute declarations to parse.</param>
+        /// <returns>List of attribute declarations for the element or empty list in case of errors (or no attributes).</returns>
+        /// <exception cref="IllegalCardinalityException">In case of illegal attribute cardinalities.</exception>
+        internal List<SchemaAttribute> ProcessSimpleAttributeDeclaration(List<SimpleAttributeDeclaration> attributeList)
+        {
+            this._lastError = string.Empty;
+            ContextSlt context = ContextSlt.GetContextSlt();
+            var attribList = new List<SchemaAttribute>();
+
+            try
+            {
+                int sequenceKey = 0;
+                foreach (SimpleAttributeDeclaration attribute in attributeList)
+                {
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ParseSimpleAttributeDeclaration >> Processing attribute: " + 
+                                     attribute.Name + " with classifier: " + attribute.Classifier.Name);
+
+                    // Assures that we have an attribute classifier definition and we know where to store it and where to document it...
+                    ContentAttribute contentAttrib = null;
+                    ClassifierContext classifierCtx = ProcessClassifier(attribute.Classifier, false);
+                    if (classifierCtx == null)
+                    {
+                        string message = "Unable to obtain a proper classifier '" + attribute.Classifier.Name + "' for '" + attribute.Name + "'; Skipping attribute!";
+                        Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ParseSimpleAttributeDeclaration >> " + message);
+                        continue;
+                    }
+                    if (this._schema is XMLSchema)
+                    {
+                        contentAttrib = new XMLContentAttribute((XMLSchema)this._schema, attribute.Name, classifierCtx.Name,
+                                                                sequenceKey, null, attribute.Cardinality,
+                                                                attribute.Documentation, attribute.DefaultValue, string.Empty,
+                                                                false, false, false, false);
+                    }
+                    else
+                    {
+                        contentAttrib = new JSONContentAttribute((JSONSchema)this._schema, attribute.Name, classifierCtx.Name,
+                                                                 sequenceKey, null, attribute.Cardinality,
+                                                                 attribute.Documentation, attribute.DefaultValue, string.Empty,
+                                                                 false, false, false, false);
+                    }
+                    attribList.Add(contentAttrib);
+                    sequenceKey++;
+                }
+            }
+            catch (Exception exc)
+            {
+                string schemaError = this._schema.LastError;
+                string message = (schemaError != string.Empty) ? schemaError + " -> " + exc.Message : exc.Message;
+                Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.ProcessAttributes >> Caught an exception: " + message + Environment.NewLine + exc.ToString());
+                this._lastError = message;
+            }
+            return attribList;
+        }
 
         /// <summary>
         /// Processes all associations in the given class (as long as these are of type 'Association'). For each association, the 
@@ -714,6 +775,38 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                 this._lastError = message;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Helper class that can be used to pass a simple set of attribute definitions for parsing into the current schema.
+        /// </summary>
+        internal sealed class SimpleAttributeDeclaration
+        {
+            internal string Name { get; }
+            internal MEDataType Classifier { get; }
+            internal Cardinality Cardinality { get; }
+            internal List<MEDocumentation> Documentation { get; }
+            internal string DefaultValue { get; }
+
+            /// <summary>
+            /// Creates a new SimpleAttributeDeclaration object from it's constructed parts.
+            /// </summary>
+            /// <param name="name">Name of the attribute.</param>
+            /// <param name="classifier">Attribute classifier, can be a CDT/BDT or an Enumeration Type. NO other classifiers are accepted!</param>
+            /// <param name="cardinality">Attribute cardinality.</param>
+            /// <param name="description">Attribute annotation.</param>
+            /// <param name="defaultValue">Optional default value.</param>
+            internal SimpleAttributeDeclaration(string name, MEDataType classifier, Cardinality cardinality, string description, string defaultValue = null)
+            {
+                this.Name = name;
+                this.Classifier = classifier;
+                this.Cardinality = cardinality;
+                this.DefaultValue = string.IsNullOrEmpty(defaultValue)? string.Empty: defaultValue;
+                this.Documentation = new List<MEDocumentation>();
+
+                string sourceURI = ContextSlt.GetContextSlt().GetConfigProperty(_DocgenSourcePrefix) + "annotation";
+                this.Documentation.Add(new MEDocumentation(sourceURI, description));
+            }
         }
     }
 }

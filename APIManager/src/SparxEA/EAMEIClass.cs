@@ -168,22 +168,6 @@ namespace SparxEA.Model
                 var association = this._model.GetModelElementImplementation(ModelElementType.Association, connectorID) as EAMEIAssociation;
                 if (association != null) yield return new MEAssociation(association);
             }
-
-            /******** OLD INEFFICIENT STUFF....
-            string traceStereotype = ContextSlt.GetContextSlt().GetConfigProperty(_TraceAssociationStereotype);
-
-            for (short i = 0; i < this._element.Connectors.Count; i++)
-            {
-                var connector = this._element.Connectors.GetAt(i) as EA.Connector;
-                // Make sure to return only connectors that originate from the current class and are NOT 'trace' associations...
-                if (connector != null && connector.ClientID == this._elementID && 
-                    !string.IsNullOrEmpty(connector.StereotypeEx) && !connector.StereotypeEx.Contains(traceStereotype))
-                {
-                    var association = this._model.GetModelElementImplementation(ModelElementType.Association, connector.ConnectorID) as EAMEIAssociation;
-                    if (association != null) yield return new MEAssociation(association);
-                }
-            }
-            ******/
         }
 
         /// <summary>
@@ -474,44 +458,6 @@ namespace SparxEA.Model
         }
 
         /// <summary>
-        /// Searches the class (and all parent classes) for an attribute with specified name and type.
-        /// </summary>
-        /// <param name="name">Name of the attribute to find.</param>
-        /// <param name="type">Attribute type (Attribute, Supplementary or Facet).</param>
-        /// <returns>Attribute or NULL if nothing found.</returns>
-        internal override MEAttribute FindAttribute(string name, AttributeType type)
-        {
-            ContextSlt context = ContextSlt.GetContextSlt();
-            string facetStereotype = context.GetConfigProperty(_FacetAttStereotype);
-            string suppStereotype =  context.GetConfigProperty(_SupplementaryAttStereotype);
-
-            // Reading StereotypeEX does not return fully qualified stereotype names so we remove the profile name if specified....
-            facetStereotype = facetStereotype.Contains("::") ? facetStereotype.Substring(facetStereotype.IndexOf("::") + 2) : facetStereotype;
-            suppStereotype = suppStereotype.Contains("::") ? suppStereotype.Substring(suppStereotype.IndexOf("::") + 2) : suppStereotype;
-
-            foreach (EA.Attribute attribute in this._element.AttributesEx)
-            {
-                if (attribute.Name == name)
-                {
-                    if (type == AttributeType.Supplementary && attribute.StereotypeEx.Contains(suppStereotype))
-                    {
-                        return new MESupplementary(attribute.AttributeID);
-                    }
-                    else if (type == AttributeType.Facet && attribute.StereotypeEx.Contains(facetStereotype))
-                    {
-                        return new MEFacet(attribute.AttributeID);
-                    }
-                    else if (type == AttributeType.Attribute) 
-                    {
-                        return new MEAttribute(attribute.AttributeID);
-                    }
-                }
-            }
-            Logger.WriteInfo("SparxEA.Model.EAMEIClass.FindAttribute >> Requested attribute '" + name + "' not found in class '" + this._element.Name + "'!");
-            return null;
-        }
-
-        /// <summary>
         /// Searches all associations on the current class for a child class with specified name and stereotype and returns the
         /// association role that belongs to this child.
         /// Note that the function only searches for the PRIMARY stereotype and ignores any generalized stereotypes!
@@ -551,7 +497,7 @@ namespace SparxEA.Model
             EA.Repository repository = ((EAModelImplementation)this._model).Repository;
             bool isLocalDB = ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local;
             string likeClause = isLocalDB ? "LIKE '*" : "LIKE '%";  // EAP files use different syntax for 'like'!
-            string checkType = (childStereotype.Contains("::")) ? childStereotype.Substring(childStereotype.IndexOf("::") + 2) : childStereotype;
+            string checkType = childStereotype.Contains("::") ? childStereotype.Substring(childStereotype.IndexOf("::") + 2) : childStereotype;
             string query = @"SELECT o2.Object_ID AS DestObject FROM
                             ((t_connector c INNER JOIN t_object o ON c.Start_Object_ID = o.Object_ID)
                             LEFT JOIN t_object o2 ON c.End_Object_ID = o2.Object_ID)
@@ -567,6 +513,147 @@ namespace SparxEA.Model
                 if (int.TryParse(node["DestObject"].InnerText.Trim(), out objectID)) matches.Add(new MEClass(objectID));
             }
             return matches;
+        }
+
+        /// <summary>
+        /// Returns a list of all egress associations from the current class where the association name- and/or role matches a specified
+        /// name pattern. The class only considers "Association" type associations. When optional field 'absoluteMatch' is specified as 'true',
+        /// the names are matched exactly, otherwise we use an approximate search. Both name and role are optional. When left out, the function
+        /// returns ALL egress associations from this class.
+        /// </summary>
+        /// <param name="assocName">Must occur in the association name.</param>
+        /// <param name="assocRole">Must occur in the association role.</param>
+        /// <param name="absoluteMatch">When 'true', the names must match exactly instead of approximately.</param>
+        /// <returns>List of associations that match the search criteria.</returns>
+        internal override List<MEAssociation> FindAssociationsByAssociationProperties(string assocName, string assocRole, bool absoluteMatch)
+        {
+            EA.Repository repository = ((EAModelImplementation)this._model).Repository;
+            bool isLocalDB = ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local;
+            string likeClause = isLocalDB ? "LIKE '*" : "LIKE '%";          // EAP files use different syntax for 'like'!
+            if (absoluteMatch) likeClause = "=";
+            string likePostfix = absoluteMatch ? string.Empty : (isLocalDB ? "*" : "%");
+            string roleCondition = string.IsNullOrEmpty(assocRole) ? string.Empty : " AND c.DestRole " + likeClause + " '" + assocRole + likePostfix + "'";
+            string nameCondition = string.IsNullOrEmpty(assocName) ? string.Empty : " AND c.Name " + likeClause + " '" + assocName + likePostfix + "'";
+            string query = @"SELECT c.Connector_ID AS Association FROM
+                            (t_connector c INNER JOIN t_object o ON c.Start_Object_ID = o.Object_ID)
+                            WHERE o.Object_ID = " + this._elementID + nameCondition + roleCondition +
+                            " AND c.Connector_Type = 'Association'";
+
+            var queryResult = new XmlDocument();
+            queryResult.LoadXml(repository.SQLQuery(query));
+            var matches = new List<MEAssociation>();
+            foreach (XmlNode node in queryResult.GetElementsByTagName("Row"))
+            {
+                int objectID = 0;
+                if (int.TryParse(node["Association"].InnerText.Trim(), out objectID)) matches.Add(new MEAssociation(objectID));
+            }
+            return matches;
+        }
+
+        /// <summary>
+        /// Returns a list of all egress associations from the current class where the endpoint name- and/or stereotype matches a specified
+        /// name pattern. The class only considers "Association" type associations. When optional field 'absoluteMatch' is specified as 'true',
+        /// the names are matched exactly, otherwise we use an approximate search. The function MUST receive either a name or a stereotype (or
+        /// both). When no valid name/stereotype is passed, an empty list is returned.
+        /// </summary>
+        /// <param name="className">Pattern for the class name.</param>
+        /// <param name="classStereotype">Pattern for the stereotype name.</param>
+        /// <param name="absoluteMatch">When 'true', the names must match exactly instead of approximately.</param>
+        /// <returns>List of associations that match specified name and/or stereotype.</returns>
+        internal override List<MEAssociation> FindAssociationsByEndpointProperties(string className, string classStereotype, bool absoluteMatch)
+        {
+            EA.Repository repository = ((EAModelImplementation)this._model).Repository;
+            var matches = new List<MEAssociation>();
+            bool isLocalDB = ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local;
+            string likeClause = isLocalDB ? "LIKE '*" : "LIKE '%";          // EAP files use different syntax for 'like'!
+            if (absoluteMatch) likeClause = "=";
+            string likePostfix = absoluteMatch ? string.Empty : (isLocalDB ? "*" : "%");
+            string nameCondition = string.IsNullOrEmpty(className) ? string.Empty : " AND o2.Name " + likeClause + " '" + className + likePostfix + "'";
+            string stereotypeCondition = string.IsNullOrEmpty(classStereotype) ? string.Empty : " AND o2.Stereotype " + likeClause + " '" + classStereotype + likePostfix + "'";
+            if (nameCondition == string.Empty && stereotypeCondition == string.Empty) return matches;   // No name or stereotype does not work.
+            string query = @"SELECT c.Connector_ID AS Association FROM
+                            ((t_connector c INNER JOIN t_object o ON c.Start_Object_ID = o.Object_ID)
+                            LEFT JOIN t_object o2 ON c.End_Object_ID = o2.Object_ID)
+                            WHERE o.Object_ID = " + this._elementID + nameCondition + stereotypeCondition +
+                            " AND c.Connector_Type = 'Association'";
+
+            var queryResult = new XmlDocument();
+            queryResult.LoadXml(repository.SQLQuery(query));
+            foreach (XmlNode node in queryResult.GetElementsByTagName("Row"))
+            {
+                int objectID = 0;
+                if (int.TryParse(node["Association"].InnerText.Trim(), out objectID)) matches.Add(new MEAssociation(objectID));
+            }
+            return matches;
+        }
+
+        /// <summary>
+        /// Returns the association that links the current class with the class specified by either classID and/or GUID. When both ID's are 
+        /// specified, we're looking for a class that has BOTH properties. Otherwise, we're looking for either the database ID or global ID (GUID).
+        /// When neither is specified, the function returns NULL. If there are multiple matches, we return the first one found.
+        /// When no associations exist, we return NULL.
+        /// </summary>
+        /// <param name="classID">Database ID of target class, use negative or 0 to skip.</param>
+        /// <param name="GUID">Global ID of target class, use NULL or empty string to skip.</param>
+        /// <returns>First matching association or NULL when no matches are found.</returns>
+        internal override MEAssociation FindAssociationByClassID(int classID, string GUID)
+        {
+            EA.Repository repository = ((EAModelImplementation)this._model).Repository;
+            string IDCondition = classID <= 0 ? string.Empty : " AND o2.Object_ID = " + classID;
+            string GUIDCondition = string.IsNullOrEmpty(GUID) ? string.Empty : " AND o2.ea_guid = '" + GUID + "'";
+            if (IDCondition == string.Empty && GUIDCondition == string.Empty) return null;
+            string query = @"SELECT c.Connector_ID AS Association FROM
+                            ((t_connector c INNER JOIN t_object o ON c.Start_Object_ID = o.Object_ID)
+                            LEFT JOIN t_object o2 ON c.End_Object_ID = o2.Object_ID)
+                            WHERE o.Object_ID = " + this._elementID + IDCondition + GUIDCondition +
+                            " AND c.Connector_Type = 'Association'";
+
+            var queryResult = new XmlDocument();
+            queryResult.LoadXml(repository.SQLQuery(query));
+            foreach (XmlNode node in queryResult.GetElementsByTagName("Row"))
+            {
+                int objectID = 0;
+                if (int.TryParse(node["Association"].InnerText.Trim(), out objectID)) return new MEAssociation(objectID);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Searches the class (and all parent classes) for an attribute with specified name and type.
+        /// </summary>
+        /// <param name="name">Name of the attribute to find.</param>
+        /// <param name="type">Attribute type (Attribute, Supplementary or Facet).</param>
+        /// <returns>Attribute or NULL if nothing found.</returns>
+        internal override MEAttribute FindAttribute(string name, AttributeType type)
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string facetStereotype = context.GetConfigProperty(_FacetAttStereotype);
+            string suppStereotype = context.GetConfigProperty(_SupplementaryAttStereotype);
+
+            // Reading StereotypeEX does not return fully qualified stereotype names so we remove the profile name if specified....
+            facetStereotype = facetStereotype.Contains("::") ? facetStereotype.Substring(facetStereotype.IndexOf("::") + 2) : facetStereotype;
+            suppStereotype = suppStereotype.Contains("::") ? suppStereotype.Substring(suppStereotype.IndexOf("::") + 2) : suppStereotype;
+
+            foreach (EA.Attribute attribute in this._element.AttributesEx)
+            {
+                if (attribute.Name == name)
+                {
+                    if (type == AttributeType.Supplementary && attribute.StereotypeEx.Contains(suppStereotype))
+                    {
+                        return new MESupplementary(attribute.AttributeID);
+                    }
+                    else if (type == AttributeType.Facet && attribute.StereotypeEx.Contains(facetStereotype))
+                    {
+                        return new MEFacet(attribute.AttributeID);
+                    }
+                    else if (type == AttributeType.Attribute)
+                    {
+                        return new MEAttribute(attribute.AttributeID);
+                    }
+                }
+            }
+            Logger.WriteInfo("SparxEA.Model.EAMEIClass.FindAttribute >> Requested attribute '" + name + "' not found in class '" + this._element.Name + "'!");
+            return null;
         }
 
         /// <summary>

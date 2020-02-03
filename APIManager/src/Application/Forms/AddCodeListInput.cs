@@ -66,14 +66,10 @@ namespace Plugin.Application.Forms
                     }
 
                     // Check if this is a unique name...
-                    foreach (MEAssociation assoc in this._service.AssociationList)
+                    if (this._service.FindAssociationsByEndpointProperties(name, null).Count > 0)
                     {
-                        if (assoc.Destination.EndPoint.Name == name)
-                        {
-                            errorText = "Code List name '" + name + "' is not unique, try again!";
-                            this._operValidation = false;
-                            break;
-                        }
+                        errorText = "Code List name '" + name + "' is not unique, try again!";
+                        this._operValidation = false;
                     }
                 }
             }

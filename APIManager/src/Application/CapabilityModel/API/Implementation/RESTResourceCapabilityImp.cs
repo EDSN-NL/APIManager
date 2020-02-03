@@ -492,14 +492,8 @@ namespace Plugin.Application.CapabilityModel.API
                     // Update class- and role names (but change role only if we're not an Identifier)...
                     if (this._archetype != RESTResourceCapability.ResourceArchetype.Identifier)
                     {
-                        foreach (MEAssociation assoc in Parent.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
-                        {
-                            if (assoc.Destination.EndPoint == this.CapabilityClass)
-                            {
-                                assoc.SetName(RESTUtil.GetAssignedRoleName(resource.Name), MEAssociation.AssociationEnd.Destination);
-                                break;
-                            }
-                        }
+                        MEAssociation target = Parent.CapabilityClass.FindAssociationByClassID(this._capabilityClass.ElementID, null);
+                        if (target != null) target.SetName(RESTUtil.GetAssignedRoleName(resource.Name), MEAssociation.AssociationEnd.Destination);
                         this._assignedRole = resource.Name;
                     }
                     this._capabilityClass.Name = resource.Name;
@@ -513,14 +507,8 @@ namespace Plugin.Application.CapabilityModel.API
                 if (!string.IsNullOrEmpty(resource.Description)) MEChangeLog.SetRTFDocumentation(this._capabilityClass, resource.Description);
                 string extDocClassName = context.GetConfigProperty(_DocumentationTypeClassName);
                 MEAssociation extDocAssoc = null;
-                foreach (MEAssociation assoc in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
-                {
-                    if (assoc.Destination.EndPoint.Name == extDocClassName)
-                    {
-                        extDocAssoc = assoc;
-                        break;
-                    }
-                }
+                List<MEAssociation> targetList = this._capabilityClass.FindAssociationsByEndpointProperties(extDocClassName, null);
+                if (targetList.Count > 0) extDocAssoc = targetList[0];
 
                 // If we have (new) external documentation, we use a brute-force mechanism for updates: simply delete the class if it
                 // already exists and re-create from scratch. This is probably more efficient then spending a lot of time figuring out
@@ -749,17 +737,14 @@ namespace Plugin.Application.CapabilityModel.API
 
                 // If we have an existing- and a new class and both are the same, we don't bother making changes...
                 if (newDocumentClass != null && myDocumentClass == newDocumentClass) return;
-                
+
                 // No match, locate the Business Component association and remove it...
-                foreach (MEAssociation assoc in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                MEAssociation target = this._capabilityClass.FindAssociationByClassID(myDocumentClass.ElementID, null);
+                if (target != null)
                 {
-                    if (assoc.Destination.EndPoint == myDocumentClass)
-                    {
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AssignBusinessDocument >> New association, deleting existing one...");
-                        this._capabilityClass.DeleteAssociation(assoc);
-                        this._profileSet[RESTResourceCapability._BasicProfile] = null;
-                        break;
-                    }
+                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTResourceCapabilityImp.AssignBusinessDocument >> New association, deleting existing one...");
+                    this._capabilityClass.DeleteAssociation(target);
+                    this._profileSet[RESTResourceCapability._BasicProfile] = null;
                 }
             }
 
@@ -836,14 +821,11 @@ namespace Plugin.Application.CapabilityModel.API
                 if (properties.ProfileSet.ContainsKey(key) && properties.ProfileSet[key] != this._profileSet.Values[i])
                 {
                     // Gone, locate the Business Component association and remove it...
-                    foreach (MEAssociation assoc in this._capabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+                    MEAssociation target = this._capabilityClass.FindAssociationByClassID(this._profileSet.Values[i].ElementID, null);
+                    if (target != null)
                     {
-                        if (assoc.Destination.EndPoint == this._profileSet.Values[i])
-                        {
-                            this._capabilityClass.DeleteAssociation(assoc);
-                            keysToDelete.Add(this._profileSet.Keys[i]);     // We can't delete a list while still iterating through it!
-                            break;
-                        }
+                        this._capabilityClass.DeleteAssociation(target);
+                        keysToDelete.Add(this._profileSet.Keys[i]);     // We can't delete a list while still iterating through it!
                     }
                 }
             }

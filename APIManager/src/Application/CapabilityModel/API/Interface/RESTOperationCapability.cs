@@ -33,7 +33,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// Returns Request Headers defined for this operation (if any).
         /// </summary>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the Capability.</exception>
-        internal RESTHeaderParameterCollection RequestHeaders
+        internal List<RESTHeaderParameterDescriptor> RequestHeaders
         {
             get
             {
@@ -64,6 +64,18 @@ namespace Plugin.Application.CapabilityModel.API
             get
             {
                 if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).UsePagination;
+                else throw new MissingImplementationException("RESTOperationCapabilityImp");
+            }
+        }
+
+        /// <summary>
+        /// Returns true when request header parameters are defined for this operation.
+        /// </summary>
+        internal bool UseRequestHeaders
+        {
+            get
+            {
+                if (this._imp != null) return ((RESTOperationCapabilityImp)this._imp).UseRequestHeaders;
                 else throw new MissingImplementationException("RESTOperationCapabilityImp");
             }
         }

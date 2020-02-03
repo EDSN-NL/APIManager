@@ -103,6 +103,41 @@ namespace Framework.Model
         internal abstract List<MEClass> FindAssociatedClasses(string childName, string childStereotype);
 
         /// <summary>
+        /// Returns the association that links the current class with the class specified by either classID and/or GUID. When both ID's are 
+        /// specified, we're looking for a class that has BOTH properties. Otherwise, we're looking for either the database ID or global ID (GUID).
+        /// When neither is specified, the function returns NULL. If there are multiple matches, we return the first one found.
+        /// When no associations exist, we return NULL.
+        /// </summary>
+        /// <param name="classID">Database ID of target class, use negative or 0 to skip.</param>
+        /// <param name="GUID">Global ID of target class, use NULL or empty string to skip.</param>
+        /// <returns>First matching association or NULL when no matches are found.</returns>
+        internal abstract MEAssociation FindAssociationByClassID(int classID, string GUID);
+
+        /// <summary>
+        /// Returns a list of all egress associations from the current class where the association name- and/or role matches a specified
+        /// name pattern. The class only considers "Association" type associations. When optional field 'absoluteMatch' is specified as 'true',
+        /// the names are matched exactly, otherwise we use an approximate search. Both name and role are optional. When left out, the function
+        /// returns ALL egress associations from this class.
+        /// </summary>
+        /// <param name="assocName">Must occur in the association name.</param>
+        /// <param name="assocRole">Must occur in the association role.</param>
+        /// <param name="absoluteMatch">When 'true', the names must match exactly instead of approximately.</param>
+        /// <returns>List of associations that match the search criteria.</returns>
+        internal abstract List<MEAssociation> FindAssociationsByAssociationProperties(string assocName, string assocRole, bool absoluteMatch);
+
+        /// <summary>
+        /// Returns a list of all egress associations from the current class where the endpoint name- and/or stereotype matches a specified
+        /// name pattern. The class only considers "Association" type associations. When optional field 'absoluteMatch' is specified as 'true',
+        /// the names are matched exactly, otherwise we use an approximate search. The function MUST receive either a name or a stereotype (or
+        /// both). When no valid name/stereotype is passed, an empty list is returned.
+        /// </summary>
+        /// <param name="className">Pattern for the class name.</param>
+        /// <param name="classStereotype">Pattern for the stereotype name.</param>
+        /// <param name="absoluteMatch">When 'true', the names must match exactly instead of approximately.</param>
+        /// <returns>List of associations that match specified name and/or stereotype.</returns>
+        internal abstract List<MEAssociation> FindAssociationsByEndpointProperties(string className, string classStereotype, bool absoluteMatch);
+
+        /// <summary>
         /// Composite classes are associated with a diagram that shows the class composition. This method facilitates retrieval of 
         /// an associated diagram. The function returns NULL in case no diagram is associated.
         /// </summary>

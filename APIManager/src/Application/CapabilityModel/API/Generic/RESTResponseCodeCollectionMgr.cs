@@ -31,7 +31,7 @@ namespace Plugin.Application.CapabilityModel.API
         /// Create a new Collection Manager on behalf of the specified service.
         /// </summary>
         /// <param name="thisService">Service for which we have to maintain the collection.</param>
-        internal RESTResponseCodeCollectionMgr(Service thisService) : base(thisService)
+        internal RESTResponseCodeCollectionMgr(RESTService thisService) : base(thisService)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             string collectionStereotype = context.GetConfigProperty(_RCCStereotype);

@@ -10,9 +10,9 @@ using Plugin.Application.Forms;
 namespace Plugin.Application.CapabilityModel.API
 {
     /// <summary>
-    /// Helper class that maintains a series of predefined REST response codes, which the user can use to quickly
-    /// assign consistent sets of response codes to REST operations. It is also used to maintain the list of response
-    /// codes for a given operation.
+    /// Helper class that manages a collection of Header Parameter descriptors. These are used either as lists of predefined
+    /// parameters that users can quickly re-assign to API's, or they are used to manage the list of either request- or 
+    /// response header parameters for an API (to be used by operations to request operation-specific sub-sets).
     /// </summary>
     internal sealed class RESTHeaderParameterCollection: RESTCollection
     {
@@ -23,52 +23,47 @@ namespace Plugin.Application.CapabilityModel.API
         private const string _ServiceModelPkgName                   = "ServiceModelPkgName";
         private const string _ServiceOperationPkgStereotype         = "ServiceOperationPkgStereotype";
         private const string _ServiceModelPkgStereotype             = "ServiceModelPkgStereotype";
+        private const string _HPAIDTag                              = "HPAIDTag";
+        private const string _SentinelParameterName                 = "SentinelParameterName";
 
-        private SortedList<string, RESTHeaderParameterDescriptor> _collection;    // The actual collection.
+        // We keep two index structures in order to facilitate quick retrieval of header parameters either by name or by ID. Since the entries
+        // are references to Parameter Descriptor objects, the overhead is quite small.
+        private SortedList<string, RESTHeaderParameterDescriptor> _collectionByName;    // The actual collection, indexed by name.
+        private SortedList<int, RESTHeaderParameterDescriptor> _collectionByID;         // The actual collection, indexed by parameter ID.
+        private int _nextID;                                                            // This is the first available identifier for new parameters.
+        private MEAttribute _sentinel;                                                  // We keep this around in order to quickly update sentinel value.
 
         /// <summary>
         /// Returns the list of Header Parameter Descriptors that comprises the collection.
         /// </summary>
-        internal List<RESTHeaderParameterDescriptor> Collection { get { return new List<RESTHeaderParameterDescriptor>(this._collection.Values); } }
+        internal List<RESTHeaderParameterDescriptor> Collection { get { return new List<RESTHeaderParameterDescriptor>(this._collectionByName.Values); } }
 
         /// <summary>
         /// Returns true in case header parameters are present and should be used.
         /// </summary>
-        internal bool UseHeaderParameters { get { return this._collection.Count > 0; } }
+        internal bool UseHeaderParameters { get { return this._collectionByName.Count > 0; } }
 
         /// <summary>
         /// Either loads an existing collection with specified name from the specified package, or creates a new, empty, collection
         /// in the specified package. If we find an existing collection, the collection is build from the existing class.
         /// </summary>
-        /// <param name="parent">For operation-scoped collections, this is the resource owning the operation. Must be NULL for template collections.</param>
         /// <param name="collectionName">Name to be assigned to the collection.</param>
         /// <param name="package">Package that must contain the collection. The location of the package determines the scope of the
         /// collection: if this is a ServiceModel package, the scope is 'API'. If the package is an Operation-type, the scope is 'Operation'
         /// and all others are considered 'Global'.</param>
         /// <exception cref="InvalidOperationException">Is thrown when we can't find the attribute classifier.</exception>
-        internal RESTHeaderParameterCollection(RESTResourceCapability parent, string collectionName, MEPackage package): base(parent, collectionName, package)
+        internal RESTHeaderParameterCollection(string collectionName, MEPackage package): base(collectionName, package)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection >> Creating instance '" +
                              collectionName + "' in Package '" + package.Parent.Name + "/" + package.Name + "'...");
 
             ContextSlt context = ContextSlt.GetContextSlt();
             string collectionStereotype = context.GetConfigProperty(_HPCStereotype);
-            this._collection = new SortedList<string, RESTHeaderParameterDescriptor>();
-            this._collectionClass = package.FindClass(collectionName, collectionStereotype);
-            if (this._collectionClass != null)
+            MEClass collectionClass = package.FindClass(collectionName, collectionStereotype);
+            if (collectionClass != null)
             {
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection >> Found existing collection class!");
-                InitCollectionClass();
-                string attribStereotype = context.GetConfigProperty(_HPAStereotype);
-                foreach (MEAttribute attrib in this._collectionClass.Attributes)
-                {
-                    if (attrib.HasStereotype(attribStereotype))
-                    {
-                        Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection >> Found Response Code Descriptor '" +
-                                         attrib.Name + "'...");
-                        this._collection.Add(attrib.Name, new RESTHeaderParameterDescriptor(attrib.Name, attrib.Classifier, attrib.Annotation));
-                    }
-                }
+                CreateCollectionFromClass(collectionClass);
             }
             else
             {
@@ -76,12 +71,15 @@ namespace Plugin.Application.CapabilityModel.API
                 try
                 {
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection >> No class yet, creating one...");
+                    this._collectionByName = new SortedList<string, RESTHeaderParameterDescriptor>();
+                    this._collectionByID = new SortedList<int, RESTHeaderParameterDescriptor>();
                     SetScope(CollectionScope.Global);
                     if (package.HasStereotype(context.GetConfigProperty(_ServiceOperationPkgStereotype))) SetScope(CollectionScope.Operation);
                     else if (package.Name == context.GetConfigProperty(_ServiceModelPkgName) &&
                              package.HasStereotype(context.GetConfigProperty(_ServiceModelPkgStereotype))) SetScope(CollectionScope.API);
                     LockCollection();
-                    CreateCollectionClass(collectionStereotype);
+                    CreateCollectionClass(collectionName, collectionStereotype);
+                    CreateSentinel(1);
                 }
                 finally { UnlockCollection(); }
             }
@@ -90,35 +88,22 @@ namespace Plugin.Application.CapabilityModel.API
         /// <summary>
         /// This constructor is called with an existing Collection class and initialises the collection from that class.
         /// </summary>
-        /// <param name="parent">For operation-scoped collections, this is the resource owning the operation. Must be NULL for template collections.</param>
         /// <param name="collectionClass">Collection class.</param>
         /// <exception cref="InvalidOperationException">Thrown when a collection class is passed that is not of the correct stereotype or 
         /// when we can't find the correct attribute classifier.</exception>
-        internal RESTHeaderParameterCollection(RESTResourceCapability parent, MEClass collectionClass): base(parent, collectionClass)
+        internal RESTHeaderParameterCollection(MEClass collectionClass): base(collectionClass)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection >> Creating instance from class '" +
                               collectionClass.Name + "'...");
 
             ContextSlt context = ContextSlt.GetContextSlt();
-            if (!collectionClass.HasStereotype(context.GetConfigProperty(_HPCStereotype)))
+            if (collectionClass == null || !collectionClass.HasStereotype(context.GetConfigProperty(_HPCStereotype)))
             {
-                string msg = "Attempt to create collection from class with wrong stereotype '" + collectionClass.Name + "', ignored!";
+                string msg = "Attempt to create collection from class with wrong stereotype '" + (collectionClass != null? collectionClass.Name: "--NO CLASS--") + "', ignored!";
                 Logger.WriteWarning(msg);
                 throw new InvalidOperationException(msg);
             }
-
-            InitCollectionClass();
-            this._collection = new SortedList<string, RESTHeaderParameterDescriptor>();
-            string attribStereotype = context.GetConfigProperty(_HPAStereotype);
-            foreach (MEAttribute attrib in this._collectionClass.Attributes)
-            {
-                if (attrib.HasStereotype(attribStereotype))
-                {
-                    Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection >> Found Header Param Descriptor '" +
-                                     attrib.Name + "'...");
-                    this._collection.Add(attrib.Name, new RESTHeaderParameterDescriptor(attrib.Name, attrib.Classifier, attrib.Annotation));
-                }
-            }
+            CreateCollectionFromClass(collectionClass);
         }
 
         /// <summary>
@@ -127,41 +112,46 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="parent">For non-template collections, this is the parent resource owning the collection.</param>
         /// <param name="initialScope">Contains the initial scope for the collection.</param>
-        internal RESTHeaderParameterCollection(RESTResourceCapability parent, CollectionScope initialScope = CollectionScope.Unknown): base(parent, initialScope)
+        internal RESTHeaderParameterCollection(CollectionScope initialScope = CollectionScope.Unknown): base(initialScope)
         {
             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection >> Default constructor.");
-            this._collection = new SortedList<string, RESTHeaderParameterDescriptor>();
+            this._collectionByName = new SortedList<string, RESTHeaderParameterDescriptor>();
+            this._collectionByID = new SortedList<int, RESTHeaderParameterDescriptor>();
+            this._nextID = 1;
+            this._sentinel = null;
         }
 
         /// <summary>
-        /// This function is invoked to add a new header parameter to this collection. It displays the Header Parameter Dialog, which
-        /// facilitates the user in creating a new header descriptor. When it is indeed a new result, the created descriptor is added to 
+        /// This function is invoked to add a new header parameter to this collection. It displays the Parameter Dialog, which
+        /// facilitates the user in creating a new parameter declaration. When it is indeed a new result, the created parameter is added to 
         /// the collection, otherwise the function does not perform any operations.
         /// </summary>
         /// <returns>Newly created descriptor or NULL in case of errors, duplicates or user cancel.</returns>
-        internal RESTHeaderParameterDescriptor AddHeaderParameter()
+        internal RESTHeaderParameterDescriptor AddParameter()
         {
             ContextSlt context = ContextSlt.GetContextSlt();
-            RESTHeaderParameterDescriptor newResult = new RESTHeaderParameterDescriptor(string.Empty, null, string.Empty);
-            using (var dialog = new RESTHeaderParameterDialog(newResult))
+            RESTParameterDeclaration newParam = new RESTParameterDeclaration();
+            RESTHeaderParameterDescriptor newHdrParam = null;
+            using (var dialog = new RESTParameterDialog(newParam))
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    newResult = dialog.Parameter;
-                    if (!this._collection.ContainsKey(newResult.Name))
+                    if (!this._collectionByName.ContainsKey(dialog.Parameter.Name))
                     {
-                        this._collection.Add(newResult.Name, newResult);
-                        CreateAttributeFromDescriptor(newResult);
+                        newHdrParam = new RESTHeaderParameterDescriptor(this._nextID++, dialog.Parameter);
+                        this._collectionByName.Add(newHdrParam.Name, newHdrParam);
+                        this._collectionByID.Add(newHdrParam.ID, newHdrParam);
+                        CreateAttributeFromDescriptor(newHdrParam);
+                        
+                        // Now that we have added a new parameter to the collection, we have to make sure to keep the Sentinel in sync.
+                        // In theory, the Sentinal could even be absent (i.e. on new collections) so, if we can't find it, we create a new one.
+                        if (this._sentinel != null) this._sentinel.SetTag(ContextSlt.GetContextSlt().GetConfigProperty(_HPAIDTag), this._nextID.ToString(), true);
+                        else CreateSentinel(this._nextID);
                     }
-                    else
-                    {
-                        MessageBox.Show("Duplicate header parameter, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        newResult = null;
-                    }
+                    else MessageBox.Show("Duplicate header parameter, please try again!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-                else newResult = null;
             }
-            return newResult;
+            return newHdrParam;
         }
 
         /// <summary>
@@ -170,37 +160,56 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         /// <param name="template">Descriptor to be copied into our collection.</param>
         /// <returns>The newly added descriptor or null on duplicate.</returns>
-        internal RESTHeaderParameterDescriptor AddHeaderParameter(RESTHeaderParameterDescriptor template)
+        internal RESTHeaderParameterDescriptor AddParameter(RESTHeaderParameterDescriptor template)
         {
-            RESTHeaderParameterDescriptor newDesc = null;
+            RESTHeaderParameterDescriptor newHdrParam = null;
             if (template.IsValid)
             {
-                newDesc = new RESTHeaderParameterDescriptor(template);
-                if (!this._collection.ContainsKey(newDesc.Name))
+                if (!this._collectionByName.ContainsKey(template.Name))
                 {
-                    this._collection.Add(newDesc.Name, newDesc);
-                    CreateAttributeFromDescriptor(newDesc);
+                    newHdrParam = new RESTHeaderParameterDescriptor(this._nextID++, template);
+                    this._collectionByName.Add(newHdrParam.Name, newHdrParam);
+                    this._collectionByID.Add(newHdrParam.ID, newHdrParam);
+                    CreateAttributeFromDescriptor(newHdrParam);
+
+                    // Now that we have added a new parameter to the collection, we have to make sure to keep the Sentinel in sync.
+                    // In theory, the Sentinal could even be absent (i.e. on new collections) so, if we can't find it, we create a new one.
+                    if (this._sentinel != null) this._sentinel.SetTag(ContextSlt.GetContextSlt().GetConfigProperty(_HPAIDTag), this._nextID.ToString(), true);
+                    else CreateSentinel(this._nextID);
+
                 }
-                else
-                {
-                    Logger.WriteWarning("Attempt to add duplicate header parameter '" + newDesc.Name + "' to collection '" + Name + "' ignored!");
-                    newDesc = null;
-                }
+                else Logger.WriteWarning("Attempt to add duplicate header parameter '" + template.Name + "' to collection '" + Name + "' ignored!");
             }
-            return newDesc;
+            return newHdrParam;
         }
 
         /// <summary>
-        /// Creates a deep copy of the specified parameter collection to the current collection.
+        /// Creates a deep copy of the specified parameter sets to the current collection where all copied parameters keep their original ID. 
+        /// When a collection class is already present, this is cleared and re-initialized. We also re-establish a new maximum ID number, 
+        /// independent of the copied collection.
         /// </summary>
         /// <param name="other">The collection to copy from.</param>
         internal void CopyCollection(RESTHeaderParameterCollection other)
         {
-            this._collection = new SortedList<string, RESTHeaderParameterDescriptor>();
-            foreach (RESTHeaderParameterDescriptor otherDesc in other._collection.Values)
+            this._collectionByName = new SortedList<string, RESTHeaderParameterDescriptor>();
+            this._collectionByID = new SortedList<int, RESTHeaderParameterDescriptor>();
+            int maxID = 0;
+
+            // If we already own a valid collection class, we remove all the attributes first and then replace them with the copied ones...
+            // Note that this will also delete the Sentinel since we delete ALL attributes...
+            if (CollectionClass != null) foreach (MEAttribute att in CollectionClass.Attributes) CollectionClass.DeleteAttribute(att);
+            
+            foreach (RESTHeaderParameterDescriptor otherDesc in other._collectionByName.Values)
             {
-                this._collection.Add(otherDesc.Name, new RESTHeaderParameterDescriptor(otherDesc.Name, otherDesc.Classifier, otherDesc.Description));
+                RESTHeaderParameterDescriptor newEntry = new RESTHeaderParameterDescriptor(otherDesc.ID, otherDesc);
+                this._collectionByName.Add(newEntry.Name, newEntry);
+                this._collectionByID.Add(newEntry.ID, newEntry);
+                if (newEntry.ID > maxID) maxID = newEntry.ID;
+                CreateAttributeFromDescriptor(newEntry);
             }
+
+            this._nextID = maxID + 1;
+            CreateSentinel(this._nextID); 
         }
 
         /// <summary>
@@ -209,32 +218,37 @@ namespace Plugin.Application.CapabilityModel.API
         /// </summary>
         internal override void DeleteCollection()
         {
-            base.DeleteCollection();                                                    // Removes the UML registration by deleting the class and clearing the name.
-            this._collection = new SortedList<string, RESTHeaderParameterDescriptor>(); // Releases the original collection and creates a new one.
+            base.DeleteCollection();                    // Removes the UML registration by deleting the class and clearing the name.
+            this._collectionByName = new SortedList<string, RESTHeaderParameterDescriptor>();
+            this._collectionByID = new SortedList<int, RESTHeaderParameterDescriptor>();
+            this._nextID = 1;
+            this._sentinel = null;
         }
 
         /// <summary>
-        /// Deletes the header parameter with the specified name from the collection.
+        /// Deletes the header parameter with the specified name from the collection. Note that this has no effect on the Sentinel since
+        /// removed ID's will not be re-used!
         /// </summary>
         /// <param name="name">Parameter to be deleted.</param>
         /// <returns>True when actually deleted the parameter, false when parameter was not found in the collection.</returns>
-        internal bool DeleteHeaderParameter(string name)
+        internal bool DeleteParameter(string name)
         {
-            if (!this._collection.ContainsKey(name)) return false;
-            if (this._collectionClass != null)
+            if (!this._collectionByName.ContainsKey(name)) return false;
+            if (CollectionClass != null)
             {
-                foreach (MEAttribute attrib in this._collectionClass.Attributes)
+                foreach (MEAttribute attrib in CollectionClass.Attributes)
                 {
                     if (attrib.Name == name)
                     {
                         LockCollection();
-                        this._collectionClass.DeleteAttribute(attrib);
+                        CollectionClass.DeleteAttribute(attrib);
                         UnlockCollection();
                         break;
                     }
                 }
             }
-            this._collection.Remove(name);
+            this._collectionByID.Remove(this._collectionByName[name].ID);
+            this._collectionByName.Remove(name);
             return true;
         }
 
@@ -244,135 +258,173 @@ namespace Plugin.Application.CapabilityModel.API
         /// it (still) has a unique name.
         /// </summary>
         /// <returns>Updated result record or NULL in case of errors or duplicates or user cancel.</returns>
-        /// <exception cref="ArgumentException">Thrown when the received name does not match an existing header parameter.</exception>
-        internal RESTHeaderParameterDescriptor EditHeaderParameter(string name)
+        internal RESTHeaderParameterDescriptor EditParameter(string name)
         {
-            RESTHeaderParameterDescriptor currentDesc = this._collection.ContainsKey(name) ? this._collection[name] : null;
-            RESTHeaderParameterDescriptor editDesc = null;
+            RESTHeaderParameterDescriptor currentDesc = this._collectionByName.ContainsKey(name) ? this._collectionByName[name] : null;
+            RESTHeaderParameterDescriptor newDesc = null;
 
+            // If the descriptor is null, the attribute has probably been removed from the global collection and we should do the same.
             if (currentDesc != null)
             {
                 // Create a (temporary) copy so we can properly detect changes...
-                using (var dialog = new RESTHeaderParameterDialog(new RESTHeaderParameterDescriptor(currentDesc)))
+                using (var dialog = new RESTParameterDialog(new RESTParameterDeclaration(currentDesc.Parameter)))
                 {
                     if (dialog.ShowDialog() == DialogResult.OK)
                     {
+                        newDesc = new RESTHeaderParameterDescriptor(currentDesc.ID, dialog.Parameter);
                         // If the name has not been changed, or changed to a still unique name, insert the new descriptor in the collection...
                         if (dialog.Parameter.Name == currentDesc.Name)
                         {
-                            UpdateAttributeFromDescriptor(currentDesc, dialog.Parameter);
-                            this._collection[name] = dialog.Parameter;
-                            editDesc = dialog.Parameter;
+                            UpdateAttributeFromDescriptor(currentDesc, newDesc);
+                            this._collectionByName[name] = newDesc;
+                            this._collectionByID[newDesc.ID] = newDesc;
                         }
-                        else if (!this._collection.ContainsKey(dialog.Parameter.Name))
+                        else if (!this._collectionByName.ContainsKey(dialog.Parameter.Name))
                         {
-                            UpdateAttributeFromDescriptor(currentDesc, dialog.Parameter);
-                            this._collection.Remove(name);
-                            this._collection.Add(dialog.Parameter.Name, dialog.Parameter);
-                            editDesc = dialog.Parameter;
+                            UpdateAttributeFromDescriptor(currentDesc, newDesc);
+                            this._collectionByName.Remove(name);
+                            this._collectionByID.Remove(newDesc.ID);
+                            this._collectionByName.Add(newDesc.Name, newDesc);
+                            this._collectionByID.Add(newDesc.ID, newDesc);
                         }
                         else // We have renamed the parameter to an existing parameter, error!
                         {
                             MessageBox.Show("Changing parameter name resulted in duplicate name, please try again!",
                                             "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            editDesc = null;
                         }
                     }
-                    else editDesc = null;
                 }
-            }
-            else
+            }  
+            return newDesc;
+        }
+
+        /// <summary>
+        /// Searches the list of parameter descriptors and returns a list of all descriptors matching ID's from the IDList. This must be a comma-separated
+        /// list of identifiers. All ID's that do not yield a value are simply skipped, so the caller has to check whether all requested ID's have indeed
+        /// been returned.
+        /// </summary>
+        /// <param name="KeyList">List of parameter ID's.</param>
+        /// <returns>List of parameter descriptors that match the specified ID.</returns>
+        internal List<RESTHeaderParameterDescriptor> FindParametersByID(List<int> KeyList)
+        {
+            List<RESTHeaderParameterDescriptor> values = new List<RESTHeaderParameterDescriptor>();
+            foreach (int key in KeyList)
             {
-                string msg = "Plugin.Application.CapabilityModel.API.RESTResponseCodeCollection.EditOperationResult >> Can't find existing attribute '" + this._collectionClass.Name + "." + name + "'!";
-                Logger.WriteError(msg);
-                throw new ArgumentException(msg);
+                try
+                {
+                    values.Add(this._collectionByID[key]);
+                }
+                catch (KeyNotFoundException) { /* Skip any missing keys. */ }
             }
-            return editDesc;
+            return values;
+        }
+
+        /// <summary>
+        /// Returns a parameter descriptor for the parameter with the specified ID.
+        /// </summary>
+        /// <param name="parameterID">Identifier of parameter to retrieve.</param>
+        /// <returns>Descriptor or NULL when not in collection.</returns>
+        internal RESTHeaderParameterDescriptor GetParameter(int parameterID)
+        {
+            return this._collectionByID.ContainsKey(parameterID) ? this._collectionByID[parameterID] : null;
+        }
+
+        /// <summary>
+        /// Returns a parameter descriptor for the parameter with the specified name.
+        /// </summary>
+        /// <param name="parameterName">Name of parameter to retrieve.</param>
+        /// <returns>Descriptor or NULL when not in collection.</returns>
+        internal RESTHeaderParameterDescriptor GetParameter(string parameterName)
+        {
+            return this._collectionByName.ContainsKey(parameterName) ? this._collectionByName[parameterName] : null;
+        }
+
+        /// <summary>
+        /// Returns true when the collection contains a header parameter with the specified name.
+        /// </summary>
+        /// <param name="parameterName">Name of parameter to check.</param>
+        /// <returns>True when present in collection, false otherwise.</returns>
+        internal bool HasParameter(string parameterName)
+        {
+            return this._collectionByName.ContainsKey(parameterName);
+        }
+
+        /// <summary>
+        /// Returns true when the collection contains a header parameter with the specified ID.
+        /// </summary>
+        /// <param name="parameterID">ID of parameter to check.</param>
+        /// <returns>True when present in collection, false otherwise.</returns>
+        internal bool HasParameter(int parameterID)
+        {
+            return this._collectionByID.ContainsKey(parameterID);
         }
 
         /// <summary>
         /// This method can be used to synchronize the collection with the contents of another one. On return, our collection contains only
         /// the attributes that are present in 'newContents'.
         /// </summary>
-        /// <param name="newContents"></param>
+        /// <param name="newContents">The collection to copy attributes from.</param>
         internal void UpdateCollection(RESTHeaderParameterCollection newContents)
         {
             // Check what we currently have in our UML class (if any)...
             List<string> classAttribs = new List<string>();
-            if (this._collectionClass != null) foreach (MEAttribute attrib in this._collectionClass.Attributes) classAttribs.Add(attrib.Name);
+            if (CollectionClass != null) foreach (MEAttribute attrib in CollectionClass.Attributes) classAttribs.Add(attrib.Name);
 
             // first of all, check what has been added or changed...
             foreach (RESTHeaderParameterDescriptor newParm in newContents.Collection)
             {
-                // First of all, we either append to- or update the local collection...
-                if (this._collection.ContainsKey(newParm.Name)) this._collection[newParm.Name] = newParm;
-                else this._collection.Add(newParm.Name, newParm);
-
-                // And next, we do the same for the UML class (if present)...
-                if (classAttribs.Contains(newParm.Name)) UpdateAttributeFromDescriptor(this._collection[newParm.Name], newParm);
+                // First of all, we either append to- or update the local collection.
+                // Note that update has no effect on the Sentinel since the ID does not change.
+                if (this._collectionByName.ContainsKey(newParm.Name))
+                {
+                    this._collectionByName[newParm.Name] = newParm;
+                    this._collectionByID[newParm.ID] = newParm;
+                    if (classAttribs.Contains(newParm.Name)) UpdateAttributeFromDescriptor(newParm, newParm);
+                }
                 else
                 {
-                    CreateAttributeFromDescriptor(newParm);
-                    classAttribs.Add(newParm.Name);
+                    // When the new parameter is not yet in the collection, we have to add it using a new ID...
+                    var newDesc = new RESTHeaderParameterDescriptor(this._nextID++, newParm);
+                    this._collectionByName.Add(newDesc.Name, newDesc);
+                    this._collectionByID.Add(newDesc.ID, newDesc);
+
+                    CreateAttributeFromDescriptor(newDesc);
+                    classAttribs.Add(newDesc.Name);
+
+                    // Now that we have added a new parameter to the collection, we have to make sure to keep the Sentinel in sync.
+                    // In theory, the Sentinel could even be absent (i.e. on new collections) so, if we can't find it, we create a new one.
+                    if (this._sentinel != null) this._sentinel.SetTag(ContextSlt.GetContextSlt().GetConfigProperty(_HPAIDTag), this._nextID.ToString(), true);
+                    else CreateSentinel(this._nextID);
                 }
             }
 
             // Next, check what has been deleted...
             List<string> nameList = new List<string>(); // We can't delete while iterating, so collect the things to be deleted...
-            foreach (RESTHeaderParameterDescriptor myParm in this._collection.Values)
+            foreach (RESTHeaderParameterDescriptor myParm in this._collectionByName.Values)
             {
                 if (!newContents.Collection.Contains(myParm)) nameList.Add(myParm.Name);
             }
             try
             {
-                if (this._collectionClass != null) LockCollection();
+                if (CollectionClass != null) LockCollection();
                 foreach (string delKey in nameList)
                 {
-                    if (this._collectionClass != null)
+                    if (CollectionClass != null)
                     {
-                        foreach (MEAttribute attrib in this._collectionClass.Attributes)
+                        foreach (MEAttribute attrib in CollectionClass.Attributes)
                         {
                             if (attrib.Name == delKey)
                             {
-                                this._collectionClass.DeleteAttribute(attrib);
+                                CollectionClass.DeleteAttribute(attrib);
                                 break;
                             }
                         }
                     }
-                    this._collection.Remove(delKey);
+                    this._collectionByID.Remove(this._collectionByName[delKey].ID);
+                    this._collectionByName.Remove(delKey);
                 }
             }
-            finally { if (this._collectionClass != null) UnlockCollection(); }
-        }
-
-        /// <summary>
-        /// Helper function that saves the specified descriptor as an attribute of the collection UML class. 
-        /// Context must have been checked earlier, i.e. we assume that this is indeed a new attribute. The function does NOT perform
-        /// any operations in case we don't (yet) have an UML class that can be used to persist the descriptor.
-        /// </summary>
-        /// <param name="desc">Descriptor to be converted into an attribute.</param>
-        /// <exception cref="InvalidOperationException">Thrown when we could not create the attribute.</exception>
-        private void CreateAttributeFromDescriptor(RESTHeaderParameterDescriptor desc)
-        {
-            if (this._collectionClass == null) return;
-
-            ContextSlt context = ContextSlt.GetContextSlt();
-
-            // Create an attribute of type 'unknown', which implies that the stereotype is left empty. This way, we can
-            // assign our specific 'RCDStereotype' afterwards...
-            MEAttribute newAttrib = this._collectionClass.CreateAttribute(desc.Name, desc.Classifier, AttributeType.Unknown, null, 
-                                                                          new Cardinality(Cardinality._Mandatory),
-                                                                          false, desc.Description);
-            if (newAttrib != null)
-            {
-                newAttrib.AddStereotype(context.GetConfigProperty(_HPAStereotype));
-            }
-            else
-            {
-                string message = "Unable to create attribute '" + desc.Name + "' in collection '" + Name + "'!";
-                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection.CreateAttributeFromDescriptor >> " + message);
-                throw new InvalidOperationException(message);
-            }
+            finally { if (CollectionClass != null) UnlockCollection(); }
         }
 
         /// <summary>
@@ -389,7 +441,7 @@ namespace Plugin.Application.CapabilityModel.API
             if (OwningPackage != null)
             {
                 // First of all, check spurious name assignments (nothing to do in that case)...
-                if (this._collectionClass != null && this._collectionClass.Name == name) return;
+                if (CollectionClass != null && CollectionClass.Name == name) return;
 
                 try
                 {
@@ -399,39 +451,43 @@ namespace Plugin.Application.CapabilityModel.API
                     if (myClass == null)
                     {
                         // Check whether we already own a class (with another name)...
-                        if (this._collectionClass != null)
+                        if (CollectionClass != null)
                         {
                             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection.SetName >> Existing class with name '" +
-                                             this._collectionClass.Name + "', rename to '" + name + "'...");
-                            this._collectionClass.Name = name;
+                                             CollectionClass.Name + "', rename to '" + name + "'...");
+                            CollectionClass.Name = name;
                         }
                         else
                         {
                             Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection.SetName >> No class yet, creating one...");
                             try
                             {
-                                CreateCollectionClass(collectionStereotype);
-                                if (this._collection.Count > 0)
+                                CreateCollectionClass(name, collectionStereotype);
+                                if (this._collectionByName.Count > 0)
                                 {
                                     Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection.SetName >> We already have some attributes, move to new class...");
-                                    foreach (RESTHeaderParameterDescriptor desc in this._collection.Values) CreateAttributeFromDescriptor(desc);
+                                    foreach (RESTHeaderParameterDescriptor desc in this._collectionByName.Values) CreateAttributeFromDescriptor(desc);
                                 }
+                                CreateSentinel(this._nextID);
                             }
                             catch (Exception exc)
                             {
-                                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection.SetName >> Error creating class '" + 
+                                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection.SetName >> Error creating class '" +
                                                   name + "' because:" + Environment.NewLine + exc.ToString());
                             }
                         }
                     }
                     else
                     {
-                        // Class already exists, but we don't know about it (yet). Associate with the class and add all attributes that are not yet
-                        // serialized...
-                        this._collectionClass = myClass;
-                        List<string> attribNames = new List<string>();
-                        foreach (MEAttribute attrib in myClass.Attributes) attribNames.Add(attrib.Name);
-                        foreach (RESTHeaderParameterDescriptor desc in this._collection.Values) if (!attribNames.Contains(desc.Name)) CreateAttributeFromDescriptor(desc);
+                        // Remove all contents from the existing class so we can replace this by our current set of attributes.
+                        foreach (MEAttribute att in myClass.Attributes) myClass.DeleteAttribute(att);
+
+                        // Class already exists, but we don't know about it (yet). Associate with the class and replace its contents by my attributes...
+                        InitCollectionClass(myClass);
+
+                        // Now, copy all our current attributes to the class and create a Sentinel (the original one has been deleted above.
+                        foreach (RESTHeaderParameterDescriptor paramDesc in this._collectionByName.Values) CreateAttributeFromDescriptor(paramDesc);
+                        CreateSentinel(this._nextID);
                     }
                 }
                 finally
@@ -443,6 +499,123 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
+        /// Helper function that saves the specified descriptor as an attribute of the collection UML class. 
+        /// Context must have been checked earlier, i.e. we assume that this is indeed a new attribute. The function does NOT perform
+        /// any operations in case we don't (yet) have an UML class that can be used to persist the descriptor.
+        /// </summary>
+        /// <param name="desc">Descriptor to be converted into an attribute.</param>
+        /// <exception cref="InvalidOperationException">Thrown when we could not create the attribute.</exception>
+        private void CreateAttributeFromDescriptor(RESTHeaderParameterDescriptor desc)
+        {
+            if (CollectionClass == null) return;
+
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string stereotype = context.GetConfigProperty(_HPAStereotype);
+            string IDTag = context.GetConfigProperty(_HPAIDTag);
+
+            MEAttribute newAttrib = RESTParameterDeclaration.ConvertToAttribute(CollectionClass, desc.Parameter, stereotype);
+            if (newAttrib != null)
+            {
+                newAttrib.SetTag(IDTag, desc.ID.ToString());
+            }
+            else
+            {
+                string message = "Unable to create attribute '" + desc.Name + "' in collection '" + Name + "'!";
+                Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection.CreateAttributeFromDescriptor >> " + message);
+                throw new InvalidOperationException(message);
+            }
+        }
+
+        /// <summary>
+        /// Helper function that initializes the collection from a given collection class. All properties are initialized and loaded from the class.
+        /// </summary>
+        /// <param name="collectionClass">Class to be used for initialization.</param>
+        private void CreateCollectionFromClass(MEClass collectionClass)
+        {
+            ContextSlt context = ContextSlt.GetContextSlt();
+            string sentinelName = context.GetConfigProperty(_SentinelParameterName);
+            this._collectionByName = new SortedList<string, RESTHeaderParameterDescriptor>();
+            this._collectionByID = new SortedList<int, RESTHeaderParameterDescriptor>();
+            this._sentinel = null;
+            int maxID = 0;
+            if (collectionClass != null)
+            {
+                Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection.CreateCollectionFromClass >> Using class '" +
+                                 collectionClass.Name + "' to load collection...");
+                InitCollectionClass(collectionClass);
+                string attribStereotype = context.GetConfigProperty(_HPAStereotype);
+                string IDTagName = context.GetConfigProperty(_HPAIDTag);
+                foreach (MEAttribute attrib in collectionClass.Attributes)
+                {
+                    if (attrib.HasStereotype(attribStereotype))
+                    {
+                        if (attrib.Name != sentinelName)
+                        {
+                            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection >> Found Header Parameter Descriptor '" +
+                                             attrib.Name + "'...");
+                            int attribID;
+                            if (int.TryParse(attrib.GetTag(IDTagName), out attribID))
+                            {
+                                var newParam = new RESTHeaderParameterDescriptor(attribID, attrib);
+                                this._collectionByName.Add(attrib.Name, newParam);
+                                this._collectionByID.Add(attribID, newParam);
+                                if (attribID > maxID) maxID = attribID;
+                            }
+                            else Logger.WriteWarning("Unable to retrieve valid Header Parameter ID from collection attribute'" +
+                                                     Name + "." + attrib.Name + "'!");
+                        }
+                        else
+                        {
+                            // The Sentinel attribute is used solely to keep track of ID's. It holds the 'next available' ID in the collection.
+                            Logger.WriteInfo("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection >> Found our Sentinel!");
+                            int attribID;
+                            if (int.TryParse(attrib.GetTag(IDTagName), out attribID))
+                            {
+                                this._sentinel = attrib;
+                                this._nextID = attribID;
+                            }
+                        }
+                    }
+                }
+
+                // Next, we check whether we encountered the Sentinel. If not, we create a new one...
+                if (this._sentinel == null)
+                {
+                    LockCollection();
+                    Logger.WriteWarning("Collection '" + Name + "' is missing it's Sentinel, creating new one with ID '" + maxID + 1 + "'!");
+                    CreateSentinel(maxID + 1);
+                    UnlockCollection();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Helper function that creates a new sentinel attribute in our collection class. It initializes this._nextID and this._sentinel.
+        /// When we already have a sentinel reference, the function does not perform any operations!
+        /// When the collection class is not (yet) present, the function does not perform any operations!
+        /// </summary>
+        /// <param name="startID">ID that must be assigned to the Sentinel.</param>
+        private void CreateSentinel(int startID)
+        {
+            if (this._sentinel == null && CollectionClass != null)
+            {
+                ContextSlt context = ContextSlt.GetContextSlt();
+                string sentinelName = context.GetConfigProperty(_SentinelParameterName);
+                string IDTagName = context.GetConfigProperty(_HPAIDTag);
+                this._nextID = startID;
+                this._sentinel = CollectionClass.CreateAttribute(sentinelName, null, AttributeType.Unknown, null,
+                                                                 new Cardinality(Cardinality._Mandatory),
+                                                                 false, "Sentinel Attribute, do not touch!");
+                if (this._sentinel != null)
+                {
+                    this._sentinel.AddStereotype(context.GetConfigProperty(_HPAStereotype));
+                    this._sentinel.SetTag(IDTagName, this._nextID.ToString(), true);
+                }
+                else Logger.WriteError("Plugin.Application.CapabilityModel.API.RESTHeaderParameterCollection.CreateSentinel >> Unable to create Sentinel attribute in collection '" + Name + "'!");
+            }
+        }
+
+        /// <summary>
         /// Helper function that is called when the user has edited an existing Header Parameter Descriptor. The function
         /// locates the original attribute and replaces this with data from the new descriptor.
         /// </summary>
@@ -450,17 +623,16 @@ namespace Plugin.Application.CapabilityModel.API
         /// <param name="newDesc">The new descriptor, created by the user.</param>
         private void UpdateAttributeFromDescriptor(RESTHeaderParameterDescriptor oldDesc, RESTHeaderParameterDescriptor newDesc)
         {
-            if (this._collectionClass == null) return;      // ignore in case we have not serialized our collection yet.
+            if (CollectionClass == null) return;      // ignore in case we have not serialized our collection yet.
 
             ContextSlt context = ContextSlt.GetContextSlt();
-            foreach (MEAttribute attrib in this._collectionClass.Attributes)
+            foreach (MEAttribute attrib in CollectionClass.Attributes)
             {
                 if (attrib.Name == oldDesc.Name)
                 {
                     LockCollection();
-                    attrib.Name = newDesc.Name;
-                    attrib.Annotation = newDesc.Description;
-                    attrib.Classifier = newDesc.Classifier;
+                    CollectionClass.DeleteAttribute(attrib);    // Get rid of the old one and create new one...
+                    CreateAttributeFromDescriptor(newDesc);
                     UnlockCollection();
                     break;
                 }

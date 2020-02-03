@@ -364,22 +364,27 @@ namespace Plugin.Application.CapabilityModel.API
             this._status = fromThis._status;
     }
 
-    /// <summary>
-    /// A static helper function that transforms the Parameter declaration to an attribute of the specified class. Depending on the status
-    /// of the parameter, an attribute is created, removed or replaced in the parent class.
-    /// </summary>
-    /// <param name="parent">Class in which we're going to create the attribute.</param>
-    /// <param name="param">The parameter declaration to transform.</param>
-    /// <returns>Created attribute or NULL in case of errors.</returns>
-    internal static MEAttribute ConvertToAttribute(MEClass parent, RESTParameterDeclaration param)
+        /// <summary>
+        /// A static helper function that transforms the Parameter declaration to an attribute of the specified class. Depending on the status
+        /// of the parameter, an attribute is created, removed or replaced in the parent class.
+        /// </summary>
+        /// <param name="parent">Class in which we're going to create the attribute.</param>
+        /// <param name="param">The parameter declaration to transform.</param>
+        /// <param name="stereotype">Optional stereotype to assign to the attribute. When specified, this replaces the default stereotype for the
+        /// attribute (which is RESTParameter).</param>
+        /// <returns>Created attribute or NULL in case of errors.</returns>
+        internal static MEAttribute ConvertToAttribute(MEClass parent, RESTParameterDeclaration param, string stereotype = null)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             MEAttribute newAttrib = null;
+            string attribStereotype = string.IsNullOrEmpty(stereotype) ? context.GetConfigProperty(_RESTParameterStereotype) : stereotype;
             // Note that an Enumeration is also a MEDataType, so this would cover both flavors...
-            if (param.Classifier is MEDataType && param.Status == DeclarationStatus.Created)
+            if (param.Classifier is MEDataType && param.Status == DeclarationStatus.Created || param.Status == DeclarationStatus.Stable)
             {
-                newAttrib = parent.CreateAttribute(param.Name, (MEDataType)param.Classifier, AttributeType.Attribute, param.Default, param.Cardinality, false);
-                newAttrib.AddStereotype(context.GetConfigProperty(_RESTParameterStereotype));
+                newAttrib = parent.CreateAttribute(param.Name, (MEDataType)param.Classifier,
+                                                   AttributeType.Unknown,
+                                                   param.Default, param.Cardinality, false);
+                newAttrib.AddStereotype(attribStereotype);
                 newAttrib.SetTag(context.GetConfigProperty(_ParameterScopeTag), param._scope.ToString(), true);
                 newAttrib.SetTag(context.GetConfigProperty(_CollectionFormatTag), param._collectionFormat.ToString(), true);
                 newAttrib.SetTag(context.GetConfigProperty(_AllowEmptyParameterValueTag), param._allowEmptyValue.ToString(), true);
@@ -404,8 +409,10 @@ namespace Plugin.Application.CapabilityModel.API
                     if (attrib.Name == param.Name)
                     {
                         parent.DeleteAttribute(attrib);
-                        newAttrib = parent.CreateAttribute(param.Name, (MEDataType)param.Classifier, AttributeType.Attribute, param.Default, param.Cardinality, false);
-                        newAttrib.AddStereotype(context.GetConfigProperty(_RESTParameterStereotype));
+                        newAttrib = parent.CreateAttribute(param.Name, (MEDataType)param.Classifier,
+                                                           AttributeType.Unknown,
+                                                           param.Default, param.Cardinality, false);
+                        newAttrib.AddStereotype(attribStereotype);
                         newAttrib.SetTag(context.GetConfigProperty(_ParameterScopeTag), param._scope.ToString(), true);
                         newAttrib.SetTag(context.GetConfigProperty(_CollectionFormatTag), param._collectionFormat.ToString(), true);
                         newAttrib.SetTag(context.GetConfigProperty(_AllowEmptyParameterValueTag), param._allowEmptyValue.ToString(), true);
@@ -420,14 +427,14 @@ namespace Plugin.Application.CapabilityModel.API
                     // non-existing attribute actually means that we want to create it. Anyway, it has a valid status and is not present in the
                     // class, so change to 'Created' and re-invoke the method...
                     param.Status = DeclarationStatus.Created;
-                    return ConvertToAttribute(parent, param);
+                    return ConvertToAttribute(parent, param, stereotype);
                 }
             }
-            
+
             // Parameters of type Class must be treated differently since an attribute can only be a simple type!
             if (!(param.Classifier is MEDataType) && !(param.Classifier is MEEnumeratedType))
             {
-                Logger.WriteWarning("Attempt to convert class-based attribute '" + 
+                Logger.WriteWarning("Attempt to convert class-based attribute '" +
                                     param.Name + "' to an attribute of class '" + parent.Name + "' is not supported!");
             }
             return newAttrib;

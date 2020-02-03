@@ -350,16 +350,13 @@ namespace Plugin.Application.CapabilityModel.API
             this._externalDocDescription = string.Empty;
             this._externalDocURL = string.Empty;
             string docClassName = ContextSlt.GetContextSlt().GetConfigProperty(_DocumentationTypeClassName);
-            foreach (MEAssociation assoc in resource.CapabilityClass.TypedAssociations(MEAssociation.AssociationType.MessageAssociation))
+            List<MEAssociation> docClasses = resource.CapabilityClass.FindAssociationsByEndpointProperties(docClassName, null);
+            if (docClasses.Count > 0)   // Should be only one.
             {
-                if (assoc.Destination.EndPoint.Name == docClassName)
+                foreach (MEAttribute attrib in docClasses[0].Destination.EndPoint.Attributes)
                 {
-                    foreach (MEAttribute attrib in assoc.Destination.EndPoint.Attributes)
-                    {
-                        if (attrib.Name == RESTResourceCapabilityImp._DescriptionAttribute) this._externalDocDescription = attrib.FixedValue;
-                        else if (attrib.Name == RESTResourceCapabilityImp._URLAttribute) this._externalDocURL = attrib.FixedValue;
-                    }
-                    break;
+                    if (attrib.Name == RESTResourceCapabilityImp._DescriptionAttribute) this._externalDocDescription = attrib.FixedValue;
+                    else if (attrib.Name == RESTResourceCapabilityImp._URLAttribute) this._externalDocURL = attrib.FixedValue;
                 }
             }
 
@@ -395,7 +392,7 @@ namespace Plugin.Application.CapabilityModel.API
             if (this._parent is RESTResourceCapability) parentResource = this._parent as RESTResourceCapability;
 
             var newOperation = new RESTOperationDeclaration(parentResource, string.Empty, new HTTPOperation(HTTPOperation.Type.Unknown));
-            using (var dialog = new RESTOperationDialog(this._parent.RootService, newOperation, this))
+            using (var dialog = new RESTOperationDialog((RESTService)this._parent.RootService, newOperation, this))
             {
                 dialog.DisableMinorVersion();
                 if (dialog.ShowDialog() == DialogResult.OK)
@@ -607,7 +604,7 @@ namespace Plugin.Application.CapabilityModel.API
             HTTPOperation originalOperation = this._operationList[originalKey].OperationType;
             if (operation != null)
             {
-                using (var dialog = new RESTOperationDialog(this._parent.RootService, operation, this))
+                using (var dialog = new RESTOperationDialog((RESTService)this._parent.RootService, operation, this))
                 {
                     dialog.DisableMinorVersion();
                     if (dialog.ShowDialog() == DialogResult.OK)
