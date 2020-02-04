@@ -365,8 +365,14 @@ namespace Plugin.Application.CapabilityModel.API
                 // When we discovered a list of deprecated response capabilities, we will transform these into the new structure.
                 // The transformation immediately creates the correct header structures, so we don't have to perform a separate
                 // header transformation in this case. 
-                if (deprecatedResponseClasses != null) TransformResponseStructure(deprecatedResponseClasses, transformHeaders);
-                else if (transformHeaders)             TransformHeaderStructure();
+                if (deprecatedResponseClasses != null) TransformResponseStructure(deprecatedResponseClasses);
+
+                if (transformHeaders)
+                {
+                    // We're not going to attempt header parameter transformation since this might lead to undesired use of parameters. User is warned
+                    // to review header requirements instead (after which, headers must be (re-)assigned manually).
+                    Logger.WriteWarning("Operation '" + Name + "' contained a header flag, please review header parameter requiremens and re-define headers!");
+                }
                 else
                 {
                     // Normal structure, read our list of request header ID's...
@@ -673,79 +679,12 @@ namespace Plugin.Application.CapabilityModel.API
         }
 
         /// <summary>
-        /// Helper method that takes the old header parameter classes and creates request- and response headers according to the new structure. 
-        /// The method assumes that at least the response code structure adheres to current standards.
-        /// When we can't find the 'old' header template classes, the method performs no actions!
-        /// </summary>
-        private void TransformHeaderStructure()
-        {
-            ContextSlt context = ContextSlt.GetContextSlt();
-            ModelSlt model = ModelSlt.GetModelSlt();
-            MEClass requestParamClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
-                                                        context.GetConfigProperty(_RequestHdrParamClassName));
-            MEClass responseParamClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
-                                                         context.GetConfigProperty(_ResponseHdrParamClassName));
-            RESTServiceHeaderParameterMgr paramManager = ((RESTService)this._parent.RootService).HeaderManager;
-            this._requestHeaderCollection = new List<int>();
-            List<RESTHeaderParameterDescriptor> responseHDRList = new List<RESTHeaderParameterDescriptor>();
-            string newIDList = string.Empty;
-            bool firstOne;
-
-            Logger.WriteWarning("Detected a deprecated header structure for operation '" + Name + "'; updating model structure in progress!");
-
-            // First, we create the request headers...
-            if (requestParamClass != null)
-            {
-                firstOne = true;
-                foreach (MEAttribute attrib in requestParamClass.Attributes)
-                {
-                    RESTHeaderParameterDescriptor paramDesc = paramManager.GetParameter(RESTServiceHeaderParameterMgr.Scope.Request, attrib.Name);
-                    if (paramDesc == null)
-                    {
-                        // New parameter, not yet known to API collection. Let's add it. Note that the ID passed in the request is a dummy ID, which
-                        // will be replaced by manager on successfull insert in the collection.
-                        paramDesc = paramManager.AddParameter(RESTServiceHeaderParameterMgr.Scope.Request, new RESTHeaderParameterDescriptor(1, attrib));
-                    }
-                    this._requestHeaderCollection.Add(paramDesc.ID);
-                    newIDList += firstOne ? paramDesc.ID.ToString() : "," + paramDesc.ID.ToString();
-                }
-                this._capabilityClass.SetTag(context.GetConfigProperty(_RequestHeadersTag), newIDList, true);
-            }
-            else Logger.WriteWarning("Unable to find old request header-parameter template '" + 
-                                     context.GetConfigProperty(_APISupportModelPathName) + ":" + 
-                                     context.GetConfigProperty(_RequestHdrParamClassName) + "', no request headers have been transformed!");
-
-            // Next, we create a response header collection for each response code...
-            if (responseParamClass != null)
-            {
-                foreach (MEAttribute attrib in responseParamClass.Attributes)
-                {
-                    RESTHeaderParameterDescriptor paramDesc = paramManager.GetParameter(RESTServiceHeaderParameterMgr.Scope.Response, attrib.Name);
-                    if (paramDesc == null)
-                    {
-                        // New parameter, not yet known to API collection. Let's add it. Note that the ID passed in the request is a dummy ID, which
-                        // will be replaced by manager on successfull insert in the collection.
-                        paramDesc = paramManager.AddParameter(RESTServiceHeaderParameterMgr.Scope.Response, new RESTHeaderParameterDescriptor(1, attrib));
-                    }
-                    responseHDRList.Add(paramDesc);
-                }
-
-                // Next, assign this list of header parameter descriptors to each element in the response collection...
-                this._responseCollection.EnforceResponseHeaders(responseHDRList);
-            }
-            else Logger.WriteWarning("Unable to find old response header-parameter template '" +
-                         context.GetConfigProperty(_APISupportModelPathName) + ":" +
-                         context.GetConfigProperty(_ResponseHdrParamClassName) + "', no response headers have been transformed!");
-        }
-
-        /// <summary>
         /// A helper function that receives a list of 'old' Response Capability classes from this operation and transforms this into
         /// our new Response Collection structure.
         /// </summary>
         /// <param name="deprecatedResponseClasses">List of all Operation Result Capability classes to be transformed.</param>
-        /// <param name="transformHeaders">When 'true', we ALSO have to transform the old header structure (based on a single flag)
         /// to the new request- and response header structure.</param>
-        private void TransformResponseStructure(List<MEClass> deprecatedResponseClasses, bool transformHeaders)
+        private void TransformResponseStructure(List<MEClass> deprecatedResponseClasses)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             List<RESTHeaderParameterDescriptor> headerParamList = new List<RESTHeaderParameterDescriptor>();
@@ -770,54 +709,7 @@ namespace Plugin.Application.CapabilityModel.API
                     resourceDiagram.Redraw();
                 }
             }
-
-            // Next, check whether we have Header Parameters for this operation and if so, create the appropriate request- and response collections...
-            // For the request headers, we create a qualified collection, containing name and owning package. This assures the collection is serialized immediately.
-            // For the response headers, we create an 'abstract' collection that is serialized only after adding it to the response code collection.
-            if (transformHeaders)
-            {
-                ModelSlt model = ModelSlt.GetModelSlt();
-                MEClass requestParamClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
-                                                            context.GetConfigProperty(_RequestHdrParamClassName));
-                MEClass responseParamClass = model.FindClass(context.GetConfigProperty(_APISupportModelPathName),
-                                                             context.GetConfigProperty(_ResponseHdrParamClassName));
-                if (requestParamClass != null)
-                {
-                    foreach (MEAttribute attrib in requestParamClass.Attributes)
-                    {
-                        RESTHeaderParameterDescriptor paramDesc = paramManager.GetParameter(RESTServiceHeaderParameterMgr.Scope.Request, attrib.Name);
-                        if (paramDesc == null)
-                        {
-                            // New parameter, not yet known to API collection. Let's add it. Note that the ID passed in the request is a dummy ID, which
-                            // will be replaced by manager on successfull insert in the collection.
-                            paramDesc = paramManager.AddParameter(RESTServiceHeaderParameterMgr.Scope.Request, new RESTHeaderParameterDescriptor(1, attrib));
-                        }
-                        this._requestHeaderCollection.Add(paramDesc.ID);
-                    }
-                }
-                else Logger.WriteWarning("Unable to find old request header-parameter template '" +
-                                         context.GetConfigProperty(_APISupportModelPathName) + ":" +
-                                         context.GetConfigProperty(_RequestHdrParamClassName) + "', no request headers have been transformed!");
-
-                if (responseParamClass != null)
-                {
-                    foreach (MEAttribute attrib in responseParamClass.Attributes)
-                    {
-                        RESTHeaderParameterDescriptor paramDesc = paramManager.GetParameter(RESTServiceHeaderParameterMgr.Scope.Response, attrib.Name);
-                        if (paramDesc == null)
-                        {
-                            // New parameter, not yet known to API collection. Let's add it. Note that the ID passed in the request is a dummy ID, which
-                            // will be replaced by manager on successfull insert in the collection.
-                            paramDesc = paramManager.AddParameter(RESTServiceHeaderParameterMgr.Scope.Response, new RESTHeaderParameterDescriptor(1, attrib));
-                        }
-                        headerParamList.Add(paramDesc);
-                    }
-                }
-                else Logger.WriteWarning("Unable to find old response header-parameter template '" +
-                                         context.GetConfigProperty(_APISupportModelPathName) + ":" +
-                                         context.GetConfigProperty(_ResponseHdrParamClassName) + "', no response headers have been transformed!");
-            }
-
+            
             // Next, iterate through all of the old Capability Classes and collect response metadata for a new Response Descriptor...
             foreach (MEClass oldResponse in deprecatedResponseClasses)
             {

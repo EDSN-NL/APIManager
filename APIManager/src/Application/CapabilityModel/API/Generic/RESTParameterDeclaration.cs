@@ -381,14 +381,17 @@ namespace Plugin.Application.CapabilityModel.API
             // Note that an Enumeration is also a MEDataType, so this would cover both flavors...
             if (param.Classifier is MEDataType && param.Status == DeclarationStatus.Created || param.Status == DeclarationStatus.Stable)
             {
-                newAttrib = parent.CreateAttribute(param.Name, (MEDataType)param.Classifier,
-                                                   AttributeType.Unknown,
-                                                   param.Default, param.Cardinality, false);
-                newAttrib.AddStereotype(attribStereotype);
-                newAttrib.SetTag(context.GetConfigProperty(_ParameterScopeTag), param._scope.ToString(), true);
-                newAttrib.SetTag(context.GetConfigProperty(_CollectionFormatTag), param._collectionFormat.ToString(), true);
-                newAttrib.SetTag(context.GetConfigProperty(_AllowEmptyParameterValueTag), param._allowEmptyValue.ToString(), true);
-                newAttrib.Annotation = param.Description;
+                if (!parent.HasAttribute(param.Name))   // Stable, unchanged parmeters must not be created ;-)
+                {
+                    newAttrib = parent.CreateAttribute(param.Name, (MEDataType)param.Classifier,
+                                                       AttributeType.Unknown,
+                                                       param.Default, param.Cardinality, false);
+                    newAttrib.AddStereotype(attribStereotype);
+                    newAttrib.SetTag(context.GetConfigProperty(_ParameterScopeTag), param._scope.ToString(), true);
+                    newAttrib.SetTag(context.GetConfigProperty(_CollectionFormatTag), param._collectionFormat.ToString(), true);
+                    newAttrib.SetTag(context.GetConfigProperty(_AllowEmptyParameterValueTag), param._allowEmptyValue.ToString(), true);
+                    newAttrib.Annotation = param.Description;
+                }
             }
             else if (param.Status == DeclarationStatus.Deleted)
             {
