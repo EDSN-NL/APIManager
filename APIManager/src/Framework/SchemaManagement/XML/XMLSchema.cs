@@ -26,6 +26,7 @@ namespace Framework.Util.SchemaManagement.XML
         private XmlSchema _schema;                  // The current XML schema.
         private XmlSchemaSet _set;                  // Group of all schemas referenced from the current schema.
         private List<string> _foreignSchemaNames;   // Used to store pointers to external schemas that are imported by this particular schema.
+        private List<string> _classifierList;       // List of all classifiers we have defined so far.
 
         /// <summary>
         /// Schema constructor.
@@ -66,9 +67,10 @@ namespace Framework.Util.SchemaManagement.XML
                 var choiceList = new SortedList<string, XMLChoice>();
                 var newType = new XmlSchemaComplexType() { Name = className };
 
-                if (!this._schema.Items.Contains(newType))
+                if (!this._classifierList.Contains(className))
                 {
                     this._schema.Items.Add(newType);
+                    this._classifierList.Add(className);
                     Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLSchema.addABIEType " + this.NSToken + ">> Successfully added class '" + newType.Name + "'.");
                 }
                 else
@@ -198,7 +200,7 @@ namespace Framework.Util.SchemaManagement.XML
             }
             catch (System.SystemException exc)
             {
-                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.addBBIEType " + this.NSToken + " >> adding element failed because: " + exc.Message);
+                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.addBBIEType " + this.NSToken + " >> adding element failed because: " + exc.ToString());
                 SetLastError(exc.Message);
                 return false;
             }
@@ -242,14 +244,16 @@ namespace Framework.Util.SchemaManagement.XML
             try
             {
                 var newClassifier = new XmlSchemaComplexType() { Name = classifierName };
-                if (!this._schema.Items.Contains(newClassifier))
+
+                if (!this._classifierList.Contains(classifierName))
                 {
                     this._schema.Items.Add(newClassifier);
+                    this._classifierList.Add(classifierName);
                     Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLSchema.addComplexClassifier " + this.NSToken + " >> Successfully added classifier '" + newClassifier.Name + "' with type '" + primType + "'.");
                 }
                 else
                 {
-                    Logger.WriteWarning("Warning: duplicate type '" + newClassifier.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
+                    Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLSchema.addComplexClassifier " + this.NSToken + " >> Duplicate type '" + newClassifier.Name + "' skipped!");
                     SetLastError(string.Empty);
                     return true;
                 }
@@ -310,7 +314,7 @@ namespace Framework.Util.SchemaManagement.XML
             }
             catch (System.SystemException exc)
             {
-                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.addComplexClassifier " + this.NSToken + " >> adding complex type failed because: " + exc.Message);
+                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.addComplexClassifier " + this.NSToken + " >> adding complex type failed because: " + exc.ToString());
                 SetLastError(exc.Message);
                 return false;
             }
@@ -353,7 +357,7 @@ namespace Framework.Util.SchemaManagement.XML
                     string baseTypeName = (classifierName.EndsWith("Type")) ? classifierName.Substring(0, classifierName.Length - 4) : classifierName;
                     baseTypeName += "BaseType";
                     var baseType = new XmlSchemaSimpleType() { Name = baseTypeName };
-                    if (!this._schema.Items.Contains(baseType))
+                    if (!this._classifierList.Contains(baseTypeName))
                     {
                         if (annotation.Count > 0)
                         {
@@ -391,10 +395,12 @@ namespace Framework.Util.SchemaManagement.XML
 
                         // Next, build the derived complex type and add the attributes...
                         var derivedType = new XmlSchemaComplexType() { Name = classifierName };
-                        if (!this._schema.Items.Contains(derivedType))
+                        if (!this._classifierList.Contains(classifierName))
                         {
                             this._schema.Items.Add(baseType);     // Add the base type.
                             this._schema.Items.Add(derivedType);  // And add the derived type.
+                            this._classifierList.Add(baseTypeName);
+                            this._classifierList.Add(classifierName);
                             Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLSchema.addEnumClassifier " + this.NSToken + " >> Successfully added enumeration '" + derivedType.Name + "'.");
 
                             var simpleContent = new XmlSchemaSimpleContent();
@@ -408,12 +414,12 @@ namespace Framework.Util.SchemaManagement.XML
                         }
                         else
                         {
-                            Logger.WriteWarning("Warning: duplicate enumeration '" + derivedType.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
+                            Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLSchema.addEnumClassifier " + this.NSToken + " >> Duplicate enumeration '" + derivedType.Name + "' skipped!");
                         }
                     }
                     else
                     {
-                        Logger.WriteWarning("Warning: duplicate enumeration base '" + baseTypeName + "' in schema with namespace token '" + this.NSToken + "' skipped.");
+                        Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLSchema.addEnumClassifier " + this.NSToken + " >> Duplicate enumeration base '" + baseTypeName + "' Skipped!");
                     }
                     SetLastError(string.Empty);
                     return true;
@@ -422,14 +428,15 @@ namespace Framework.Util.SchemaManagement.XML
                 {
                     // Enumeration without attributes can be a simple string restriction.
                     var newType = new XmlSchemaSimpleType() { Name = classifierName };
-                    if (!this._schema.Items.Contains(newType))
+                    if (!this._classifierList.Contains(classifierName))
                     {
                         this._schema.Items.Add(newType);
+                        this._classifierList.Add(classifierName);
                         Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLSchema.addEnumClassifier " + this.NSToken + " >> Successfully added enumeration '" + newType.Name + "'.");
                     }
                     else
                     {
-                        Logger.WriteWarning("Warning: duplicate enumeration '" + newType.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
+                        Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLSchema.addEnumClassifier " + this.NSToken + " >> Duplicate enumeration '" + newType.Name + "' skipped!");
                         SetLastError(string.Empty);
                         return true;
                     }
@@ -474,7 +481,7 @@ namespace Framework.Util.SchemaManagement.XML
             }
             catch (System.SystemException exc)
             {
-                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.addEnumClassifier " + this.NSToken + " >> adding enumeration failed because: " + exc.Message);
+                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.addEnumClassifier " + this.NSToken + " >> adding enumeration failed because: " + exc.ToString());
                 SetLastError(exc.Message);
                 return false;
             }
@@ -502,7 +509,7 @@ namespace Framework.Util.SchemaManagement.XML
             try
             {
                 var newClassifier = new XmlSchemaComplexType() { Name = classifierName };
-                if (!this._schema.Items.Contains(newClassifier))
+                if (!this._classifierList.Contains(classifierName))
                 {
                     if (!this._foreignSchemaNames.Contains(schema))
                     {
@@ -512,11 +519,12 @@ namespace Framework.Util.SchemaManagement.XML
                         Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLSchema.addExternalClassifier " + this.NSToken + " >> Added nsToken: " + nsToken + " with ns: '" + ns + "' and schema: '" + schema + "'!");
                     }
                     this._schema.Items.Add(newClassifier);
+                    this._classifierList.Add(classifierName);
                     Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLSchema.addExternalClassifier " + this.NSToken + " >> Successfully added classifier '" + newClassifier.Name + "' in schema '" + schema + "'.");
                 }
                 else
                 {
-                    Logger.WriteWarning("Warning: duplicate type '" + newClassifier.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
+                    Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLSchema.addExternalClassifier " + this.NSToken + " >> Duplicate type '" + newClassifier.Name + "' skipped!");
                     SetLastError(string.Empty);
                     return true;
                 }
@@ -569,7 +577,7 @@ namespace Framework.Util.SchemaManagement.XML
             }
             catch (System.SystemException exc)
             {
-                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.addExternalClassifier " + this.NSToken + " >> adding complex type failed because: " + exc.Message);
+                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.addExternalClassifier " + this.NSToken + " >> adding complex type failed because: " + exc.ToString());
                 SetLastError(exc.Message);
                 return false;
             }
@@ -620,7 +628,7 @@ namespace Framework.Util.SchemaManagement.XML
             }
             catch (System.SystemException exc)
             {
-                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.addMessageAssembly " + this.NSToken + " >> adding element failed because: " + exc.Message);
+                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.addMessageAssembly " + this.NSToken + " >> adding element failed because: " + exc.ToString());
                 SetLastError(exc.Message);
                 success = false;
             }
@@ -657,7 +665,7 @@ namespace Framework.Util.SchemaManagement.XML
             }
             catch (System.SystemException exc)
             {
-                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.addNamespace " + this.NSToken + " >> adding namespace failed because: " + exc.Message);
+                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.addNamespace " + this.NSToken + " >> adding namespace failed because: " + exc.ToString());
                 SetLastError(exc.Message);
             }
         }
@@ -703,7 +711,7 @@ namespace Framework.Util.SchemaManagement.XML
                 else
                 {
                     var newType = new XmlSchemaSimpleType() { Name = classifierName };
-                    if (!this._schema.Items.Contains(newType))
+                    if (!this._classifierList.Contains(classifierName))
                     {
                         if (annotation.Count > 0)
                         {
@@ -716,11 +724,12 @@ namespace Framework.Util.SchemaManagement.XML
                             }
                         }
                         this._schema.Items.Add(newType);
+                        this._classifierList.Add(classifierName);
                         Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLSchema.addSimpleClassifier " + this.NSToken + " >> Successfully added classifier '" + newType.Name + "' with type '" + typeName + "'.");
                     }
                     else
                     {
-                        Logger.WriteWarning("Warning: duplicate type '" + newType.Name + "' in schema with namespace token '" + this.NSToken + "' skipped.");
+                        Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLSchema.addSimpleClassifier " + this.NSToken + " >> Duplicate type '" + newType.Name + "' skipped!");
                         SetLastError(string.Empty);
                         return true;
                     }
@@ -755,7 +764,7 @@ namespace Framework.Util.SchemaManagement.XML
             }
             catch (System.SystemException exc)
             {
-                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.addSimpleClassifier " + this.NSToken + " >> adding simple type failed because: " + exc.Message);
+                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.addSimpleClassifier " + this.NSToken + " >> adding simple type failed because: " + exc.ToString());
                 SetLastError(exc.Message);
                 return false;
             }
@@ -802,6 +811,7 @@ namespace Framework.Util.SchemaManagement.XML
                 this._foreignSchemaNames = new List<string>();
                 this._set = new XmlSchemaSet();
                 this._set.Add(this._schema);
+                this._classifierList = new List<string>();
 
                 Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLSchema >> instantiated new schema with token: '" + namespaceToken + "', namespace: '" +
                                  schemaNamespace + "' and version: '" + version + "'.");
@@ -906,7 +916,7 @@ namespace Framework.Util.SchemaManagement.XML
             }
             catch (SystemException exc)
             {
-                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.Save " + this.NSToken + " >> schema conversion failed because: " + exc.Message);
+                Logger.WriteError("Framework.Util.SchemaManagement.XML.XMLSchema.Save " + this.NSToken + " >> schema conversion failed because: " + exc.ToString());
                 SetLastError(exc.Message);
                 throw;
             }

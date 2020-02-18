@@ -642,7 +642,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                     (this._commonSchema != null) ? ClassifierContext.ScopeCode.Interface : ClassifierContext.ScopeCode.Operation,
                     (this._commonDocContext != null) ? ClassifierContext.DocScopeCode.Common : ClassifierContext.DocScopeCode.Local
                 );
-                return new ClassifierContext(ClassifierContext.ContentTypeCode.Simple, classifier.Name, primScope);
+                return new ClassifierContext(ClassifierContext.ContentTypeCode.Simple, classifier.Name, primScope, this._commonSchema != null);
             }
 
             // We need to create a unique key for this particular classifier, independent of the classifier name. Names might be duplicated across

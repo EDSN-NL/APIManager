@@ -28,18 +28,42 @@ namespace Framework.Model
         private long _lastUpdate;           // Keeps track of the elapsed time since the elements has been loaded from the repository.
         
         /// <summary>
-        /// List of getters & setters for the accesible attributes...
+        /// Returns the local repository ID of the element (non-portable across repositories)
         /// </summary>
         internal int ElementID                            {get {return this._elementID; }}
+
+        /// <summary>
+        /// Returns the globally-unique ID of the element (portable across repositories)
+        /// </summary>
         internal string GlobalID                          {get {return this._globalID; }}
+
+        /// <summary>
+        /// Returns 'true' when the element has valid state.
+        /// </summary>
         internal bool Valid                               {get {return this._isValid; } }
+
+        /// <summary>
+        /// Returns the type of the model element.
+        /// </summary>
         internal ModelElementType Type                    {get {return this._type; }}
+
+        /// <summary>
+        /// Returns the model implementation associated with this model element.
+        /// </summary>
         internal ModelImplementation ModelImplementation  {get {return this._model; }}
+
+        /// <summary>
+        /// Get- or set the element name.
+        /// </summary>
         internal string Name
         {
             get { return this._name; }
             set { this.SetName(value); }
         }
+
+        /// <summary>
+        /// Get- or set an alternative name for the element
+        /// </summary>
         internal string AliasName
         {
             get { return this._aliasName; }
@@ -58,6 +82,16 @@ namespace Framework.Model
         internal abstract bool HasStereotype(string stereotype);
         internal abstract void SetName(string newName);
         internal abstract void SetAliasName(string newAliasName);
+
+        /// <summary>
+        /// This function is activated whenever the repository detects a change to the associated model item. 
+        /// The refresh operation should update internal structures to assure they are consistent with the state of the repository!
+        /// </summary>
+        internal void RefreshObject()
+        {
+            Logger.WriteInfo("Framework.Model.ModelElementImplementation >> Element '" + this._type.ToString() + "->" + 
+                             this._name + "' just gotten a 'refresh object' request, currently ignored!");
+        }
 
         /// <summary>
         /// Used to keep track of interfaces that use this implementation. When we detect the first interface that is actually

@@ -30,8 +30,8 @@ namespace Framework.Model
         }
 
         /// <summary>
-        /// Returns an enumerator that lists all associations that have the current class as a 'source', e.g. that
-        /// 'depart' from the class.
+        /// Returns an enumerator that lists all associations (Generalization, Association and Usage types) that have the current 
+        /// class as a 'source', e.g. that 'depart' from the class.
         /// </summary>
         /// <returns>Zero to many associations associated with the class.</returns>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>

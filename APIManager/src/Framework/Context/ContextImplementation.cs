@@ -307,6 +307,7 @@ namespace Framework.Context
                         this._lastUniqueID = uniqueID;
                     }
                     this._lastScope = newScope;
+                    ColorMyClass();
                     break;
 
                 case ContextScope.Package:
@@ -383,5 +384,26 @@ namespace Framework.Context
         /// Implement this in derived classes to ensure that the logger is created at the correct moment!
         /// </summary>
         protected abstract void InitializeLog();
+
+        /// <summary>
+        /// Test function to color a class according to the owning package..
+        /// </summary>
+        private void ColorMyClass()
+        {
+            if (this._currentClass != null)
+            {
+                MEPackage owner = this._currentClass.OwningPackage;
+                Logger.WriteInfo("Framework.Context.ContextImplementation.ColorMyClass >> Coloring '" + owner.Name + "/" + this._currentClass.Name + "'...");
+                string color = owner.GetTag("color");
+                if (!string.IsNullOrEmpty(color))
+                {
+                    Logger.WriteInfo("Framework.Context.ContextImplementation.ColorMyClass >> Going to paint class '" + color + "'...");
+                    if (this._currentDiagram != null) 
+                        this._currentDiagram.SetClassColor(this._currentClass, 
+                                                           Util.EnumConversions<Framework.View.Diagram.ClassColor>.StringToEnum(color));
+                }
+            }
+        }
+
     }
 }

@@ -62,6 +62,12 @@ namespace Framework.View
         internal abstract void Refresh();
 
         /// <summary>
+        /// This function is called when the repository has detected a change on the underlying repository object, which might require 
+        /// refresh of internal state.
+        /// </summary>
+        internal abstract void RefreshObject();
+
+        /// <summary>
         /// Saves the diagram to the specified file, using specified path. Path must NOT end with a separator
         /// and the file name must NOT have an extension! The extension is defined by the specified image type.
         /// The type of diagram to be created depends on current configuration settings.

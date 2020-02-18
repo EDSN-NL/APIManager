@@ -118,6 +118,19 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Retrieves the value of the tag with given name. If tag not found or no implementation is present, the function returns an
+        /// empty string.
+        /// </summary>
+        /// <param name="tagName">Name of tag to be retrieved.</param>
+        /// <returns>Value of tag or empty string in case of tag not found (or no implementation)</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal string GetTag(string tagName)
+        {
+            if (this._imp != null) return this._imp.GetTag(tagName);
+            else throw new MissingImplementationException("ModelElementImplementation");
+        }
+
+        /// <summary>
         /// Checks whether the ModelElement has one or more of the stereotypes out of the presented list.
         /// The method returns true if at least one name exists and false when there are no matches or there is no implementation.
         /// </summary>
@@ -152,15 +165,13 @@ namespace Framework.Model
         }
 
         /// <summary>
-        /// Retrieves the value of the tag with given name. If tag not found or no implementation is present, the function returns an
-        /// empty string.
+        /// This function is activated whenever the repository detects a change to the associated model item. 
+        /// The refresh operation should update internal structures to assure they are consistent with the state of the repository!
         /// </summary>
-        /// <param name="tagName">Name of tag to be retrieved.</param>
-        /// <returns>Value of tag or empty string in case of tag not found (or no implementation)</returns>
         /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal string GetTag(string tagName)
+        internal void RefreshObject()
         {
-            if (this._imp != null) return this._imp.GetTag(tagName);
+            if (this._imp != null) this._imp.RefreshObject();
             else throw new MissingImplementationException("ModelElementImplementation");
         }
 

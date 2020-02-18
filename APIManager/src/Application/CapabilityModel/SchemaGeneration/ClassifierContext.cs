@@ -37,6 +37,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         private string _name;
         private ScopeCode _schemaScope;
         private DocScopeCode _docScope;
+        private bool _hasCommonSchema;
 
         /// <summary>
         /// Creates a new classifier context using the provided arguments.
@@ -44,12 +45,14 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         /// <param name="cType">The content type code of the classifier.</param>
         /// <param name="name">Classifier name.</param>
         /// <param name="scope">Classifier schema- and documentation scope.</param>
-        internal ClassifierContext(ContentTypeCode cType, string name, Tuple<ScopeCode, DocScopeCode> scope)
+        /// <param name="hasCommonSchema">Set to 'true' in case common schema is present.</param>
+        internal ClassifierContext(ContentTypeCode cType, string name, Tuple<ScopeCode, DocScopeCode> scope, bool hasCommonSchema)
         {
             this._contentType = cType;
             this._name = name;
             this._schemaScope = scope.Item1;
             this._docScope = scope.Item2;
+            this._hasCommonSchema = hasCommonSchema;
         }
 
         /// <summary>
@@ -61,13 +64,17 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
         }
 
         /// <summary>
-        /// Returns 'true' if the classifier is defined in the common schema.
+        /// Returns 'true' if the classifier is defined in the common schema. When we don't have a common schema, this of-course always returns false.
         /// </summary>
         internal bool IsInCommonSchema
         {
-            get { return (this._schemaScope == ScopeCode.Interface) || 
-                         (this._schemaScope == ScopeCode.Remote) || 
-                         (this._schemaScope == ScopeCode.Profile); }
+            get
+            {
+                return this._hasCommonSchema && 
+                        ((this._schemaScope == ScopeCode.Interface) ||
+                         (this._schemaScope == ScopeCode.Remote) ||
+                         (this._schemaScope == ScopeCode.Profile));
+            }
         }
 
         /// <summary>

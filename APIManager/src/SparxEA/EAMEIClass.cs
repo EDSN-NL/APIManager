@@ -155,7 +155,7 @@ namespace SparxEA.Model
 
             string query = @"SELECT c.Connector_ID AS ConnectorID
                             FROM t_connector c WHERE c.Start_Object_ID = '" + this._elementID +
-                            "' AND c.Connector_Type = 'Association';";
+                            "' AND c.Connector_Type IN ('Association', 'Generalization', 'Usage');";
 
             var queryResult = new XmlDocument();
             queryResult.LoadXml(repository.SQLQuery(query));
@@ -803,12 +803,24 @@ namespace SparxEA.Model
         }
 
         /// <summary>
-        /// Retrieve the package in which this class is declared.
+        /// Retrieve the package in which this class is declared. We use a query here to assure we are not bothered by caching issues in the
+        /// EA API.
         /// </summary>
         /// <returns>Owning package.</returns>
         internal override MEPackage GetOwningPackage()
         {
-            return new MEPackage(this._element.PackageID);
+            string query = @"SELECT o.Package_ID AS PackageID FROM
+                            t_object o WHERE o.Object_ID = " + this._elementID + ";";
+
+            EA.Repository repository = ((EAModelImplementation)this._model).Repository;
+            var queryResult = new XmlDocument();
+            queryResult.LoadXml(repository.SQLQuery(query));
+            foreach (XmlNode node in queryResult.GetElementsByTagName("Row"))
+            {
+                int objectID = 0;
+                if (int.TryParse(node["PackageID"].InnerText.Trim(), out objectID)) return new MEPackage(objectID);
+            }
+            return null;
         }
 
         /// <summary>
@@ -819,6 +831,7 @@ namespace SparxEA.Model
         /// <returns>List of parents, empty if no parent found.</returns>
         internal override List<MEClass> GetParents()
         {
+            this._element.Update();
             return this.GetParents(new MEClass(this));
         }
 

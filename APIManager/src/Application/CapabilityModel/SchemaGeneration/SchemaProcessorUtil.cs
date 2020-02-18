@@ -117,7 +117,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
             DocContext targetDocCtx = this._commonDocContext;
             Schema targetSchema = this._commonSchema;
             if (scope.Item2 == ClassifierContext.DocScopeCode.Local) targetDocCtx = this._currentOperationDocContext;
-            if ((scope.Item1 == ClassifierContext.ScopeCode.Operation) || (scope.Item1 == ClassifierContext.ScopeCode.Message)) targetSchema = this._schema;
+            if (targetSchema == null || scope.Item1 == ClassifierContext.ScopeCode.Operation || scope.Item1 == ClassifierContext.ScopeCode.Message) targetSchema = this._schema;
 
             if (typeName != string.Empty)
             {
@@ -131,7 +131,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             List<SupplementaryAttribute> attribList = GetSupplementaries(classifierMetadata);
                             if (this._useDocContext) targetDocCtx.AddClassifier(classifier, facetList, attribList, typeName);
                             targetSchema.AddSimpleClassifier(classifier.Name, typeName, classifier.GetDocumentation(), attribList, facetList);
-                            classifierCtx = new ClassifierContext(ClassifierContext.ContentTypeCode.Simple, classifier.Name, scope);
+                            classifierCtx = new ClassifierContext(ClassifierContext.ContentTypeCode.Simple, classifier.Name, scope, this._commonSchema != null);
                         }
                         break;
 
@@ -143,7 +143,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             // Create documentation first, facetList might be modified by the AddComplexClassifier method!!
                             if (this._useDocContext) targetDocCtx.AddClassifier(classifier, facetList, attribList, typeName); 
                             targetSchema.AddComplexClassifier(classifier.Name, typeName, classifier.GetDocumentation(), attribList, facetList);
-                            classifierCtx = new ClassifierContext(ClassifierContext.ContentTypeCode.Complex, classifier.Name, scope);
+                            classifierCtx = new ClassifierContext(ClassifierContext.ContentTypeCode.Complex, classifier.Name, scope, this._commonSchema != null);
                         }
                         break;
 
@@ -170,7 +170,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
 
                                 // For enumerations, we have to check the scope of the enumeration, since they can be restricted at message-, 
                                 // operation- or interface level, just like Classes!
-                                classifierCtx = new ClassifierContext(ClassifierContext.ContentTypeCode.Enum, classifier.Name, scope);
+                                classifierCtx = new ClassifierContext(ClassifierContext.ContentTypeCode.Enum, classifier.Name, scope, this._commonSchema != null);
                                 if (this._useDocContext) targetDocCtx.AddClassifier(classifier, null, attribList, typeName, classifierCtx.Name);
                                 if (classifierCtx.IsInCommonSchema)
                                 {
@@ -232,7 +232,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             }
                             targetSchema.AddExternalClassifier(classifier.Name, classifier.GetDocumentation(), nameSpace,
                                                                nameSpaceToken, schemaName, baseType, cardinality);
-                            classifierCtx = new ClassifierContext(ClassifierContext.ContentTypeCode.Complex, classifier.Name, scope);
+                            classifierCtx = new ClassifierContext(ClassifierContext.ContentTypeCode.Complex, classifier.Name, scope, this._commonSchema != null);
                             if (this._useDocContext) targetDocCtx.AddClassifier(classifier, null, null, typeName);
                         }
                         break;
@@ -242,7 +242,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                         this._lastError = "Classifier '" + classifier.Name + "' is of unsupported type: " + typeName;
                         Logger.WriteError("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.DefineClassifier >> " + this._lastError);
                         if (this._panel != null) this._panel.WriteError(this._panelIndex + 3, this._lastError);
-                        classifierCtx = new ClassifierContext(ClassifierContext.ContentTypeCode.Unknown, classifier.Name, scope);
+                        classifierCtx = new ClassifierContext(ClassifierContext.ContentTypeCode.Unknown, classifier.Name, scope, this._commonSchema != null);
                         break;
                 }
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.DefineClassifier >> Returning PRIM type: " + typeName + " with designator: " + classifier.Type);

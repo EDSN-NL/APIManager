@@ -143,6 +143,17 @@ namespace Framework.View
         }
 
         /// <summary>
+        /// This function is called when the repository has detected a change on the underlying repository object, which might require 
+        /// refresh of internal state.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">No implementation object exists.</exception>
+        internal void RefreshObject()
+        {
+            if (this._imp != null) this._imp.RefreshObject();
+            else throw new MissingImplementationException("DiagramImplementation");
+        }
+
+        /// <summary>
         /// Saves the diagram to the specified file, using specified path. Path must NOT end with a separator
         /// and the file name must NOT have an extension! 
         /// The type of diagram to be created depends on current configuration settings.

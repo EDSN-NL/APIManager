@@ -208,7 +208,7 @@ namespace SparxEA.View
         {
             this._diagram.DiagramObjects.Refresh();
             this._diagram.DiagramLinks.Refresh();
-            ((EAModelImplementation)this._model).Repository.ReloadDiagram(this._diagram.DiagramID);
+            //((EAModelImplementation)this._model).Repository.ReloadDiagram(this._diagram.DiagramID);
         }
 
         /// <summary>
@@ -218,7 +218,16 @@ namespace SparxEA.View
         {
             this._diagram.DiagramObjects.Refresh();
             this._diagram.DiagramLinks.Refresh();
-            ((EAModelImplementation)this._model).Repository.RefreshOpenDiagrams(false);
+            //((EAModelImplementation)this._model).Repository.RefreshOpenDiagrams(false);
+        }
+
+        /// <summary>
+        /// This function is called when the repository has detected a change on the underlying repository object, which might require 
+        /// refresh of internal state.
+        /// </summary>
+        internal override void RefreshObject()
+        {
+            Logger.WriteInfo("SparxEA.View.EADiagramImplementation >> Diagram '" + this._name + "' just gotten a 'refresh object' request, currently ignored!");
         }
 
         /// <summary>
@@ -294,26 +303,25 @@ namespace SparxEA.View
         {
             if (thisClass == null) return;      // No valid class, do nothing.
 
-            for (short i = 0; i < this._diagram.DiagramObjects.Count; i++)
+            try
             {
-                try
+                EA.DiagramObject diagramObject = this._diagram.GetDiagramObjectByID(thisClass.ElementID, string.Empty);
+                if (diagramObject != null)
                 {
-                    EA.DiagramObject diagramObject = ((EA.DiagramObject)this._diagram.DiagramObjects.GetAt(i));
-                    if (diagramObject.ElementID == thisClass.ElementID)
+                    Logger.WriteInfo("SparxEA.View.EADiagramImplementation.SetClassColor >> Found class '" + thisClass.Name + "', changing color to '" + color + "'...");
+                    int objectColor = ConvertColorCode(color);
+                    if (diagramObject.BackgroundColor != objectColor)
                     {
-                        Logger.WriteInfo("SparxEA.View.EADiagramImplementation.SetClassColor >> Found class '" +
-                                         thisClass.Name + "', changing color to '" + color + "'...");
-                        diagramObject.BackgroundColor = ConvertColorCode(color);
+                        diagramObject.BackgroundColor = objectColor;
                         diagramObject.Update();
-                        break;
                     }
                 }
-                catch (System.Runtime.InteropServices.COMException exc)
-                {
-                    // If we delete stuff from an existing diagram and then search for a class, we might get COM errors 'cause the element cache
-                    // is not up-to-date with the actual diagram contents. We simply ignore these (but write a message to the log, just in case)...
-                    Logger.WriteInfo("SparxEA.View.EADiagramImplementation.SetClassColor >> Got a COMException:" + Environment.NewLine + exc.ToString());
-                }
+            }
+            catch (System.Runtime.InteropServices.COMException exc)
+            {
+                // If we delete stuff from an existing diagram and then search for a class, we might get COM errors 'cause the element cache
+                // is not up-to-date with the actual diagram contents. We simply ignore these (but write a message to the log, just in case)...
+                Logger.WriteInfo("SparxEA.View.EADiagramImplementation.SetClassColor >> Got a COMException:" + Environment.NewLine + exc.ToString());
             }
         }
 

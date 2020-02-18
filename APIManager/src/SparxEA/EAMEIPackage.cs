@@ -865,20 +865,33 @@ namespace SparxEA.Model
         /// <returns>Value of specified tag or empty string if nothing could be found.</returns>
         internal override string GetTag(string tagName)
         {
+            string tagValue = string.Empty;
             try
             {
-                if (this._package.Element == null)
+                if (this._package.Element != null)
                 {
-                    Logger.WriteError("SparxEA.Model.EAMEIPackage.GetTag >> Package '" + this._package.Name + "' not yet fully initialized!");
-                    return string.Empty;
+                    string query = "SELECT o.Value AS TagValue FROM t_objectproperties o " +
+                                   "WHERE o.Object_ID = " + this._package.Element.ElementID + " AND o.Property = '" + tagName + "';";
+
+                    EA.Repository repository = ((EAModelImplementation)this._model).Repository;
+                    var queryResult = new XmlDocument();
+                    queryResult.LoadXml(repository.SQLQuery(query));
+                    XmlNodeList elements = queryResult.GetElementsByTagName("Row");
+
+                    if (elements.Count > 0) tagValue = elements[0]["TagValue"].InnerText.Trim();
                 }
-                foreach (TaggedValue t in this._package.Element.TaggedValues)
+                else Logger.WriteError("SparxEA.Model.EAMEIPackage.GetTag >> Package '" + this._package.Name + "' not yet fully initialized!");
+            }
+            catch { /* and ignore all errors */ }
+      
+                /****
+            foreach (TaggedValue t in this._package.Element.TaggedValues)
                 {
                     if (String.Compare(t.Name, tagName, StringComparison.OrdinalIgnoreCase) == 0) return t.Value;
                 }
-            }
-            catch { /* & ignore all errors */ }
-            return string.Empty;
+                ****/
+
+            return tagValue;
         }
 
         /// <summary>

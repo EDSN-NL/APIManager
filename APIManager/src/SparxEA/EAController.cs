@@ -292,6 +292,71 @@ namespace APIManager.SparxEA
         }
 
         /// <summary>
+        /// EA_OnNotifyContextItemModified notifies Add-Ins that the current context item has been modified.
+        /// This event occurs when a user has modified the context item. Add-Ins that require knowledge of when an item has been modified 
+        /// can subscribe to this broadcast function.
+        /// Also look at EA_OnContextItemChanged and EA_OnContextItemDoubleClicked.
+        /// </summary>
+        /// <param name="Repository">An EA.Repository object representing the currently open Enterprise Architect model.
+        /// Poll its members to retrieve model data and user interface status information.</param>
+        /// <param name="GUID">Contains the GUID of the new context item. 
+        /// This value corresponds to the following properties, depending on the value of the ot parameter:
+        /// ot (ObjectType)	- GUID value
+        /// otElement  		- Element.ElementGUID
+        /// otPackage 		- Package.PackageGUID
+        /// otDiagram		- Diagram.DiagramGUID
+        /// otAttribute		- Attribute.AttributeGUID
+        /// otMethod		- Method.MethodGUID
+        /// otConnector		- Connector.ConnectorGUID
+        /// </param>
+        /// <param name="ot">Specifies the type of the new context item.</param>
+        public override void EA_OnNotifyContextItemModified(EA.Repository repository, string GUID, EA.ObjectType ot)
+        {
+            ModelElement element;
+            switch (ot)
+            {
+                case ObjectType.otAttribute:
+                    element = new MEAttribute(repository.GetAttributeByGuid(GUID).AttributeID);
+                    element.RefreshObject();
+                    break;
+
+                case ObjectType.otConnector:
+                    element = new MEAssociation(repository.GetConnectorByGuid(GUID).ConnectorID);
+                    element.RefreshObject();
+                    break;
+
+                case ObjectType.otElement:
+                    element = new MEClass(repository.GetElementByGuid(GUID).ElementID);
+                    element.RefreshObject();
+                    break;
+
+                case ObjectType.otPackage:
+                    element = new MEPackage(repository.GetPackageByGuid(GUID).PackageID);
+                    element.RefreshObject();
+                    break;
+
+                case ObjectType.otDiagram:
+                    Logger.WriteInfo("SparxEA.Controller.EAController.EA_OnContextItemChanged >> Got Diagram GUID '" + GUID + "'...");
+                    // For some reason the API returns an Object in stead of a Diagram. Some casting required.
+                    // In EA 13.5 I have eens a SchemaPropertyClass to be returned here. So we treat this even more carefully now...
+                    object o = repository.GetDiagramByGuid(GUID);
+                    if (o is EA.Diagram)
+                    {
+                        var diagram = new Framework.View.Diagram(((EA.Diagram)o).DiagramID);
+                        diagram.RefreshObject();
+                    }
+                    else
+                    {
+                        Logger.WriteWarning("Reported type 'otDiagram' does in fact returns a '" + o.GetType() + "'!");
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        /// <summary>
         /// EA_OnContextItemChanged notifies Add-Ins that a different item is now in context.
         /// This event occurs after a user has selected an item anywhere in the Enterprise Architect GUI. 
         /// If ot = otRepository, then this function behaves the same as EA_FileOpen.
