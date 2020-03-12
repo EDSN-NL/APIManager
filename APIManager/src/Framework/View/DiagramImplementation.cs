@@ -52,6 +52,19 @@ namespace Framework.View
         }
 
         /// <summary>
+        /// Returns the Diagram representation of the specified class. If the diagram does not contain the class, returns NULL.
+        /// </summary>
+        /// <param name="thisClass">Class for which we want to retrieve the representation.</param>
+        /// <returns>Diagram representation of the class or NULL when not found on the diagram.</returns>
+        internal abstract DiagramClassRepresentation GetRepresentation(MEClass thisClass);
+
+        /// <summary>
+        /// Iterator that returns the representation objects of all classes and/or objects that are on the diagram.
+        /// </summary>
+        /// <returns>Class-/Object representations, one at a time.</returns>
+        internal abstract IEnumerable<DiagramClassRepresentation> GetRepresentations();
+
+        /// <summary>
         /// Redraw the diagram, required after one or more 'add' operations to actually show the added elements on the diagram.
         /// </summary>
         internal abstract void Redraw();
@@ -62,10 +75,20 @@ namespace Framework.View
         internal abstract void Refresh();
 
         /// <summary>
+        /// Instructs the diagram to refresh itself, e.g. after a model change outside scope of the plugin.
+        /// </summary>
+        internal abstract void RefreshDiagram();
+
+        /// <summary>
         /// This function is called when the repository has detected a change on the underlying repository object, which might require 
         /// refresh of internal state.
         /// </summary>
-        internal abstract void RefreshObject();
+        internal abstract void IsModified();
+
+        /// <summary>
+        /// This function is called when the repository has detected a a context change to the current diagram.
+        /// </summary>
+        internal abstract void IsSelected();
 
         /// <summary>
         /// Saves the diagram to the specified file, using specified path. Path must NOT end with a separator

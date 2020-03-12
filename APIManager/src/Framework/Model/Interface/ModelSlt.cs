@@ -40,6 +40,19 @@ namespace Framework.Model
             }
         }
 
+        /// <summary>
+        /// Returns the list of models that are open in the current repository project. A model is identified
+        /// as a root-level package (that is, a package that has no parent).
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal List<MEPackage> Models
+        {
+            get
+            {
+                if (this._modelImp != null) return this._modelImp.GetModels();
+                else throw new MissingImplementationException("ModelImplementation");
+            }
+        }
 
         /// <summary>
         /// Create a new association instance between source and target.
@@ -49,6 +62,7 @@ namespace Framework.Model
         /// <param name="type">Type of association.</param>
         /// <param name="name">Optional name of the association, could be omitted.</param>
         /// <returns>Newly created association or NULL in case of errors.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
         internal MEAssociation CreateAssociation(EndpointDescriptor source, EndpointDescriptor target, MEAssociation.AssociationType type, string name = null)
         {
             if (this._modelImp != null) return this._modelImp.CreateAssociation(source, target, type, name);
@@ -186,6 +200,18 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Factory method for the construction of DiagramImlementation objects according to repository-independent Diagram ID.
+        /// </summary>
+        /// <param name="diagramID">The unique repository-independent diagram identifier.</param>
+        /// <returns>Diagram implementation object or NULL in case of errors.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal DiagramImplementation GetDiagramImplementation(string diagramGUID)
+        {
+            if (this._modelImp != null) return this._modelImp.GetDiagramImplementation(diagramGUID);
+            else throw new MissingImplementationException("ModelImplementation");
+        }
+
+        /// <summary>
         /// Returns the name of the model that is currently open.
         /// </summary>
         /// <returns>Name of currently opened model or empty string if none found.</returns>
@@ -283,6 +309,19 @@ namespace Framework.Model
         internal void Refresh()
         {
             if (this._modelImp != null) this._modelImp.Refresh();
+            else throw new MissingImplementationException("ModelImplementation");
+        }
+
+        /// <summary>
+        /// Receives a fully-qualified stereotype name and synchronizes all repository elements using that stereotype. This 
+        /// will update all tagged values and other facets imposed by the stereotype. When a non-FQN stereotype is passed,
+        /// the function fails silently.
+        /// </summary>
+        /// <param name="stereotype">Fully-qualified stereotype to be synchronized.</param>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal void SynchronizeStereotype(string stereotype)
+        {
+            if (this._modelImp != null) this._modelImp.SynchronizeStereotype(stereotype);
             else throw new MissingImplementationException("ModelImplementation");
         }
 

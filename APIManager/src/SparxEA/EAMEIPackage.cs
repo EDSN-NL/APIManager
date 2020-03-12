@@ -41,6 +41,7 @@ namespace SparxEA.Model
 
         private EA.Package _package;                        // EA Package representation.
         private bool _useLocks;                             // Is set to 'true' when we're using repository security.
+        private EAStereotypes _stereotypes;                 // My stereotypes, directly from the repository.
 
         // Provide access to the EA instance for use by partner entities...
         internal EA.Package PackageInstance           { get { return this._package; } }
@@ -60,6 +61,7 @@ namespace SparxEA.Model
                 this._globalID = this._package.PackageGUID;
 				this._aliasName = this._package.Alias ?? string.Empty;
                 this._useLocks = ((EAModelImplementation)this._model).Repository.IsSecurityEnabled;
+                this._stereotypes = new EAStereotypes(model, this);
 
                 // Register this package in the package tree. If the package has a parent, we attempt to link to it...
                 // In EA an empty package ID is represented by value '0', we use '-1' instead.
@@ -87,6 +89,7 @@ namespace SparxEA.Model
                 this._globalID = packageGUID;
                 this._aliasName = this._package.Alias ?? string.Empty;
                 this._useLocks = ((EAModelImplementation)this._model).Repository.IsSecurityEnabled;
+                this._stereotypes = new EAStereotypes(model, this);
 
                 // Register this package in the package tree. If the package has a parent, we attempt to link to it...
                 // In EA an empty package ID is represented by value '0', we use '-1' instead.
@@ -114,6 +117,7 @@ namespace SparxEA.Model
                 this._globalID = this._package.PackageGUID;
 				this._aliasName = this._package.Alias ?? string.Empty;
                 this._useLocks = ((EAModelImplementation)this._model).Repository.IsSecurityEnabled;
+                this._stereotypes = new EAStereotypes(model, this);
 
                 // Register this package in the package tree. If the package has a parent, we attempt to link to it...
                 // In EA an empty package ID is represented by value '0', we use '-1' instead.
@@ -132,21 +136,7 @@ namespace SparxEA.Model
         /// <param name="stereotype">Stereotype to be assigned.</param>
         internal override void AddStereotype(string stereotype)
         {
-            if (!string.IsNullOrEmpty(stereotype))
-            {
-                if (this._package.Element == null)
-                {
-                    Logger.WriteError("SparxEA.Model.EAMEIPackage.AddStereotype >> Package '" + this._package.Name + "' not yet fully initialized!");
-                    return;
-                }
-                string stereoTypes = this._package.Element.StereotypeEx;
-                if (!this._package.Element.HasStereotype(stereotype))
-                {
-                    stereoTypes += (stereoTypes.Length > 0) ? "," + stereotype : stereotype;
-                    this._package.Element.StereotypeEx = stereoTypes;
-                    this._package.Element.Update();
-                }
-            }
+            this._stereotypes.AddStereotype(stereotype);
         }
 
         /// <summary>
@@ -169,12 +159,13 @@ namespace SparxEA.Model
                 throw new ArgumentException(message);
             }
 
-            // Prevent the 'AddNew' + 'Update' to generate scope switches until we're ready for them...
-            ControllerSlt.GetControllerSlt().EnableScopeSwitch = false;
+            // Prevent the 'AddNew' + 'Update' to generate scope switches and events until we're ready for them...
+            ControllerSlt controller = ControllerSlt.GetControllerSlt();
+            controller.EnableScopeSwitch = false;
+            controller.EnableEvents = false;
 
             var newElement = this._package.Elements.AddNew(name, _ClassType) as EA.Element;
             newElement.Update();        // Update immediately to properly finish the create. Note that this triggers a Scope Switch to incomplete object!
-            this._package.Elements.Refresh();
             bool needUpdate = false;
 
             if (!string.IsNullOrEmpty(stereotype))
@@ -189,8 +180,10 @@ namespace SparxEA.Model
                 needUpdate = true;
             }
 
+            controller.EnableScopeSwitch = true;
+            controller.EnableEvents = true;
             if (needUpdate) newElement.Update();
-            ControllerSlt.GetControllerSlt().EnableScopeSwitch = true;
+            this._package.Elements.Refresh();
             return new MEClass(newElement.ElementID);
         }
 
@@ -215,13 +208,14 @@ namespace SparxEA.Model
                 Logger.WriteError(message);
                 throw new ArgumentException(message);
             }
-            
-            // Prevent the 'AddNew' + 'Update' to generate scope switches until we're ready for them...
-            ControllerSlt.GetControllerSlt().EnableScopeSwitch = false;
+
+            // Prevent the 'AddNew' + 'Update' to generate scope switches and events until we're ready for them...
+            ControllerSlt controller = ControllerSlt.GetControllerSlt();
+            controller.EnableScopeSwitch = false;
+            controller.EnableEvents = false;
 
             var newElement = this._package.Elements.AddNew(name, metaType == MEDataType.MetaDataType.Enumeration ? _EnumType : _DataType) as EA.Element;
             newElement.Update();        // Update immediately to properly finish the create.
-            this._package.Elements.Refresh();
 
             ContextSlt context = ContextSlt.GetContextSlt();
             string stereotype;
@@ -255,13 +249,17 @@ namespace SparxEA.Model
                     string msg = "SparxEA.Model.EAMEIPackage.createDataType >> Illegal meta type '" + metaType + "' passed to package '" +
                                  this._name + " when creating data type '" + name + "'!";
                     Logger.WriteError(msg);
-                    ControllerSlt.GetControllerSlt().EnableScopeSwitch = true;
+                    controller.EnableScopeSwitch = true;
+                    controller.EnableEvents = true;
+                    this._package.Elements.Refresh();
                     throw new ArgumentException(msg);
             }
             newElement.StereotypeEx = stereotype;
             if (sortID != -1) newElement.TreePos = sortID;
+            controller.EnableScopeSwitch = true;
+            controller.EnableEvents = true;
             newElement.Update();
-            ControllerSlt.GetControllerSlt().EnableScopeSwitch = true;
+            this._package.Elements.Refresh();
             return returnType;
         }
 
@@ -273,14 +271,17 @@ namespace SparxEA.Model
         internal override Framework.View.Diagram CreateDiagram(string diagramName)
         {
             if (string.IsNullOrEmpty(diagramName)) diagramName = this.Name;
-           
-            // Prevent the 'AddNew' + 'Update' to generate scope switches until we're ready for them...
-            ControllerSlt.GetControllerSlt().EnableScopeSwitch = false;
+
+            // Prevent the 'AddNew' + 'Update' to generate scope switches and events until we're ready for them...
+            ControllerSlt controller = ControllerSlt.GetControllerSlt();
+            controller.EnableScopeSwitch = false;
+            controller.EnableEvents = false;
 
             var diagram = this._package.Diagrams.AddNew(diagramName, _LogicalDiagramType) as EA.Diagram;
+            controller.EnableScopeSwitch = true;
+            controller.EnableEvents = true;
             diagram.Update();
             this._package.Diagrams.Refresh();
-            ControllerSlt.GetControllerSlt().EnableScopeSwitch = true;
             return new Framework.View.Diagram(diagram.DiagramID);
         }
 
@@ -317,8 +318,10 @@ namespace SparxEA.Model
                 throw new ArgumentException(message);
             }
 
-            // Prevent the 'AddNew' + 'Update' to generate scope switches until we're ready for them...
-            ControllerSlt.GetControllerSlt().EnableScopeSwitch = false;
+            // Prevent the 'AddNew' + 'Update' to generate scope switches and events until we're ready for them...
+            ControllerSlt controller = ControllerSlt.GetControllerSlt();
+            controller.EnableScopeSwitch = false;
+            controller.EnableEvents = false;
 
             try
             {
@@ -327,13 +330,13 @@ namespace SparxEA.Model
                 newElement.ClassifierName = classifier.Name;
                 if (sortID != -1) newElement.TreePos = sortID;
                 newElement.Update();        // Update immediately to properly finish the create. Note that this triggers a Scope Switch to incomplete object!
-                this._package.Elements.Refresh();
                 myObject = new MEObject(newElement.ElementID);
                 if (runtimeState != null) myObject.RuntimeState = runtimeState;
 
-                //newElement.Update();
-                ControllerSlt.GetControllerSlt().EnableScopeSwitch = true;
+                controller.EnableScopeSwitch = true;
+                controller.EnableEvents = true;
                 done = true;
+                this._package.Elements.Refresh();
                 return myObject;
             }
             finally
@@ -363,13 +366,14 @@ namespace SparxEA.Model
                 throw new ArgumentException(message);
             }
 
-            // Prevent the 'AddNew' + 'Update' to generate scope switches until we're ready for them...
-            ControllerSlt.GetControllerSlt().EnableScopeSwitch = false;
+            // Prevent the 'AddNew' + 'Update' to generate scope switches and events until we're ready for them...
+            ControllerSlt controller = ControllerSlt.GetControllerSlt();
+            controller.EnableScopeSwitch = false;
+            controller.EnableEvents = false;
 
             var newPackage = this._package.Packages.AddNew(name, _PackageType) as EA.Package;
             newPackage.Update();    // Update immediately to properly finish the creation!
             newPackage.Element.Update();
-            this._package.Packages.Refresh();
             bool needUpdate = false;
 
             if (!string.IsNullOrEmpty(stereotype))
@@ -384,12 +388,14 @@ namespace SparxEA.Model
                 needUpdate = true;
             }
 
+            controller.EnableScopeSwitch = true;
+            controller.EnableEvents = true;
             if (needUpdate)
             {
                 newPackage.Update();
                 newPackage.Element.Update();
             }
-            ControllerSlt.GetControllerSlt().EnableScopeSwitch = true;
+            this._package.Packages.Refresh();
             return new MEPackage(newPackage.PackageID);
         }
 
@@ -688,42 +694,65 @@ namespace SparxEA.Model
         }
 
         /// <summary>
-        /// Searches the package for any child packages containing the specified name part and/or stereotype.
+        /// Searches the package for any child packages containing the specified name part and/or stereotype. The 
+        /// search ALSO considers the current package for a match.
         /// One or both parameters must be specified. If we have only the name part, the function returns all packages
         /// that contain that name part. If only the stereotype is specified, we return all packages that match the
         /// stereotype. If both are specified, we return all packages of the specified stereotype that match the name filter.
-        /// The search is only at the level of the current package, that is, we don't search multiple levels down!
+        /// When parameter 'allLevels' is false, the function only searches the current package. When the parameter is 'true',
+        /// the function searches all child packages up till 6 levels 'down'.
         /// The result set is ordered ascending by package name.
         /// </summary>
-        /// <param name="nameFilter">Optional (part of) name to search for.</param>
+        /// <param name="name">Optional (part of) name to search for.</param>
         /// <param name="stereotype">Optional stereotype of class.</param>
+        /// <param name="exactMatch">When 'true', the specified names must be matched exactly.</param>
+        /// <param name="allLevels">When 'true', we search any levels down, not just direct decendants.</param>
         /// <returns>List of packages found (can be empty).</returns>
-        internal override List<MEPackage> FindPackages(string nameFilter, string stereotype)
+        internal override List<MEPackage> FindPackages(string name, string stereotype, bool exactMatch, bool allLevels)
         {
-            this._package.Elements.Refresh();   // Make sure that we're looking at the most up-to-date state.
+            if (name == null) name = string.Empty;
+            if (stereotype == null) stereotype = string.Empty;
             EA.Repository repository = ((EAModelImplementation)this._model).Repository;
-            string query = string.Empty;
+            string likeToken = exactMatch ? string.Empty: ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local ? "*" : "%";
             var packageList = new List<MEPackage>();
-            char likeToken = ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local ? '*' : '%';
 
             // We MUST specify either a package filter and/or a stereotype!
-            if (string.IsNullOrEmpty(nameFilter) && string.IsNullOrEmpty(stereotype)) return packageList;
+            if (name == string.Empty && stereotype == string.Empty) return packageList;
 
+            if (allLevels) return FindChildPackages(name, stereotype, exactMatch);    // Special version for multi-level search.
+
+            // We must also consider the current package!
+            if (name == string.Empty)
+            {
+                if (HasStereotype(stereotype)) packageList.Add(new MEPackage(this._elementID));
+            }
+            else if (stereotype == string.Empty)
+            {
+                if (exactMatch && this._name == name) packageList.Add(new MEPackage(this._elementID));
+                else if (!exactMatch && this._name.Contains(name)) packageList.Add(new MEPackage(this._elementID));
+            }
+            else
+            {
+                if (exactMatch && this._name == name && HasStereotype(stereotype)) packageList.Add(new MEPackage(this._elementID));
+                else if (!exactMatch && this._name.Contains(name) && HasStereotype(stereotype)) packageList.Add(new MEPackage(this._elementID));
+            }
+
+            string query;
             if (!string.IsNullOrEmpty(stereotype))
             {
                 string checkType = (stereotype.Contains("::")) ? stereotype.Substring(stereotype.IndexOf("::") + 2) : stereotype;
-                if (string.IsNullOrEmpty(nameFilter))
+                if (string.IsNullOrEmpty(name))
                 {
                     // In case of empty name filter, we return the packages that are of the specified stereotype.
                     query = "SELECT p.Package_ID AS PackageID FROM t_package p INNER JOIN t_object o ON p.ea_guid = o.ea_guid " +
-                            "WHERE p.Parent_ID = " + this._package.PackageID + " AND o.Stereotype LIKE '" + likeToken + checkType + likeToken + 
+                            "WHERE p.Parent_ID = " + this._package.PackageID + " AND o.Stereotype " + (exactMatch? "= ": "LIKE '") + likeToken + checkType + likeToken + 
                             "' ORDER BY p.Name";
                 }
                 else
                 {
                     // We have to select on both name- and stereotype.
                     query = "SELECT p.Package_ID AS PackageID FROM t_package p INNER JOIN t_object o ON p.ea_guid = o.ea_guid " +
-                            "WHERE p.Parent_ID = " + this._package.PackageID + " AND p.Name LIKE '" + likeToken + nameFilter + likeToken +
+                            "WHERE p.Parent_ID = " + this._package.PackageID + " AND p.Name " + (exactMatch? "= ": "LIKE '") + likeToken + name + likeToken +
                             "' AND o.Stereotype LIKE '" + likeToken + checkType + likeToken + "' ORDER BY p.Name";
                 }
             }
@@ -731,7 +760,7 @@ namespace SparxEA.Model
             {
                 // Only search on name filter.
                 query = "SELECT p.Package_ID AS PackageID FROM t_package p WHERE p.Parent_ID = " + this._package.PackageID +
-                        " AND p.Name LIKE '" + likeToken + nameFilter + likeToken + "' ORDER BY p.Name";
+                        " AND p.Name " + (exactMatch? "= ": "LIKE '") + likeToken + name + likeToken + "' ORDER BY p.Name";
             }
 
             var queryResult = new XmlDocument();                            // Repository query will return an XML Document.
@@ -741,6 +770,40 @@ namespace SparxEA.Model
 
             foreach (XmlNode node in elements) packageList.Add(new MEPackage(Convert.ToInt32(node["PackageID"].InnerText.Trim())));
             return packageList;
+        }
+
+        /// <summary>
+        /// Locate the first parent package of the specified origin package that has the specified stereotype.
+        /// </summary>
+        /// <param name="stereotype">Stereotype that we're looking for.</param>
+        /// <returns>Parent package with specified stereotype or NULL when not found.</returns>
+        internal override MEPackage FindParentWithStereotype(string stereotype)
+        {
+            if (HasStereotype(stereotype)) return new MEPackage(this._elementID);   // Check the current package first of all!
+
+            char likeToken = ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local ? '*' : '%';
+            string checkType = stereotype.Contains("::") ? stereotype.Substring(stereotype.IndexOf("::") + 2) : stereotype;
+            string query = "Select o.PDATA1 as PackageID" +
+                           " FROM (((((((t_object o INNER JOIN t_package p ON (o.ea_guid = p.ea_guid" +
+                           " AND o.Stereotype LIKE '" + likeToken + checkType + "'))" +
+                           " LEFT JOIN t_package p1 ON p.Package_ID = p1.Parent_ID)" +
+                           " LEFT JOIN t_package p2 ON p1.Package_ID = p2.Parent_ID)" +
+                           " LEFT JOIN t_package p3 ON p2.Package_ID = p3.Parent_ID)" +
+                           " LEFT JOIN t_package p4 ON p3.Package_ID = p4.Parent_ID)" +
+                           " LEFT JOIN t_package p5 ON p4.Package_ID = p5.Parent_ID)" +
+                           " LEFT JOIN t_package p6 ON p5.Package_ID = p6.Parent_ID)" +
+                           " WHERE p1.Package_ID = " + this._elementID +
+                           " OR p2.Package_ID = " + this._elementID + " OR p3.Package_ID = " + this._elementID +
+                           " OR p4.Package_ID = " + this._elementID + " OR p5.Package_ID = " + this._elementID + 
+                           " OR p6.Package_ID = " + this._elementID;
+
+            EA.Repository repository = ((EAModelImplementation)this._model).Repository;
+            var queryResult = new XmlDocument();
+            queryResult.LoadXml(repository.SQLQuery(query));
+            XmlNodeList elements = queryResult.GetElementsByTagName("Row");
+            int packageID;
+
+            return (elements.Count > 0 && int.TryParse(elements[0]["PackageID"].InnerText.Trim(), out packageID)) ? new MEPackage(packageID) : null;
         }
 
         /// <summary>
@@ -883,14 +946,6 @@ namespace SparxEA.Model
                 else Logger.WriteError("SparxEA.Model.EAMEIPackage.GetTag >> Package '" + this._package.Name + "' not yet fully initialized!");
             }
             catch { /* and ignore all errors */ }
-      
-                /****
-            foreach (TaggedValue t in this._package.Element.TaggedValues)
-                {
-                    if (String.Compare(t.Name, tagName, StringComparison.OrdinalIgnoreCase) == 0) return t.Value;
-                }
-                ****/
-
             return tagValue;
         }
 
@@ -926,11 +981,7 @@ namespace SparxEA.Model
                 Logger.WriteError("SparxEA.Model.EAMEIPackage.HasStereotype (list) >> Package '" + this._package.Name + "' not yet fully initialized!");
                 return false;
             }
-            foreach (string stereotype in stereotypes)
-            {
-                if (this._package.Element.HasStereotype(stereotype)) return true;
-            }
-            return false;
+            return this._stereotypes.HasStereotype(stereotypes);
         }
 
         /// <summary>
@@ -946,7 +997,7 @@ namespace SparxEA.Model
                 Logger.WriteError("SparxEA.Model.EAMEIPackage.HasStereotype >> Package '" + this._package.Name + "' not yet fully initialized!");
                 return false;
             }
-            return this._package.Element.HasStereotype(stereotype);
+            return this._stereotypes.HasStereotype(stereotype);
         }
 
         /// <summary>
@@ -1110,7 +1161,7 @@ namespace SparxEA.Model
 
                         // Determine who has locked the package...
                         query = "SELECT FirstName, Surname FROM t_secuser WHERE UserID='" + lockedUserID + "';";
-                        queryResult.LoadXml(repository.SQLQuery(query));            // Execute query and store result in XML Document.
+                        queryResult.LoadXml(repository.SQLQuery(query));
                         elements = queryResult.GetElementsByTagName("Row");
 
                         // We should have only a single result.
@@ -1185,10 +1236,30 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// The refresh model element function re-loads our cached 'volatile' properties such as name, alias name and stereotypes.
+        /// We do not register the object again since the ID's should not have changed.
+        /// </summary>
+        internal override void RefreshModelElement()
+        {
+            this._package = ((EAModelImplementation)this._model).Repository.GetPackageByGuid(this._globalID);
+            if (this._package != null)
+            {
+                this._name = this._package.Name;
+                this._aliasName = this._package.Alias ?? string.Empty;
+                this._useLocks = ((EAModelImplementation)this._model).Repository.IsSecurityEnabled;
+                this._stereotypes = new EAStereotypes((EAModelImplementation)this._model, this);
+            }
+            else
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIPackage >> Failed to retrieve EA Package with GUID: " + this._globalID);
+            }
+        }
+
+        /// <summary>
         /// Forces the repository implementation to refresh the current package and all children packages. This can be
         /// called after a number of model changes to assure that the model view is consistent with these changes.
         /// </summary>
-        internal override void Refresh()
+        internal override void RefreshPackage()
         {
             ((EAModelImplementation)this._model).Repository.RefreshModelView(this._package.PackageID);
         }
@@ -1346,6 +1417,68 @@ namespace SparxEA.Model
         {
             int parentID = this._package.ParentID;
             return (parentID != 0)? new EAMEIPackage((EAModelImplementation)this._model, parentID): null;
+        }
+
+        /// <summary>
+        /// Locate all packages (any levels 'down') that have either the specified stereotype and/or name. One or both MUST be specified.
+        /// The function also considers the current package for a match.
+        /// </summary>
+        /// <param name="name">Package name to look for.</param>
+        /// <param name="stereotype">Stereotype that we're looking for.</param>
+        /// <param name="exactMatch">When 'true', both name and stereotype must match exactly.</param>
+        /// <returns>List of all child packages that have the specified name and stereotype (empty list when nothing found).</returns>
+        private List<MEPackage> FindChildPackages(string name, string stereotype, bool exactMatch)
+        {
+            List<MEPackage> returnList = new List<MEPackage>();
+            string likeToken = exactMatch ? string.Empty: ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local ? "*" : "%";
+            string checkType = stereotype.Contains("::") ? stereotype.Substring(stereotype.IndexOf("::") + 2) : stereotype;
+            string checkClause;
+            string compareToken = exactMatch ? "= '" : "LIKE '";
+
+            // We must also consider the current package!
+            if (name == string.Empty)
+            {
+                if (HasStereotype(stereotype)) returnList.Add(new MEPackage(this._elementID));
+            }
+            else if (stereotype == string.Empty)
+            {
+                if (exactMatch && this._name == name) returnList.Add(new MEPackage(this._elementID));
+                else if (!exactMatch && this._name.Contains(name)) returnList.Add(new MEPackage(this._elementID));
+            }
+            else
+            {
+                if (exactMatch && this._name == name && HasStereotype(stereotype)) returnList.Add(new MEPackage(this._elementID));
+                else if (!exactMatch && this._name.Contains(name) && HasStereotype(stereotype)) returnList.Add(new MEPackage(this._elementID));
+            }
+
+            if (name == string.Empty && stereotype != string.Empty) checkClause = "' AND o.Stereotype " + compareToken + likeToken + checkType + likeToken;
+            else if (name != string.Empty && stereotype == string.Empty) checkClause = " AND o.Name " + compareToken + likeToken + name + likeToken;
+            else checkClause = " AND o.Name " + compareToken + likeToken + name + likeToken + "' AND o.Stereotype " + compareToken + likeToken + checkType + likeToken;
+
+            string query = "Select o.PDATA1 as PackageID" +
+                           " FROM (((((((t_object o INNER JOIN t_package p ON (o.ea_guid = p.ea_guid" + checkClause + "'))" +
+                           " LEFT JOIN t_package p1 ON p1.Package_ID = p.Parent_ID)" +
+                           " LEFT JOIN t_package p2 ON p2.Package_ID = p1.Parent_ID)" +
+                           " LEFT JOIN t_package p3 ON p3.Package_ID = p2.Parent_ID)" +
+                           " LEFT JOIN t_package p4 ON p4.Package_ID = p3.Parent_ID)" +
+                           " LEFT JOIN t_package p5 ON p5.Package_ID = p4.Parent_ID)" +
+                           " LEFT JOIN t_package p6 ON p6.Package_ID = p5.Parent_ID)" +
+                           " WHERE p1.Package_ID = " + this._elementID +
+                           " OR p2.Package_ID = " + this._elementID + " OR p3.Package_ID = " + this._elementID +
+                           " OR p4.Package_ID = " + this._elementID + " OR p5.Package_ID = " + this._elementID +
+                           " OR p6.Package_ID = " + this._elementID + " ORDER BY p.Name";
+
+            EA.Repository repository = ((EAModelImplementation)this._model).Repository;
+            var queryResult = new XmlDocument();
+            queryResult.LoadXml(repository.SQLQuery(query));
+            XmlNodeList elements = queryResult.GetElementsByTagName("Row");
+
+            foreach (XmlNode node in elements)
+            {
+                int packageID;
+                if (int.TryParse(node["PackageID"].InnerText.Trim(), out packageID)) returnList.Add(new MEPackage(packageID));
+            }
+            return returnList;
         }
 
         /// <summary>

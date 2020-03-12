@@ -85,6 +85,20 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Returns all fully-qualified stereotype names owned by the associated model element. This could be an empty list if
+        /// neither of the assigned stereotypes originates from a profile!
+        /// </summary>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal List<string> FQStereotypes
+        {
+            get
+            {
+                if (this._imp != null) return this._imp.GetFQStereotypes();
+                else throw new MissingImplementationException("ModelElementImplementation");
+            }
+        }
+
+        /// <summary>
         /// Adds the specified stereotype to the current model element.
         /// </summary>
         /// <param name="stereotype">Stereotype to add.</param>
@@ -165,13 +179,11 @@ namespace Framework.Model
         }
 
         /// <summary>
-        /// This function is activated whenever the repository detects a change to the associated model item. 
-        /// The refresh operation should update internal structures to assure they are consistent with the state of the repository!
+        /// Instructs the model element to refresh itself, e.g. after a model change outside scope of the plugin.
         /// </summary>
-        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
-        internal void RefreshObject()
+        internal void RefreshModelElement()
         {
-            if (this._imp != null) this._imp.RefreshObject();
+            if (this._imp != null) this._imp.RefreshModelElement();
             else throw new MissingImplementationException("ModelElementImplementation");
         }
 

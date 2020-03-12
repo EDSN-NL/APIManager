@@ -432,8 +432,28 @@ namespace SparxEA.Model
         {
             // First of all, we check if the implementation already exists in the diagram list. If so, we re-use this one...
             DiagramImplementation imp = FindRegisteredDiagramImp(diagramID);
-
             if (imp == null) imp = new EADiagramImplementation(this, diagramID);
+            return imp;
+        }
+
+        /// <summary>
+        /// Factory method that constructs a Diagram Implementation object according to the provided instance ID.
+        /// The method searches the dictionary first in order to avoid having to create redundant objects. This also assures that
+        /// multiple diagram interfaces all reference THE SAME implementation instance and thus maintain stable state.
+        /// </summary>
+        /// <param name="diagramID">Instance identifier within the tool-specific repository.</param>
+        /// <returns>DiagramImplementation object or NULL in case of errors.</returns>
+        internal override DiagramImplementation GetDiagramImplementation(string diagramGUID)
+        {
+            // First of all, we check if the implementation already exists in the diagram list. If so, we re-use this one.
+            // Since the registry is based on integer diagram ID's, we first have to retrieve the associated integer key...
+            DiagramImplementation imp = null;
+            var diagram = Repository.GetDiagramByGuid(diagramGUID) as EA.Diagram;
+            if (diagram != null)
+            {
+                imp = FindRegisteredDiagramImp(diagram.DiagramID);
+                if (imp == null) imp = new EADiagramImplementation(this, diagramGUID);
+            }
             return imp;
         }
 
@@ -449,8 +469,20 @@ namespace SparxEA.Model
 
             string connectionString = this._repository.ConnectionString.ToLower();
             connectionString = connectionString.Substring(connectionString.LastIndexOf('\\') + 1);
-            string endPattern = (connectionString.Contains(_Extension)) ? _Extension : _DBEndPattern;
+            string endPattern = connectionString.Contains(_Extension) ? _Extension : _DBEndPattern;
             return connectionString.Substring(0, connectionString.IndexOf(endPattern));
+        }
+
+        /// <summary>
+        /// This function returns the list of models that are open in the current repository project. A model is identified
+        /// as a root-level package (that is, a package that has no parent).
+        /// </summary>
+        /// <returns>List of root-packages (models) in the current project.</returns>
+        internal override List<MEPackage> GetModels()
+        {
+            List<MEPackage> pkgList = new List<MEPackage>();
+            foreach (EA.Package p in this._repository.Models) pkgList.Add(new MEPackage(p.PackageID));
+            return pkgList;
         }
 
         /// <summary>
@@ -763,6 +795,22 @@ namespace SparxEA.Model
         internal override void SetRepositoryType(ModelSlt.RepositoryType type)
         {
             this._repositoryType = type;
+        }
+
+        /// <summary>
+        /// Receives a fully-qualified stereotype name and synchronizes all repository elements using that stereotype. This 
+        /// will update all tagged values and other facets imposed by the stereotype. When a non-FQN stereotype is passed,
+        /// the function fails silently.
+        /// </summary>
+        /// <param name="stereotype">Fully-qualified stereotype to be synchronized.</param>
+        internal override void SynchronizeStereotype(string stereotype)
+        {
+            if (stereotype.Contains("::"))
+            {
+                string profile = stereotype.Substring(0, stereotype.IndexOf("::"));
+                string name = stereotype.Substring(stereotype.IndexOf(":") + 2);
+                this._repository.SynchProfile(profile, name);
+            }
         }
 
         /// <summary>

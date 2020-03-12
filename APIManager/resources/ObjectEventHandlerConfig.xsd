@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" elementFormDefault="qualified" vc:minVersion="1.1" attributeFormDefault="unqualified"
+    targetNamespace="urn:x-enexis:ecdm:framework:context:objecteventhandler" xmlns="urn:x-enexis:ecdm:framework:context:objecteventhandler">
+    <xs:element name="EventConfiguration">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element maxOccurs="unbounded" minOccurs="0" ref="EventList"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="EventList" type="EventListType"/>
+    <xs:element name="EventHandler" type="EventHandlerType"/>
+    <xs:complexType name="EventListType">
+        <xs:sequence>
+            <xs:element minOccurs="0" name="EventHandlerList">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" ref="EventHandler"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="eventType" type="ObjectEventType" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="EventHandlerType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="HandlerFQN" type="xs:normalizedString"/>
+            <xs:element minOccurs="0" name="ObjectTypeList">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" name="ObjectType" type="ObjectType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="StereotypeList">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="1" name="StereotypeName" type="xs:normalizedString"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="ID" type="xs:normalizedString"/>
+    </xs:complexType>
+    <xs:simpleType name="ObjectEventType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Closed"/>
+            <xs:enumeration value="Created"/>
+            <xs:enumeration value="Deleted"/>
+            <xs:enumeration value="Modified"/>
+            <xs:enumeration value="Opened"/>
+            <xs:enumeration value="Selected"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="ObjectType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Attribute"/>
+            <xs:enumeration value="Class"/>
+            <xs:enumeration value="Connector"/>
+            <xs:enumeration value="Diagram"/>
+            <xs:enumeration value="DiagramObject"/>
+            <xs:enumeration value="Object"/>
+            <xs:enumeration value="Package"/>
+            <xs:enumeration value="Undefined"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

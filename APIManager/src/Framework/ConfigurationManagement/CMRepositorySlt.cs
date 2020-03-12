@@ -694,19 +694,23 @@ namespace Framework.ConfigurationManagement
         /// (ignored for the time being).</param>
         private void Dispose(bool disposing)
         {
-            if (!this._disposed)
+            try
             {
-                this._remote = null;
-                this._identity = null;
-                this._lastCommit = null;
-                this._currentBranch = null;
-                if (this._gitRepository != null)
+                if (!this._disposed)
                 {
-                    this._gitRepository.Dispose();
-                    this._gitRepository = null;
+                    this._remote = null;
+                    this._identity = null;
+                    this._lastCommit = null;
+                    this._currentBranch = null;
+                    if (this._gitRepository != null)
+                    {
+                        this._gitRepository.Dispose();
+                        this._gitRepository = null;
+                    }
+                    this._disposed = true;
                 }
-                this._disposed = true;
             }
+            catch (Exception){ /*Ignore Exceptions at this point */}
         }
 
         /// <summary>

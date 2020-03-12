@@ -16,6 +16,14 @@ namespace Framework.Controller
         private static readonly ControllerSlt _controller = new ControllerSlt();
         private EventManager _eventManager; // The Event Manager is wrapped and controlled by the ControllerSlt and must not be used directly!
         private bool _enableScopeSwitch;    // Set to 'true' to process Scope Switches, 'false' to ignore them. 
+        private bool _enableEvents;         // Set to 'true' to allow event processing.
+
+        /// <summary>
+        /// Enables or disables event processing. Since EA generates events at, sometimes, inconvenient moments (i.e. right in  the middle of an
+        /// model element creation), we must have a means to 'defer' event processing until the objects are stable. The low-level model code
+        /// uses this function to enable or disable event processing until the system is in a stable state.
+        /// </summary>
+        internal bool EnableEvents { set { this._enableEvents = value; } }
 
         /// <summary>
         /// Enables or disables scope switches. Since EA generates scope switches whenever a new object is created and we want to defer the switch
@@ -74,13 +82,13 @@ namespace Framework.Controller
         /// <param name="scope">Which event list to retrieve.</param>
         /// <param name="rootName">Where we want to start looking.</param>
         /// <returns>List of events or NULL in case of errors.</returns>
-        internal List<EventManager.EventNode> GetEventList(TreeScope scope, string rootName)
+        internal List<EventManager.MenuEventNode> GetEventList(TreeScope scope, string rootName)
         {
-            return (this._eventManager != null) ? this._eventManager.GetEventList(scope, rootName) : null;
+            return (this._eventManager != null) ? this._eventManager.GetMenuEventList(scope, rootName) : null;
         }
 
         /// <summary>
-        /// Delegated method that attempts to process the specified event at the event manager. When no manager is available, the method
+        /// Delegate method that attempts to process the specified event at the event manager. When no manager is available, the method
         /// silently fails.
         /// </summary>
         /// <param name="scope">Which event list to search for the event.</param>
@@ -88,7 +96,74 @@ namespace Framework.Controller
         /// <param name="eventName">Name of the event to execute.</param>
         internal void HandleEvent(TreeScope scope, string parentName, string eventName)
         {
-            if (this._eventManager != null) this._eventManager.HandleEvent(scope, parentName, eventName);
+            if (this._eventManager != null) this._eventManager.HandleMenuEvent(scope, parentName, eventName);
+        }
+
+        /// <summary>
+        /// Delegate method that attempts to process the specified object event at the event manager. When no manager is available, the method
+        /// silently fails. This object event handler is called when the repository raises an event on a repository object. 
+        /// </summary>
+        /// <param name="eventType">The type of event that has been raised (one of Created, Deleted, Selected or Modified).</param>
+        /// <param name="objectType">Identifies the type of object represented by either objectID or objectGUID.</param>
+        /// <param name="objectID">Repository-specific object identifier, contains -1 when unknown.</param>
+        /// <param name="objectGUID">Repository-independent, global, object identifier, contains empty string when unknown.</param>
+        /// <param name="diagramID">In case of a create new Diagram Object, this parameter contains the ID of the diagram on which the object is created.</param>
+        /// <returns>Depending on the eventType, the return value has different meaning: for Modified/Selected events, the return value should be 'true', 
+        /// in case of a 'Created' event, the return value indicates whether or not the object has been modified by the event handler(s) and in case of 
+        /// a 'Deleted' event, the return value indicates whether or not the object is allowed to be deleted.</returns>
+        internal bool HandleObjectEvent(ObjectEventType eventType, ObjectType objectType, int objectID, string objectGUID, int diagramID = -1)
+        {
+            bool operationResult = eventType == ObjectEventType.Created ? false : true;
+            if (this._eventManager != null && this._enableEvents && (objectID > 0 || objectGUID != string.Empty))
+            {
+                ModelElement subjectElement = null;
+                View.Diagram subjectDiagram = null;
+                View.Diagram targetDiagram = diagramID > 0 ? new View.Diagram(diagramID) : null;
+                switch (objectType)
+                {
+                    case ObjectType.Attribute:
+                        subjectElement = objectID > 0 ? new MEAttribute(objectID) : new MEAttribute(objectGUID);
+                        break;
+
+                    case ObjectType.Class:
+                    case ObjectType.DiagramObject:
+                        subjectElement = objectID > 0 ? new MEClass(objectID) : new MEClass(objectGUID);
+                        break;
+
+                    case ObjectType.Object:
+                        subjectElement = objectID > 0 ? new MEObject(objectID) : new MEObject(objectGUID);
+                        break;
+
+                    case ObjectType.Connector:
+                        subjectElement = objectID > 0 ? new MEAssociation(objectID) : new MEAssociation(objectGUID);
+                        break;
+
+                    case ObjectType.Diagram:
+                        subjectDiagram = objectID > 0 ? new View.Diagram(objectID) : new View.Diagram(objectGUID);
+                        break;
+
+                    case ObjectType.Package:
+                        subjectElement = objectID > 0 ? new MEPackage(objectID) : new MEPackage(objectGUID);
+                        break;
+
+                    default:
+                        break;  // Unknown/undefined object type, no action!
+                }
+
+                // Since we create the event object in this function, we should also dispose of them when done...
+                if (subjectElement != null)
+                {
+                    operationResult = this._eventManager.HandleObjectEvent(eventType, objectType, subjectElement, targetDiagram);
+                    if (targetDiagram != null) targetDiagram.Dispose();
+                    subjectElement.Dispose();
+                }
+                else if (subjectDiagram != null)
+                {
+                    operationResult = this._eventManager.HandleObjectEvent(eventType, objectType, subjectDiagram);
+                    subjectDiagram.Dispose();
+                }
+            }
+            return operationResult;
         }
 
         /// <summary>
@@ -101,6 +176,7 @@ namespace Framework.Controller
             ContextSlt.GetContextSlt().Initialize(contextImp);
             this._eventManager = new EventManager();    // Will create all events as defined in configuration file.
             this._enableScopeSwitch = true;
+            this._enableEvents = true;
         }
 
         /// <summary>
@@ -124,6 +200,7 @@ namespace Framework.Controller
         {
             this._eventManager = null;
             this._enableScopeSwitch = false;
+            this._enableEvents = false;
             ContextSlt.GetContextSlt().ShutDown();  // Since context uses the model, close this one first!
             ModelSlt.GetModelSlt().ShutDown();
         }

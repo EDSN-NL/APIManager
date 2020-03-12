@@ -26,7 +26,7 @@ namespace Framework.View
         /// The constructor receives a, platform-dependent, implementation object and creates a new Diagram object that
         /// is associated with the provided implementation object.
         /// </summary>
-        /// <param name="imp">Diagram implementation object.</param>
+        /// <param name="diagramID">Repository-specific diagram ID.</param>
         internal Diagram (int diagramID)
         {
             this._imp = ModelSlt.GetModelSlt().GetDiagramImplementation(diagramID);
@@ -38,6 +38,25 @@ namespace Framework.View
             else
             {
                 Logger.WriteError("Framework.View.Diagram >> Could not obtain implementation object for diagram with ID: '" + diagramID + "'!");
+            }
+        }
+
+        /// <summary>
+        /// The constructor receives a, platform-independent, global diagram identification object and creates a new Diagram object that
+        /// is associated with the provided implementation object.
+        /// </summary>
+        /// <param name="diagramGUID">Repository-independent diagram ID.</param>
+        internal Diagram(string diagramGUID)
+        {
+            this._imp = ModelSlt.GetModelSlt().GetDiagramImplementation(diagramGUID);
+            this._disposed = false;
+            if (this._imp != null)
+            {
+                this._imp.AddReference();
+            }
+            else
+            {
+                Logger.WriteError("Framework.View.Diagram >> Could not obtain implementation object for diagram with global ID: '" + diagramGUID + "'!");
             }
         }
 
@@ -123,6 +142,51 @@ namespace Framework.View
         }
 
         /// <summary>
+        /// Returns the Diagram representation of the specified class. If the diagram does not contain the class, returns NULL.
+        /// </summary>
+        /// <param name="thisClass">Class for which we want to retrieve the representation.</param>
+        /// <returns>Diagram representation of the class or NULL when not found on the diagram.</returns>
+        /// <exception cref="MissingImplementationException">No implementation object exists.</exception>
+        public DiagramClassRepresentation GetRepresentation(MEClass thisClass)
+        {
+            if (this._imp != null) return this._imp.GetRepresentation(thisClass);
+            else throw new MissingImplementationException("DiagramImplementation");
+        }
+
+        /// <summary>
+        /// Iterator that returns the representation objects of all classes and/or objects that are on the diagram.
+        /// </summary>
+        /// <returns>Class-/Object representations, one at a time.</returns>
+        /// <exception cref="MissingImplementationException">No implementation object exists.</exception>
+        internal IEnumerable<DiagramClassRepresentation> GetRepresentations()
+        {
+            if (this._imp != null) return this._imp.GetRepresentations();
+            else throw new MissingImplementationException("DiagramImplementation");
+        }
+
+        /// <summary>
+        /// This function is called when the repository has detected a change on the underlying repository object, which might require 
+        /// refresh of internal state.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">No implementation object exists.</exception>
+        internal void IsModified()
+        {
+            if (this._imp != null) this._imp.IsModified();
+            else throw new MissingImplementationException("DiagramImplementation");
+        }
+
+        /// <summary>
+        /// This function is called when the repository has detected that the user has selected the associated diagram object. The event
+        /// can be used to update display elements based on this context change.
+        /// </summary>
+        /// <exception cref="MissingImplementationException">No implementation object exists.</exception>
+        internal void IsSelected()
+        {
+            if (this._imp != null) this._imp.IsSelected();
+            else throw new MissingImplementationException("DiagramImplementation");
+        }
+
+        /// <summary>
         /// Redraw the diagram, required after one or more 'add' operations to actually show the added elements on the diagram.
         /// </summary>
         /// <exception cref="MissingImplementationException">No implementation object exists.</exception>
@@ -143,14 +207,12 @@ namespace Framework.View
         }
 
         /// <summary>
-        /// This function is called when the repository has detected a change on the underlying repository object, which might require 
-        /// refresh of internal state.
+        /// Instructs the diagram to refresh itself, e.g. after a model change outside scope of the plugin.
         /// </summary>
-        /// <exception cref="MissingImplementationException">No implementation object exists.</exception>
-        internal void RefreshObject()
+        internal void RefreshDiagram()
         {
-            if (this._imp != null) this._imp.RefreshObject();
-            else throw new MissingImplementationException("DiagramImplementation");
+            if (this._imp != null) this._imp.RefreshDiagram();
+            else throw new MissingImplementationException("ModelElementImplementation");
         }
 
         /// <summary>

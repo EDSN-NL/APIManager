@@ -17,6 +17,8 @@ namespace SparxEA.View
     {
         private const int _ClassWidth = 150;
         private const int _ClassHeight = 60;
+        private const string _ClassType = "Class";
+        private const string _ObjectType = "Object";
 
         private EA.Diagram _diagram;    // EA Diagram representation.
         private int _top;               // Initial top coordinate for new classes.
@@ -45,6 +47,35 @@ namespace SparxEA.View
                 Logger.WriteError("SparxEA.View.EADiagramImplementation (id) >> Failed to retrieve EA Diagram with ID: " + diagramID);
                 this._name = string.Empty;
                 this._diagramID = diagramID;
+                this._globalID = string.Empty;
+                this._owningPackage = null;
+                InValidate();
+            }
+        }
+
+        /// <summary>
+        /// The internal constructor is called to initialize the diagram object.
+        /// <param name="model">Reference to the tool-specific model implementation.</param>
+        /// <param name="diagramGUID">Global unique ID of the diagram.</param>
+        /// </summary>
+        internal EADiagramImplementation(EAModelImplementation model, string diagramGUID) : base(model)
+        {
+            this._diagram = model.Repository.GetDiagramByGuid(diagramGUID) as EA.Diagram;
+            this._owningPackage = null;
+            this._top = 1000;
+            this._left = 20;
+            if (this._diagram != null)
+            {
+                this._name = this._diagram.Name;
+                this._diagramID = this._diagram.DiagramID;
+                this._globalID = diagramGUID;
+                this._owningPackage = new MEPackage(this._diagram.PackageID);
+            }
+            else
+            {
+                Logger.WriteError("SparxEA.View.EADiagramImplementation (id) >> Failed to retrieve EA Diagram with Global ID: " + diagramGUID);
+                this._name = string.Empty;
+                this._diagramID = -1;
                 this._globalID = string.Empty;
                 this._owningPackage = null;
                 InValidate();
@@ -139,17 +170,7 @@ namespace SparxEA.View
                     foreach (MEClass cl in classList)
                     {
                         // Make sure to skip the objects that are already there...
-                        bool isPresent = false;
-                        for (short i = 0; i < this._diagram.DiagramObjects.Count; i++)
-                        {
-                            if (((EA.DiagramObject)this._diagram.DiagramObjects.GetAt(i)).ElementID == cl.ElementID)
-                            {
-                                isPresent = true;
-                                break;
-                            }
-                        }
-
-                        if (!isPresent)
+                        if (this._diagram.GetDiagramObjectByID(cl.ElementID, string.Empty) == null)
                         {
                             string colorTag = cl.GetTag("color");
                             string location = "l=" + this._left + ";r=" + (this._left + _ClassWidth) + ";t=" + this._top + ";b=" + (this._top + _ClassHeight);
@@ -201,6 +222,41 @@ namespace SparxEA.View
         }
 
         /// <summary>
+        /// Returns the Diagram representation of the specified class. If the diagram does not contain the class, returns NULL.
+        /// </summary>
+        /// <param name="thisClass">Class for which we want to retrieve the representation.</param>
+        /// <returns>Diagram representation of the class or NULL when not found on the diagram.</returns>
+        internal override DiagramClassRepresentation GetRepresentation(MEClass thisClass)
+        {
+            var diagramObject = this._diagram.GetDiagramObjectByID(thisClass.ElementID, string.Empty);
+            DiagramClassRepresentation retVal = null;
+            if (diagramObject != null)
+            {
+                var representationImp = new EADiagramClassRepresentation((EAModelImplementation)this._model, thisClass.ElementID, this._diagram.DiagramID);
+                retVal = representationImp != null ? new DiagramClassRepresentation(representationImp) : null;
+            }
+            return retVal;
+        }
+
+        /// <summary>
+        /// Iterator that returns the representation objects of all classes and/or objects that are on the diagram.
+        /// </summary>
+        /// <returns>Class-/Object representations, one at a time.</returns>
+        internal override IEnumerable<DiagramClassRepresentation> GetRepresentations()
+        {
+            this._diagram.DiagramObjects.Refresh();
+            foreach (DiagramObject diagramObject in this._diagram.DiagramObjects)
+            {
+                EA.Element associatedElement = ((EAModelImplementation)this._model).Repository.GetElementByID(diagramObject.ElementID);
+                if (associatedElement != null && (associatedElement.Type == _ClassType || associatedElement.Type == _ObjectType))
+                {
+                    var representationImp = new EADiagramClassRepresentation((EAModelImplementation)this._model, diagramObject.ElementID, this._diagram.DiagramID);
+                    if (representationImp != null) yield return new DiagramClassRepresentation(representationImp);
+                }
+            }
+        }
+
+        /// <summary>
         /// Redraw the diagram, required after one or more 'add' operations to actually show the added elements on the diagram.
         /// Redraw does NOT perform a layout so the original diagram layout will remain untouched.
         /// </summary>
@@ -208,7 +264,7 @@ namespace SparxEA.View
         {
             this._diagram.DiagramObjects.Refresh();
             this._diagram.DiagramLinks.Refresh();
-            //((EAModelImplementation)this._model).Repository.ReloadDiagram(this._diagram.DiagramID);
+            ((EAModelImplementation)this._model).Repository.ReloadDiagram(this._diagram.DiagramID);
         }
 
         /// <summary>
@@ -218,16 +274,42 @@ namespace SparxEA.View
         {
             this._diagram.DiagramObjects.Refresh();
             this._diagram.DiagramLinks.Refresh();
-            //((EAModelImplementation)this._model).Repository.RefreshOpenDiagrams(false);
+            ((EAModelImplementation)this._model).Repository.RefreshOpenDiagrams(false);
+        }
+
+        /// <summary>
+        /// The refresh diagram function re-loads our cached 'volatile' properties such as name and alias name.
+        /// We do not register the object again since the ID's should not have changed.
+        /// </summary>
+        internal override void RefreshDiagram()
+        {
+            this._diagram = ((EAModelImplementation)this._model).Repository.GetDiagramByGuid(this._globalID) as EA.Diagram;
+            if (this._diagram != null)
+            {
+                this._name = this._diagram.Name;
+                Refresh();
+            }
+            else
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIAttribute >> Failed to retrieve EA Attribute with GUID: " + this._globalID);
+            }
         }
 
         /// <summary>
         /// This function is called when the repository has detected a change on the underlying repository object, which might require 
         /// refresh of internal state.
         /// </summary>
-        internal override void RefreshObject()
+        internal override void IsModified()
         {
-            Logger.WriteInfo("SparxEA.View.EADiagramImplementation >> Diagram '" + this._name + "' just gotten a 'refresh object' request, currently ignored!");
+            Logger.WriteInfo("SparxEA.View.EADiagramImplementation >> Diagram '" + this._name + "' just gotten a 'IsModified' request, currently ignored!");
+        }
+
+        /// <summary>
+        /// This function is called when the repository has detected a change in context to the current diagram.
+        /// </summary>
+        internal override void IsSelected()
+        {
+            Logger.WriteInfo("SparxEA.View.EADiagramImplementation >> Diagram '" + this._name + "' just gotten a 'IsSelected' request, currently ignored!");
         }
 
         /// <summary>
@@ -428,6 +510,7 @@ namespace SparxEA.View
                     colorID = 0xA7FEE9;
                     break;
             }
+
             return colorID;
         }
     }

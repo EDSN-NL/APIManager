@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EventConfiguration xmlns="urn:x-enexis:ecdm:framework:context:objecteventhandler" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="urn:x-enexis:ecdm:framework:context:objecteventhandler file:ObjectEventHandlerConfig.xsd">
+  <EventList eventType="Closed">
+  </EventList>
+  <EventList eventType="Created">
+    <EventHandlerList>
+      <EventHandler ID="Color Single Class Event">
+        <HandlerFQN>Plugin.ApplicationBDM.Events.ColorClassEvent</HandlerFQN>
+        <ObjectTypeList>
+          <ObjectType>DiagramObject</ObjectType>
+        </ObjectTypeList>
+      </EventHandler>
+    </EventHandlerList>
+  </EventList>
+  <EventList eventType="Deleted">
+  </EventList>
+  <EventList eventType="Selected">
+  </EventList>
+  <EventList eventType="Modified">
+    <EventHandlerList>
+      <EventHandler ID="Update Object Event">
+        <HandlerFQN>Plugin.ApplicationBDM.Events.UpdateObjectEvent</HandlerFQN>
+        <ObjectTypeList>
+          <ObjectType>Diagram</ObjectType>
+          <ObjectType>DiagramObject</ObjectType>
+          <ObjectType>Class</ObjectType>
+          <ObjectType>Package</ObjectType>
+        </ObjectTypeList>
+      </EventHandler>
+    </EventHandlerList>
+  </EventList>
+  <EventList eventType="Opened">
+    <EventHandlerList>
+      <EventHandler ID="Color Diagram Event">
+        <HandlerFQN>Plugin.ApplicationBDM.Events.ColorDiagramEvent</HandlerFQN>
+        <ObjectTypeList>
+          <ObjectType>Diagram</ObjectType>
+        </ObjectTypeList>
+      </EventHandler>
+    </EventHandlerList>
+  </EventList>
+</EventConfiguration>

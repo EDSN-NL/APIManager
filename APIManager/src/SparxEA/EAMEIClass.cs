@@ -6,6 +6,7 @@ using Framework.Context;
 using Framework.Logging;
 using Framework.Model;
 using Framework.Util;
+using Framework.Controller;
 
 namespace SparxEA.Model
 {
@@ -15,6 +16,7 @@ namespace SparxEA.Model
     internal sealed class EAMEIClass : MEIClass
     {
         private EA.Element _element;                        // EA Class representation.
+        private EAStereotypes _stereotypes;                 // My stereotypes, directly from the repository.
 
         // Configuration properties used to check attribute types...
         private const string _SupplementaryAttStereotype    = "SupplementaryAttStereotype";
@@ -77,6 +79,7 @@ namespace SparxEA.Model
                 this._elementID = classID;
                 this._globalID = this._element.ElementGUID;
 				this._aliasName = this._element.Alias ?? string.Empty;
+                this._stereotypes = new EAStereotypes(model, this);
             }
             else
             {
@@ -96,6 +99,7 @@ namespace SparxEA.Model
                 this._elementID = this._element.ElementID;
                 this._globalID = classGUID;
                 this._aliasName = this._element.Alias ?? string.Empty;
+                this._stereotypes = new EAStereotypes(model, this);
             }
             else
             {
@@ -117,6 +121,7 @@ namespace SparxEA.Model
                 this._elementID = element.ElementID;
                 this._globalID = this._element.ElementGUID;
 				this._aliasName = this._element.Alias ?? string.Empty;
+                this._stereotypes = new EAStereotypes(model, this);
             }
             else
             {
@@ -130,18 +135,7 @@ namespace SparxEA.Model
         /// <param name="stereotype">Stereotype to be assigned.</param>
         internal override void AddStereotype(string stereotype)
         {
-            if (!string.IsNullOrEmpty(stereotype))
-            {
-                string stereoTypes = this._element.StereotypeEx;
-
-                if (!HasStereotype(stereotype))
-                {
-                    stereoTypes += (stereoTypes.Length > 0) ? "," + stereotype : stereotype;
-                    this._element.StereotypeEx = stereoTypes;
-                    this._element.Update();
-                    ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
-                }
-            }
+            this._stereotypes.AddStereotype(stereotype);
         }
 
         /// <summary>
@@ -230,9 +224,11 @@ namespace SparxEA.Model
         internal override MEAssociation CreateAssociation(EndpointDescriptor source, EndpointDescriptor destination, MEAssociation.AssociationType type, string assocName)
         {
             ContextSlt context = ContextSlt.GetContextSlt();
+            ControllerSlt controller = ControllerSlt.GetControllerSlt();
             string stereotype = string.Empty;
             if (string.IsNullOrEmpty(Name)) assocName = string.Empty;
             EA.Connector connector = null;
+            controller.EnableEvents = false;        // Defer event handling until after association is stable!
             switch (type)
             {
                 case MEAssociation.AssociationType.Generalization:
@@ -260,7 +256,6 @@ namespace SparxEA.Model
             connector.SupplierID = destination.EndPoint.ElementID;
             connector.StereotypeEx = stereotype;
             connector.Update();
-            this._element.Connectors.Refresh();
 
             EA.ConnectorEnd sourceEnd = connector.ClientEnd;
             EA.ConnectorEnd destinationEnd = connector.SupplierEnd;
@@ -294,8 +289,10 @@ namespace SparxEA.Model
                 if (type == MEAssociation.AssociationType.Usage) destinationEnd.Navigable = "Navigable";
             }
 
+            controller.EnableEvents = true;
             sourceEnd.Update();
             destinationEnd.Update();
+            this._element.Connectors.Refresh();
             ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
             return new MEAssociation(connector.ConnectorID);
         }
@@ -366,9 +363,10 @@ namespace SparxEA.Model
             }
 
             ContextSlt context = ContextSlt.GetContextSlt();
+            ControllerSlt controller = ControllerSlt.GetControllerSlt();
+            controller.EnableEvents = false;    // Defer event handling until new attribute is stable.
             var newAttribute = this._element.Attributes.AddNew(attribName, "Attribute") as EA.Attribute;
             newAttribute.Update();    // Update immediately to properly finish the creation!
-            this._element.Attributes.Refresh();
 
             // We use 'type' to determine the appropriate stereotype. In case of 'unknown', stereotype will be left empty!
             switch (type)
@@ -408,7 +406,9 @@ namespace SparxEA.Model
             // Add annotation to attribute...
             if (!string.IsNullOrEmpty(annotation)) newAttribute.Notes = annotation;
 
+            controller.EnableEvents = true;
             newAttribute.Update();
+            this._element.Attributes.Refresh();
             ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);
             return new MEAttribute(newAttribute.AttributeID);
         }
@@ -836,6 +836,15 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Returns a list of all fully-qualified stereotype names owned by the associated model element. This could
+        /// be an empty list if neither of the assigned stereotypes originates from a profile!
+        /// </summary>
+        internal override List<string> GetFQStereotypes()
+        {
+            return this._stereotypes.FQStereotypes;
+        }
+
+        /// <summary>
         /// Simple method that searches a Class implementation for the occurence of a tag with specified name. 
         /// If found, the value of the tag is returned.
         /// </summary>
@@ -1007,6 +1016,26 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// The refresh model element function re-loads our cached 'volatile' properties such as name and alias name.
+        /// We do not register the object again since the ID's should not have changed.
+        /// </summary>
+        internal override void RefreshModelElement()
+        {
+            this._element = ((EAModelImplementation)this._model).Repository.GetElementByGuid(this._globalID);
+            if (this._element != null)
+            {
+                this._name = this._element.Name;
+                this._aliasName = this._element.Alias ?? string.Empty;
+                this._stereotypes = new EAStereotypes((EAModelImplementation)this._model, this);
+                this._element.Refresh();
+            }
+            else
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIClass >> Failed to retrieve EA Element with GUID: " + this._globalID);
+            }
+        }
+
+        /// <summary>
         /// Updates Class annotation.
         /// </summary>
         /// <param name="text">The annotation text to write.</param>
@@ -1091,6 +1120,7 @@ namespace SparxEA.Model
         {
             try
             {
+                ControllerSlt controller = ControllerSlt.GetControllerSlt();
                 if (tagValue == null) tagValue = string.Empty;
                 if (tagName == null) tagName = string.Empty;
                 foreach (TaggedValue t in this._element.TaggedValues)
@@ -1111,8 +1141,10 @@ namespace SparxEA.Model
                 // Element tag not found, create new one if instructed to do so...
                 if (createIfNotExist && tagName != string.Empty)
                 {
+                    controller.EnableEvents = false;
                     var newTag = this._element.TaggedValues.AddNew(tagName, "TaggedValue") as TaggedValue;
                     newTag.Value = tagValue;
+                    controller.EnableEvents = true;
                     newTag.Update();
                     this._element.TaggedValues.Refresh();
                     ((EAModelImplementation)this._model).Repository.AdviseElementChange(this._element.ElementID);

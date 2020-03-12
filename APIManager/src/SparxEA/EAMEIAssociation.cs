@@ -357,6 +357,24 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// The refresh model element function re-loads our cached 'volatile' properties such as name and alias name.
+        /// We do not register the object again since the ID's should not have changed.
+        /// </summary>
+        internal override void RefreshModelElement()
+        {
+            this._connector = ((EAModelImplementation)this._model).Repository.GetConnectorByGuid(this._globalID);
+            if (this._connector != null)
+            {
+                this._name = this._connector.Name;
+                this._aliasName = this._connector.Alias ?? string.Empty;
+            }
+            else
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIAttribute >> Failed to retrieve EA Attribute with GUID: " + this._globalID);
+            }
+        }
+
+        /// <summary>
         /// Updates annotation of the specified endpoint, or of the connector itself.
         /// </summary>
         /// <param name="text">Annotation text to write.</param>

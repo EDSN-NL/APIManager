@@ -1,41 +1,358 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CMConfiguratiion xmlns="urn:x-enexis:ecdm:framework:context:configmanagement"
+<ns0:EventConfiguration xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
+ xmlns:ns0="urn:x-enexis:ecdm:framework:context:objecteventhandler"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="urn:x-enexis:ecdm:framework:context:configmanagement file:/Users/wmeijers/UserData/Bedrijven/Customers/Enexis/ECDM%20ROOT/Sparx%20EA/Add-Ins/API%20Manager/APIManager/resources/CMConfig.xsd">
-    <ServiceCI serviceKind="CodeList">
-        <ContainerCI nameFromType="nameFromType1" suffixTemplate="suffixTemplate1">
-            <DocumentCI capabilityName="capabilityName1" capabilityType="capabilityType1" suffixTemplate="suffixTemplate3"/>
-            <DocumentCI capabilityName="capabilityName3" capabilityType="capabilityType3" suffixTemplate="suffixTemplate5"/>
-            <ModelCI packageName="packageName1" packageType="packageType1" suffixTemplate="suffixTemplate7"/>
-            <ModelCI packageName="packageName3" packageType="packageType3" suffixTemplate="suffixTemplate9"/>
-        </ContainerCI>
-        <ContainerCI nameFromType="nameFromType3" suffixTemplate="suffixTemplate11">
-            <DocumentCI capabilityName="capabilityName5" capabilityType="capabilityType5" suffixTemplate="suffixTemplate13"/>
-            <DocumentCI capabilityName="capabilityName7" capabilityType="capabilityType7" suffixTemplate="suffixTemplate15"/>
-            <ModelCI packageName="packageName5" packageType="packageType5" suffixTemplate="suffixTemplate17"/>
-            <ModelCI packageName="packageName7" packageType="packageType7" suffixTemplate="suffixTemplate19"/>
-        </ContainerCI>
-        <DocumentCI capabilityName="capabilityName9" capabilityType="capabilityType9" suffixTemplate="suffixTemplate21"/>
-        <DocumentCI capabilityName="capabilityName11" capabilityType="capabilityType11" suffixTemplate="suffixTemplate23"/>
-        <ModelCI packageName="packageName9" packageType="packageType9" suffixTemplate="suffixTemplate25"/>
-        <ModelCI packageName="packageName11" packageType="packageType11" suffixTemplate="suffixTemplate27"/>
-    </ServiceCI>
-    <ServiceCI serviceKind="CodeList">
-        <ContainerCI nameFromType="nameFromType5" suffixTemplate="suffixTemplate29">
-            <DocumentCI capabilityName="capabilityName13" capabilityType="capabilityType13" suffixTemplate="suffixTemplate31"/>
-            <DocumentCI capabilityName="capabilityName15" capabilityType="capabilityType15" suffixTemplate="suffixTemplate33"/>
-            <ModelCI packageName="packageName13" packageType="packageType13" suffixTemplate="suffixTemplate35"/>
-            <ModelCI packageName="packageName15" packageType="packageType15" suffixTemplate="suffixTemplate37"/>
-        </ContainerCI>
-        <ContainerCI nameFromType="nameFromType7" suffixTemplate="suffixTemplate39">
-            <DocumentCI capabilityName="capabilityName17" capabilityType="capabilityType17" suffixTemplate="suffixTemplate41"/>
-            <DocumentCI capabilityName="capabilityName19" capabilityType="capabilityType19" suffixTemplate="suffixTemplate43"/>
-            <ModelCI packageName="packageName17" packageType="packageType17" suffixTemplate="suffixTemplate45"/>
-            <ModelCI packageName="packageName19" packageType="packageType19" suffixTemplate="suffixTemplate47"/>
-        </ContainerCI>
-        <DocumentCI capabilityName="capabilityName21" capabilityType="capabilityType21" suffixTemplate="suffixTemplate49"/>
-        <DocumentCI capabilityName="capabilityName23" capabilityType="capabilityType23" suffixTemplate="suffixTemplate51"/>
-        <ModelCI packageName="packageName21" packageType="packageType21" suffixTemplate="suffixTemplate53"/>
-        <ModelCI packageName="packageName23" packageType="packageType23" suffixTemplate="suffixTemplate55"/>
-    </ServiceCI>
-</CMConfiguratiion>
+ xsi:schemaLocation="urn:x-enexis:ecdm:framework:context:objecteventhandler file:/Users/wmeijers/UserData/Bedrijven/Customers/Enexis/ECDM_ROOT/Sparx%20EA/Add-Ins/API%20Manager/APIManager/resources/ObjectEventHandlerConfig.xsd">
+    <ns0:EventList eventType="Created">
+        <ns0:EventHandlerList>
+            <ns0:EventHandler ID="ID0">
+                <ns0:HandlerFQN>HandlerFQN0</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName0</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName1</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName2</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName3</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+            <ns0:EventHandler ID="ID1">
+                <ns0:HandlerFQN>HandlerFQN1</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName4</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName5</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName6</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName7</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+            <ns0:EventHandler ID="ID2">
+                <ns0:HandlerFQN>HandlerFQN2</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName8</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName9</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName10</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName11</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+            <ns0:EventHandler ID="ID3">
+                <ns0:HandlerFQN>HandlerFQN3</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName12</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName13</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName14</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName15</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+        </ns0:EventHandlerList>
+    </ns0:EventList>
+    <ns0:EventList eventType="Created">
+        <ns0:EventHandlerList>
+            <ns0:EventHandler ID="ID4">
+                <ns0:HandlerFQN>HandlerFQN4</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName16</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName17</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName18</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName19</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+            <ns0:EventHandler ID="ID5">
+                <ns0:HandlerFQN>HandlerFQN5</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName20</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName21</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName22</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName23</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+            <ns0:EventHandler ID="ID6">
+                <ns0:HandlerFQN>HandlerFQN6</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName24</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName25</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName26</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName27</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+            <ns0:EventHandler ID="ID7">
+                <ns0:HandlerFQN>HandlerFQN7</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName28</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName29</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName30</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName31</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+        </ns0:EventHandlerList>
+    </ns0:EventList>
+    <ns0:EventList eventType="Created">
+        <ns0:EventHandlerList>
+            <ns0:EventHandler ID="ID8">
+                <ns0:HandlerFQN>HandlerFQN8</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName32</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName33</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName34</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName35</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+            <ns0:EventHandler ID="ID9">
+                <ns0:HandlerFQN>HandlerFQN9</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName36</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName37</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName38</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName39</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+            <ns0:EventHandler ID="ID10">
+                <ns0:HandlerFQN>HandlerFQN10</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName40</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName41</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName42</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName43</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+            <ns0:EventHandler ID="ID11">
+                <ns0:HandlerFQN>HandlerFQN11</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName44</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName45</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName46</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName47</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+        </ns0:EventHandlerList>
+    </ns0:EventList>
+    <ns0:EventList eventType="Created">
+        <ns0:EventHandlerList>
+            <ns0:EventHandler ID="ID12">
+                <ns0:HandlerFQN>HandlerFQN12</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName48</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName49</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName50</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName51</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+            <ns0:EventHandler ID="ID13">
+                <ns0:HandlerFQN>HandlerFQN13</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName52</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName53</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName54</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName55</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+            <ns0:EventHandler ID="ID14">
+                <ns0:HandlerFQN>HandlerFQN14</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName56</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName57</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName58</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName59</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+            <ns0:EventHandler ID="ID15">
+                <ns0:HandlerFQN>HandlerFQN15</ns0:HandlerFQN>
+                <ns0:EventTypeList>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                    <ns0:EventType>Created</ns0:EventType>
+                </ns0:EventTypeList>
+                <ns0:ObjectTypeList>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                    <ns0:ObjectType>Attribute</ns0:ObjectType>
+                </ns0:ObjectTypeList>
+                <ns0:StereotypeList>
+                    <ns0:StereotypeName>StereotypeName60</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName61</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName62</ns0:StereotypeName>
+                    <ns0:StereotypeName>StereotypeName63</ns0:StereotypeName>
+                </ns0:StereotypeList>
+            </ns0:EventHandler>
+        </ns0:EventHandlerList>
+    </ns0:EventList>
+</ns0:EventConfiguration>

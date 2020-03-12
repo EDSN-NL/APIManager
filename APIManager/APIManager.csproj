@@ -131,241 +131,251 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="resources\Settings.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\DeleteRESTResourceEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\DiagramItemsCollector.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\DeleteRESTOperationEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\EditRESTResourceEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\EditRESTOperationEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\AddRESTOperationEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\AddRESTResourceEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\CreateRESTServiceDeclarationEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\ProcessRESTInterfaceEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\UBLDatatypesEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\SynchroniseServiceEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\SynchroniseRepositoryEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\EnableCMEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\SynchroniseTagsEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\RepairStereotypeEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\RemoveTagsEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\RevertServiceEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\CheckoutServiceEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\ReleaseServiceEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\CommitServiceEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\CodeList\ProcessCodeListSetEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\UpdateChangeLogEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\DeleteInterfaceEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\AddInterfaceEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\AssociateWithOperationsEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\ProcessSOAPInterfaceEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\ProcessMessageEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\ServiceContext.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\ConsistencyCheckEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\CapabilityDocumentationEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\ClassInspectorEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\SetMetadataEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\RepairAttributeOrderEvent.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Generic\HTTPOperation.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\RESTCollection.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\RESTServiceHeaderParameterMgr.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\RESTCollectionMgr.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTHeaderParameterCollectionMgr.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTHeaderParameterCollection.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTHeaderParameterDescriptor.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTResponseCodeCollectionMgr.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTResponseCodeCollection.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\RESTSecuritySlt.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\OpenAPI20ProcessorOperationBuilder.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\OpenAPI20ProcessorHdrBuilder.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\OpenAPI20Processor.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\APIProcessor.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\APIProcessorSOAPItfBuilder.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\APIProcessorSchemaBuilder.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTOperationResultDescriptor.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTResourceDeclaration.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTOperationDeclaration.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTParameterDeclaration.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Generic\RESTResourceContainerInterface.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\RESTService.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\ApplicationService.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Implementation\RESTOperationCapabilityImp.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Interface\RESTOperationCapability.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Interface\RESTResourceCapability.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Implementation\RESTResourceCapabilityImp.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\RESTUtil.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Interface\RESTInterfaceCapability.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Implementation\RESTInterfaceCapabilityImp.cs" />
-    <Compile Include="src\Application\CapabilityModel\ReleaseManagement\RMReleaseTicket.cs" />
-    <Compile Include="src\Application\CapabilityModel\ReleaseManagement\RMTicket.cs" />
-    <Compile Include="src\Application\CapabilityModel\ReleaseManagement\RMServiceTicket.cs" />
-    <Compile Include="src\Application\CapabilityModel\SchemaGeneration\ClassCacheSlt.cs" />
-    <Compile Include="src\Application\CapabilityModel\SchemaGeneration\ClassifierContext.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Interface\CommonSchemaCapability.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Implementation\CommonSchemaCapabilityImp.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Interface\InterfaceCapability.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Implementation\InterfaceCapabilityImp.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Interface\MessageCapability.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Implementation\MessageCapabilityImp.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Implementation\OperationCapabilityImp.cs" />
-    <Compile Include="src\Application\CapabilityModel\SchemaGeneration\SchemaProcessor.cs" />
-    <Compile Include="src\Application\CapabilityModel\SchemaGeneration\SchemaProcessorParser.cs" />
-    <Compile Include="src\Application\CapabilityModel\SchemaGeneration\SchemaProcessorUtil.cs" />
-    <Compile Include="src\Application\CapabilityModel\ASCIIDoc\CommonDocContext.cs" />
-    <Compile Include="src\Application\CapabilityModel\ASCIIDoc\CrossReference.cs" />
-    <Compile Include="src\Application\CapabilityModel\ASCIIDoc\OperationDocContext.cs" />
-    <Compile Include="src\Application\CapabilityModel\ASCIIDoc\DocContext.cs" />
-    <Compile Include="src\Application\CapabilityModel\ASCIIDoc\ClassifierDocNode.cs" />
-    <Compile Include="src\Application\CapabilityModel\ASCIIDoc\ClassDocNode.cs" />
-    <Compile Include="src\Application\CapabilityModel\ASCIIDoc\DocManagerSlt.cs" />
-    <Compile Include="src\Application\CapabilityModel\CapabilityImp.cs" />
-    <Compile Include="src\Application\CapabilityModel\CodeList\CodeListCapabilityImp.cs" />
-    <Compile Include="src\Application\CapabilityModel\CodeList\ExcelExporter.cs" />
-    <Compile Include="src\Application\CapabilityModel\ProgressPanelSlt.cs" />
-    <Compile Include="src\Application\CapabilityModel\API\Interface\OperationCapability.cs" />
-    <Compile Include="src\Application\Forms\CMRemoveTags.cs">
+    <Compile Include="src\01-ApplicationBDM\01-Events\MenuEvents\ColorPickerEvent.cs" />
+    <Compile Include="src\01-ApplicationBDM\01-Events\ObjectEvents\ColorDiagramEvent.cs" />
+    <Compile Include="src\01-ApplicationBDM\01-Events\ObjectEvents\ColorClassEvent.cs" />
+    <Compile Include="src\01-ApplicationBDM\01-Events\ObjectEvents\UpdateObjectEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\DeleteRESTResourceEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\DiagramItemsCollector.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\DeleteRESTOperationEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\EditRESTResourceEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\EditRESTOperationEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\AddRESTOperationEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\AddRESTResourceEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\CreateRESTServiceDeclarationEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\ProcessRESTInterfaceEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\SyncStereotypesEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\UBLDatatypesEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\SynchroniseServiceEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\SynchroniseRepositoryEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\EnableCMEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\SynchroniseTagsEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\RepairStereotypeEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\RemoveTagsEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\RevertServiceEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\CheckoutServiceEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\ReleaseServiceEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\CommitServiceEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\CodeList\ProcessCodeListSetEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\UpdateChangeLogEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\DeleteInterfaceEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\AddInterfaceEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\AssociateWithOperationsEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\ProcessSOAPInterfaceEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\ProcessMessageEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\ServiceContext.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\ConsistencyCheckEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\CapabilityDocumentationEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\ClassInspectorEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\SetMetadataEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\RepairAttributeOrderEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Generic\HTTPOperation.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\RESTCollection.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\RESTServiceHeaderParameterMgr.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\RESTCollectionMgr.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Generic\RESTHeaderParameterCollectionMgr.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Generic\RESTHeaderParameterCollection.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Generic\RESTHeaderParameterDescriptor.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Generic\RESTResponseCodeCollectionMgr.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Generic\RESTResponseCodeCollection.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\RESTSecuritySlt.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\OpenAPI20ProcessorOperationBuilder.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\OpenAPI20ProcessorHdrBuilder.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\OpenAPI20Processor.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\APIProcessor.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\APIProcessorSOAPItfBuilder.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\APIProcessorSchemaBuilder.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Generic\RESTOperationResultDescriptor.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Generic\RESTResourceDeclaration.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Generic\RESTOperationDeclaration.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Generic\RESTParameterDeclaration.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Generic\RESTResourceContainerInterface.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\RESTService.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\ApplicationService.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Implementation\RESTOperationCapabilityImp.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Interface\RESTOperationCapability.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Interface\RESTResourceCapability.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Implementation\RESTResourceCapabilityImp.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\RESTUtil.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Interface\RESTInterfaceCapability.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Implementation\RESTInterfaceCapabilityImp.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\ReleaseManagement\RMReleaseTicket.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\ReleaseManagement\RMTicket.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\ReleaseManagement\RMServiceTicket.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\SchemaGeneration\ClassCacheSlt.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\SchemaGeneration\ClassifierContext.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Interface\CommonSchemaCapability.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Implementation\CommonSchemaCapabilityImp.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Interface\InterfaceCapability.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Implementation\InterfaceCapabilityImp.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Interface\MessageCapability.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Implementation\MessageCapabilityImp.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Implementation\OperationCapabilityImp.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\SchemaGeneration\SchemaProcessor.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\SchemaGeneration\SchemaProcessorParser.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\SchemaGeneration\SchemaProcessorUtil.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\ASCIIDoc\CommonDocContext.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\ASCIIDoc\CrossReference.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\ASCIIDoc\OperationDocContext.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\ASCIIDoc\DocContext.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\ASCIIDoc\ClassifierDocNode.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\ASCIIDoc\ClassDocNode.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\ASCIIDoc\DocManagerSlt.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\CapabilityImp.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\CodeList\CodeListCapabilityImp.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\CodeList\ExcelExporter.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\ProgressPanelSlt.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\API\Interface\OperationCapability.cs" />
+    <Compile Include="src\02-ApplicationCDM\Forms\CMRemoveTags.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CMRemoveTags.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CMRemoveTags.Designer.cs">
       <DependentUpon>CMRemoveTags.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CMEnable.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CMEnable.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CMEnable.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CMEnable.designer.cs">
       <DependentUpon>CMEnable.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CMReleaseMessage.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CMReleaseMessage.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CMReleaseMessage.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CMReleaseMessage.Designer.cs">
       <DependentUpon>CMReleaseMessage.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTCollectionPicker.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTCollectionPicker.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTCollectionPicker.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTCollectionPicker.Designer.cs">
       <DependentUpon>RESTCollectionPicker.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CMCheckoutService.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CMCheckoutService.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CMCheckoutService.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CMCheckoutService.designer.cs">
       <DependentUpon>CMCheckoutService.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CMRevertPicker.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CMRevertPicker.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CMRevertPicker.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CMRevertPicker.Designer.cs">
       <DependentUpon>CMRevertPicker.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\RepairStereotypeInput.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RepairStereotypeInput.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\RepairStereotypeInput.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RepairStereotypeInput.Designer.cs">
       <DependentUpon>RepairStereotypeInput.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTHeaderParameterDialog.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTHeaderParameterDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTHeaderParameterDialog.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTHeaderParameterDialog.Designer.cs">
       <DependentUpon>RESTHeaderParameterDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTHeaderParameterCollectionEdit.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTHeaderParameterCollectionEdit.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTHeaderParameterCollectionEdit.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTHeaderParameterCollectionEdit.designer.cs">
       <DependentUpon>RESTHeaderParameterCollectionEdit.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTCollectionSetEdit.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTCollectionSetEdit.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTCollectionSetEdit.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTCollectionSetEdit.designer.cs">
       <DependentUpon>RESTCollectionSetEdit.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTResponseCodeCollectionEdit.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTResponseCodeCollectionEdit.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTResponseCodeCollectionEdit.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTResponseCodeCollectionEdit.designer.cs">
       <DependentUpon>RESTResponseCodeCollectionEdit.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTProfileSetDialog.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTProfileSetDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTProfileSetDialog.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTProfileSetDialog.designer.cs">
       <DependentUpon>RESTProfileSetDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="src\Framework\ConfigurationManagement\CMRepositoryDscMgrSlt.cs" />
     <Compile Include="src\Framework\ConfigurationManagement\Ticket.cs" />
     <Compile Include="src\Framework\ConfigurationManagement\TicketServerSlt.cs" />
     <Compile Include="src\Framework\ConfigurationManagement\RepositoryDescriptor.cs" />
-    <Compile Include="src\Application\CapabilityModel\CMContext.cs" />
-    <Compile Include="src\Application\Forms\AccessLevelForm.cs">
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\CMContext.cs" />
+    <Compile Include="src\02-ApplicationCDM\Forms\AccessLevelForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\AccessLevelForm.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\AccessLevelForm.designer.cs">
       <DependentUpon>AccessLevelForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CMCommitMessage.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CMCommitMessage.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CMCommitMessage.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CMCommitMessage.Designer.cs">
       <DependentUpon>CMCommitMessage.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CMRepositorySetting.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CMRepositorySetting.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CMRepositorySetting.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CMRepositorySetting.designer.cs">
       <DependentUpon>CMRepositorySetting.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTResponseCodeDialog.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTResponseCodeDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTResponseCodeDialog.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTResponseCodeDialog.designer.cs">
       <DependentUpon>RESTResponseCodeDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTParameterDialog.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTParameterDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTParameterDialog.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTParameterDialog.Designer.cs">
       <DependentUpon>RESTParameterDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTOperationDialog.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTOperationDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTOperationDialog.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTOperationDialog.designer.cs">
       <DependentUpon>RESTOperationDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\ClassInspector.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\ClassInspector.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\ClassInspector.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\ClassInspector.designer.cs">
       <DependentUpon>ClassInspector.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CapabilityDocumentation.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CapabilityDocumentation.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CapabilityDocumentation.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CapabilityDocumentation.Designer.cs">
       <DependentUpon>CapabilityDocumentation.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CreateRESTServiceDeclaration.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CreateRESTServiceDeclaration.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CreateRESTServiceDeclaration.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CreateRESTServiceDeclaration.designer.cs">
       <DependentUpon>CreateRESTServiceDeclaration.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTResourceDialog.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTResourceDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTResourceDialog.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTResourceDialog.Designer.cs">
       <DependentUpon>RESTResourceDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTAuthEditAPIKeys.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTAuthEditAPIKeys.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\RESTAuthEditAPIKeys.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RESTAuthEditAPIKeys.Designer.cs">
       <DependentUpon>RESTAuthEditAPIKeys.cs</DependentUpon>
     </Compile>
     <Compile Include="src\Framework\ConfigurationManagement\RemoteRepository.cs" />
     <Compile Include="src\Framework\ConfigurationManagement\CMRepositorySlt.cs" />
+    <Compile Include="src\Framework\Event\EventConfig\ObjectEventListDescriptor.cs" />
+    <Compile Include="src\Framework\Event\EventConfig\ObjectEventHandlerConfiguration.cs" />
+    <Compile Include="src\Framework\Event\EventConfig\ObjectEventHandlerDescriptor.cs" />
+    <Compile Include="src\Framework\Event\ObjectEventImplementation.cs" />
+    <Compile Include="src\Framework\Event\ObjectEvent.cs" />
     <Compile Include="src\Framework\Model\Implementation\MEIProfiler.cs" />
     <Compile Include="src\Framework\Model\Interface\MEProfiler.cs" />
     <Compile Include="src\Framework\Model\Interface\MEClassMetaData.cs" />
@@ -385,6 +395,10 @@
     <Compile Include="src\Framework\SchemaManagement\SchemaAttribute.cs" />
     <Compile Include="src\Framework\SchemaManagement\Facet.cs" />
     <Compile Include="src\Framework\SchemaManagement\PrimitiveType.cs" />
+    <Compile Include="src\Framework\View\DiagramClassRepresentationImplementation.cs" />
+    <Compile Include="src\Framework\View\DiagramClassRepresentation.cs" />
+    <Compile Include="src\SparxEA\EADiagramClassRepresentation.cs" />
+    <Compile Include="src\SparxEA\EAStereotypes.cs" />
     <Compile Include="src\Framework\Util\UserSlt.cs" />
     <Compile Include="src\Framework\Util\Sleeper.cs" />
     <Compile Include="src\Framework\Util\Cardinality.cs" />
@@ -400,136 +414,136 @@
     <Compile Include="src\Framework\SchemaManagement\XML\XMLFacet.cs" />
     <Compile Include="src\Framework\SchemaManagement\XML\XMLChoice.cs" />
     <Compile Include="src\Framework\SchemaManagement\XML\XMLSortableSchemaElement.cs" />
-    <Compile Include="src\Application\Forms\AddInterfaceInput.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\AddInterfaceInput.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\AddInterfaceInput.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\AddInterfaceInput.designer.cs">
       <DependentUpon>AddInterfaceInput.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CapabilityPicker.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CapabilityPicker.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CapabilityPicker.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CapabilityPicker.Designer.cs">
       <DependentUpon>CapabilityPicker.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CodeListPicker.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CodeListPicker.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CodeListPicker.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CodeListPicker.Designer.cs">
       <DependentUpon>CodeListPicker.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CollectAnnotation.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CollectAnnotation.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CollectAnnotation.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CollectAnnotation.Designer.cs">
       <DependentUpon>CollectAnnotation.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\ConfirmOperationChanges.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\ConfirmOperationChanges.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\ConfirmOperationChanges.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\ConfirmOperationChanges.Designer.cs">
       <DependentUpon>ConfirmOperationChanges.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\ProgressPanel.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\ProgressPanel.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\ProgressPanel.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\ProgressPanel.Designer.cs">
       <DependentUpon>ProgressPanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\CapabilityModel\ProcessorManagerSlt.cs" />
-    <Compile Include="src\Application\CapabilityModel\CodeList\GeneriCodeExporter.cs" />
-    <Compile Include="src\Application\CapabilityModel\CodeList\CodeListExporter.cs" />
-    <Compile Include="src\Application\CapabilityModel\CapabilityProcessor.cs" />
-    <Compile Include="src\Application\CapabilityModel\CodeList\CodeListCapability.cs" />
-    <Compile Include="src\Application\CapabilityModel\CodeList\CodeListService.cs" />
-    <Compile Include="src\Application\CapabilityEvents\CodeList\DeleteCodeListEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\CodeList\CodeListMajorVersionEvent.cs" />
-    <Compile Include="src\Application\Forms\CapabilityProcessorPicker.cs">
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\ProcessorManagerSlt.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\CodeList\GeneriCodeExporter.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\CodeList\CodeListExporter.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\CapabilityProcessor.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\CodeList\CodeListCapability.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\CodeList\CodeListService.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\CodeList\DeleteCodeListEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\CodeList\CodeListMajorVersionEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\Forms\CapabilityProcessorPicker.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CapabilityProcessorPicker.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CapabilityProcessorPicker.Designer.cs">
       <DependentUpon>CapabilityProcessorPicker.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\ChangeMajorVersion.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\ChangeMajorVersion.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\ChangeMajorVersion.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\ChangeMajorVersion.Designer.cs">
       <DependentUpon>ChangeMajorVersion.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\CapabilityEvents\CodeList\ProcessCodeListEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\CodeList\UpdateCodeListEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\CodeList\AddCodeListsEvent.cs" />
-    <Compile Include="src\Application\Forms\AboutBox.cs">
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\CodeList\ProcessCodeListEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\CodeList\UpdateCodeListEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\CodeList\AddCodeListsEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\Forms\AboutBox.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\AboutBox.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\AboutBox.designer.cs">
       <DependentUpon>AboutBox.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\CapabilityModel\Capability.cs" />
-    <Compile Include="src\Application\CapabilityModel\Service.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\CopyServiceDeclarationEvent .cs" />
-    <Compile Include="src\Application\Forms\AddCodeListInput.cs">
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\Capability.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityModel\Service.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\CopyServiceDeclarationEvent .cs" />
+    <Compile Include="src\02-ApplicationCDM\Forms\AddCodeListInput.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\AddCodeListInput.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\AddCodeListInput.designer.cs">
       <DependentUpon>AddCodeListInput.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CodeListDirector.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CodeListDirector.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CodeListDirector.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CodeListDirector.Designer.cs">
       <DependentUpon>CodeListDirector.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CodeListEnumPicker.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CodeListEnumPicker.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CodeListEnumPicker.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CodeListEnumPicker.Designer.cs">
       <DependentUpon>CodeListEnumPicker.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\CreateCodeListDeclaration.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CreateCodeListDeclaration.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CreateCodeListDeclaration.Designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CreateCodeListDeclaration.Designer.cs">
       <DependentUpon>CreateCodeListDeclaration.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\CapabilityEvents\CodeList\CreateCodeListDeclarationEvent .cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\DebugEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\RenameOperationsEvent.cs" />
-    <Compile Include="src\Application\Forms\RenameOperationInput.cs">
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\CodeList\CreateCodeListDeclarationEvent .cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\DebugEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\RenameOperationsEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\Forms\RenameOperationInput.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\RenameOperationInput.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\RenameOperationInput.designer.cs">
       <DependentUpon>RenameOperationInput.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\CapabilityEvents\API\DeleteOperationsEvent.cs" />
-    <Compile Include="src\Application\Forms\AddOperationInput.cs">
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\DeleteOperationsEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\Forms\AddOperationInput.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\AddOperationInput.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\AddOperationInput.designer.cs">
       <DependentUpon>AddOperationInput.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\CapabilityEvents\API\AddOperationsEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\API\CreateServiceDeclarationEvent.cs" />
-    <Compile Include="src\Application\Forms\CreateSOAPServiceDeclaration.cs">
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\AddOperationsEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\CreateServiceDeclarationEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\Forms\CreateSOAPServiceDeclaration.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\CreateSOAPServiceDeclaration.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\CreateSOAPServiceDeclaration.designer.cs">
       <DependentUpon>CreateSOAPServiceDeclaration.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\Forms\SettingsForm.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\SettingsForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Application\Forms\SettingsForm.designer.cs">
+    <Compile Include="src\02-ApplicationCDM\Forms\SettingsForm.designer.cs">
       <DependentUpon>SettingsForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\SettingsEvent.cs" />
-    <Compile Include="src\Application\CapabilityEvents\UtilityEvents\AboutEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\SettingsEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\AboutEvent.cs" />
     <Compile Include="src\Framework\Context\FrameworkSettings.cs" />
-    <Compile Include="src\Framework\Event\EventConfig\EventGroupDescriptor.cs" />
-    <Compile Include="src\Framework\Event\EventConfig\EventTreeDescriptor.cs" />
-    <Compile Include="src\Framework\Event\EventConfig\EventHandlerConfiguration.cs" />
-    <Compile Include="src\Framework\Event\EventConfig\EventHandlerDescriptor.cs" />
-    <Compile Include="src\Framework\Event\EventImplementation.cs" />
+    <Compile Include="src\Framework\Event\EventConfig\MenuEventGroupDescriptor.cs" />
+    <Compile Include="src\Framework\Event\EventConfig\MenuEventTreeDescriptor.cs" />
+    <Compile Include="src\Framework\Event\EventConfig\MenuEventHandlerConfiguration.cs" />
+    <Compile Include="src\Framework\Event\EventConfig\MenuEventHandlerDescriptor.cs" />
+    <Compile Include="src\Framework\Event\MenuEventImplementation.cs" />
     <Compile Include="src\Framework\Model\Implementation\MEIAssociation.cs" />
     <Compile Include="src\Framework\Model\Implementation\MEIAttribute.cs" />
     <Compile Include="src\Framework\Model\Implementation\MEIObject.cs" />
@@ -571,7 +585,7 @@
     <Compile Include="src\Framework\Context\ContextSlt.cs" />
     <Compile Include="src\Framework\Context\ContextImplementation.cs" />
     <Compile Include="src\Framework\Controller\ControllerSlt.cs" />
-    <Compile Include="src\Framework\Event\Event.cs" />
+    <Compile Include="src\Framework\Event\MenuEvent.cs" />
     <Compile Include="src\Framework\Event\EventManager.cs" />
     <Compile Include="src\Framework\Util\Logger.cs" />
     <Compile Include="src\Framework\Util\TreeNode.cs" />
@@ -598,6 +612,13 @@
     <Content Include="ECDMLogo.ico" />
     <None Include="resources\APIManager.ico" />
     <None Include="resources\GITLicenseTemplate.txt" />
+    <Content Include="resources\ObjectEventHandlerConfig.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="resources\ObjectEventHandlerConfig.xsd">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="resources\OpenAPI20Header.txt" />
     <None Include="packages.config" />
     <None Include="resources\SoapEnvelope_v11.xsd">
@@ -626,7 +647,7 @@
     <Content Include="resources\EDSN-LDT-MappingTable.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="resources\EventHandlerConfig.xml">
+    <Content Include="resources\MenuEventHandlerConfig.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>
@@ -647,7 +668,7 @@
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
-    <Content Include="resources\EventHandlerConfig.xsd">
+    <Content Include="resources\MenuEventHandlerConfig.xsd">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -662,128 +683,130 @@
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\AboutBox.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\AboutBox.resx">
       <DependentUpon>AboutBox.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\AccessLevelForm.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\AccessLevelForm.resx">
       <DependentUpon>AccessLevelForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\AddCodeListInput.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\AddCodeListInput.resx">
       <DependentUpon>AddCodeListInput.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\AddInterfaceInput.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\AddInterfaceInput.resx">
       <DependentUpon>AddInterfaceInput.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CMRemoveTags.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CMRemoveTags.resx">
       <DependentUpon>CMRemoveTags.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CMEnable.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CMEnable.resx">
       <DependentUpon>CMEnable.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CMReleaseMessage.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CMReleaseMessage.resx">
       <DependentUpon>CMReleaseMessage.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RESTCollectionPicker.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\RESTCollectionPicker.resx">
       <DependentUpon>RESTCollectionPicker.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CMCheckoutService.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CMCheckoutService.resx">
       <DependentUpon>CMCheckoutService.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CMRevertPicker.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CMRevertPicker.resx">
       <DependentUpon>CMRevertPicker.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CMCommitMessage.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CMCommitMessage.resx">
       <DependentUpon>CMCommitMessage.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CMRepositorySetting.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CMRepositorySetting.resx">
       <DependentUpon>CMRepositorySetting.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RepairStereotypeInput.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\RepairStereotypeInput.resx">
       <DependentUpon>RepairStereotypeInput.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RESTHeaderParameterDialog.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\RESTHeaderParameterDialog.resx">
       <DependentUpon>RESTHeaderParameterDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RESTHeaderParameterCollectionEdit.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\RESTHeaderParameterCollectionEdit.resx">
       <DependentUpon>RESTHeaderParameterCollectionEdit.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RESTCollectionSetEdit.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\RESTCollectionSetEdit.resx">
       <DependentUpon>RESTCollectionSetEdit.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RESTResponseCodeCollectionEdit.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\RESTResponseCodeCollectionEdit.resx">
       <DependentUpon>RESTResponseCodeCollectionEdit.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RESTProfileSetDialog.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\RESTProfileSetDialog.resx">
       <DependentUpon>RESTProfileSetDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RESTResponseCodeDialog.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\RESTResponseCodeDialog.resx">
       <DependentUpon>RESTResponseCodeDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RESTParameterDialog.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\RESTParameterDialog.resx">
       <DependentUpon>RESTParameterDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RESTOperationDialog.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\RESTOperationDialog.resx">
       <DependentUpon>RESTOperationDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\ClassInspector.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\ClassInspector.resx">
       <DependentUpon>ClassInspector.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CapabilityProcessorPicker.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CapabilityProcessorPicker.resx">
       <DependentUpon>CapabilityProcessorPicker.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\ChangeMajorVersion.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\ChangeMajorVersion.resx">
       <DependentUpon>ChangeMajorVersion.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CodeListDirector.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CodeListDirector.resx">
       <DependentUpon>CodeListDirector.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CapabilityPicker.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CapabilityPicker.resx">
       <DependentUpon>CapabilityPicker.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CodeListPicker.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CodeListPicker.resx">
       <DependentUpon>CodeListPicker.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CodeListEnumPicker.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CodeListEnumPicker.resx">
       <DependentUpon>CodeListEnumPicker.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CapabilityDocumentation.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CapabilityDocumentation.resx">
       <DependentUpon>CapabilityDocumentation.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CollectAnnotation.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CollectAnnotation.resx">
       <DependentUpon>CollectAnnotation.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\ConfirmOperationChanges.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\ConfirmOperationChanges.resx">
       <DependentUpon>ConfirmOperationChanges.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CreateCodeListDeclaration.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CreateCodeListDeclaration.resx">
       <DependentUpon>CreateCodeListDeclaration.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CreateRESTServiceDeclaration.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CreateRESTServiceDeclaration.resx">
       <DependentUpon>CreateRESTServiceDeclaration.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\ProgressPanel.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\ProgressPanel.resx">
       <DependentUpon>ProgressPanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RenameOperationInput.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\RenameOperationInput.resx">
       <DependentUpon>RenameOperationInput.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\AddOperationInput.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\AddOperationInput.resx">
       <DependentUpon>AddOperationInput.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\CreateSOAPServiceDeclaration.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\CreateSOAPServiceDeclaration.resx">
       <DependentUpon>CreateSOAPServiceDeclaration.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RESTResourceDialog.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\RESTResourceDialog.resx">
       <DependentUpon>RESTResourceDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\RESTAuthEditAPIKeys.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\RESTAuthEditAPIKeys.resx">
       <DependentUpon>RESTAuthEditAPIKeys.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Application\Forms\SettingsForm.resx">
+    <EmbeddedResource Include="src\02-ApplicationCDM\Forms\SettingsForm.resx">
       <DependentUpon>SettingsForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="src\01-ApplicationBDM\02-Application\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

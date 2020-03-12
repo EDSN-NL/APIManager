@@ -29,6 +29,9 @@ namespace APIManager.SparxEA
         // Configuration properties for the top-level controller...
         private const string _TopLevelMenuName = "TopLevelMenuName";     // Identifies the top-level menu name configuration property.
 
+        private const string _ClassType = "Class";                      // Used to check whether we got a class from the EA repository.
+        private const string _ObjectType = "Object";                    // Used to check whether we got an object from the EA repository.
+
         /// <summary>
         /// The private constructor is called once on initial load and initializes all static controller properties.
         /// </summary>
@@ -312,38 +315,40 @@ namespace APIManager.SparxEA
         /// <param name="ot">Specifies the type of the new context item.</param>
         public override void EA_OnNotifyContextItemModified(EA.Repository repository, string GUID, EA.ObjectType ot)
         {
-            ModelElement element;
             switch (ot)
             {
-                case ObjectType.otAttribute:
-                    element = new MEAttribute(repository.GetAttributeByGuid(GUID).AttributeID);
-                    element.RefreshObject();
-                    break;
+                case EA.ObjectType.otAttribute:
+                    ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Modified, Framework.Event.ObjectType.Attribute, -1, GUID);
+                    return;
 
-                case ObjectType.otConnector:
-                    element = new MEAssociation(repository.GetConnectorByGuid(GUID).ConnectorID);
-                    element.RefreshObject();
-                    break;
+                case EA.ObjectType.otConnector:
+                    ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Modified, Framework.Event.ObjectType.Connector, -1, GUID);
+                    return;
 
-                case ObjectType.otElement:
-                    element = new MEClass(repository.GetElementByGuid(GUID).ElementID);
-                    element.RefreshObject();
-                    break;
+                case EA.ObjectType.otElement:
+                    // Make sure we're dealing with actual class/object entities instead of other 'element' artifacts....
+                    EA.Element element = repository.GetElementByGuid(GUID) as EA.Element;
+                    if (element != null)
+                    { 
+                        if (element.Type == _ClassType)
+                            ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Modified, Framework.Event.ObjectType.Class, -1, GUID);
+                        else if (element.Type == _ObjectType)
+                            ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Modified, Framework.Event.ObjectType.Object, -1, GUID);
+                    }
+                    return;
 
-                case ObjectType.otPackage:
-                    element = new MEPackage(repository.GetPackageByGuid(GUID).PackageID);
-                    element.RefreshObject();
-                    break;
+                case EA.ObjectType.otPackage:
+                    ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Modified, Framework.Event.ObjectType.Package, -1, GUID);
+                    return;
 
-                case ObjectType.otDiagram:
-                    Logger.WriteInfo("SparxEA.Controller.EAController.EA_OnContextItemChanged >> Got Diagram GUID '" + GUID + "'...");
+                case EA.ObjectType.otDiagram:
+                    Logger.WriteInfo("SparxEA.Controller.EAController.EA_OnContextItemModified >> Got Diagram GUID '" + GUID + "'...");
                     // For some reason the API returns an Object in stead of a Diagram. Some casting required.
                     // In EA 13.5 I have eens a SchemaPropertyClass to be returned here. So we treat this even more carefully now...
                     object o = repository.GetDiagramByGuid(GUID);
                     if (o is EA.Diagram)
                     {
-                        var diagram = new Framework.View.Diagram(((EA.Diagram)o).DiagramID);
-                        diagram.RefreshObject();
+                        ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Modified, Framework.Event.ObjectType.Diagram, -1, GUID);
                     }
                     else
                     {
@@ -378,51 +383,57 @@ namespace APIManager.SparxEA
         /// <param name="ot">Specifies the type of the new context item.</param>
         public override void EA_OnContextItemChanged(EA.Repository repository, string GUID, EA.ObjectType ot)
         {
-            ContextScope newScope = ContextScope.Unknown;
-            int itemID = -1;
+            ControllerSlt controller = ControllerSlt.GetControllerSlt();
 
             switch (ot)
             {
-                case ObjectType.otAttribute:
-                    newScope = ContextScope.Attribute;
-                    itemID = repository.GetAttributeByGuid(GUID).AttributeID;
-                    break;
+                case EA.ObjectType.otAttribute:
+                    int attributeID = repository.GetAttributeByGuid(GUID).AttributeID;
+                    controller.SwitchScope(ContextScope.Attribute, attributeID, GUID);
+                    controller.HandleObjectEvent(ObjectEventType.Selected, Framework.Event.ObjectType.Attribute, attributeID, GUID);
+                    return;
 
-                case ObjectType.otConnector:
-                    newScope = ContextScope.Connector;
-                    itemID = repository.GetConnectorByGuid(GUID).ConnectorID;
-                    break;
+                case EA.ObjectType.otConnector:
+                    int connectorID = repository.GetConnectorByGuid(GUID).ConnectorID;
+                    controller.SwitchScope(ContextScope.Connector, connectorID, GUID);
+                    controller.HandleObjectEvent(ObjectEventType.Selected, Framework.Event.ObjectType.Connector, connectorID, GUID);
+                    return;
 
-                case ObjectType.otElement:
-                    newScope = ContextScope.Class;
-                    itemID = repository.GetElementByGuid(GUID).ElementID;
-                    break;
+                case EA.ObjectType.otElement:
+                    EA.Element element = repository.GetElementByGuid(GUID);
+                    if (element != null)
+                    {
+                        controller.SwitchScope(ContextScope.Class, element.ElementID, GUID);
+                        if (element.Type == _ClassType)
+                            ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Selected, Framework.Event.ObjectType.Class, -1, GUID);
+                        else if (element.Type == _ObjectType)
+                            ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Selected, Framework.Event.ObjectType.Object, -1, GUID);
+                    }
+                    return;
 
-                case ObjectType.otPackage:
-                    newScope = ContextScope.Package;
-                    itemID = repository.GetPackageByGuid(GUID).PackageID;
-                    break;
+                case EA.ObjectType.otPackage:
+                    int packageID = repository.GetPackageByGuid(GUID).PackageID;
+                    controller.SwitchScope(ContextScope.Package, packageID, GUID);
+                    controller.HandleObjectEvent(ObjectEventType.Selected, Framework.Event.ObjectType.Package, packageID, GUID);
+ 
+                    return;
 
-                case ObjectType.otDiagram:
+                case EA.ObjectType.otDiagram:
                     Logger.WriteInfo("SparxEA.Controller.EAController.EA_OnContextItemChanged >> Got Diagram GUID '" + GUID + "'...");
                     // For some reason the API returns an Object in stead of a Diagram. Some casting required.
                     // In EA 13.5 I have eens a SchemaPropertyClass to be returned here. So we treat this even more carefully now...
                     object o = repository.GetDiagramByGuid(GUID);
                     if (o is EA.Diagram)
                     {
-                        itemID = ((EA.Diagram)o).DiagramID;
-                        newScope = ContextScope.Diagram;
+                        controller.SwitchScope(ContextScope.Diagram, ((EA.Diagram)o).DiagramID, GUID);
+                        controller.HandleObjectEvent(ObjectEventType.Selected, Framework.Event.ObjectType.Diagram, ((EA.Diagram)o).DiagramID, GUID);
                     }
-                    else
-                    {
-                        Logger.WriteWarning("Reported type 'otDiagram' does in fact returns a '" + o.GetType() + "'!");
-                    }
-                    break;
+                    else Logger.WriteWarning("Reported type 'otDiagram' does in fact returns a '" + o.GetType() + "'!");
+                    return;
 
-                default:
-                    break;
+                default:        // All other types are ignored here.
+                    return;
             }
-            if (newScope != ContextScope.Unknown) ControllerSlt.GetControllerSlt().SwitchScope(newScope, itemID, GUID);
         }
 
         /// <summary>
@@ -446,8 +457,137 @@ namespace APIManager.SparxEA
         }
 
         /// <summary>
+        /// EA_OnPostNewElement notifies Add-Ins that a new element has been created on a diagram. It enables Add-Ins to modify the element upon creation.
+        /// This event occurs after a user has dragged a new element from the Toolbox or Resources window onto a diagram. 
+        /// The notification is provided immediately after the element is added to the model. Set Repository.SuppressEADialogs to true to suppress 
+        /// Enterprise Architect from showing its default dialogs.
+        /// Also look at EA_OnPreNewElement.
+        /// </summary>
+        /// <param name="repository">An EA.Repository object representing the currently open Enterprise Architect model.
+        /// Poll its members to retrieve model data and user interface status information.</param>
+        /// <param name="info">Contains the following EventProperty object for the new element:
+        /// - ElementID: A long value corresponding to Element.ElementID. </param>
+        /// <returns>Return True if the element has been updated during this notification. Return False otherwise.</returns>
+        public override bool EA_OnPostNewElement(EA.Repository repository, EA.EventProperties info) 
+        {
+            int objectID;
+            if (int.TryParse((string)info.Get("ElementID").Value, out objectID))
+            {
+                EA.Element element = repository.GetElementByID(objectID);
+                if (element != null)
+                {
+                    if (element.Type == _ClassType)
+                        return ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Created, Framework.Event.ObjectType.Class, objectID, element.ElementGUID);
+                    else if (element.Type == _ObjectType)
+                        return ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Created, Framework.Event.ObjectType.Object, objectID, element.ElementGUID);
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// EA_OnPostNewConnector notifies Add-Ins that a new connector has been created on a diagram. It enables Add-Ins to modify the connector upon creation.
+        /// This event occurs after a user has dragged a new connector from the Toolbox or Resources window onto a diagram. 
+        /// The notification is provided immediately after the connector is added to the model. Set Repository.SuppressEADialogs to true to suppress 
+        /// Enterprise Architect from showing its default dialogs.
+        /// Also look at EA_OnPreNewConnector.
+        /// </summary>
+        /// <param name="repository">An EA.Repository object representing the currently open Enterprise Architect model.
+        /// Poll its members to retrieve model data and user interface status information.</param>
+        /// <param name="info">Contains the following EventProperty object for the new connector:
+        /// - ConnectorID: A long value corresponding to Connector.ConnectorID.
+        /// </param>
+        /// <returns>Return True if the connector has been updated during this notification. Return False otherwise.</returns>
+        public override bool EA_OnPostNewConnector(EA.Repository repository, EA.EventProperties info) 
+        {
+            int objectID;
+            if (int.TryParse((string)info.Get("ConnectorID").Value, out objectID))
+                return ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Created, Framework.Event.ObjectType.Connector, objectID, string.Empty);
+            else return false;
+        }
+
+        /// <summary>
+        /// EA_OnPostNewDiagram notifies Add-Ins that a new diagram has been created. It enables Add-Ins to modify the diagram upon creation.
+        /// Set Repository.SuppressEADialogs to true to suppress Enterprise Architect from showing its default dialogs.
+        /// Also look at EA_OnPreNewDiagram.
+        /// </summary>
+        /// <param name="repository">An EA.Repository object representing the currently open Enterprise Architect model.
+        /// Poll its members to retrieve model data and user interface status information.</param>
+        /// <param name="info">Contains the following EventProperty object for the new diagram:
+        /// - DiagramID: A long value corresponding to Diagram.DiagramID.</param>
+        /// <returns>Return True if the diagram has been updated during this notification. Return False otherwise.</returns>
+        public override bool EA_OnPostNewDiagram(EA.Repository repository, EA.EventProperties info) 
+        {
+            int objectID;
+            if (int.TryParse((string)info.Get("DiagramID").Value, out objectID))
+                return ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Created, Framework.Event.ObjectType.Diagram, objectID, string.Empty);
+            else return false;
+        }
+
+        /// <summary>
+        /// EA_OnPostNewDiagramObject notifies Add-Ins that a new object has been created on a diagram. It enables Add-Ins to modify the object upon creation.
+        /// This event occurs after a user has dragged a new object from the Project Browser or Resources window onto a diagram. 
+        /// The notification is provided immediately after the object is added to the diagram. Set Repository.SuppressEADialogs to true to suppress 
+        /// Enterprise Architect from showing its default dialogs.
+        /// Also look at EA_OnPreNewDiagramObject.
+        /// </summary>
+        /// <param name="repository">An EA.Repository object representing the currently open Enterprise Architect model.
+        /// Poll its members to retrieve model data and user interface status information.</param>
+        /// <param name="info">Contains the following EventProperty object for the new element:
+        /// - ID: A long value corresponding to Diagram.ObjectID.
+        /// - DiagramID: A long value corresponding to DiagramID.
+        /// <returns>Return True if the element has been updated during this notification. Return False otherwise.</returns>
+        public override bool EA_OnPostNewDiagramObject(EA.Repository repository, EA.EventProperties info) 
+        {
+            int objectID;
+            int diagramID;
+            if (int.TryParse((string)info.Get("ID").Value, out objectID) && int.TryParse((string)info.Get("DiagramID").Value, out diagramID))
+                return ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Created, Framework.Event.ObjectType.DiagramObject, objectID, string.Empty, diagramID);
+            else return false;
+        }
+
+        /// <summary>
+        /// EA_OnPostNewAttribute notifies Add-Ins that a new attribute has been created on a diagram. It enables Add-Ins to modify the attribute upon creation.
+        /// This event occurs when a user creates a new attribute on an element by either drag-dropping from the Project Browser, using the Attributes Properties 
+        /// dialog, or using the in-place editor on the diagram. The notification is provided immediately after the attribute is created. 
+        /// Set Repository.SuppressEADialogs to true to suppress Enterprise Architect from showing its default dialogs.
+        /// Also look at EA_OnPreNewAttribute.
+        /// </summary>
+        /// <param name="repository">An EA.Repository object representing the currently open Enterprise Architect model.
+        /// Poll its members to retrieve model data and user interface status information.</param>
+        /// <param name="info">Contains the following EventProperty object for the new attribute:
+        /// - AttributeID: A long value corresponding to Attribute.AttributeID.</param>
+        /// <returns>Return True if the attribute has been updated during this notification. Return False otherwise.</returns>
+        public override bool EA_OnPostNewAttribute(EA.Repository repository, EA.EventProperties info) 
+        {
+            int objectID;
+            if (int.TryParse((string)info.Get("AttributeID").Value, out objectID))
+                return ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Created, Framework.Event.ObjectType.Attribute, objectID, string.Empty);
+            else return false;
+        }
+
+        /// <summary>
+        /// EA_OnPostNewPackage notifies Add-Ins that a new package has been created on a diagram. It enables Add-Ins to modify the package upon creation.
+        /// This event occurs when a user drags a new package from the Toolbox or Resources window onto a diagram, or by selecting the New Package icon from the Project Browser. Set Repository.SuppressEADialogs to true to suppress Enterprise Architect from showing its default dialogs.
+        /// Also look at EA_OnPreNewPackage.
+        /// </summary>
+        /// <param name="repository">An EA.Repository object representing the currently open Enterprise Architect model.
+        /// Poll its members to retrieve model data and user interface status information.</param>
+        /// <param name="info">Contains the following EventProperty object for the new package:
+        /// - PackageID: A long value corresponding to Package.PackageID.</param>
+        /// <returns>Return True if the package has been updated during this notification. Return False otherwise.</returns>
+        public override bool EA_OnPostNewPackage(EA.Repository repository, EA.EventProperties info) 
+        {
+            int objectID;
+            if (int.TryParse((string)info.Get("PackageID").Value, out objectID))
+                return ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Created, Framework.Event.ObjectType.Package, objectID, string.Empty);
+            else return false;
+        }
+
+        /// <summary>
         /// EA_OnPostOpenDiagram notifies Add-Ins that a diagram has been opened. We use this event to set the scope to "Diagram", which
-        /// assures that the opened diagram is reflected in the current context.
+        /// assures that the opened diagram is reflected in the current context. We also raise a "Diagram Opened" event that can be processed
+        /// by custom event handlers.
         /// </summary>
         /// <param name="repository">An EA.Repository object representing the currently open Enterprise Architect model.
         /// Poll its members to retrieve model data and user interface status information.</param>
@@ -456,6 +596,135 @@ namespace APIManager.SparxEA
         {
             Logger.WriteInfo("SparxEA.Controller.EAController.EA_OnPostOpenDiagram >> Got Diagram ID '" + diagramID + "'...");
             ControllerSlt.GetControllerSlt().SwitchScope(ContextScope.Diagram, diagramID, repository.GetDiagramByID(diagramID).DiagramGUID);
+            ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Opened, Framework.Event.ObjectType.Diagram, diagramID, string.Empty);
+        }
+
+        /// <summary>
+        /// EA_OnPostCloseDiagram notifies Add-Ins that a diagram has been closed.
+        /// Also look at EA_OnPostOpenDiagram.
+        /// </summary>
+        /// <param name="Repository">An EA.Repository object representing the currently open Enterprise Architect model.
+        /// Poll its members to retrieve model data and user interface status information.</param>
+        /// <param name="DiagramID">Contains the Diagram ID of the diagram that was closed.</param>
+        public override void EA_OnPostCloseDiagram(EA.Repository repository, int diagramID)
+        {
+            ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Closed, Framework.Event.ObjectType.Diagram, diagramID, string.Empty);
+        }
+
+        /// <summary>
+        /// EA_OnPreDeleteElement notifies Add-Ins that an element is to be deleted from the model. It enables Add-Ins to permit or deny deletion of the element.
+        /// This event occurs when a user deletes an element from the Project Browser or on a diagram. 
+        /// The notification is provided immediately before the element is deleted, so that the Add-In can disable deletion of the element.
+        /// </summary>
+        /// <param name="repository">An EA.Repository object representing the currently open Enterprise Architect model.
+        /// Poll its members to retrieve model data and user interface status information.</param>
+        /// <param name="info">Contains the following EventProperty object for the element to be deleted:
+        /// - ElementID: A long value corresponding to Element.ElementID.</param>	
+        /// <returns>Return True to enable deletion of the element from the model. Return False to disable deletion of the element.</returns>
+        public override bool EA_OnPreDeleteElement(EA.Repository repository, EA.EventProperties info) 
+        {
+            int objectID;
+            if (int.TryParse((string)info.Get("ElementID").Value, out objectID))
+            {
+                EA.Element element = repository.GetElementByID(objectID);
+                if (element != null)
+                {
+                    if (element.Type == _ClassType)
+                        return ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Deleted, Framework.Event.ObjectType.Class, objectID, element.ElementGUID);
+                    else if (element.Type == _ObjectType)
+                        return ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Deleted, Framework.Event.ObjectType.Object, objectID, element.ElementGUID);
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// EA_OnPreDeleteAttribute notifies Add-Ins that an attribute is to be deleted from the model. It enables Add-Ins to permit or deny deletion of the attribute.
+        /// This event occurs when a user deletes an attribute from the Project Browser or on a diagram. 
+        /// The notification is provided immediately before the attribute is deleted, so that the Add-In can disable deletion of the attribute.
+        /// </summary>
+        /// <param name="repository">An EA.Repository object representing the currently open Enterprise Architect model.
+        /// Poll its members to retrieve model data and user interface status information.</param>
+        /// <param name="info">Contains the following EventProperty object for the Attribute to be deleted:
+        /// - AttributeID: A long value corresponding to Attribute.AttributeID.</param>	
+        /// <returns>Return True to enable deletion of the attribute from the model. Return False to disable deletion of the attribute.</returns>
+        public override bool EA_OnPreDeleteAttribute(EA.Repository repository, EA.EventProperties info)
+        {
+            int objectID;
+            if (int.TryParse((string)info.Get("AttributeID").Value, out objectID))
+                return ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Deleted, Framework.Event.ObjectType.Attribute, objectID, string.Empty);
+            else return true;
+        }
+
+        /// <summary>
+        /// EA_OnPreDeleteConnector notifies Add-Ins that an connector is to be deleted from the model. It enables Add-Ins to permit or deny deletion of the connector.
+        /// This event occurs when a user attempts to permanently delete a connector on a diagram.
+        /// The notification is provided immediately before the connector is deleted, so that the Add-In can disable deletion of the connector.
+        /// </summary>
+        /// <param name="repository">An EA.Repository object representing the currently open Enterprise Architect model.
+        /// Poll its members to retrieve model data and user interface status information.</param>
+        /// <param name="info">Contains the following EventProperty object for the connector to be deleted:
+        /// - ConnectorID: A long value corresponding to Connector.ConnectorID.</param>	
+        /// <returns>Return True to enable deletion of the connector from the model. Return False to disable deletion of the connector.</returns>
+        public override bool EA_OnPreDeleteConnector(EA.Repository repository, EA.EventProperties info) 
+        {
+            int objectID;
+            if (int.TryParse((string)info.Get("ConnectorID").Value, out objectID))
+                return ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Deleted, Framework.Event.ObjectType.Connector, objectID, string.Empty);
+            else return true;
+        }
+
+        /// <summary>
+        /// EA_OnPreDeleteDiagram notifies Add-Ins that an diagram is to be deleted from the model. It enables Add-Ins to permit or deny deletion of the diagram.
+        /// This event occurs when a user attempts to permanently delete a diagram from the Project Browser.
+        /// The notification is provided immediately before the diagram is deleted, so that the Add-In can disable deletion of the diagram.
+        /// </summary>
+        /// <param name="repository">An EA.Repository object representing the currently open Enterprise Architect model.
+        /// Poll its members to retrieve model data and user interface status information.</param>
+        /// <param name="info">Contains the following EventProperty object for the diagram to be deleted:
+        /// - DiagramID: A long value corresponding to Diagram.DiagramID.</param>	
+        /// <returns>Return True to enable deletion of the diagram from the model. Return False to disable deletion of the diagram.</returns>
+        public override bool EA_OnPreDeleteDiagram(EA.Repository repository, EA.EventProperties info) 
+        {
+            int objectID;
+            if (int.TryParse((string)info.Get("DiagramID").Value, out objectID))
+                return ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Deleted, Framework.Event.ObjectType.Diagram, objectID, string.Empty);
+            else return true;
+        }
+
+        /// <summary>
+        /// EA_OnPreDeleteDiagramObject notifies Add-Ins that a diagram object is to be deleted from the model. It enables Add-Ins to permit or deny deletion of the element.
+        /// This event occurs when a user attempts to permanently delete an element from a diagram. The notification is provided immediately before the element is deleted, so that the Add-In can disable deletion of the element.
+        /// </summary>
+        /// <param name="repository">An EA.Repository object representing the currently open Enterprise Architect model.
+        /// Poll its members to retrieve model data and user interface status information.</param>
+        /// <param name="info">Contains the following EventProperty objects for the element to be deleted:
+        /// · ID: A long value corresponding to DiagramObject.ElementID</param>
+        /// <returns>Return True to enable deletion of the element from the model. Return False to disable deletion of the element.</returns>
+        public override bool EA_OnPreDeleteDiagramObject(EA.Repository repository, EA.EventProperties info) 
+        {
+            int objectID;
+            if (int.TryParse((string)info.Get("ID").Value, out objectID))
+                return ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Deleted, Framework.Event.ObjectType.DiagramObject, objectID, string.Empty);
+            else return true;
+        }
+
+        /// <summary>
+        /// EA_OnPreDeletePackage notifies Add-Ins that an package is to be deleted from the model. It enables Add-Ins to permit or deny deletion of the package.
+        /// This event occurs when a user attempts to permanently delete a package from the Project Browser.
+        /// The notification is provided immediately before the package is deleted, so that the Add-In can disable deletion of the package.
+        /// </summary>
+        /// <param name="repository">An EA.Repository object representing the currently open Enterprise Architect model.
+        /// Poll its members to retrieve model data and user interface status information.</param>
+        /// <param name="info">Contains the following EventProperty object for the package to be deleted:
+        /// - PackageID: A long value corresponding to Package.PackageID.</param>	
+        /// <returns>Return True to enable deletion of the package from the model. Return False to disable deletion of the package.</returns>
+        public override bool EA_OnPreDeletePackage(EA.Repository repository, EA.EventProperties info) 
+        {
+            int objectID;
+            if (int.TryParse((string)info.Get("PackageID").Value, out objectID))
+                return ControllerSlt.GetControllerSlt().HandleObjectEvent(ObjectEventType.Deleted, Framework.Event.ObjectType.Package, objectID, string.Empty);
+            else return true;
         }
 
         /// <summary>
@@ -493,11 +762,11 @@ namespace APIManager.SparxEA
                 if (parentName[0] == '-') parentName = parentName.Substring(1);
                 if (parentName[0] == '&') parentName = parentName.Substring(1);
 
-                List<EventManager.EventNode> nodeList = (parentName == topLevelMenuName) ? ControllerSlt.GetControllerSlt().GetEventList(scope, "root") :
+                List<EventManager.MenuEventNode> nodeList = (parentName == topLevelMenuName) ? ControllerSlt.GetControllerSlt().GetEventList(scope, "root") :
                                                                                            ControllerSlt.GetControllerSlt().GetEventList(scope, parentName);
                 var nameList = new string[nodeList.Count];
                 int idx = 0;
-                foreach (EventManager.EventNode node in nodeList)
+                foreach (EventManager.MenuEventNode node in nodeList)
                 {
                     // Group names must be preceded by a '-', wich indicated to EA that this is a menu group and not an item.
                     // Individual names are all preceded by a '&' character.

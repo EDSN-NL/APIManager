@@ -286,48 +286,48 @@ namespace Framework.Context
         /// <param name="uniqueID">Globally unique identifier of the item.</param>
         internal virtual void SwitchScope(ContextScope newScope, int itemID, string uniqueID)
         {
-            Logger.WriteInfo("Framework.Context.ContextImplementation.SwitchScope >> newScope = '" + 
-                              newScope + "', itemID = '" + itemID + "' and uniqueID = '" + uniqueID + "'...");
             switch (newScope)
             {
                 // No additional actions required for these (at the moment)...
                 case ContextScope.Attribute:
                 case ContextScope.Connector:
-                    this._lastScope = newScope;
-                    this._lastItemID = itemID;
-                    this._lastUniqueID = uniqueID;
+                    Logger.WriteInfo("Framework.Context.ContextImplementation.SwitchScope >> newScope = '" +
+                                      newScope + "', selected item with ID = '" + itemID + "' and GUID = '" + uniqueID + "'...");
                     break;
 
                 case ContextScope.Class:
-                    if (this._currentClass == null || this._currentClass.ElementID != itemID)
+                    if (this._currentClass == null || this._currentClass.GlobalID != uniqueID)
                     {
                         if (this._currentClass != null) this._currentClass.Dispose();
                         this._currentClass = new MEClass(itemID);
                         this._lastItemID = itemID;
                         this._lastUniqueID = uniqueID;
+                        Logger.WriteInfo("Framework.Context.ContextImplementation.SwitchScope >> newScope = '" +
+                                         newScope + "', selected class = '" + this._currentClass.Name + "' with ID = '" + itemID + "'...");
                     }
                     this._lastScope = newScope;
-                    ColorMyClass();
                     break;
 
                 case ContextScope.Package:
-                    if (this._currentPackage == null || this._currentPackage.ElementID != itemID)
-                    {
-                        if (this._currentPackage != null) this._currentPackage.Dispose();
-                        this._currentPackage = new MEPackage(itemID);
-                        this._lastItemID = itemID;
-                        this._lastUniqueID = uniqueID;
-                    }
+                    if (this._currentPackage != null) this._currentPackage.Dispose();
+                    this._currentPackage = new MEPackage(itemID);
+                    this._lastItemID = itemID;
+                    this._lastUniqueID = uniqueID;
+                    this._currentPackage.RefreshModelElement();
+                    Logger.WriteInfo("Framework.Context.ContextImplementation.SwitchScope >> newScope = '" +
+                                     newScope + "', selected package = '" + this._currentPackage.Name + "' with ID = '" + itemID + "'...");
                     this._lastScope = newScope;
                     break;
 
                 case ContextScope.Diagram:
-                    if (this._currentDiagram == null || this._currentDiagram.DiagramID != itemID)
+                    if (this._currentDiagram == null || this._currentDiagram.GlobalID != uniqueID)
                     {
                         if (this._currentDiagram != null) this._currentDiagram.Dispose();
                         this._currentDiagram = new View.Diagram(itemID);
                         this._lastItemID = itemID;
                         this._lastUniqueID = uniqueID;
+                        Logger.WriteInfo("Framework.Context.ContextImplementation.SwitchScope >> newScope = '" +
+                                         newScope + "', selected diagram = '" + this._currentDiagram.Name + "' with ID = '" + itemID + "'...");
                     }
                     this._lastScope = newScope;
                     break;
@@ -377,6 +377,10 @@ namespace Framework.Context
                 if (this._currentPackage != null) this._currentPackage.Dispose();
                 if (this._currentDiagram != null) this._currentDiagram.Dispose();
                 if (this._fileLogger != null) this._fileLogger.Dispose();
+                this._currentClass = null;
+                this._currentPackage = null;
+                this._currentDiagram = null;
+                this._fileLogger = null;
             }
         }
 
@@ -384,26 +388,5 @@ namespace Framework.Context
         /// Implement this in derived classes to ensure that the logger is created at the correct moment!
         /// </summary>
         protected abstract void InitializeLog();
-
-        /// <summary>
-        /// Test function to color a class according to the owning package..
-        /// </summary>
-        private void ColorMyClass()
-        {
-            if (this._currentClass != null)
-            {
-                MEPackage owner = this._currentClass.OwningPackage;
-                Logger.WriteInfo("Framework.Context.ContextImplementation.ColorMyClass >> Coloring '" + owner.Name + "/" + this._currentClass.Name + "'...");
-                string color = owner.GetTag("color");
-                if (!string.IsNullOrEmpty(color))
-                {
-                    Logger.WriteInfo("Framework.Context.ContextImplementation.ColorMyClass >> Going to paint class '" + color + "'...");
-                    if (this._currentDiagram != null) 
-                        this._currentDiagram.SetClassColor(this._currentClass, 
-                                                           Util.EnumConversions<Framework.View.Diagram.ClassColor>.StringToEnum(color));
-                }
-            }
-        }
-
     }
 }

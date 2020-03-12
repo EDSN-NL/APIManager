@@ -84,16 +84,6 @@ namespace Framework.Model
         internal abstract void SetAliasName(string newAliasName);
 
         /// <summary>
-        /// This function is activated whenever the repository detects a change to the associated model item. 
-        /// The refresh operation should update internal structures to assure they are consistent with the state of the repository!
-        /// </summary>
-        internal void RefreshObject()
-        {
-            Logger.WriteInfo("Framework.Model.ModelElementImplementation >> Element '" + this._type.ToString() + "->" + 
-                             this._name + "' just gotten a 'refresh object' request, currently ignored!");
-        }
-
-        /// <summary>
         /// Used to keep track of interfaces that use this implementation. When we detect the first interface that is actually
         /// using this implementation, we register the implementation object in the dictionary so future interfaces can find it.
         /// This is the ONLY place where we add the registration!
@@ -163,6 +153,14 @@ namespace Framework.Model
         }
 
         /// <summary>
+        /// Returns a list of all fully-qualified stereotypes owned by the associated model element.
+        /// </summary>
+        internal virtual List<string> GetFQStereotypes()
+        {
+            return new List<string>();
+        }
+
+        /// <summary>
         /// Set the 'isValid' indicator to 'false' in order to mark the implementation as invalid. Please note that this has no further side
         /// effects on the class and the use of the indicator is context specific. Currently, an implementation can be made invalid, but
         /// this can never be turned around (in other words: it will remain invalid for ever)!
@@ -170,6 +168,15 @@ namespace Framework.Model
         internal void InValidate()
         {
             this._isValid = false;
+        }
+
+        /// <summary>
+        /// Can be overruled by implementation objects to refresh the contents of the implementation object, e.g. after a model change outside
+        /// the scope of the plugin. The default implementation does not perform any operations.
+        /// </summary>
+        internal virtual void RefreshModelElement()
+        {
+            // Body intentionally left blank.
         }
 
         /// <summary>

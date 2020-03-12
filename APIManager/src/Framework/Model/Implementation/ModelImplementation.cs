@@ -127,6 +127,14 @@ namespace Framework.Model
         internal abstract DiagramImplementation GetDiagramImplementation(int diagramID);
 
         /// <summary>
+        /// Factory method for the construction of DiagramImlementation objects according to repository-independent Diagram ID.
+        /// </summary>
+        /// <param name="diagramID">The unique repository-independent diagram identifier.</param>
+        /// <returns>Diagram implementation object or NULL in case of errors.</returns>
+        /// <exception cref="MissingImplementationException">When no implementation object is present for the model.</exception>
+        internal abstract DiagramImplementation GetDiagramImplementation(string diagramGUID);
+
+        /// <summary>
         /// Factory method must be implemented by derived tool-specific implementation objects and is responsible for the
         /// construction of proper Model Element implementation objects.
         /// </summary>
@@ -149,6 +157,13 @@ namespace Framework.Model
         /// </summary>
         /// <returns>Name of currently opened project or empty string if unknown.</returns>
         internal abstract string GetModelName();
+
+        /// <summary>
+        /// This function returns the list of models that are open in the current repository project. A model is identified
+        /// as a root-level package (that is, a package that has no parent).
+        /// </summary>
+        /// <returns>List of root-packages (models) in the current project.</returns>
+        internal abstract List<MEPackage> GetModels();
 
         /// <summary>
         /// Retrieves the model repository type. Typically, this requires a tool-specific implementation.
@@ -209,6 +224,14 @@ namespace Framework.Model
         /// called after a number of model changes to assure that the model view is consistent with these changes.
         /// </summary>
         internal abstract void Refresh();
+
+        /// <summary>
+        /// Receives a fully-qualified stereotype name and synchronizes all repository elements using that stereotype. This 
+        /// will update all tagged values and other facets imposed by the stereotype. When a non-FQN stereotype is passed,
+        /// the function fails silently.
+        /// </summary>
+        /// <param name="stereotype">Fully-qualified stereotype to be synchronized.</param>
+        internal abstract void SynchronizeStereotype(string stereotype);
 
         /// <summary>
         /// This method is called during plugin shutdown and must release resources...

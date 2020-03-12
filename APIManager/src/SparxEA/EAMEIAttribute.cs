@@ -256,6 +256,26 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// The refresh model element function re-loads our cached 'volatile' properties such as name and alias name.
+        /// We do not register the object again since the ID's should not have changed.
+        /// </summary>
+        internal override void RefreshModelElement()
+        {
+            this._attribute = ((EAModelImplementation)this._model).Repository.GetAttributeByGuid(this._globalID);
+            if (this._attribute != null)
+            {
+                this._name = this._attribute.Name;
+                this._aliasName = this._attribute.Alias ?? string.Empty;
+                EA.Element element = ((EAModelImplementation)this._model).Repository.GetElementByID(this._attribute.ParentID);
+                if (element != null) element.Refresh();
+            }
+            else
+            {
+                Logger.WriteError("SparxEA.Model.EAMEIAttribute >> Failed to retrieve EA Attribute with GUID: " + this._globalID);
+            }
+        }
+
+        /// <summary>
         /// Updates attribute annotation.
         /// </summary>
         /// <param name="text">The annotation text to write.</param>

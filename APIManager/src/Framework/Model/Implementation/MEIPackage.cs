@@ -124,11 +124,22 @@ namespace Framework.Model
         /// that contain that name part. If only the stereotype is specified, we return all packages that match the
         /// stereotype. If both are specified, we return all packages of the specified stereotype that match the name filter.
         /// The search is only at the level of the current package, that is, we don't search multiple levels down!
+        /// The result set is ordered ascending by package name.
         /// </summary>
         /// <param name="nameFilter">Optional (part of) name to search for.</param>
         /// <param name="stereotype">Optional stereotype of class.</param>
+        /// <param name="exactMatch">When 'true', the specified names must be matched exactly.</param>
+        /// <param name="allLevels">When 'true', we search any levels down, not just direct decendants.</param>
         /// <returns>List of packages found (can be empty).</returns>
-        internal abstract List<MEPackage> FindPackages(string nameFilter, string stereotype);
+        internal abstract List<MEPackage> FindPackages(string nameFilter, string stereotype, bool exactMatch, bool allLevels);
+
+        /// <summary>
+        /// Locate the first parent package of the current package that has the specified stereotype (which can be
+        /// the current package itself).
+        /// </summary>
+        /// <param name="stereotype">Stereotype that we're looking for.</param>
+        /// <returns>Parent package with specified stereotype or NULL when not found.</returns>
+        internal abstract MEPackage FindParentWithStereotype(string stereotype);
 
         /// <summary>
         /// Searches the package for any class with given name and optional stereotype.
@@ -273,7 +284,7 @@ namespace Framework.Model
         /// Forces the repository implementation to refresh the current package and all children packages. This can be
         /// called after a number of model changes to assure that the model view is consistent with these changes.
         /// </summary>
-        internal abstract void Refresh();
+        internal abstract void RefreshPackage();
 
         /// <summary>
         /// Function that repairs the stereotypes of a series of model elements. The function checks whether stereotypes without a profile
