@@ -16,6 +16,7 @@ namespace Framework.Util
 
         private int _lowerBoundary;
         private int _upperBoundary;
+        private bool _suppressList;     // When set to 'true' we should not generate a list in case upper boundary > 1.
 
         /// <summary>
         /// Returns the lower range of the cardinality.
@@ -36,6 +37,17 @@ namespace Framework.Util
         /// Returns a string representation of the upper boundary.
         /// </summary>
         internal string UpperBoundaryAsString { get { return this._upperBoundary == 0 ? "*" : this._upperBoundary.ToString(); } }
+
+        /// <summary>
+        /// Returns 'true' in case we should generate separate 'list' elements for this cardinality.
+        /// Set this property to 'false' to force list suppression for this cardinality.
+        /// By default, CreateListElement is 'true' for all cardinalities > 1.
+        /// </summary>
+        internal bool UseLists
+        {
+            get { return (this._upperBoundary == 0 || this._upperBoundary > 1) && !this._suppressList; }
+            set { this._suppressList = !value; }
+        }
 
         /// <summary>
         /// Returns the cardinality as a tuple of two integers, first value is lower range, second is upper range.
@@ -159,8 +171,10 @@ namespace Framework.Util
         /// </summary>
         /// <param name="lower">Lower boundary.</param>
         /// <param name="upper">Upper boundary, specify 0 for 'unlimited'.</param>
+        /// <param name="suppressList">Optional parameter. Set to 'true' to suppress generation of list elements for this cardinality (only valid for an upper
+        /// boundary that is > 1).</param>
         /// <exception cref="IllegalCardinalityException">Thrown in case of illegal cardinality format.</exception>
-        internal Cardinality(int lower, int upper)
+        internal Cardinality(int lower, int upper, bool suppressList = false)
         {
             this._lowerBoundary = lower < 0 ? 0 : lower;
             if (upper != 0 && upper < this._lowerBoundary)
@@ -170,14 +184,17 @@ namespace Framework.Util
                 throw new IllegalCardinalityException(msg);
             }
             this._upperBoundary = upper;
+            this._suppressList = suppressList;
         }
 
         /// <summary>
         /// Standard constructor, specifying both the lower- and upper boundaries as a Tuple of two integers.
         /// </summary>
         /// <param name="range">Upper- and lower boundary.</param>
+        /// <param name="suppressList">Optional parameter. Set to 'true' to suppress generation of list elements for this cardinality (only valid for an upper
+        /// boundary that is > 1).</param>
         /// <exception cref="ArgumentException">Thrown in case of illegal cardinality format.</exception>
-        internal Cardinality(Tuple<int, int> range) : this(range.Item1, range.Item2) { }
+        internal Cardinality(Tuple<int, int> range, bool suppressList = false) : this(range.Item1, range.Item2, suppressList) { }
 
         /// <summary>
         /// Creates a cardinality of either 0-1 or 1-1 (1-1 in case 'isMandatory' is true).
@@ -188,6 +205,7 @@ namespace Framework.Util
         {
             this._lowerBoundary = isMandatory ? 1 : 0;
             this._upperBoundary = 1;
+            this._suppressList = false;
         }
 
         /// <summary>
@@ -196,8 +214,9 @@ namespace Framework.Util
         /// <param name="fromThis">Source Cardinality object to be copied.</param>
         internal Cardinality(Cardinality fromThis)
         {
-            this._lowerBoundary = fromThis.LowerBoundary;
-            this._upperBoundary = fromThis.UpperBoundary;
+            this._lowerBoundary = fromThis._lowerBoundary;
+            this._upperBoundary = fromThis._upperBoundary;
+            this._suppressList = fromThis._suppressList;
         }
 
         /// <summary>
@@ -213,8 +232,10 @@ namespace Framework.Util
         /// All other formats will result in an Argument Exception.
         /// </summary>
         /// <param name="range">Contains the cardinality string.</param>
+        /// <param name="suppressList">Optional parameter. Set to 'true' to suppress generation of list elements for this cardinality (only valid for an upper
+        /// boundary that is > 1).</param>
         /// <exception cref="IllegalCardinalityException">Is thrown in case the range string does not represent a valid cardinality.</exception>
-        internal Cardinality(string range)
+        internal Cardinality(string range, bool suppressList = false)
         {
             try
             {
@@ -225,6 +246,7 @@ namespace Framework.Util
                     Logger.WriteError(msg);
                     throw new IllegalCardinalityException(msg);
                 }
+                this._suppressList = suppressList;
 
                 if (range.Contains(".."))
                 {

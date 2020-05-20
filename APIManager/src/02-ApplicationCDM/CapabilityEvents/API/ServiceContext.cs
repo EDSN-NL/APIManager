@@ -394,6 +394,7 @@ namespace Plugin.Application.Events.API
             this._serviceModelPackage = svcClass.OwningPackage;
             this._declarationPackage = this._serviceModelPackage.Parent;
             this._serviceDiagram = this._serviceModelPackage.FindDiagram(this._serviceModelPackage.Name);
+            this._diagram = this._serviceDiagram;
             this._type = Service.ServiceArchetype.Unknown;
 
             // These will not be available in this context...

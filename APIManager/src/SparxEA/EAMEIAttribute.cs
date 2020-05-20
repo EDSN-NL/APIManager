@@ -5,6 +5,7 @@ using Framework.Logging;
 using Framework.Model;
 using Framework.Util;
 using Framework.Exceptions;
+using Framework.Context;
 
 namespace SparxEA.Model
 {
@@ -13,6 +14,9 @@ namespace SparxEA.Model
     /// </summary>
     internal sealed class EAMEIAttribute: MEIAttribute
     {
+        // Some configuration properties used by this module...
+        private const string _SuppressListTag = "SuppressListTag";
+
         private EA.Attribute _attribute;    // Repository attribute representation.
 
         /// <summary>
@@ -116,17 +120,17 @@ namespace SparxEA.Model
         }
 
         /// <summary>
-        /// Returns an integer representation of a 'Cardinality' string that should be interpreted as follows:
-        /// - Lower bound MUST be numeric. This is copied verbatim, all other values are rejected. A value smaller then 0 is interpreted as 0.
-        /// - Upper bound MUST be >= 1 or either "*" or "n", which is translated to 0, which is lateron interpreted as 'unbounded'.
-        /// If, after conversion, upper bound is smaller then lower bound, both values are swapped!
-        /// All other formats will result in an IllegalCardinalityException.
+        /// Returns a Cardinalty object that represents the cardinality of this attribute. Apart from lower- and upper
+        /// boundaries, the Cardinality object also takes into consideration whether a list element must be created for this particular
+        /// attribute (property CreateListElement).
         /// </summary>
         /// <returns>Tuple consisting of minOCC, maxOcc.</returns>
-        /// <exception cref="IllegalCardinalityException">Cardinality format error detected.</exception>
+        /// <exception cref="IllegalCardinalityException">Cardinality format error detected (i.e. lower bound greater then upper bound or negative boundaries).</exception>
         internal override Cardinality GetCardinality()
         {
-            return new Cardinality(this._attribute.LowerBound + ".." + this._attribute.UpperBound);
+            string suppressListTag = GetTag(ContextSlt.GetContextSlt().GetConfigProperty(_SuppressListTag));
+            bool suppressList = !string.IsNullOrEmpty(suppressListTag) && string.Compare(suppressListTag, "true", true) == 0;
+            return new Cardinality(this._attribute.LowerBound + ".." + this._attribute.UpperBound, suppressList);
         }
 
         /// <summary>

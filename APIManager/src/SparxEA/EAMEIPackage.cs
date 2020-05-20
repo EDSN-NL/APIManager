@@ -347,6 +347,106 @@ namespace SparxEA.Model
         }
 
         /// <summary>
+        /// Either creates a new class in the current package, or performs an update of an existing class. The function accepts a set of metadata
+        /// for the new class: the name, alias name, stereotype, notes and a set of tags. On an existing class, we (re-) assign alias name, notes
+        /// and the tag list (we do not check whether additional tags, outside the list, exist). If we don't specify a class to be updated, the
+        /// function will search for the class with the specified 'name' (and 'stereotype') and if found, updates that class. When no class is 
+        /// specified and we can't find an existing class with the specified name and stereotype, a new class will be created.
+        /// </summary>
+        /// <param name="name">The name of the class to either create or update.</param>
+        /// <param name="aliasName">An optional alias name for the class, specify either null or empty string when not needed.</param>
+        /// <param name="stereotype">Mandatory class primary stereotype.</param>
+        /// <param name="notes">Optional notes for the class, specify either null or empty string when not needed.</param>
+        /// <param name="tagList">List of tags to assign to the class. These are tuples in which the first item is the tag name, the second
+        /// the tag value.</param>
+        /// <param name="thisClass">When specified, we will force an update of that particular class instead of searching for the class by name.</param>
+        /// <returns>Created or updated class reference. The first item in the returned tuple contains the class, the second item
+        /// is an indicator that indicates whether we have updated an existing class (false) or created a new class (true).</returns>
+        internal override Tuple<MEClass, bool> CreateOrUpdateClass(string name, string aliasName, string stereotype, string notes, List<Tuple<string,string>> tagList, MEClass thisClass)
+        {
+            EA.Repository repository = ((EAModelImplementation)this._model).Repository;
+            char likeToken = ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local ? '*' : '%';
+            string checkType = stereotype.Contains("::") ? stereotype.Substring(stereotype.IndexOf("::") + 2) : stereotype;
+            string query = "SELECT o.Object_ID AS ElementID FROM t_object o WHERE o.Package_ID = " + this._package.PackageID +
+                           " AND o.Name = '" + name + "' AND o.Stereotype LIKE '" + likeToken + checkType + likeToken + "' ORDER BY o.Name";
+            EA.Element targetElement = null;
+            bool isNewClass = false;
+
+            // Prevent events and scope switches until we finished the update...
+            ControllerSlt controller = ControllerSlt.GetControllerSlt();
+            controller.EnableScopeSwitch = false;
+            controller.EnableEvents = false;
+
+            if (thisClass == null)
+            {
+                var queryResult = new XmlDocument();
+                queryResult.LoadXml(repository.SQLQuery(query));
+                XmlNodeList elements = queryResult.GetElementsByTagName("Row");
+
+                // In theory, we could find multiple results, we simply take the first match that contains both name and full stereotype...
+                foreach (XmlNode node in elements)
+                {
+                    // Since we could retrieve 'approximate' stereotypes only, we now have to perform an 'exact' check...
+                    int elementID = Convert.ToInt32(node["ElementID"].InnerText.Trim());
+                    EA.Element currentElement = repository.GetElementByID(elementID);
+                    if (currentElement.HasStereotype(stereotype))
+                    {
+                        targetElement = currentElement;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                targetElement = repository.GetElementByID(thisClass.ElementID);
+                targetElement.Name = name;      // We might have to change the name, so just overwrite with whatever has been specified.
+            }
+
+            if (targetElement == null)          // Not found, we must create a new instance...
+            {
+                targetElement = this._package.Elements.AddNew(name, _ClassType) as EA.Element;
+                targetElement.Update();         // Update immediately to properly finish the create. Note that this triggers a Scope Switch to incomplete object!
+                targetElement.StereotypeEx = stereotype;
+                isNewClass = true;
+            }
+
+            // Now that we have an element, initialise the other parts...
+            if (!string.IsNullOrEmpty(aliasName)) targetElement.Alias = aliasName;
+            if (!string.IsNullOrEmpty(notes)) targetElement.Notes = notes;
+            foreach (Tuple<string, string> tag in tagList)
+            {
+                bool foundIt = false;
+                foreach (TaggedValue t in targetElement.TaggedValues)
+                {
+                    if (String.Compare(t.Name, tag.Item1, StringComparison.OrdinalIgnoreCase) == 0)
+                    {
+                        if (t.Value != tag.Item2)
+                        {
+                            t.Value = tag.Item2;
+                            t.Update();
+                            foundIt = true;
+                        }
+                        break;
+                    }
+                }
+
+                // Element tag not found, create new one if instructed to do so...
+                if (!foundIt)
+                {
+                    var newTag = targetElement.TaggedValues.AddNew(tag.Item1, "TaggedValue") as TaggedValue;
+                    newTag.Value = tag.Item2;
+                    newTag.Update();
+                }
+            }
+            targetElement.TaggedValues.Refresh();
+            controller.EnableEvents = true;
+            controller.EnableScopeSwitch = true;
+            targetElement.Update();
+            repository.AdviseElementChange(targetElement.ElementID);
+            return new Tuple<MEClass, bool>(new MEClass(targetElement.ElementID), isNewClass);
+        }
+
+        /// <summary>
         /// Create a new package instance as a child of the current package and with given name and stereotype.
         /// Optionally, a sorting ID can be provided, which is used to specify the order of the new package amidst the
         /// children of the parent package. If omitted, the order is defined by the repository (typically, this will imply
@@ -538,18 +638,22 @@ namespace SparxEA.Model
         /// One or both parameters must be specified. If we have only the name part, the function returns all classes
         /// that contain that name part. If only the stereotype is specified, we return all classes that contain the
         /// stereotype. If both are specified, we return all classes of the specified stereotype that match the name filter.
-        /// The list is ordered ascending by class name.
+        /// The list is ordered ascending by class name. The function uses an approximate search, returning all classes
+        /// of which the name (or alias) matches either the entire name filter or contain the name filter.
+        /// By setting 'useAlias' to 'true', the function uses the Alias Name of the class instead of the normal name.
         /// </summary>
         /// <param name="nameFilter">Optional (part of) name to search for.</param>
         /// <param name="stereotype">Optional stereotype of class.</param>
+        /// <param name="useAliasName">When 'true' use the class Alias Name instead of 'ordinary' Name.</param>
         /// <returns>List of classes found (can be empty).</returns>
-        internal override List<MEClass> FindClasses(string nameFilter, string stereotype)
+        internal override List<MEClass> FindClasses(string nameFilter, string stereotype, bool useAliasName)
         {
             this._package.Elements.Refresh();   // Make sure that we're looking at the most up-to-date state.
             EA.Repository repository = ((EAModelImplementation)this._model).Repository;
             string query = string.Empty;
             char likeToken = ModelSlt.GetModelSlt().ModelRepositoryType == ModelSlt.RepositoryType.Local ? '*' : '%';
             var classList = new List<MEClass>();
+            string nameColumn = useAliasName ? "o.Alias" : "o.Name";
 
             // We MUST specify either a class filter and/or a stereotype!
             if (string.IsNullOrEmpty(nameFilter) && string.IsNullOrEmpty(stereotype)) return classList;
@@ -566,9 +670,9 @@ namespace SparxEA.Model
                 }
                 else
                 {
-                    // We have to select on both name- and stereotype.
+                    // We have to select on both name- and stereotype.                 
                     query = "SELECT o.Object_ID AS ElementID FROM t_object o WHERE o.Package_ID = " + this._package.PackageID +
-                            " AND o.Name LIKE '" + likeToken + nameFilter + likeToken + "' AND o.Stereotype LIKE '" + 
+                            " AND " + nameColumn + " LIKE '" + likeToken + nameFilter + likeToken + "' AND o.Stereotype LIKE '" + 
                             likeToken + checkType + likeToken + "' ORDER BY o.Name";
                 }
             }
@@ -576,13 +680,12 @@ namespace SparxEA.Model
             {
                 // Only search on name filter.
                 query = "SELECT o.Object_ID AS ElementID FROM t_object o WHERE o.Package_ID = " + this._package.PackageID + 
-                        " AND o.Name LIKE '" + likeToken + nameFilter + likeToken + "' ORDER BY o.Name";
+                        " AND " + nameColumn + " LIKE '" + likeToken + nameFilter + likeToken + "' ORDER BY o.Name";
             }
 
             var queryResult = new XmlDocument();                            // Repository query will return an XML Document.
             queryResult.LoadXml(repository.SQLQuery(query));                // Execute query and store result in XML Document.
             XmlNodeList elements = queryResult.GetElementsByTagName("Row"); // Retrieve found identifiers.
-            var parentList = new List<MEClass>();
 
             foreach (XmlNode node in elements)
             {
@@ -594,6 +697,34 @@ namespace SparxEA.Model
                 }
                 else classList.Add(myClass);
             }
+            return classList;
+        }
+
+        /// <summary>
+        /// Searches the package for any class containing the specified tag name and (optional) tag value. If the value
+        /// is not specified, we return all classes in the package that have the specified tag name, irrespective of contents.
+        /// If the tag value is specified as well, we only return classes that contain the specified tag AND an exact
+        /// match on the value of that tag.
+        /// </summary>
+        /// <param name="tagName">The tag name we're looking for.</param>
+        /// <param name="tagValue">Optional value for the tag (exact match).</param>
+        /// <returns>List of classes found (can be empty).</returns>
+        internal override List<MEClass> FindClassesByTag(string tagName, string tagValue)
+        {
+            EA.Repository repository = ((EAModelImplementation)this._model).Repository;
+            string valueClause = string.IsNullOrEmpty(tagValue) ? string.Empty : " AND p.Value = '" + tagValue + "'";
+            string query = "SELECT DISTINCT o.Object_ID AS ElementID FROM t_objectproperties p INNER JOIN t_object o ON o.Object_ID = p.Object_ID" +
+                           " WHERE p.Property = '" + tagName + "'" + valueClause + " AND o.Package_ID = '" + this._package.PackageID + "'";
+            var classList = new List<MEClass>();
+
+            // We MUST specify a tag name, otherwise we have nothing to search for...
+            if (string.IsNullOrEmpty(tagName)) return classList;
+
+            // Execute query and create class instances for each result...
+            var queryResult = new XmlDocument();
+            queryResult.LoadXml(repository.SQLQuery(query)); 
+            XmlNodeList elements = queryResult.GetElementsByTagName("Row");
+            foreach (XmlNode node in elements) classList.Add(new MEClass(Convert.ToInt32(node["ElementID"].InnerText.Trim())));
             return classList;
         }
 
@@ -918,6 +1049,16 @@ namespace SparxEA.Model
         internal override int GetClassCount()
         {
             return this._package.Elements.Count;
+        }
+
+        /// <summary>
+        /// Iterator that returns each child package of the current package.
+        /// </summary>
+        /// <returns>Next package</returns>
+        internal override IEnumerable<MEPackage> GetPackages()
+        {
+            this._package.Packages.Refresh();   // Assures that we're looking at the most up-to-date contents.
+            foreach (EA.Package package in this._package.Packages) yield return new MEPackage(package.PackageID);
         }
 
         /// <summary>

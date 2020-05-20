@@ -55,12 +55,14 @@ namespace Framework.Util.SchemaManagement.JSON
         /// Both Supplementary- and Content attributes are passed as a single list and correct processing is managed by the Schema implementation.
         /// If an ABIE with the specified name already exists, no processing takes place and 'true' is returned.
         /// </summary>
+        /// <param name="nodeID">Unique numeric identification of the ABIE.</param>
         /// <param name="className">The name of the business component (ABIE name).</param>
         /// <param name="annotation">Optional comment for this element (empty list in case of no comment).</param>
         /// <param name="attributeList">List of content- and supplementary attributes.</param>
         /// <param name="associationList">List of associated classes (ASBIE).</param>
         /// <returns>TRUE in case of success, FALSE on errors. If the type already exists, no action is performed and the operation returns TRUE.</returns>
-        internal override bool AddABIEType(string className, List<MEDocumentation> annotation, List<SchemaAttribute> attributeList, List<SchemaAssociation> associationList)
+        internal override bool AddABIEType(int nodeID, string className, List<MEDocumentation> annotation, 
+                                           List<SchemaAttribute> attributeList, List<SchemaAssociation> associationList)
         {
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONSchema.addABIEType >> Adding class " + className);
             var propertyList = new SortedList<SortableSchemaElement, IJSONProperty>();      // All properties of this class.
@@ -141,8 +143,16 @@ namespace Framework.Util.SchemaManagement.JSON
             }
 
             // Iterate through list of associations (constructed elements) for this class...
+            // First of all, we must check if any associations were on the 'deferred list', in which case we attempt to resolve them now and
+            // add them to our list of associations...
+            List<JSONAssociation> deferredList = JSONDeferredAssociationSlt.GetJSONDeferredAssociationSlt().ProcessList(nodeID);
+            if (deferredList != null) foreach (JSONAssociation assoc in deferredList) associationList.Add(assoc);
+
             foreach (JSONAssociation associatedClass in associationList)
             {
+                // If we originally had 'deferred' associations, they will STILL be on our list with a status of 'deferred' (and IsValid = false).
+                // Since deferred associations thus are invalid, they are silently skipped here and hopefully a resolved and valid version of that
+                // association will be at the end of our list.
                 if (associatedClass.IsValid)
                 {
                     if (associatedClass.IsMandatory) mandatoryProperties.Add(associatedClass.SchemaName);

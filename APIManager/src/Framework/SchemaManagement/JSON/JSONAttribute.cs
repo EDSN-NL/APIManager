@@ -87,7 +87,7 @@ namespace Framework.Util.SchemaManagement.JSON
             Logger.WriteInfo("Framework.Util.SchemaManagement.JSON.JSONContentAttribute >> Creating attribute '" + attributeName + "' with classifier '" + classifierName +
                              "' and cardinality '" + cardinality.ToString() + "'.");
 
-            this._useListPostfix = schema.UseLists;
+            this._useListPostfix = schema.UseLists && cardinality.UseLists;
 
             if (!string.IsNullOrEmpty(fixedValue))
             {
@@ -156,7 +156,7 @@ namespace Framework.Util.SchemaManagement.JSON
                     // If the classifier name ends with 'Type', we remove this before adding a new post-fix 'ListType' but only in case
                     // the schema settings allow this!
                     string listType = classifierName;
-                    if (schema.UseLists)
+                    if (schema.UseLists && cardinality.UseLists)
                     {
                         listType = classifierName.EndsWith("Type") ? classifierName.Substring(0, classifierName.IndexOf("Type")) : classifierName;
                         listType += "ListType";
@@ -496,7 +496,7 @@ namespace Framework.Util.SchemaManagement.JSON
 
         /// <summary>
         /// Helper function that returns the schema name of the attribute.
-        /// If the name represents a list, we append 'List' to the name (but only in case this is allowed by current Schema settings).
+        /// If the name represents a list, we append 'List' to the name (but only in case this is allowed by current Schema- and Cardinality settings).
         /// </summary>
         /// <returns>Attribute name to be used in schemas.</returns>
         private string GetSchemaName()

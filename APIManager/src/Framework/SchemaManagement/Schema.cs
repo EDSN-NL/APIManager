@@ -87,12 +87,13 @@ namespace Framework.Util.SchemaManagement
         /// Both sets of attributes are passed as a single list and correct processing is managed by the Schema implementation.
         /// If an ABIE with the specified name already exists, no processing takes place and 'true' is returned.
         /// </summary>
+        /// <param name="nodeID">Unique numeric identification of the ABIE.</param>
         /// <param name="className">The name of the business component (ABIE name).</param>
         /// <param name="annotation">Optional comment for this element (empty list in case of no comment).</param>
         /// <param name="attributeList">List of content- and supplementary attributes.</param>
         /// <param name="associationList">List of associated classes (ASBIE).</param>
         /// <returns>TRUE in case of success, FALSE on errors. If the type already exists, no action is performed and the operation returns TRUE.</returns>
-        internal abstract bool AddABIEType(string className, List<MEDocumentation> annotation, List<SchemaAttribute> attributeList, List<SchemaAssociation> associationList);
+        internal abstract bool AddABIEType(int nodeID, string className, List<MEDocumentation> annotation, List<SchemaAttribute> attributeList, List<SchemaAssociation> associationList);
 
         /// <summary>
         /// This operation is used to create a type definition for a complex-type Basic Business Information Entity (BBIE). These are always of type CDT (or BDT derived from CDT).

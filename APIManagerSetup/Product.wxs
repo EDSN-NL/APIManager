@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?define ProductVersion = "2.6.0.0"?>
+<?define ProductVersion = "2.6.3.2"?>
 <?define ProductUpgradeCode = "F638BED5-79FC-4145-A683-6DCD3464465B"?>
 <?define Configuration = "Debug"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
@@ -130,8 +130,8 @@
             <Component Id="APIMgrResources" Guid="A6C9768F-4C41-4249-947C-34D7EA6DEF90" DiskId="1">
               <File Id="CodeListHeader.txt" Name="CodeListHeader.txt" Source="..\APIManager\resources\CodeListHeader.txt" />
               <File Id="EDSN_LDT_MappingTable.txt" Name="EDSN-LDT-MappingTable.txt" Source="..\APIManager\resources\EDSN-LDT-MappingTable.txt" />
-              <File Id="MenuEventHandlerConfig.xml" Name="EventHandlerConfig.xml" Source="..\APIManager\resources\MenuEventHandlerConfig.xml" />
-              <File Id="MenuEventHandlerConfig.xsd" Name="EventHandlerConfig.xsd" Source="..\APIManager\resources\MenuEventHandlerConfig.xsd" />
+              <File Id="MenuEventHandlerConfig.xml" Name="MenuEventHandlerConfig.xml" Source="..\APIManager\resources\MenuEventHandlerConfig.xml" />
+              <File Id="MenuEventHandlerConfig.xsd" Name="MenuEventHandlerConfig.xsd" Source="..\APIManager\resources\MenuEventHandlerConfig.xsd" />
               <File Id="ObjectEventHandlerConfig.xml" Name="ObjectEventHandlerConfig.xml" Source="..\APIManager\resources\ObjectEventHandlerConfig.xml" />
               <File Id="ObjectEventHandlerConfig.xsd" Name="ObjectEventHandlerConfig.xsd" Source="..\APIManager\resources\ObjectEventHandlerConfig.xsd" />
               <File Id="GenericodeTemplate.txt" Name="GenericodeTemplate.txt" Source="..\APIManager\resources\GenericodeTemplate.txt" />

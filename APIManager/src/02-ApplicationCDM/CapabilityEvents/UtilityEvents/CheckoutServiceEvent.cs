@@ -16,6 +16,8 @@ namespace Plugin.Application.Events.Util
     /// </summary>
     class CheckoutServiceEvent : MenuEventImplementation
     {
+        private const string _VersionPrefix = "_V";
+
         /// <summary>
         /// Checks whether we can process the event in the current context. Since this context is already clearly defined by the 'Service'
         /// stereotype, we only return 'false' when configuration management is generally disabled.
@@ -75,8 +77,11 @@ namespace Plugin.Application.Events.Util
                                     {
                                         // We're going to create a new service instance with a new major version. This service is then
                                         // checked-out and we leave the original alone.
-                                        svcContext = new ServiceContext(myService.CopyService(myService.DeclarationPkg.Name));
+                                        string newName = myService.DeclarationPkg.Name;
+                                        newName = newName.Substring(0, newName.LastIndexOf(_VersionPrefix) + _VersionPrefix.Length) + dialog.NewVersion.Item1;
+                                        svcContext = new ServiceContext(myService.CopyService(newName));
                                         myService = svcContext.GetServiceInstance();        // Instance of copied service.
+                                        myService.BuildNumber = 1;                          // Make sure to reset the build number for the new service!
                                         needCheckout = false;
                                     }
                                     if (myService.Version.Item1 != dialog.NewVersion.Item1 || 

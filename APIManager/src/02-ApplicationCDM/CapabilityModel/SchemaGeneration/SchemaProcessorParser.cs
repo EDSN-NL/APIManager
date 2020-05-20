@@ -231,7 +231,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
                             else
                             {
                                 JSONSchema classSchema = targetInCommonSchema ? (JSONSchema)this._commonSchema : null;
-                                associationList.Add(new JSONAssociation((JSONSchema)targetSchema, associationName, unqualifiedTargetName, sequenceKey, choiceGroup,
+                                associationList.Add(new JSONAssociation(node.ElementID, (JSONSchema)targetSchema, associationName, unqualifiedTargetName, sequenceKey, choiceGroup,
                                                                         cardinality, classSchema));
                             }
                             
@@ -584,7 +584,7 @@ namespace Plugin.Application.CapabilityModel.SchemaGeneration
 
                 Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.processClass >> Adding class '" + unqualifiedName + "' to Schema...");
                 Schema targetSchema = inCommonSchema? this._commonSchema : this._schema;
-                if (targetSchema.AddABIEType(unqualifiedName, currentClass.GetDocumentation(), attribList, associationList))
+                if (targetSchema.AddABIEType(currentClass.ElementID, unqualifiedName, currentClass.GetDocumentation(), attribList, associationList))
                 {
                     Logger.WriteInfo("Plugin.Application.CapabilityModel.SchemaGeneration.SchemaProcessor.processClass >> Returning FQN: " + qualifiedClassName);
                     return qualifiedClassName;

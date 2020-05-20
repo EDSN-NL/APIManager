@@ -17,7 +17,8 @@ namespace SparxEA.Model
         private EA.Connector _connector;      // EA Association representation.
 
         // Some configuration properties used by this module...
-        private const string _MessageAssociationStereotype = "MessageAssociationStereotype";
+        private const string _MessageAssociationStereotype  = "MessageAssociationStereotype";
+        private const string _SuppressListTag               = "SuppressListTag";
 
         /// <summary>
         /// The internal constructor is called with an EA-specific association identifier.
@@ -220,20 +221,20 @@ namespace SparxEA.Model
         }
 
         /// <summary>
-        /// Returns an integer representation of an EA 'Cardinality' string. In theory, this string can contain litrally anything. In our particular case, we support:
-        /// - Single value 'n' is translated to 'exactly n', i.e. minOcc = maxOcc = 'n'. Unless 'n' == 0, in which case minOcc = 0, maxOcc = 1;
-        /// - Single value '*' is translated to '0 to unbounded', represented by minOcc = maxOcc = 0;
-        /// - Range 'n..m' is translated to minOcc = 'n', maxOcc = 'm'. Unless 'm' = 0, in which case maxOcc = 1. If this leads to minOcc > maxOcc, both values will be swapped!
-        /// - Range 'n..*' is translated to minOcc = 'n', maxOcc = 0 (maxOcc == 0 is lateron interpreted as 'unbounded').
-        /// All other formats will result in an ArgumentException!
+        /// Returns a Cardinalty object that represents the cardinality of the specified association end. Apart from lower- and upper
+        /// boundaries, the Cardinality object also takes into consideration whether a list element must be created for this particular
+        /// cardinality (property CreateListElement).
         /// </summary>
         /// <param name="endpoint">The endpoint to be evaluated.</param>
         /// <returns>Tuple consisting of minOCC, maxOcc.</returns>
         /// <exception cref="IllegalCardinalityException">Is thrown in case we could not obtain a valid cardinality.</exception>
         internal override Cardinality GetCardinality(MEAssociation.AssociationEnd endpoint)
         {
+            string suppressListTag = GetTag(ContextSlt.GetContextSlt().GetConfigProperty(_SuppressListTag), MEAssociation.AssociationEnd.Association);
+            bool suppressList = !string.IsNullOrEmpty(suppressListTag) && string.Compare(suppressListTag, "true", true) == 0;
             return new Cardinality((endpoint == MEAssociation.AssociationEnd.Source) ? this._connector.ClientEnd.Cardinality.Trim() :
-                                                                                       this._connector.SupplierEnd.Cardinality.Trim());
+                                                                                       this._connector.SupplierEnd.Cardinality.Trim(),
+                                                                                       suppressList);
         }
 
         /// <summary>
@@ -299,7 +300,7 @@ namespace SparxEA.Model
                 {
                     foreach (ConnectorTag t in this._connector.TaggedValues)
                     {
-                        if (String.Compare(t.Name, tagName, StringComparison.OrdinalIgnoreCase) == 0) return t.Value; //Case-independent compare.
+                        if (String.Compare(t.Name, tagName, StringComparison.OrdinalIgnoreCase) == 0) return t.Value; 
                     }
                 }
                 else
@@ -307,7 +308,7 @@ namespace SparxEA.Model
                     EA.ConnectorEnd connectorEnd = (endpoint == MEAssociation.AssociationEnd.Source) ? this._connector.ClientEnd : this._connector.SupplierEnd;
                     foreach (RoleTag t in connectorEnd.TaggedValues)
                     {
-                        if (String.Compare(t.Tag, tagName, StringComparison.OrdinalIgnoreCase) == 0) return t.Value; //Case-independent compare.
+                        if (String.Compare(t.Tag, tagName, StringComparison.OrdinalIgnoreCase) == 0) return t.Value;
                     }
                 }
             }
@@ -441,7 +442,7 @@ namespace SparxEA.Model
             }
             else
             {
-                Logger.WriteError("SparxEA.Model.EAMEIAssociation.GetCardinality >> Unable to change cardinality of association as a whole, select an endpoint instead!");
+                Logger.WriteError("SparxEA.Model.EAMEIAssociation.SetCardinality >> Unable to change cardinality of association as a whole, select an endpoint instead!");
                 return;
             }
             this._connector.Direction = "Source -> Destination";

@@ -41,12 +41,27 @@ namespace Framework.Model
         /// Getters for some of the simple element's virtual properties...
         /// These return NULL, -1 or empty string (depending on the getter) in case of problems.
         /// </summary>
-        internal string AliasName  {get { return (this._imp != null)? this._imp.AliasName : string.Empty; }}
         internal int ElementID     {get { return (this._imp != null)? this._imp.ElementID : -1; }}
         internal string GlobalID   {get { return (this._imp != null)? this._imp.GlobalID : string.Empty; }}
         internal bool Valid        {get { return (this._imp != null) && this._imp.Valid; } }
         internal ModelElementType Type {get { return (this._imp != null)? this._imp.Type : ModelElementType.Unknown; }}
         internal ModelElementImplementation Implementation { get { return this._imp; } }
+
+        /// <summary>
+        /// Get- or set the alternative name of the model element.
+        /// </summary>
+        internal string AliasName 
+        { 
+            get 
+            { 
+                return (this._imp != null) ? this._imp.AliasName : string.Empty; 
+            }
+            set
+            {
+                if (this._imp != null) this._imp.AliasName = value;
+                else throw new MissingImplementationException("ModelElementImplementation");
+            }
+        }
 
         /// <summary>
         /// Reads or writes the name of the element.

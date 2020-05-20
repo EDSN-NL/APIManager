@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<MDG.Technology version="1.0"><Documentation id="ArchiExt" name="Archimate Extension" version="1.0" notes="Extension of Archimate 3 for creation of CMDB Application Models"/><UMLProfiles><UMLProfile profiletype="uml2">
+			<Documentation id="AF4B2854-5" name="ArchimateExtension" version="1.0" notes="Extensions on the Archimate 3 Application Models"/>
+			<Content>
+				<Stereotypes>
+					<Stereotype name="CMDBApplicationComponent" metatype="ApplicationComponent" notes="" cx="0" cy="0" bgcolor="15658671" fontcolor="-1" bordercolor="-1" borderwidth="1" hideicon="0" generalizes="ArchiMate3::ArchiMate_ApplicationComponent" baseStereotypes="ArchiMate3::ArchiMate_ApplicationComponent">
+						<Image type="EAShapeScript 1.0" xmlns:dt="urn:schemas-microsoft-com:datatypes" dt:dt="bin.base64">UEsDBBQAAAAIAEx/kFDpzCHfCgIAAAAIAAAHABEAc3RyLmRhdFVUDQAHvoCYXr6AmF6+gJhe
+tVXbTsJAEJ1XTfwHIi8lwQTvMYZHv8APMNAibbSFtEWCxn/3nNku224L1QdDOt3LmdkzM2dL
+IbHMZC0LGUiKUSKZnMmpfKk9kXes7WQlGynx2ylyKucyx1ouEWY5Zo8VOsNqoREjjLZAltjf
+AGUR9HgFJpFPjAJ5kImM5R52tMfk2AnhOUO8JRgQRxSfS1j3dj48MULcDZgZBmQagNu62mNm
+S8zHeDI8zjcBo0B9CqBzMKdvrvkyQpsP8+S8hO9KozHqRKOOqqi2gse5sYpl5b9tsPruzSzD
+OMXYeIfKq6w64uIY6zwH+1N9nsyd3WEEjiIwSmBL+E7lCvnZmIwXIh7VMdeKTOHHeSGu192d
+vNDejfdvY+u9PO5Xt+TUrlh3znUV9GcewyZAxmDRzN2e0j7D9sOPHsuL1obxMr09zV65vMmD
+DEvt73AfcdihDGP58E6F2lOnyIGupNrrrDqNWMuK6KRad17kRrTjZOz/3hBb0UWlH79+KSJ8
+YL3EO6j1v64YVpfM65hjCPPd6Uf43xkf5dj0o5pfue68bn8R59rDFFppdoMq520Nem+Tu0M3
+nTEP+ZCf9fHzYdejAxzIkbp5A6oL8VdN8x+E94dYq5TDmn6Wp5qm+9Sc6NfNP8ko2P6fdenY
+KJgdW6uOTcVMrYy9a1Wsiee+xRpNtX2aqmHf+lTDPvkYW+8fUEsBAhcLFAAAAAgATH+QUOnM
+Id8KAgAAAAgAAAcACQAAAAAAAAAAAACAAAAAAHN0ci5kYXRVVAUAB76AmF5QSwUGAAAAAAEA
+AQA+AAAAQAIAAAAA</Image>
+						<AppliesTo>
+							<Apply type="Class">
+								<Property name="isActive" value=""/>
+							</Apply>
+						</AppliesTo>
+						<TaggedValues>
+							<Tag name="ID" type="string" description="" unit="" values="" default=""/>
+							<Tag name="synonym" type="string" description="" unit="" values="" default=""/>
+							<Tag name="status" type="string" description="" unit="" values="" default=""/>
+							<Tag name="activeIndicator" type="boolean" description="" unit="" values="true,false" default=""/>
+							<Tag name="department" type="string" description="" unit="" values="" default=""/>
+							<Tag name="importance" type="string" description="" unit="" values="" default=""/>
+							<Tag name="source" type="string" description="" unit="" values="" default=""/>
+							<Tag name="ownerName" type="string" description="" unit="" values="" default=""/>
+							<Tag name="expertName" type="string" description="" unit="" values="" default=""/>
+							<Tag name="lastChangedDateTime" type="string" description="" unit="" values="" default=""/>
+							<Tag name="lastVersion" type="string" description="" unit="" values="" default=""/>
+							<Tag name="currentVersion" type="string" description="" unit="" values="" default=""/>
+							<Tag name="deploymentType" type="string" description="" unit="" values="" default=""/>
+						</TaggedValues>
+					</Stereotype>
+				</Stereotypes>
+				<TaggedValueTypes/>
+				<ViewDefinitions/>
+				<Metamodel/>
+			</Content>
+		</UMLProfile>
+	</UMLProfiles><UIToolboxes><UMLProfile profiletype="uml2">
+			<Documentation id="9D088588-E" name="ArchimateExtensionToolbox" version="1.0" notes="Toolbox showing our extended Archimate components"/>
+			<Content>
+				<Stereotypes>
+					<Stereotype name="ApplicationObjects" notes="" cx="0" cy="0" bgcolor="-1" fontcolor="-1" bordercolor="-1" borderwidth="-1" hideicon="0">
+						<AppliesTo>
+							<Apply type="ToolboxPage"/>
+						</AppliesTo>
+						<TaggedValues>
+							<Tag name="ArchimateExtension::CMDBApplicationComponent(UML::Class)" type="" description="" unit="" values="" default="CMDBApplication"/>
+						</TaggedValues>
+					</Stereotype>
+				</Stereotypes>
+				<TaggedValueTypes/>
+				<ViewDefinitions/>
+				<Metamodel/>
+			</Content>
+		</UMLProfile>
+	</UIToolboxes></MDG.Technology>

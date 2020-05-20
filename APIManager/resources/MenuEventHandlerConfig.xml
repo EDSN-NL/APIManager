@@ -261,6 +261,10 @@
             <!-- Simply shows meta data of currently selected class. Does not required specific preconditions. -->
             <HandlerFQN>Plugin.Application.Events.Util.ClassInspectorEvent</HandlerFQN>
           </EventHandler>
+          <EventHandler ID="Deploy Application List">
+            <!-- We can always select this operation when in the package tree. -->
+            <HandlerFQN>Plugin.Application.Events.Util.DeployApplicationListEvent</HandlerFQN>
+          </EventHandler>
           <EventHandler ID="Edit Capability Documentation">
             <HandlerFQN>Plugin.Application.Events.Util.CapabilityDocumentationEvent</HandlerFQN>
             <StereotypeList>

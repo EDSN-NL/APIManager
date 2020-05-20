@@ -28,7 +28,6 @@ namespace Plugin.ApplicationBDM.Events
         {
             ContextSlt context = ContextSlt.GetContextSlt();
             Diagram myDiagram = targetDiagram != null ? targetDiagram : context.CurrentDiagram;
-            bool modified = false;
 
             MEClass element = eventObject as MEClass;
             if (IsValidContext() && element != null)
@@ -57,13 +56,12 @@ namespace Plugin.ApplicationBDM.Events
                                 rep.BackgroundColor = DiagramClassRepresentation.ColorToBytes(bgColor);
                                 rep.FontColor = DiagramClassRepresentation.ColorToBytes(fontColor);
                                 rep.Apply();    // Re-draws the element according to representation settings.
-                                modified = true;
                             }
                         }
                     }
                 }
             }
-            return modified;
+            return eventType == ObjectEventType.Created ? false : true;
         }
 
         /// <summary>

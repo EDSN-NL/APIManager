@@ -68,6 +68,24 @@ namespace Framework.Model
         internal abstract MEObject CreateObject(string name, MEClass classifier, List<Tuple<string, string>> runtimeState, int sortID);
 
         /// <summary>
+        /// Either creates a new class in the current package, or performs an update of an existing class. The function accepts a set of metadata
+        /// for the new class: the name, alias name, stereotype, notes and a set of tags. On an existing class, we (re-) assign alias name, notes
+        /// and the tag list (we do not check whether additional tags, outside the list, exist). If we don't specify a class to be updated, the
+        /// function will search for the class with the specified 'name' (and 'stereotype') and if found, updates that class. When no class is 
+        /// specified and we can't find an existing class with the specified name and stereotype, a new class will be created.
+        /// </summary>
+        /// <param name="name">The name of the class to either create or update.</param>
+        /// <param name="aliasName">An optional alias name for the class, specify either null or empty string when not needed.</param>
+        /// <param name="stereotype">Mandatory class primary stereotype.</param>
+        /// <param name="notes">Optional notes for the class, specify either null or empty string when not needed.</param>
+        /// <param name="tagList">List of tags to assign to the class. These are tuples in which the first item is the tag name, the second
+        /// the tag value.</param>
+        /// <param name="thisClass">When specified, we will force an update of that particular class instead of searching for the class by name.</param>
+        /// <returns>Created or updated class reference. The first item in the returned tuple contains the class, the second item
+        /// is an indicator that indicates whether we have updated an existing class (false) or created a new class (true).</returns>
+        internal abstract Tuple<MEClass,bool> CreateOrUpdateClass(string name, string aliasName, string stereotype, string notes, List<Tuple<string, string>> tagList, MEClass thisClass);
+
+        /// <summary>
         /// Create a new package instance as a child of the current package and with given name and stereotype.
         /// Optionally, a sorting ID can be provided, which is used to specify the order of the new package amidst the
         /// children of the parent package. If omitted, the order is defined by the repository (typically, this will imply
@@ -154,12 +172,26 @@ namespace Framework.Model
         /// One or both parameters must be specified. If we have only the name part, the function returns all classes
         /// that contain that name part. If only the stereotype is specified, we return all classes that contain the
         /// stereotype. If both are specified, we return all classes of the specified stereotype that match the name filter.
-        /// The list is ordered ascending by class name.
+        /// The list is ordered ascending by class name. The function uses an approximate search, returning all classes
+        /// of which the name (or alias) matches either the entire name filter or contain the name filter.
+        /// By setting 'useAlias' to 'true', the function uses the Alias Name of the class instead of the normal name.
         /// </summary>
         /// <param name="nameFilter">Optional (part of) name to search for.</param>
         /// <param name="stereotype">Optional stereotype of class.</param>
+        /// <param name="useAliasName">When 'true' use the class Alias Name instead of 'ordinary' Name.</param>
         /// <returns>List of classes found (can be empty).</returns>
-        internal abstract List<MEClass> FindClasses(string nameFilter, string stereotype);
+        internal abstract List<MEClass> FindClasses(string nameFilter, string stereotype, bool useAliasName);
+
+        /// <summary>
+        /// Searches the package for any class containing the specified tag name and (optional) tag value. If the value
+        /// is not specified, we return all classes in the package that have the specified tag name, irrespective of contents.
+        /// If the tag value is specified as well, we only return classes that contain the specified tag AND an exact
+        /// match on the value of that tag.
+        /// </summary>
+        /// <param name="tagName">The tag name we're looking for.</param>
+        /// <param name="tagValue">Optional value for the tag (exact match).</param>
+        /// <returns>List of classes found (can be empty).</returns>
+        internal abstract List<MEClass> FindClassesByTag(string tagName, string tagValue);
 
         /// <summary>
         /// Searches the package for any diagram with given name.
@@ -203,6 +235,12 @@ namespace Framework.Model
         /// </summary>
         /// <returns>Number of classes in the package.</returns>
         internal abstract int GetClassCount();
+
+        /// <summary>
+        /// Iterator that returns each child package of the current package.
+        /// </summary>
+        /// <returns>Next package</returns>
+        internal abstract IEnumerable<MEPackage> GetPackages();
 
         /// <summary>
         /// Returns the parent MEIPackage instance of this package, or NULL if no parent known.

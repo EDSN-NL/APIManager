@@ -24,6 +24,8 @@ namespace Framework.Util.SchemaManagement.JSON
         private JSchema _associationClassifier;     // Represents the association as a (referenced) schema. 
         private bool _isList;                       // Set to 'true' if the association has a cardinality > 1.
         private bool _useListPostfix;               // Set to 'true' when the Schema forces use of "List" postfix in case cardinality > 1.
+        private bool _isDeferred;                   // Set to 'true' when we were not able to solve the target of the association at constructor time!
+                                                    // The association properties are kept by the Deferred Association singleton at this time.
 
         /// <summary>
         /// Implementation of the JSON Property interface:
@@ -39,11 +41,17 @@ namespace Framework.Util.SchemaManagement.JSON
         public new bool IsMandatory     { get { return base.IsMandatory; } }
 
         /// <summary>
+        /// Returns true in case the association is on the 'deferred' list, which must be resolved at a later time...
+        /// </summary>
+        internal bool IsDeferred { get { return this._isDeferred; } }
+
+        /// <summary>
         /// Creates a new Association object (ASBIE instance) within the given schema. Other arguments are the name of the target ABIE as well as the 
         /// cardinality of the association (target end). If the target of the association (the actual classifier definition) resides in another schema, 
         /// a reference to that schema MUST be passed through 'namespaceRef'. If this is NULL, it is assumed that we can locate the ABIE in our
         /// current schema (passed as 'schema').
         /// </summary>
+        /// <param name="nodeID">The unique identifier of the source node (i.e. class that is the originator of the association)</param>
         /// <param name="schema">The schema in which the ASBIE is being created.</param>
         /// <param name="associationName">The name that will be assigned to the element (role name of the association).</param>
         /// <param name="classifierName">The name of the target ABIE type.</param>
@@ -51,7 +59,7 @@ namespace Framework.Util.SchemaManagement.JSON
         /// <param name="choiceGroup">Optional identifier of choicegroup that this association should go to (NULL is not defined).</param>
         /// <param name="cardinality">Association cardinality. An upper boundary of '0' is interpreted as 'unbounded'.</param>
         /// <param name="classifierSchema">Optional reference to external schema. If NULL, the classifier is referenced through 'schema.'</param>
-        internal JSONAssociation(JSONSchema schema, string associationName,
+        internal JSONAssociation(int nodeID, JSONSchema schema, string associationName,
                                  string classifierName,
                                  int sequenceKey,
                                  ChoiceGroup choiceGroup,
@@ -62,29 +70,33 @@ namespace Framework.Util.SchemaManagement.JSON
                              " and cardinality: " + cardinality.ToString() + "...");
             this.IsValid = false;
             this._isList = false;
-            this._useListPostfix = schema.UseLists;
+            this._useListPostfix = schema.UseLists && cardinality.UseLists;
+            this._isDeferred = false;
 
             JSONSchema searchSchema = classifierSchema ?? schema;
             JSchema classSchema = searchSchema.FindClass(classifierName);
             if (classSchema == null)
             {
-                /**********************
-                 * In plaats van deze melding moeten we deze referentie even "parkeren" en aan het eind alsnog oplossen. Wordt i.h.a. namelijk
-                 * veroorzaakt door loops in het model waarbij de target nog niet is geprocessed op het moment dat de loop wordt resolved.
-                 * 
-                 * *********************/
-                Logger.WriteError("Framework.Util.SchemaManagement.JSON.JSONAssociation >> Class '" + classifierName + "' not found in schema '" + searchSchema.Name + "'!");
-                this.IsValid = false;
-                return;
+                // No target schema present yet. We probably are dealing with a self-reference! Defer this association till we're done processing
+                // all classes...
+                var properties = new JSONDeferredAssociationSlt.AssociationProperties(schema, associationName, classifierName, sequenceKey, choiceGroup, cardinality, classifierSchema);
+                if (!JSONDeferredAssociationSlt.GetJSONDeferredAssociationSlt().AddAssociationRequest(nodeID, properties))
+                {
+                    // This time, the target is really missing!
+                    Logger.WriteError("Framework.Util.SchemaManagement.JSON.JSONAssociation >> Class '" + classifierName + "' not found in schema '" + searchSchema.Name + "'!");
+                    this.IsValid = false;
+                }
+                this._isDeferred = true;    
+                return;     // We keep the 'isValid' status set to 'false', since deferred association objects are in fact invalid.
             }
 
             // If cardinality suggests a list, we have to create an array of type, instead of only the type.
-            // We will add a new postfix for this type, EXCEPT when the schema settings indicate this should not happen.
+            // We will add a new postfix for this type, EXCEPT when the schema- and cardinality settings indicate this should not happen.
             if (cardinality.IsList)
             {
                 // If the classifier name ends with 'Type', we remove this before adding a new post-fix 'ListType'...
                 string listType = classifierName;
-                if (schema.UseLists)
+                if (schema.UseLists && cardinality.UseLists)
                 {
                     listType = classifierName.EndsWith("Type") ? classifierName.Substring(0, classifierName.IndexOf("Type")) : classifierName;
                     listType += "ListType";

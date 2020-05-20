@@ -25,6 +25,7 @@ namespace Plugin.Application.CapabilityModel.API
         private List<Tuple<int,RESTResourceCapability>>_documentList;       // The list of registered Document resources for this API.
         private List<Tuple<int, RESTResourceCapability>> _profileSetList;   // The list of registered ProfileSet resources for this API.
         private RESTServiceHeaderParameterMgr _headerManager;               // Manages request- and response headers for this API.
+        private bool _HALSupport;                                           // Set to 'true' to enable generation of HAL-compliant services.
 
         // Keep track of classes and associations to show in the diagram...
         private List<MEClass> _diagramClassList;
@@ -47,6 +48,11 @@ namespace Plugin.Application.CapabilityModel.API
         /// Returns the header parameter manager assigned to this API.
         /// </summary>
         internal RESTServiceHeaderParameterMgr HeaderManager { get { return this._headerManager; } }
+
+        /// <summary>
+        /// Returns 'true' if this is a HAL-compliant service.
+        /// </summary>
+        internal bool IsHALService { get { return this._HALSupport; } }
 
         /// <summary>
         /// Returns the list of ProfileSet Resources for this API.

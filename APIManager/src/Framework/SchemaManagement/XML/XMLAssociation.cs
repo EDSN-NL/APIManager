@@ -35,7 +35,7 @@ namespace Framework.Util.SchemaManagement.XML
         /// <param name="classifier">The name of the target ABIE type.</param>
         /// <param name="sequenceKey">The value of sequenceKey defines the order within a list of associations. Value 0 means 'inactive'</param>
         /// <param name="choiceGroup">Optional identifier of choicegroup that this association should go to (NULL is not defined).</param>
-        /// <param name="cardinality">Association cardinality. An upper boundary of '0' is interpreted as 'unbounded'.</param>
+        /// <param name="suppressList">When 'true', we should never create an additional 'list' element in case cardinality > 1.</param>
         /// <param name="annotation">Optional annotation for the association (empty list in case of no annotation).</param>
         /// <param name="namespaceRef">Optional reference to external namespace. If NULL, the classifier is referenced through the specified schema.</param>
         internal XMLAssociation(XMLSchema schema, string associationName,
@@ -82,7 +82,7 @@ namespace Framework.Util.SchemaManagement.XML
                     }
                 }
 
-                if (schema.UseLists && cardinality.IsList)
+                if (schema.UseLists && cardinality.UseLists)
                 {
                     Logger.WriteInfo("Framework.Util.SchemaManagement.XML.XMLAssociation >> ASBIE cardinality > 1, creating an intermediate List element....");
                     var listElement = new XmlSchemaElement()

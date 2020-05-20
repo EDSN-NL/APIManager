@@ -144,6 +144,7 @@
     <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\AddRESTResourceEvent.cs" />
     <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\CreateRESTServiceDeclarationEvent.cs" />
     <Compile Include="src\02-ApplicationCDM\CapabilityEvents\API\ProcessRESTInterfaceEvent.cs" />
+    <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\DeployApplicationListEvent.cs" />
     <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\SyncStereotypesEvent.cs" />
     <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\UBLDatatypesEvent.cs" />
     <Compile Include="src\02-ApplicationCDM\CapabilityEvents\UtilityEvents\SynchroniseServiceEvent.cs" />
@@ -379,6 +380,7 @@
     <Compile Include="src\Framework\Model\Implementation\MEIProfiler.cs" />
     <Compile Include="src\Framework\Model\Interface\MEProfiler.cs" />
     <Compile Include="src\Framework\Model\Interface\MEClassMetaData.cs" />
+    <Compile Include="src\Framework\SchemaManagement\JSON\JSONDeferredAssociationSlt.cs" />
     <Compile Include="src\Framework\SchemaManagement\JSON\JSONPropertyInterface.cs" />
     <Compile Include="src\Framework\SchemaManagement\JSON\JSONSchema.cs" />
     <Compile Include="src\Framework\SchemaManagement\EnumerationItem.cs" />
